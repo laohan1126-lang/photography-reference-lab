@@ -81,6 +81,25 @@ def test_legacy_choices_preserved_but_descriptions_not_verified(library, tmp_pat
     assert second["created"] == 0 and second["existing"] == 2
 
 
+def test_legacy_repo_relative_image_path_resolves_without_guessing(library, client, tmp_path):
+    root = tmp_path / 'references/changye-huansheng'
+    (root / 'staging/xhs_downloads').mkdir(parents=True)
+    (root / 'staging/xhs_downloads/one.jpg').write_bytes(image_bytes())
+    (root / 'staging/xhs_manifest.json').write_text(json.dumps([
+        {'id': 'one', 'file': 'references/changye-huansheng/staging/xhs_downloads/one.jpg'},
+        {'id': 'absent', 'file': 'references/changye-huansheng/staging/xhs_downloads/absent.jpg'}]))
+    first = migrate_legacy(library, root)
+    assert (first['created'], first['missing'], first['errors']) == (2, 1, [])
+    refs = library.references(first['project_id'])['items']
+    assert sum(bool(ref['asset']) for ref in refs) == 1
+    chosen = next(ref for ref in refs if ref['asset'])
+    changed = client.patch(f"/api/references/{chosen['id']}", json={"expected_revision": chosen['revision'], "decision": "keep"}).json()
+    second = migrate_legacy(library, root)
+    assert (second['created'], second['existing'], second['missing']) == (0, 2, 1)
+    assert library.reference(chosen['id'])['decision'] == 'keep'
+    assert library.reference(chosen['id'])['revision'] == changed['revision']
+
+
 def test_job_cannot_fake_success_and_rejects_wrong_project(client, project, library):
     job = library.create_job(project["id"], JobInput(kind="collection"))
     assert job["status"] == "blocked"

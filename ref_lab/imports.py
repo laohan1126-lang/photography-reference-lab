@@ -184,7 +184,11 @@ def migrate_legacy(library: Library, root: Path, project_id: str | None = None) 
                 if not isinstance(item, dict): raise ValueError("Invalid legacy record")
                 old_id = str(item.get("source_id") or item.get("id") or item.get("selected_id") or index)
                 file = item.get("file") or item.get("local_path") or ""
-                resolved = (root / str(file).replace("\\", "/")).resolve()
+                relative_file = str(file).replace("\\", "/")
+                # Some legacy manifests store repository-relative paths instead of project-relative paths.
+                repo_prefix = f"references/{root.name}/"
+                if relative_file.startswith(repo_prefix): relative_file = relative_file[len(repo_prefix):]
+                resolved = (root / relative_file).resolve()
                 if not resolved.is_relative_to(root): raise ValueError("Legacy image path escapes project root")
                 asset = library.ingest_asset(resolved.read_bytes(), resolved.name) if file and resolved.is_file() else None
                 if asset is None: report["missing"] += 1

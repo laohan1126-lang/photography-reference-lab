@@ -1,7 +1,9 @@
 """Browser workflows use explicitly synthetic fixtures, not claims about real cosplay images."""
 from __future__ import annotations
 
+import hashlib
 import io
+import json
 import os
 import shutil
 import socket
@@ -11,6 +13,7 @@ import zipfile
 from pathlib import Path
 import pytest
 import uvicorn
+from playwright.sync_api import expect
 from ref_lab.api import create_app
 from ref_lab.config import Settings
 from ref_lab.models import CandidateInput, Card, ProjectInput, ReferenceEdit, Source, VisualReview
@@ -78,13 +81,13 @@ def test_browser_select_persist_filter_and_mobile(live_site, browser_page):
     unlock(page, url)
     page.get_by_label("我喜欢／不喜欢的地方").fill("只借鉴动作，不借鉴服装")
     page.get_by_role("button", name="✓ 保留 K", exact=True).click()
-    page.wait_for_function("document.querySelector('#stats').textContent.includes('1人工保留')")
+    expect(page.locator('#stats')).to_contain_text('1人工保留')
     ref = library.references(project["id"], decision="keep")["items"][0]
     assert ref["preference"] == "只借鉴动作，不借鉴服装"
     page.reload()
     page.locator("#main-image").wait_for()
     page.get_by_label("选择状态", exact=True).select_option("keep")
-    page.wait_for_function("document.querySelector('.pagination').textContent.includes('1–1 / 1')")
+    expect(page.locator('.pagination')).to_contain_text('1–1 / 1')
     assert page.get_by_label("我喜欢／不喜欢的地方").input_value() == "只借鉴动作，不借鉴服装"
     artifact(page, "desktop-synthetic-reference.png")
     page.set_viewport_size({"width": 390, "height": 844})
@@ -123,6 +126,8 @@ def test_browser_review_card_accept_and_offline_pack(live_site, browser_page, tm
     form = page.locator("#editor form")
     for name, value in {"intent":"Test only", "verbal_cues":"身体朝那边，舒服地回头。", "static_steps":"先调整朝向。", "photographer_steps":"先确定构图。", "safety":"不要强扭颈部。", "fallback":"减小转身角度。", "visible_evidence":"Synthetic image, not real lighting evidence.", "interpretation":"Test reproduction plan, not original equipment.", "available_gear_plan":"One-light test plan."}.items():
         form.locator(f'[name="{name}"]').fill(value)
+    form.locator('[name="route"]').select_option('cleanup')
+    form.locator('[name="steps"]').fill('仅清理测试背景瑕疵，保留人物原始画面。')
     page.get_by_role("button", name="保存资料卡草稿", exact=True).click()
     page.locator("#editor").wait_for(state="hidden")
     page.get_by_role("button", name="我已核对，确认为现场卡", exact=True).click()
@@ -134,11 +139,16 @@ def test_browser_review_card_accept_and_offline_pack(live_site, browser_page, tm
     download_info.value.save_as(pack)
     extracted = tmp_path / "offline"
     with zipfile.ZipFile(pack) as archive:
+        manifest = json.loads(archive.read('manifest.json'))
+        entry = manifest['references'][0]
+        assert hashlib.sha256(archive.read(entry['offline_original'])).hexdigest() == entry['asset_sha']
         archive.extractall(extracted)  # Trusted, newly generated test output, not user input.
     page.context.set_offline(True)
     page.goto((extracted / "index.html").as_uri())
-    page.wait_for_function("document.querySelector('#photo').naturalWidth > 0")
-    assert "身体朝那边" in page.locator("#guide").text_content()
+    expect(page.locator('#photo')).to_have_js_property('complete', True)
+    guide = page.locator('#guide').text_content()
+    assert '身体朝那边' in guide and '现有器材方案' in guide
+    assert '后期路线：cleanup' in guide and '仅清理测试背景瑕疵' in guide
     assert page.locator("#photo").evaluate("image => image.naturalWidth") == 800
     artifact(page, "offline-synthetic-field-card.png")
 
@@ -164,9 +174,24 @@ def test_browser_project_creation_notes_and_inert_html(live_site, browser_page):
     page.get_by_label("正文（支持保留 Markdown）", exact=True).fill("# 更新\n保留有效的引导。")
     page.get_by_role("button", name="保存笔记", exact=True).click()
     page.locator("#editor").wait_for(state="hidden")
-    assert "保留有效的引导" in page.locator("[data-note]").text_content()
+    expect(page.locator('[data-note]')).to_contain_text('保留有效的引导')
     page.get_by_role("button", name="采集与分析", exact=True).click()
     page.get_by_role("button", name="＋ 建立采集任务", exact=True).click()
     page.get_by_role("button", name="建立待执行任务", exact=True).click()
     page.locator("#editor").wait_for(state="hidden")
     page.get_by_text("等待执行／受阻", exact=True).wait_for()
+    with page.expect_download() as download_info:
+        page.get_by_role('button', name='下载任务包', exact=True).click()
+    job_pack = io.BytesIO(download_info.value.path().read_bytes())
+    with zipfile.ZipFile(job_pack) as archive:
+        assert 'job.json' in archive.namelist()
+        assert 'analysis-result.schema.json' in archive.namelist()
+    page.get_by_role('button', name='导入此任务候选', exact=True).click()
+    payload = io.BytesIO()
+    with zipfile.ZipFile(payload, 'w') as archive:
+        archive.writestr('manifest.json', '{"schema_version":1,"batch_id":"browser","candidates":[{"id":"new","file":"images/new.png"}]}')
+        archive.writestr('images/new.png', image_bytes(8))
+    page.locator('#import-files').set_input_files({'name': 'candidates.zip', 'mimeType': 'application/zip', 'buffer': payload.getvalue()})
+    page.get_by_role('button', name='开始导入', exact=True).click()
+    expect(page.locator('#editor')).to_contain_text('"created": 1')
+    assert library.references(library.projects()[0]['id'])['total'] == 1
