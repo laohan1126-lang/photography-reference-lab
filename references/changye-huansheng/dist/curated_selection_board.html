@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《王昭君·长夜焕生》精选 47 张高清单人姿势库 (Curated Pose References)</title>
+    <style>
+        :root {
+            --bg: #07090e;
+            --surface: #0f141f;
+            --surface-card: #141b2a;
+            --primary: #00f2ff;
+            --primary-glow: rgba(0, 242, 255, 0.25);
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: #1e293b;
+            --border-hover: #0284c7;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+        }
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header-title h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+        .stats-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #090d14;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .stats-highlight {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .nav-tabs {
+            background: #0b0f17;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 32px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .tab {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab:hover {
+            background: var(--surface);
+            color: #fff;
+            border-color: #38bdf8;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #00f2ff, #0284c7);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 14px var(--primary-glow);
+        }
+        .container {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .card {
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s ease;
+        }
+        .card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+        }
+        .card-img-wrap {
+            width: 100%;
+            height: 380px;
+            background: #000;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .card-img-wrap:hover img {
+            transform: scale(1.05);
+        }
+        .badge-sel-id {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .badge-res {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #cbd5e1;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+        .dir-pill {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .pose-desc {
+            font-size: 13.5px;
+            font-weight: 600;
+            line-height: 1.45;
+            color: #f1f5f9;
+        }
+        .suitability-box {
+            background: rgba(0, 242, 255, 0.05);
+            border-left: 3px solid var(--primary);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12.5px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+        .suitability-label {
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .meta-footer {
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            color: var(--text-dim);
+        }
+        .view-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .view-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Lightbox */
+        #lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.94);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 24px;
+        }
+        #lightbox.active {
+            display: flex;
+        }
+        #lb-img {
+            max-width: 90vw;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.9);
+            object-fit: contain;
+        }
+        #lb-info {
+            margin-top: 16px;
+            text-align: center;
+            max-width: 800px;
+        }
+        #lb-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        #lb-desc {
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+        .lb-close {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            font-size: 36px;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .lb-close:hover {
+            transform: scale(1.15);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-title">
+            <h1>👑 王昭君·长夜焕生 摄影精选候选库 (Curated 47 Poses)</h1>
+            <p>已淘汰全数低清切块拼图 | 100% 单人高清实拍与精准构图参考 | 覆盖 7 个摄影执行方向</p>
+        </div>
+        <div class="stats-group">
+            <div>精选总量: <span class="stats-highlight">47 张</span></div>
+            <div>平均分辨率: <span class="stats-highlight">728×1089</span></div>
+            <div>最高分辨率: <span class="stats-highlight">736×1308</span></div>
+        </div>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab active" onclick="filterCat('ALL', this)">全部已选 ALL (47)</button><button class="tab" onclick="filterCat('A_STANDING', this)">A. 基础立姿 (11)</button><button class="tab" onclick="filterCat('B_TURN_BACK', this)">B. 回眸/背身 (8)</button><button class="tab" onclick="filterCat('C_HANDS_FACE', this)">C. 情绪/手部特写 (5)</button><button class="tab" onclick="filterCat('D_LOW_STOOL', this)">D. 矮凳/坐姿 (1)</button><button class="tab" onclick="filterCat('E_PROP', this)">E. 法杖/道具交互 (8)</button><button class="tab" onclick="filterCat('F_LOW_ANGLE', this)">F. 广角低机位 (9)</button><button class="tab" onclick="filterCat('G_DYNAMIC', this)">G. 动态/披风甩动 (5)</button>
+    </div>
+
+    <div class="container" id="grid">
+        
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_01">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_01.jpg', 'SEL_A_01', '正面微侧立姿，双手自然叠放身前，浅色纱裙垂坠，眼神沉静微冷', '冷冽仪态标准全身卡', '735×980')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_01.jpg" alt="SEL_A_01" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_01</span>
+                    <span class="badge-res">735×980</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">正面微侧立姿，双手自然叠放身前，浅色纱裙垂坠，眼神沉静微冷</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 冷冽仪态标准全身卡
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7666289_2</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_01.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_02">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_02.jpg', 'SEL_A_02', '全身直立微仰，单手微抬引颈，裙摆纵向线条挺拔，圣洁神态', '高冷神性全身全身照', '736×1105')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_02.jpg" alt="SEL_A_02" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_02</span>
+                    <span class="badge-res">736×1105</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">全身直立微仰，单手微抬引颈，裙摆纵向线条挺拔，圣洁神态</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 高冷神性全身全身照
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7666300_3</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_02.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_03">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_03.jpg', 'SEL_A_03', '大半身立姿，右手扶肩/领口，身体微呈S弧线，温婉而端庄', '上半身半景仪态参考', '736×894')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_03.jpg" alt="SEL_A_03" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_03</span>
+                    <span class="badge-res">736×894</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">大半身立姿，右手扶肩/领口，身体微呈S弧线，温婉而端庄</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 上半身半景仪态参考
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7666311_4</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_03.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_04">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_04.jpg', 'SEL_A_04', '中远景立姿，双臂微微张开垂落两侧，纱摆蓬松，体态轻盈冷寂', '全身剪影与裙摆张力', '735×1006')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_04.jpg" alt="SEL_A_04" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_04</span>
+                    <span class="badge-res">735×1006</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">中远景立姿，双臂微微张开垂落两侧，纱摆蓬松，体态轻盈冷寂</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 全身剪影与裙摆张力
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7666322_5</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_04.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_05">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_05.jpg', 'SEL_A_05', '侧身45度静立，面部转正，单手垂落微提裙角，层次分明', '侧身线条与服装侧面展示', '720×956')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_05.jpg" alt="SEL_A_05" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_05</span>
+                    <span class="badge-res">720×956</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">侧身45度静立，面部转正，单手垂落微提裙角，层次分明</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 侧身线条与服装侧面展示
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7666349_7</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_05.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_06">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_06.jpg', 'SEL_A_06', '全景正面立姿，双臂自然下垂略带张度，纯净神性背景感', '核心基准全身构图', '736×1104')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_06.jpg" alt="SEL_A_06" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_06</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">全景正面立姿，双臂自然下垂略带张度，纯净神性背景感</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 核心基准全身构图
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7666359_8</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_06.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_07">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_07.jpg', 'SEL_A_07', '经典礼服端庄站姿，一手屈肘微收于腰侧，身形挺立修长', '腰线展示与挺拔仪态', '736×1103')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_07.jpg" alt="SEL_A_07" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_07</span>
+                    <span class="badge-res">736×1103</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">经典礼服端庄站姿，一手屈肘微收于腰侧，身形挺立修长</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 腰线展示与挺拔仪态
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7676289_1</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_07.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_08">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_08.jpg', 'SEL_A_08', '日系唯美站姿，重心移至后足，肩颈微倾，柔和且内敛', '漫展现场易出片自然站姿', '736×1103')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_08.jpg" alt="SEL_A_08" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_08</span>
+                    <span class="badge-res">736×1103</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">日系唯美站姿，重心移至后足，肩颈微倾，柔和且内敛</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 漫展现场易出片自然站姿
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7687070_2</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_08.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_09">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_09.jpg', 'SEL_A_09', '修长全身立姿，头微昂，下颌线分明，披风由双肩垂落至地面', '昭君高傲气场全身立像', '736×1308')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_09.jpg" alt="SEL_A_09" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_09</span>
+                    <span class="badge-res">736×1308</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">修长全身立姿，头微昂，下颌线分明，披风由双肩垂落至地面</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 昭君高傲气场全身立像
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7687088_3</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_09.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_10">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_10.jpg', 'SEL_A_10', '3/4侧立微转体，手轻按腹前腰节，发丝顺垂于前胸', '胸腹线条与前发整理参考', '736×1104')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_10.jpg" alt="SEL_A_10" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_10</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">3/4侧立微转体，手轻按腹前腰节，发丝顺垂于前胸</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 胸腹线条与前发整理参考
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7687140_6</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_10.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="A_STANDING" data-id="SEL_A_11">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/A_STANDING/SEL_A_11.jpg', 'SEL_A_11', '挺拔立姿微俯视镜头，双手下垂相扣，气场沉稳内敛', '神女审视感正位立姿', '736×1308')">
+                    <img src="../curated_candidates/A_STANDING/SEL_A_11.jpg" alt="SEL_A_11" loading="lazy">
+                    <span class="badge-sel-id">SEL_A_11</span>
+                    <span class="badge-res">736×1308</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">A 基础立姿 (Standing)</div>
+                    <div class="pose-desc">挺拔立姿微俯视镜头，双手下垂相扣，气场沉稳内敛</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 神女审视感正位立姿
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_A_STANDING_7687157_7</span>
+                        <a href="../curated_candidates/A_STANDING/SEL_A_11.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_01">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_01.jpg', 'SEL_B_01', '半侧身回头过肩，下巴微敛，目光精准直视镜头，肩背线条极美', '经典回眸特写/中景', '736×1096')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_01.jpg" alt="SEL_B_01" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_01</span>
+                    <span class="badge-res">736×1096</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">半侧身回头过肩，下巴微敛，目光精准直视镜头，肩背线条极美</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 经典回眸特写/中景
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7696528_2</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_01.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_02">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_02.jpg', 'SEL_B_02', '大角度转体回头，身体背向，头部转过约90度，发丝甩动', '转身动感瞬间捕捉', '735×1106')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_02.jpg" alt="SEL_B_02" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_02</span>
+                    <span class="badge-res">735×1106</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">大角度转体回头，身体背向，头部转过约90度，发丝甩动</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 转身动感瞬间捕捉
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7722465_2</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_02.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_03">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_03.jpg', 'SEL_B_03', '静止背身回眸，单手轻抬护于肩后，披风大面积背身留白', '背部冰晶与斗篷细节展示', '736×1104')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_03.jpg" alt="SEL_B_03" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_03</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">静止背身回眸，单手轻抬护于肩后，披风大面积背身留白</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 背部冰晶与斗篷细节展示
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7722494_4</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_03.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_04">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_04.jpg', 'SEL_B_04', '侧背立姿，头部微扬越肩下视，带冷漠审视情绪', '孤傲疏离感越肩构图', '736×1104')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_04.jpg" alt="SEL_B_04" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_04</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">侧背立姿，头部微扬越肩下视，带冷漠审视情绪</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 孤傲疏离感越肩构图
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7722509_5</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_04.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_05">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_05.jpg', 'SEL_B_05', '柔和侧回眸，身体自然前倾，眼神幽深带有叙事感', '情绪向背身回头', '736×1104')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_05.jpg" alt="SEL_B_05" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_05</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">柔和侧回眸，身体自然前倾，眼神幽深带有叙事感</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 情绪向背身回头
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7733490_1</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_05.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_06">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_06.jpg', 'SEL_B_06', '高机位俯瞰背身回首，发丝与长裙在地面铺展', '俯拍视角回眸参考', '576×1024')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_06.jpg" alt="SEL_B_06" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_06</span>
+                    <span class="badge-res">576×1024</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">高机位俯瞰背身回首，发丝与长裙在地面铺展</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 俯拍视角回眸参考
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7733516_3</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_06.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_07">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_07.jpg', 'SEL_B_07', '大幅度回眸，肩头微耸锁骨清晰，回望眼神专注清澈', '肩部特写与面部高光', '735×1102')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_07.jpg" alt="SEL_B_07" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_07</span>
+                    <span class="badge-res">735×1102</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">大幅度回眸，肩头微耸锁骨清晰，回望眼神专注清澈</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 肩部特写与面部高光
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7733526_4</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_07.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="B_TURN_BACK" data-id="SEL_B_08">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/B_TURN_BACK/SEL_B_08.jpg', 'SEL_B_08', '正背身站立，头部大幅度侧转，突出身后披风整体轮廓', '全身背影与披风剪影', '650×1027')">
+                    <img src="../curated_candidates/B_TURN_BACK/SEL_B_08.jpg" alt="SEL_B_08" loading="lazy">
+                    <span class="badge-sel-id">SEL_B_08</span>
+                    <span class="badge-res">650×1027</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">B 回眸/背身 (Turn Back)</div>
+                    <div class="pose-desc">正背身站立，头部大幅度侧转，突出身后披风整体轮廓</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 全身背影与披风剪影
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_B_TURN_BACK_7733575_8</span>
+                        <a href="../curated_candidates/B_TURN_BACK/SEL_B_08.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="C_HANDS_FACE" data-id="SEL_C_01">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/C_HANDS_FACE/SEL_C_01.jpg', 'SEL_C_01', '单手轻抚面纱/颊侧，指尖虚点唇边，眼神空灵微怅', '面纱与指尖情绪特写', '736×1308')">
+                    <img src="../curated_candidates/C_HANDS_FACE/SEL_C_01.jpg" alt="SEL_C_01" loading="lazy">
+                    <span class="badge-sel-id">SEL_C_01</span>
+                    <span class="badge-res">736×1308</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">C 情绪/手部特写 (Hands & Face)</div>
+                    <div class="pose-desc">单手轻抚面纱/颊侧，指尖虚点唇边，眼神空灵微怅</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 面纱与指尖情绪特写
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_C_HANDS_FACE_7743758_6</span>
+                        <a href="../curated_candidates/C_HANDS_FACE/SEL_C_01.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="C_HANDS_FACE" data-id="SEL_C_02">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/C_HANDS_FACE/SEL_C_02.jpg', 'SEL_C_02', '双手环抱于胸前上方靠近下颌，指节柔美修长，微闭目或垂眸', '祈祷与沉思神态', '736×1103')">
+                    <img src="../curated_candidates/C_HANDS_FACE/SEL_C_02.jpg" alt="SEL_C_02" loading="lazy">
+                    <span class="badge-sel-id">SEL_C_02</span>
+                    <span class="badge-res">736×1103</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">C 情绪/手部特写 (Hands & Face)</div>
+                    <div class="pose-desc">双手环抱于胸前上方靠近下颌，指节柔美修长，微闭目或垂眸</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 祈祷与沉思神态
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_C_HANDS_FACE_7761958_6</span>
+                        <a href="../curated_candidates/C_HANDS_FACE/SEL_C_02.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="C_HANDS_FACE" data-id="SEL_C_03">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/C_HANDS_FACE/SEL_C_03.jpg', 'SEL_C_03', '单手托腮/抚颊，手腕柔和折角，眼神直视微冷', '昭君孤寂感面部特写', '736×903')">
+                    <img src="../curated_candidates/C_HANDS_FACE/SEL_C_03.jpg" alt="SEL_C_03" loading="lazy">
+                    <span class="badge-sel-id">SEL_C_03</span>
+                    <span class="badge-res">736×903</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">C 情绪/手部特写 (Hands & Face)</div>
+                    <div class="pose-desc">单手托腮/抚颊，手腕柔和折角，眼神直视微冷</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 昭君孤寂感面部特写
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_C_HANDS_FACE_7772054_3</span>
+                        <a href="../curated_candidates/C_HANDS_FACE/SEL_C_03.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="C_HANDS_FACE" data-id="SEL_C_04">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/C_HANDS_FACE/SEL_C_04.jpg', 'SEL_C_04', '双手轻掩心口，指尖放松微曲，带哀怜与觉醒之态', '长夜破晓前的心绪抒发', '675×1200')">
+                    <img src="../curated_candidates/C_HANDS_FACE/SEL_C_04.jpg" alt="SEL_C_04" loading="lazy">
+                    <span class="badge-sel-id">SEL_C_04</span>
+                    <span class="badge-res">675×1200</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">C 情绪/手部特写 (Hands & Face)</div>
+                    <div class="pose-desc">双手轻掩心口，指尖放松微曲，带哀怜与觉醒之态</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 长夜破晓前的心绪抒发
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_C_HANDS_FACE_7772078_5</span>
+                        <a href="../curated_candidates/C_HANDS_FACE/SEL_C_04.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="C_HANDS_FACE" data-id="SEL_C_05">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/C_HANDS_FACE/SEL_C_05.jpg', 'SEL_C_05', '指尖微触眼下或耳际，微侧头，突出眼妆与冰雪睫毛', '眼部妆容与高光近景', '735×904')">
+                    <img src="../curated_candidates/C_HANDS_FACE/SEL_C_05.jpg" alt="SEL_C_05" loading="lazy">
+                    <span class="badge-sel-id">SEL_C_05</span>
+                    <span class="badge-res">735×904</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">C 情绪/手部特写 (Hands & Face)</div>
+                    <div class="pose-desc">指尖微触眼下或耳际，微侧头，突出眼妆与冰雪睫毛</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 眼部妆容与高光近景
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_C_HANDS_FACE_7772091_6</span>
+                        <a href="../curated_candidates/C_HANDS_FACE/SEL_C_05.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="D_LOW_STOOL" data-id="SEL_D_01">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/D_LOW_STOOL/SEL_D_01.jpg', 'SEL_D_01', '浅坐矮凳微侧身，双膝并拢斜放，双手交叠置于膝上，腰背挺直', '漫展现场休息且保持高雅的坐姿', '640×960')">
+                    <img src="../curated_candidates/D_LOW_STOOL/SEL_D_01.jpg" alt="SEL_D_01" loading="lazy">
+                    <span class="badge-sel-id">SEL_D_01</span>
+                    <span class="badge-res">640×960</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">D 矮凳/坐姿 (Low Stool)</div>
+                    <div class="pose-desc">浅坐矮凳微侧身，双膝并拢斜放，双手交叠置于膝上，腰背挺直</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 漫展现场休息且保持高雅的坐姿
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_D_LOW_STOOL_7814881_6</span>
+                        <a href="../curated_candidates/D_LOW_STOOL/SEL_D_01.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_01">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_01.jpg', 'SEL_E_01', '双手持法杖立于身前，法杖垂直立地，身体端立如卫', '法杖持握标准防御/立态', '736×917')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_01.jpg" alt="SEL_E_01" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_01</span>
+                    <span class="badge-res">736×917</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">双手持法杖立于身前，法杖垂直立地，身体端立如卫</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 法杖持握标准防御/立态
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7621285_6</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_01.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_02">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_02.jpg', 'SEL_E_02', '单手高握法杖上段，另一手微提裙摆，法杖向前微倾', '权杖威仪向神明姿势', '736×1308')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_02.jpg" alt="SEL_E_02" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_02</span>
+                    <span class="badge-res">736×1308</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">单手高握法杖上段，另一手微提裙摆，法杖向前微倾</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 权杖威仪向神明姿势
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7631371_1</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_02.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_03">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_03.jpg', 'SEL_E_03', '特写法杖顶部交互，手握权杖权柄，眼神落在权杖核心', '法杖道具近景特写', '736×736')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_03.jpg" alt="SEL_E_03" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_03</span>
+                    <span class="badge-res">736×736</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">特写法杖顶部交互，手握权杖权柄，眼神落在权杖核心</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 法杖道具近景特写
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7631386_2</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_03.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_04">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_04.jpg', 'SEL_E_04', '法杖横置于胸腹前，双手交错握持，蓄势待发感', '横杖构图与破除长夜动势', '736×1104')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_04.jpg" alt="SEL_E_04" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_04</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">法杖横置于胸腹前，双手交错握持，蓄势待发感</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 横杖构图与破除长夜动势
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7641145_1</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_04.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_05">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_05.jpg', 'SEL_E_05', '单手持杖侧立，法杖斜插身侧地面，体态轻盈优雅', '侧向持杖全身构图', '735×1037')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_05.jpg" alt="SEL_E_05" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_05</span>
+                    <span class="badge-res">735×1037</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">单手持杖侧立，法杖斜插身侧地面，体态轻盈优雅</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 侧向持杖全身构图
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7641160_2</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_05.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_06">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_06.jpg', 'SEL_E_06', '双手托抱法杖于胸前，微低头闭目，仿佛与法杖共鸣', '神力注入与圣洁祈愿姿', '736×1103')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_06.jpg" alt="SEL_E_06" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_06</span>
+                    <span class="badge-res">736×1103</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">双手托抱法杖于胸前，微低头闭目，仿佛与法杖共鸣</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 神力注入与圣洁祈愿姿
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7641184_4</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_06.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_07">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_07.jpg', 'SEL_E_07', '单手后引法杖，身体前倾，法杖形成强劲对角线延伸', '破除冰封的突刺蓄力动势', '736×1307')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_07.jpg" alt="SEL_E_07" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_07</span>
+                    <span class="badge-res">736×1307</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">单手后引法杖，身体前倾，法杖形成强劲对角线延伸</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 破除冰封的突刺蓄力动势
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7641203_5</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_07.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="E_PROP" data-id="SEL_E_08">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/E_PROP/SEL_E_08.jpg', 'SEL_E_08', '双手撑于杖首上方，下巴轻搭手背或微倚法杖', '静止休憩持杖姿态', '736×1085')">
+                    <img src="../curated_candidates/E_PROP/SEL_E_08.jpg" alt="SEL_E_08" loading="lazy">
+                    <span class="badge-sel-id">SEL_E_08</span>
+                    <span class="badge-res">736×1085</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">E 法杖/道具交互 (Prop & Staff)</div>
+                    <div class="pose-desc">双手撑于杖首上方，下巴轻搭手背或微倚法杖</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 静止休憩持杖姿态
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_E_PROP_7641233_7</span>
+                        <a href="../curated_candidates/E_PROP/SEL_E_08.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_01">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_01.jpg', 'SEL_F_01', '贴地仰拍全身立姿，裙摆向四方延展，身材比例拉长极具气场', '广角气场拉长神作', '672×1200')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_01.jpg" alt="SEL_F_01" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_01</span>
+                    <span class="badge-res">672×1200</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">贴地仰拍全身立姿，裙摆向四方延展，身材比例拉长极具气场</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 广角气场拉长神作
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7844675_2</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_01.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_02">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_02.jpg', 'SEL_F_02', '低角度半身仰视，下颌微抬，俯视众生神性傲然', '避开漫展人流的神女俯视视角', '736×980')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_02.jpg" alt="SEL_F_02" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_02</span>
+                    <span class="badge-res">736×980</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">低角度半身仰视，下颌微抬，俯视众生神性傲然</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 避开漫展人流的神女俯视视角
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7844688_3</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_02.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_03">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_03.jpg', 'SEL_F_03', '低机位斜角仰拍，身形与建筑/立柱线条呼应', '透视纵深与垂直张力', '735×919')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_03.jpg" alt="SEL_F_03" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_03</span>
+                    <span class="badge-res">735×919</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">低机位斜角仰拍，身形与建筑/立柱线条呼应</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 透视纵深与垂直张力
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7844730_6</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_03.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_04">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_04.jpg', 'SEL_F_04', '广角超低机位大仰拍，脚部向前延伸，气场霸气全开', '昭君觉醒威严压迫感', '736×1104')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_04.jpg" alt="SEL_F_04" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_04</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">广角超低机位大仰拍，脚部向前延伸，气场霸气全开</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 昭君觉醒威严压迫感
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7857426_2</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_04.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_05">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_05.jpg', 'SEL_F_05', '仰拍全身微侧，披风在身后垂向地面，画面干净纯粹', '干净背景全身大片视角', '736×1104')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_05.jpg" alt="SEL_F_05" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_05</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">仰拍全身微侧，披风在身后垂向地面，画面干净纯粹</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 干净背景全身大片视角
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7857438_3</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_05.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_06">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_06.jpg', 'SEL_F_06', '低角度持杖仰拍，法杖自下而上刺向天空，构图冲力极强', '权杖与低机位完美结合', '736×1104')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_06.jpg" alt="SEL_F_06" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_06</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">低角度持杖仰拍，法杖自下而上刺向天空，构图冲力极强</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 权杖与低机位完美结合
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7857451_4</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_06.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_07">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_07.jpg', 'SEL_F_07', '超广角低位半身回眸仰拍，动态与透视兼备', '仰角回眸绝美透视', '564×846')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_07.jpg" alt="SEL_F_07" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_07</span>
+                    <span class="badge-res">564×846</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">超广角低位半身回眸仰拍，动态与透视兼备</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 仰角回眸绝美透视
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7857467_5</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_07.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_08">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_08.jpg', 'SEL_F_08', '低机位正位挺拔立像，光线从后方勾勒神圣轮廓光', '逆光/轮廓光低角度立像', '736×1104')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_08.jpg" alt="SEL_F_08" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_08</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">低机位正位挺拔立像，光线从后方勾勒神圣轮廓光</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 逆光/轮廓光低角度立像
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7857477_6</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_08.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="F_LOW_ANGLE" data-id="SEL_F_09">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/F_LOW_ANGLE/SEL_F_09.jpg', 'SEL_F_09', '广角低位微仰，单臂高扬，斗篷顺风张开覆盖大半画幅', '覆盖画面的广角大冲击力', '736×1104')">
+                    <img src="../curated_candidates/F_LOW_ANGLE/SEL_F_09.jpg" alt="SEL_F_09" loading="lazy">
+                    <span class="badge-sel-id">SEL_F_09</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">F 广角低机位 (Low Angle)</div>
+                    <div class="pose-desc">广角低位微仰，单臂高扬，斗篷顺风张开覆盖大半画幅</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 覆盖画面的广角大冲击力
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_F_LOW_ANGLE_7857491_7</span>
+                        <a href="../curated_candidates/F_LOW_ANGLE/SEL_F_09.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="G_DYNAMIC" data-id="SEL_G_01">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/G_DYNAMIC/SEL_G_01.jpg', 'SEL_G_01', '转身瞬间裙摆离地飞扬，形成优美弧形水花感，身姿灵动', '大裙摆定点旋风动势', '720×900')">
+                    <img src="../curated_candidates/G_DYNAMIC/SEL_G_01.jpg" alt="SEL_G_01" loading="lazy">
+                    <span class="badge-sel-id">SEL_G_01</span>
+                    <span class="badge-res">720×900</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">G 动态/披风甩动 (Dynamic & Fabric)</div>
+                    <div class="pose-desc">转身瞬间裙摆离地飞扬，形成优美弧形水花感，身姿灵动</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 大裙摆定点旋风动势
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_G_DYNAMIC_7867902_2</span>
+                        <a href="../curated_candidates/G_DYNAMIC/SEL_G_01.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="G_DYNAMIC" data-id="SEL_G_02">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/G_DYNAMIC/SEL_G_02.jpg', 'SEL_G_02', '疾步微跃或急停，斗篷向侧后方高高扬起，破风感极强', '长夜破晓破风动势', '736×1035')">
+                    <img src="../curated_candidates/G_DYNAMIC/SEL_G_02.jpg" alt="SEL_G_02" loading="lazy">
+                    <span class="badge-sel-id">SEL_G_02</span>
+                    <span class="badge-res">736×1035</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">G 动态/披风甩动 (Dynamic & Fabric)</div>
+                    <div class="pose-desc">疾步微跃或急停，斗篷向侧后方高高扬起，破风感极强</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 长夜破晓破风动势
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_G_DYNAMIC_7867941_4</span>
+                        <a href="../curated_candidates/G_DYNAMIC/SEL_G_02.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="G_DYNAMIC" data-id="SEL_G_03">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/G_DYNAMIC/SEL_G_03.jpg', 'SEL_G_03', '单手甩动长披风，布料在半空形成波浪褶皱，视觉焦点突出', '甩斗篷经典漫展连拍动作', '736×1104')">
+                    <img src="../curated_candidates/G_DYNAMIC/SEL_G_03.jpg" alt="SEL_G_03" loading="lazy">
+                    <span class="badge-sel-id">SEL_G_03</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">G 动态/披风甩动 (Dynamic & Fabric)</div>
+                    <div class="pose-desc">单手甩动长披风，布料在半空形成波浪褶皱，视觉焦点突出</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 甩斗篷经典漫展连拍动作
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_G_DYNAMIC_7898913_4</span>
+                        <a href="../curated_candidates/G_DYNAMIC/SEL_G_03.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="G_DYNAMIC" data-id="SEL_G_04">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/G_DYNAMIC/SEL_G_04.jpg', 'SEL_G_04', '侧向大幅度转体，长发与布料呈对角线流向展开', '发丝与布料联动飘动', '736×981')">
+                    <img src="../curated_candidates/G_DYNAMIC/SEL_G_04.jpg" alt="SEL_G_04" loading="lazy">
+                    <span class="badge-sel-id">SEL_G_04</span>
+                    <span class="badge-res">736×981</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">G 动态/披风甩动 (Dynamic & Fabric)</div>
+                    <div class="pose-desc">侧向大幅度转体，长发与布料呈对角线流向展开</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 发丝与布料联动飘动
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_G_DYNAMIC_7898954_7</span>
+                        <a href="../curated_candidates/G_DYNAMIC/SEL_G_04.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" data-direction="G_DYNAMIC" data-id="SEL_G_05">
+                <div class="card-img-wrap" onclick="viewLightbox('../curated_candidates/G_DYNAMIC/SEL_G_05.jpg', 'SEL_G_05', '正向双手带起斗篷两角，如翼展翅，气势恢宏壮阔', '神女展翼般浩瀚气场', '736×1104')">
+                    <img src="../curated_candidates/G_DYNAMIC/SEL_G_05.jpg" alt="SEL_G_05" loading="lazy">
+                    <span class="badge-sel-id">SEL_G_05</span>
+                    <span class="badge-res">736×1104</span>
+                </div>
+                <div class="card-body">
+                    <div class="dir-pill">G 动态/披风甩动 (Dynamic & Fabric)</div>
+                    <div class="pose-desc">正向双手带起斗篷两角，如翼展翅，气势恢宏壮阔</div>
+                    <div class="suitability-box">
+                        <span class="suitability-label">💡 实战价值:</span> 神女展翼般浩瀚气场
+                    </div>
+                    <div class="meta-footer">
+                        <span class="src-id">源: LIVE_G_DYNAMIC_7898964_8</span>
+                        <a href="../curated_candidates/G_DYNAMIC/SEL_G_05.jpg" target="_blank" class="view-link">查看大图</a>
+                    </div>
+                </div>
+            </div>
+            
+    </div>
+
+    <div id="lightbox" onclick="closeLightbox(event)">
+        <span class="lb-close" onclick="closeLightbox(event)">&times;</span>
+        <img id="lb-img" src="" alt="Zoom">
+        <div id="lb-info">
+            <div id="lb-title"></div>
+            <div id="lb-desc"></div>
+        </div>
+    </div>
+
+    <script>
+        function filterCat(dir, btn) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                if (dir === 'ALL' || card.dataset.direction === dir) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function viewLightbox(src, id, desc, suit, res) {
+            document.getElementById('lb-img').src = src;
+            document.getElementById('lb-title').innerText = `${id} (${res})`;
+            document.getElementById('lb-desc').innerHTML = `<strong>动作特征:</strong> ${desc}<br><span style="color:#38bdf8;"><strong>实战价值:</strong> ${suit}</span>`;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox(e) {
+            if (e.target.id === 'lightbox' || e.target.classList.contains('lb-close')) {
+                document.getElementById('lightbox').classList.remove('active');
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('lightbox').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

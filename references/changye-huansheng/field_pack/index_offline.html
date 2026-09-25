@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>王昭君·长夜焕生 漫展现场离线速查包 (Offline Field Pack)</title>
+<style>
+/* 100% OFFLINE STYLES - ZERO EXTERNAL FONTS OR CDN REQUESTS */
+:root {
+    --bg: #060c1b;
+    --card-bg: #0f172a;
+    --cyan: #38bdf8;
+    --amber: #f59e0b;
+    --border: #1e293b;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+    line-height: 1.5;
+    padding-bottom: 60px;
+}
+header {
+    background: #0a192f;
+    border-bottom: 2px solid var(--border);
+    padding: 18px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.header-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+h1 { font-size: 1.25rem; color: var(--cyan); font-weight: 700; }
+.badge-offline {
+    background: #22c55e;
+    color: #020617;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+nav.tabs {
+    display: flex;
+    gap: 8px;
+    max-width: 1200px;
+    margin: 16px auto;
+    padding: 0 16px;
+    overflow-x: auto;
+}
+.tab-btn {
+    background: #1e293b;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.tab-btn.active {
+    background: var(--cyan);
+    color: #020617;
+    border-color: var(--cyan);
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+.section { display: none; }
+.section.active { display: block; }
+
+/* Phone album grid */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+.album-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.album-card img {
+    width: 100%;
+    aspect-ratio: 9/16;
+    object-fit: cover;
+    background: #020617;
+    cursor: pointer;
+}
+.album-card-body { padding: 12px; }
+.album-card-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.album-card-desc { font-size: 0.82rem; color: var(--text-muted); }
+
+/* Guide boxes */
+.guide-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.guide-box h2 {
+    color: var(--cyan);
+    font-size: 1.15rem;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+.guide-box ul { padding-left: 20px; }
+.guide-box li { margin-bottom: 8px; font-size: 0.9rem; color: #cbd5e1; }
+.script-highlight {
+    background: rgba(56, 189, 248, 0.1);
+    border-left: 3px solid var(--cyan);
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 0.95rem;
+    color: #e0f2fe;
+    font-style: italic;
+}
+.badge-priority {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.p-MUST { background: #ef4444; color: #fff; }
+.p-NICE { background: #f59e0b; color: #020617; }
+.p-ALLOW { background: #10b981; color: #020617; }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="header-wrap">
+        <div>
+            <h1>王昭君·长夜焕生 漫展现场离线速查包</h1>
+            <p style="font-size: 0.78rem; color: #94a3b8;">Sony A7M4 + Godox V100 + 50/1.8 + 24-240mm + 小马扎</p>
+        </div>
+        <span class="badge-offline">⚡ 100% 离线运行模式</span>
+    </div>
+</header>
+
+<nav class="tabs">
+    <button class="tab-btn active" onclick="showTab('tab-phone')">📱 手机速查卡片 (直接给 Coser 看)</button>
+    <button class="tab-btn" onclick="showTab('tab-shots')">⏱️ 漫展 12 组实战分镜</button>
+    <button class="tab-btn" onclick="showTab('tab-chains')">🔗 8 组姿态动作链</button>
+    <button class="tab-btn" onclick="showTab('tab-lighting')">💡 Godox V100 单灯实战</button>
+    <button class="tab-btn" onclick="showTab('tab-lens')">📷 50mm vs 24-240 镜头分配</button>
+    <button class="tab-btn" onclick="showTab('tab-post')">🎨 后期 A/B/C 与 AI 背景</button>
+</nav>
+
+<div class="container">
+
+    <!-- TAB 1: Phone Album -->
+    <div id="tab-phone" class="section active">
+        <div class="guide-box">
+            <h2>📱 手机相册卡片 (大字一览 · 竖屏优化)</h2>
+            <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:12px;">以下卡片均已在 <code>field_pack/phone_album/</code> 生成 1080×1920 高清大图，可以直接拷贝到手机相册中，现场直接展示给 Coser 引导动作。</p>
+            <div class="album-grid">
+                <div class="album-card">
+                    <img src="phone_album/POSE_01_FRONT_30_DEG.jpg" alt="Pose 01">
+                    <div class="album-card-body">
+                        <div class="album-card-title">POSE 01: 清冷神性站姿</div>
+                        <div class="album-card-desc">50mm f/1.8 · 无道具 · 40秒极速</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <img src="phone_album/POSE_02_SEATED_STOOL.jpg" alt="Pose 02">
+                    <div class="album-card-body">
+                        <div class="album-card-title">POSE 02: 小马扎端坐抚下颌</div>
+                        <div class="album-card-desc">50mm / 24-240 · 小马扎 · 伸直腿绷脚尖</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <img src="phone_album/POSE_03_TURNING_BACK.jpg" alt="Pose 03">
+                    <div class="album-card-body">
+                        <div class="album-card-title">POSE 03: 经典神女露背回眸</div>
+                        <div class="album-card-desc">50mm f/1.8 · 身体背立肩膀不动只转头</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <img src="phone_album/POSE_04_FACE_CLOSEUP.jpg" alt="Pose 04">
+                    <div class="album-card-body">
+                        <div class="album-card-title">POSE 04: 面部神性美妆特写</div>
+                        <div class="album-card-desc">50mm f/2.8 · 抓波波头内扣与触角呆毛</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <img src="phone_album/POSE_05_HARP_INTERACT.jpg" alt="Pose 05">
+                    <div class="album-card-body">
+                        <div class="album-card-title">POSE 05: 竖琴法杖威严持握</div>
+                        <div class="album-card-desc">24-240 @ 35-50 · 虚拨琴弦 · 眼神专注</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <img src="phone_album/POSE_06_VEIL_SHEER.jpg" alt="Pose 06">
+                    <div class="album-card-body">
+                        <div class="album-card-title">POSE 06: 半透面纱捏角轻遮</div>
+                        <div class="album-card-desc">50mm f/1.8 · 两指捏纱角 · 次表面透光</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <img src="phone_album/POSE_07_CHEST_GEM.jpg" alt="Pose 07">
+                    <div class="album-card-body">
+                        <div class="album-card-title">POSE 07: 抚胸战队能量红核</div>
+                        <div class="album-card-desc">50mm f/1.8 · 触碰胸前红石 · FMVP核心</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <img src="00_QUICK_START.jpg" alt="Quick Start">
+                    <div class="album-card-body">
+                        <div class="album-card-title">00_漫展现场 8分钟战斗指南</div>
+                        <div class="album-card-desc">时间节点与单人作战安全守则</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Shots -->
+    <div id="tab-shots" class="section">
+        <div class="guide-box">
+            <h2>⏱️ 漫展 12 组实战分镜执行表 (按保底优先级排序)</h2>
+            <div style="margin-bottom:16px;">
+                <p><strong>🔴 MUST GET 必保镜头 (前 5 分钟必须全部拿下):</strong></p>
+                <ul style="margin-top:8px;">
+                    <li><strong>Shot 01: 标准安全全身照</strong> — 24-240 @ 35–50mm，侧身30度立腰，记录全套服装全貌。</li>
+                    <li><strong>Shot 02: 标准七分身立姿</strong> — 50mm f/1.8，单手扶腰下巴微扬，避开杂乱地面人群。</li>
+                    <li><strong>Shot 03: 半身英雄肖像</strong> — 50mm f/2.0，单手轻触头纱，面部高显色雕刻。</li>
+                    <li><strong>Shot 04: 面部神性特写</strong> — 50mm f/2.8，核验波波头内扣与头顶触角呆毛。</li>
+                    <li><strong>Shot 05: 经典神女露背回眸</strong> — 50mm f/2.0，背向站姿肩膀不动仅头部回眸，展现露背与燕尾。</li>
+                    <li><strong>Shot 06: 纯环境光极速保底</strong> — 50mm f/1.8全开，无灯无架极速抓拍2张防意外。</li>
+                </ul>
+            </div>
+            <div style="margin-bottom:16px;">
+                <p><strong>🟡 NICE TO HAVE 进阶出彩镜头 (自带道具/马扎时执行):</strong></p>
+                <ul style="margin-top:8px;">
+                    <li><strong>Shot 07: 水母头纱与面纱互动</strong> — 双手轻提薄纱两侧轻遮下半脸。</li>
+                    <li><strong>Shot 08: 胸前红石与手势特写</strong> — 指尖轻触胸前战队红色晶石。</li>
+                    <li><strong>Shot 09: 小马扎深海端坐</strong> — 坐马扎前 1/3，前腿伸直绷脚尖，后期无缝合成沉船石阶。</li>
+                    <li><strong>Shot 10: 法杖竖琴威严共鸣</strong> — 竖琴立地，单手虚按琴弦作法术指引。</li>
+                </ul>
+            </div>
+            <div>
+                <p><strong>🟢 ONLY IF CONDITIONS ALLOW 条件允许挑战:</strong></p>
+                <ul style="margin-top:8px;">
+                    <li><strong>Shot 11: 低机位仰角威严长腿</strong> — 摄影师单膝下跪贴地仰拍，利用天花板避开人潮。</li>
+                    <li><strong>Shot 12: 轻微转身裙摆动态</strong> — 原地转半圈连拍，抓取水母花瓣短裙摆与长拖尾滞空感。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: Chains -->
+    <div id="tab-chains" class="section">
+        <div class="guide-box">
+            <h2>🔗 8 组姿态动作链 (单机位微调 · 1分钟出4-6张)</h2>
+            <div style="margin-bottom:16px;">
+                <h3 style="color:#f59e0b; margin-bottom:6px;">CHAIN 01: 清冷神性站姿链 (45秒 · 5张 · 等级A)</h3>
+                <p style="font-size:0.85rem; color:#94a3b8;">基础站位: 身体右侧微侧30度，重心在后腿，前脚尖虚点地。</p>
+                <div class="script-highlight">P1(侧身看镜头) ➔ P2(视线看我头顶上方) ➔ P3(右手抬起捏纱角) ➔ P4(低头看手心) ➔ P5(右肩微收眼神回打)</div>
+            </div>
+            <div style="margin-bottom:16px;">
+                <h3 style="color:#f59e0b; margin-bottom:6px;">CHAIN 02: 小马扎端坐与抚裳链 (90秒 · 5张 · 等级B)</h3>
+                <p style="font-size:0.85rem; color:#94a3b8;">基础站位: 侧身坐马扎前1/3，靠近镜头腿前伸绷直脚尖。</p>
+                <div class="script-highlight">P1(双手抚膝挺腰) ➔ P2(探身微提裙角) ➔ P3(单手虚碰下巴) ➔ P4(上身后仰展臂抓光) ➔ P5(抱单膝闭眼沉眠)</div>
+            </div>
+            <div style="margin-bottom:16px;">
+                <h3 style="color:#f59e0b; margin-bottom:6px;">CHAIN 03: 回眸与侧颜轮廓链 (40秒 · 4张 · 等级A)</h3>
+                <p style="font-size:0.85rem; color:#94a3b8;">基础站位: 完全背对摄影师，向右转15度。</p>
+                <div class="script-highlight">P1(纯背影展示拖尾) ➔ P2(侧脸90度仰头剪影) ➔ P3(肩膀不动回头锁镜头) ➔ P4(回眸单手提纱掩面)</div>
+            </div>
+            <div>
+                <h3 style="color:#f59e0b; margin-bottom:6px;">CHAIN 08: 30秒防疲劳极速保底链 (30秒 · 4张 · 等级A)</h3>
+                <div class="script-highlight">B1(侧身15度七分身) ➔ B2(半身带笑意) ➔ B3(侧脸45度特写) ➔ B4(右手按红石闭目)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: Lighting -->
+    <div id="tab-lighting" class="section">
+        <div class="guide-box">
+            <h2>💡 Godox V100 单灯漫展实战法则</h2>
+            <ul>
+                <li><strong>黄金距离</strong>: 圆形柔光附件距离 Coser 面部严格保持在 <strong>1.2米 ~ 1.5米</strong>，太远光线变硬且衰减，太近穿帮。</li>
+                <li><strong>黄金角度</strong>: 摄影师右侧或左侧 45 度、高出头顶 30cm 俯倾照射，形成自然伦勃朗光阴影，拒绝大平脸机顶直闪！</li>
+                <li><strong>环境光配比</strong>: 环境光测光后欠曝 0.7~1 档，V100 以 1/16 ~ 1/32 输出补足面部，让人物自然跳出背景。</li>
+                <li><strong>死光应对</strong>: 场馆顶棚死亡顶光时，让 Coser 下巴稍微扬起 15 度迎光，灯位降低至眉弓高度微仰补光。</li>
+                <li><strong>拒绝盲目 HSS</strong>: 高速同步会瞬间折损 60% 闪光功率并剧烈发热，保持 1/250s 同步快门，用光圈控制环境光。</li>
+                <li><strong>安全防踢</strong>: 摄影师左脚踩在灯架脚管上充当配重沙袋，防路人踩翻摔碎灯头。</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- TAB 5: Lens -->
+    <div id="tab-lens" class="section">
+        <div class="guide-box">
+            <h2>📷 Sony 50mm f/1.8 vs 24-240mm 实战分配</h2>
+            <ul>
+                <li><strong>Sony 50mm f/1.8 (战斗主力 70%)</strong>: 半身、七分身、回眸、特写、手势。f/1.8~f/2.2 大光圈把漫展身后路人化成奶油光斑。</li>
+                <li><strong>Sony 24-240mm (多功能应变 30%)</strong>: 退无可退时的 24-35mm 广角全身、低机位长腿仰拍、或者空旷展厅 70-135mm 空间压缩避开杂物。</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- TAB 6: Post & AI -->
+    <div id="tab-post" class="section">
+        <div class="guide-box">
+            <h2>🎨 后期修图与 AI 背景扩展铁律</h2>
+            <ul>
+                <li><strong>POST_A (漫展场照极速修)</strong>: 仅圈选移除杂乱路人与垃圾桶，保留脚底真实地面与阴影，调冷青深蓝，压暗背景 0.8 EV。</li>
+                <li><strong>POST_B (半现实深海扩展)</strong>: 保留人物与脚底触地，使用 PS 创成式扩展或生成式填充将杂乱展位扩展为深蓝水下空间。</li>
+                <li><strong>POST_C (海报级合成)</strong>: 仅限精选 3~5 张 Hero Shot，精细通道抠图，合成水母群星海与破晓光束。</li>
+                <li><strong>AI 背景绝对红线</strong>: 严禁用 AI 重绘 Coser 脸、身体、假发与长夜焕生服装！只对背景非主体区域扩展。</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
+</script>
+</body>
+</html>

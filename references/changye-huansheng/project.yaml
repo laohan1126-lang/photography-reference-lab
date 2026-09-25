@@ -1,0 +1,48 @@
+project:
+  name: "王昭君·长夜焕生 摄影视觉参考系统 V2"
+  target_character: "王昭君"
+  target_skin: "FMVP 长夜焕生"
+  game: "王者荣耀 (Honor of Kings)"
+  version: "2.0.0"
+  created_at: "2026-09-24"
+  updated_at: "2026-09-24"
+  lead_role: "Visual Researcher / Production Consultant"
+  objective: >
+    建立可验证、可追溯、可筛选、可扩展、可自动生成、能够真正指导摄影、COS服化道、
+    灯光置景与后期合成的生产型 Visual Reference System。
+
+standards:
+  single_source_of_truth: "data/references.yaml"
+  distinction_rule: "Strict separation of OBSERVED vs INFERRED vs PROPOSED"
+  official_priority: "Official evidence anchor board comes first"
+  anti_drift_rule: "Enforce do_not_copy tags to prevent generic jellyfish portrait drift"
+  no_fake_precision: "Do not fabricate unverified focal lengths, wattages, or Kelvins"
+
+categories:
+  - id: "00_OFFICIAL"
+    name: "官方物料"
+    description: "官方原画、立绘、3D模型全景、技能特效、PV关键帧"
+  - id: "01_COSTUME"
+    name: "服化造型"
+    description: "水母帽、水母波波头、透明欧根纱下摆、高定珠光质感"
+  - id: "02_STYLE"
+    name: "风格调性"
+    description: "高级暗调海洋情绪、微距肖像、高定概念摄影"
+  - id: "03_POSE"
+    name: "体态构图"
+    description: "S形水母动线、失重沉眠横构图、轻捧微光手势"
+  - id: "04_LIGHTING"
+    name: "布光系统"
+    description: "焦散水波纹、冷青侧光、暖橙破晓逆光双色温"
+  - id: "05_SET_PROP"
+    name: "置景道具"
+    description: "悬吊半透明水母装置、自发光晶球与发光竖琴"
+  - id: "06_POST"
+    name: "后期精修"
+    description: "水纹面部分频磨皮去脏、生物荧光与粒子星海合成"
+  - id: "07_BTS_TECHNICAL"
+    name: "幕后实测"
+    description: "实战灯位图、相机机位图、陆地仿水下悬浮实测"
+  - id: "90_REJECTED"
+    name: "废弃库"
+    description: "不符合标准、错图标注或信息污染图（保留原因不物理删除）"

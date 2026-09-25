@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小红书 (Xiaohongshu) 原生接管 Cosplay 参考审核看板</title>
+    <style>
+        :root {
+            --bg: #07090e;
+            --surface: #0f141f;
+            --surface-hover: #182032;
+            --primary: #ff2442;
+            --secondary: #00f2ff;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #1e293b;
+            --keep-color: #10b981;
+            --maybe-color: #f59e0b;
+            --reject-color: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ff4d6a;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .stats-badge {
+            background: #182032;
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .stats-badge span { font-weight: 700; }
+        .badge-keep-stat { color: var(--keep-color); }
+        .badge-maybe-stat { color: var(--maybe-color); }
+        .badge-reject-stat { color: var(--reject-color); }
+        .btn-export {
+            background: linear-gradient(135deg, #ff2442, #e11d48);
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-export:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+        .filter-bar {
+            background: #0b0f17;
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover {
+            background: var(--surface);
+            color: var(--text-main);
+        }
+        .tab-btn.active {
+            background: #ff2442;
+            color: #fff;
+            border-color: #ff2442;
+            font-weight: 700;
+        }
+        .grid-container {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            flex: 1;
+        }
+        .cand-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .cand-card:hover {
+            border-color: #ff4d6a;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+        .cand-card.state-keep {
+            border: 2px solid var(--keep-color);
+            background: #061912;
+        }
+        .cand-card.state-maybe {
+            border: 2px solid var(--maybe-color);
+            background: #1c1503;
+        }
+        .cand-card.state-reject {
+            border: 2px solid var(--reject-color);
+            opacity: 0.35;
+        }
+        .card-img-wrap {
+            width: 100%;
+            height: 380px;
+            background: #000;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .card-img-wrap:hover img {
+            transform: scale(1.04);
+        }
+        .badge-id {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-cat {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(255,36,66,0.9);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-res {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .user-choice-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            display: none;
+        }
+        .state-keep .user-choice-badge {
+            display: block;
+            background: var(--keep-color);
+            color: #fff;
+        }
+        .state-maybe .user-choice-badge {
+            display: block;
+            background: var(--maybe-color);
+            color: #000;
+        }
+        .state-reject .user-choice-badge {
+            display: block;
+            background: var(--reject-color);
+            color: #fff;
+        }
+        .card-meta {
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+        .author-row {
+            font-size: 12px;
+            color: var(--secondary);
+        }
+        .note-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f8fafc;
+            line-height: 1.4;
+        }
+        .query-text {
+            font-size: 11px;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .links-group {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .meta-link {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+        .meta-link:hover {
+            text-decoration: underline;
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .btn-decision {
+            border: 1px solid var(--border);
+            padding: 6px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #141c2c;
+            color: #e2e8f0;
+            transition: all 0.15s;
+        }
+        .btn-decision:hover {
+            filter: brightness(1.25);
+        }
+        .btn-keep:hover, .state-keep .btn-keep {
+            background: var(--keep-color);
+            color: #fff;
+            border-color: var(--keep-color);
+        }
+        .btn-maybe:hover, .state-maybe .btn-maybe {
+            background: var(--maybe-color);
+            color: #000;
+            border-color: var(--maybe-color);
+        }
+        .btn-reject:hover, .state-reject .btn-reject {
+            background: var(--reject-color);
+            color: #fff;
+            border-color: var(--reject-color);
+        }
+
+        /* Lightbox */
+        #lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.94);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        #lightbox.active {
+            display: flex;
+        }
+        #lightbox-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            object-fit: contain;
+        }
+        #lightbox-info {
+            margin-top: 14px;
+            font-size: 14px;
+            color: #cbd5e1;
+            text-align: center;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 24px;
+            right: 28px;
+            color: #fff;
+            font-size: 32px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-title">
+            <h1>📕 小红书 (Xiaohongshu) 原生接管 Cosplay 参考审核看板</h1>
+            <p>75 张 100% 小红书高赞 Coser 实拍单图 | 覆盖王者荣耀女角色、法杖交互与漫展出片</p>
+        </div>
+        <div class="header-actions">
+            <div class="stats-badge">已选: <span id="stat-keep" class="badge-keep-stat">0</span> KEEP | <span id="stat-maybe" class="badge-maybe-stat">0</span> MAYBE | <span id="stat-reject" class="badge-reject-stat">0</span> REJECT</div>
+            <button class="btn-export" onclick="exportDecisions()">📥 导出小红书决策 (JSON)</button>
+        </div>
+    </header>
+
+    <div class="filter-bar">
+        <button class="tab-btn active" onclick="filterCategory('ALL', this)">全部 ALL (75)</button><button class="tab-btn" onclick="filterCategory('WANG_ZHAOJUN_HOK', this)">王者荣耀 (45)</button><button class="tab-btn" onclick="filterCategory('PROP_AND_SCEPTER', this)">法杖道具 (15)</button><button class="tab-btn" onclick="filterCategory('CONVENTION_FIELD', this)">漫展实战 (15)</button>
+    </div>
+
+    <div class="grid-container" id="cards-grid">
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_01" data-id="XHS_HOK_CARD_01" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_01.jpg', 'XHS_HOK_CARD_01', '小羊不是眠羊', '妲己美乐蒂女仆咖啡～想喝点啥？', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_01.jpg" alt="XHS_HOK_CARD_01" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_01</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_01"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>小羊不是眠羊</strong></div>
+                <div class="note-title">妲己美乐蒂女仆咖啡～想喝点啥？</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_01.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/695e57ac0000000021031aba" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_01', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_01', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_01', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_02" data-id="XHS_HOK_CARD_02" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_02.jpg', 'XHS_HOK_CARD_02', '小熊（不会弄to签）', '前世之缘今生之遇岂能更改', '640×960')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_02.jpg" alt="XHS_HOK_CARD_02" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_02</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_02"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>小熊（不会弄to签）</strong></div>
+                <div class="note-title">前世之缘今生之遇岂能更改</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_02.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69dfa497000000001a02068d" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_02', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_02', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_02', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_03" data-id="XHS_HOK_CARD_03" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_03.jpg', 'XHS_HOK_CARD_03', '小喆sama_', '小乔时之魔女/无道具可爱少女 万用动作参考', '640×1138')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_03.jpg" alt="XHS_HOK_CARD_03" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_03</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×1138</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_03"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>小喆sama_</strong></div>
+                <div class="note-title">小乔时之魔女/无道具可爱少女 万用动作参考</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_03.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a5f6119000000001d022456" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_03', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_03', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_03', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_04" data-id="XHS_HOK_CARD_04" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_04.jpg', 'XHS_HOK_CARD_04', '明州在变好', '这对我的腿部肌肉来说是极大挑战（）', '640×854')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_04.jpg" alt="XHS_HOK_CARD_04" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_04</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×854</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_04"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>明州在变好</strong></div>
+                <div class="note-title">这对我的腿部肌肉来说是极大挑战（）</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_04.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69dba2da000000001d01e60d" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_04', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_04', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_04', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_05" data-id="XHS_HOK_CARD_05" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_05.jpg', 'XHS_HOK_CARD_05', '夏沐会不会打光', '小乔的白棚', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_05.jpg" alt="XHS_HOK_CARD_05" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_05</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_05"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>夏沐会不会打光</strong></div>
+                <div class="note-title">小乔的白棚</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_05.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a20e3d70000000021022c08" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_05', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_05', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_05', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_06" data-id="XHS_HOK_CARD_06" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_06.jpg', 'XHS_HOK_CARD_06', '柠仔一枚', '你，也是本小姐的粉丝吗😎', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_06.jpg" alt="XHS_HOK_CARD_06" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_06</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_06"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>柠仔一枚</strong></div>
+                <div class="note-title">你，也是本小姐的粉丝吗😎</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_06.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a18639f00000000070258ac" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_06', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_06', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_06', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_07" data-id="XHS_HOK_CARD_07" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_07.jpg', 'XHS_HOK_CARD_07', '鸽鸽冲冲冲', '瑶妹大动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_07.jpg" alt="XHS_HOK_CARD_07" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_07</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_07"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>鸽鸽冲冲冲</strong></div>
+                <div class="note-title">瑶妹大动作参考</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_07.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6aab3ed4000000002b0101c4" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_07', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_07', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_07', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_08" data-id="XHS_HOK_CARD_08" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_08.jpg', 'XHS_HOK_CARD_08', '矢泽焰焰子', '六尺之内，我是无敌的～', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_08.jpg" alt="XHS_HOK_CARD_08" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_08</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_08"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>矢泽焰焰子</strong></div>
+                <div class="note-title">六尺之内，我是无敌的～</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_08.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a9930ee000000002803975d" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_08', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_08', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_08', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_09" data-id="XHS_HOK_CARD_09" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_09.jpg', 'XHS_HOK_CARD_09', '白榆寒酥', '小乔动作参考｜无道具萌妹动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_09.jpg" alt="XHS_HOK_CARD_09" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_09</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_09"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>白榆寒酥</strong></div>
+                <div class="note-title">小乔动作参考｜无道具萌妹动作参考</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_09.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/68dba0c700000000070364cc" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_09', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_09', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_09', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_10" data-id="XHS_HOK_CARD_10" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_10.jpg', 'XHS_HOK_CARD_10', '云离饱饱', '嫦娥落花微雨cos正片', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_10.jpg" alt="XHS_HOK_CARD_10" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_10</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_10"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>云离饱饱</strong></div>
+                <div class="note-title">嫦娥落花微雨cos正片</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_10.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a453c41000000000603348d" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_10', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_10', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_10', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_11" data-id="XHS_HOK_CARD_11" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_11.jpg', 'XHS_HOK_CARD_11', '墨问君家的丹修', '「确认目标，出发」', '640×1138')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_11.jpg" alt="XHS_HOK_CARD_11" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_11</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×1138</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_11"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>墨问君家的丹修</strong></div>
+                <div class="note-title">「确认目标，出发」</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_11.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69df11a6000000001a02eba9" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_11', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_11', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_11', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_12" data-id="XHS_HOK_CARD_12" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_12.jpg', 'XHS_HOK_CARD_12', '江月年年', '公孙离动作参考白棚版', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_12.jpg" alt="XHS_HOK_CARD_12" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_12</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_12"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>江月年年</strong></div>
+                <div class="note-title">公孙离动作参考白棚版</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_12.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69f1f656000000001f000e2f" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_12', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_12', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_12', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_13" data-id="XHS_HOK_CARD_13" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_13.jpg', 'XHS_HOK_CARD_13', '澳莉給酱', '小乔白棚', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_13.jpg" alt="XHS_HOK_CARD_13" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_13</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_13"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>澳莉給酱</strong></div>
+                <div class="note-title">小乔白棚</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_13.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a3b7f6c0000000016024e45" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_13', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_13', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_13', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_14" data-id="XHS_HOK_CARD_14" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_14.jpg', 'XHS_HOK_CARD_14', '墨问君家的丹修', '「“澜”，只是个代号」', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_14.jpg" alt="XHS_HOK_CARD_14" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_14</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_14"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>墨问君家的丹修</strong></div>
+                <div class="note-title">「“澜”，只是个代号」</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_14.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69dcb1d20000000020039ccb" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_14', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_14', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_14', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_CARD_15" data-id="XHS_HOK_CARD_15" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_15.jpg', 'XHS_HOK_CARD_15', '超级缪可📸（努力成为妆造摄一体机）', '瑶-原皮白棚🦌动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_15.jpg" alt="XHS_HOK_CARD_15" loading="lazy">
+                <span class="badge-id">XHS_HOK_CARD_15</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_CARD_15"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>超级缪可📸（努力成为妆造摄一</strong></div>
+                <div class="note-title">瑶-原皮白棚🦌动作参考</div>
+                <div class="query-text">🔍 小红书检索: 王者荣耀cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_CARD_15.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a9eb0b2000000001001ed99" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_CARD_15', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_CARD_15', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_CARD_15', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_01" data-id="XHS_ZHAOJUN_01" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_01.jpg', 'XHS_ZHAOJUN_01', '公主披风', '凛冬已至·王昭君｜动作姿势参考', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_01.jpg" alt="XHS_ZHAOJUN_01" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_01</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_01"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>公主披风</strong></div>
+                <div class="note-title">凛冬已至·王昭君｜动作姿势参考</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_01.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6963fa74000000000b00b48a" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_01', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_01', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_01', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_02" data-id="XHS_ZHAOJUN_02" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_02.jpg', 'XHS_ZHAOJUN_02', '洛风 photograph', '峡谷冰雪女神｜王昭君 cos 棚拍', '640×960')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_02.jpg" alt="XHS_ZHAOJUN_02" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_02</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_02"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>洛风 photograph</strong></div>
+                <div class="note-title">峡谷冰雪女神｜王昭君 cos 棚拍</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_02.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a4a78930000000015025fe4" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_02', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_02', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_02', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_03" data-id="XHS_ZHAOJUN_03" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_03.jpg', 'XHS_ZHAOJUN_03', '缘梦-张腾（接山东场照正片）', '王昭君 Cos 动作参考', '640×759')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_03.jpg" alt="XHS_ZHAOJUN_03" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_03</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×759</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_03"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>缘梦-张腾（接山东场照正片）</strong></div>
+                <div class="note-title">王昭君 Cos 动作参考</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_03.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69edebeb000000003503a7cf" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_03', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_03', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_03', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_04" data-id="XHS_ZHAOJUN_04" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_04.jpg', 'XHS_ZHAOJUN_04', '📸关关kuaner（拍摄版）', '王者荣耀-世界公测了？王昭君来援一波', '640×1111')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_04.jpg" alt="XHS_ZHAOJUN_04" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_04</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×1111</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_04"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>📸关关kuaner（拍摄版）</strong></div>
+                <div class="note-title">王者荣耀-世界公测了？王昭君来援一波</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_04.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69db67ab000000001a029ce0" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_04', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_04', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_04', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_05" data-id="XHS_ZHAOJUN_05" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_05.jpg', 'XHS_ZHAOJUN_05', '幸野咪咪摸摸', '王昭君动作参考（一）', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_05.jpg" alt="XHS_ZHAOJUN_05" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_05</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_05"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>幸野咪咪摸摸</strong></div>
+                <div class="note-title">王昭君动作参考（一）</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_05.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a72abe4000000002501013e" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_05', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_05', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_05', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_06" data-id="XHS_ZHAOJUN_06" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_06.jpg', 'XHS_ZHAOJUN_06', '伍伍咚', '身躯已然冰封，灵魂仍旧火热！', '640×960')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_06.jpg" alt="XHS_ZHAOJUN_06" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_06</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_06"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>伍伍咚</strong></div>
+                <div class="note-title">身躯已然冰封，灵魂仍旧火热！</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_06.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6aad1abe00000000260206ad" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_06', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_06', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_06', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_07" data-id="XHS_ZHAOJUN_07" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_07.jpg', 'XHS_ZHAOJUN_07', '云离饱饱', '王昭君长夜焕生场照姿势分享', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_07.jpg" alt="XHS_ZHAOJUN_07" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_07</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_07"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>云离饱饱</strong></div>
+                <div class="note-title">王昭君长夜焕生场照姿势分享</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_07.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a1c383a0000000006021ea9" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_07', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_07', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_07', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_08" data-id="XHS_ZHAOJUN_08" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_08.jpg', 'XHS_ZHAOJUN_08', '小乔', '没流量随便发了', '640×960')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_08.jpg" alt="XHS_ZHAOJUN_08" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_08</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_08"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>小乔</strong></div>
+                <div class="note-title">没流量随便发了</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_08.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69bc53ab000000002800be33" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_08', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_08', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_08', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_09" data-id="XHS_ZHAOJUN_09" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_09.jpg', 'XHS_ZHAOJUN_09', '阮糖', '白梅落下之日，归去故里之时', '640×427')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_09.jpg" alt="XHS_ZHAOJUN_09" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_09</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×427</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_09"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>阮糖</strong></div>
+                <div class="note-title">白梅落下之日，归去故里之时</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_09.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a8b2fd40000000033022f01" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_09', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_09', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_09', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_10" data-id="XHS_ZHAOJUN_10" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_10.jpg', 'XHS_ZHAOJUN_10', '空白不吃素', '王者荣耀王昭君', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_10.jpg" alt="XHS_ZHAOJUN_10" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_10</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_10"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>空白不吃素</strong></div>
+                <div class="note-title">王者荣耀王昭君</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_10.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69d0b9f8000000001a031546" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_10', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_10', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_10', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_11" data-id="XHS_ZHAOJUN_11" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_11.jpg', 'XHS_ZHAOJUN_11', '书书的小鱼饼', '白梅落下之日，归去故里之时', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_11.jpg" alt="XHS_ZHAOJUN_11" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_11</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_11"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>书书的小鱼饼</strong></div>
+                <div class="note-title">白梅落下之日，归去故里之时</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_11.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a3147df000000000702fe2c" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_11', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_11', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_11', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_12" data-id="XHS_ZHAOJUN_12" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_12.jpg', 'XHS_ZHAOJUN_12', '与晚宁', '', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_12.jpg" alt="XHS_ZHAOJUN_12" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_12</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_12"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>与晚宁</strong></div>
+                <div class="note-title"></div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_12.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a9424a3000000001f005d6f" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_12', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_12', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_12', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_13" data-id="XHS_ZHAOJUN_13" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_13.jpg', 'XHS_ZHAOJUN_13', '露秋秋秋秋秋', '当前期和后期同时发力就可以得到', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_13.jpg" alt="XHS_ZHAOJUN_13" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_13</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_13"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>露秋秋秋秋秋</strong></div>
+                <div class="note-title">当前期和后期同时发力就可以得到</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_13.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a944134000000002c03ea4c" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_13', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_13', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_13', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_14" data-id="XHS_ZHAOJUN_14" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_14.jpg', 'XHS_ZHAOJUN_14', '十元', '王昭君', '640×1138')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_14.jpg" alt="XHS_ZHAOJUN_14" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_14</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×1138</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_14"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>十元</strong></div>
+                <div class="note-title">王昭君</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_14.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69cf3a6300000000230118bc" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_14', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_14', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_14', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_ZHAOJUN_15" data-id="XHS_ZHAOJUN_15" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_15.jpg', 'XHS_ZHAOJUN_15', '皮皮的皮eee', '愿得昭君王 携手共长生', '640×960')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_15.jpg" alt="XHS_ZHAOJUN_15" loading="lazy">
+                <span class="badge-id">XHS_ZHAOJUN_15</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_ZHAOJUN_15"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>皮皮的皮eee</strong></div>
+                <div class="note-title">愿得昭君王 携手共长生</div>
+                <div class="query-text">🔍 小红书检索: 王昭君cos 姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_ZHAOJUN_15.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a841c0e00000000330182ec" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_ZHAOJUN_15', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_ZHAOJUN_15', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_ZHAOJUN_15', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_01" data-id="XHS_STAFF_01" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_01.jpg', 'XHS_STAFF_01', '离不礼譜', '猜你需要优雅法杖动作！来和我们斯卡蒂学吧！', '640×960')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_01.jpg" alt="XHS_STAFF_01" loading="lazy">
+                <span class="badge-id">XHS_STAFF_01</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_01"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>离不礼譜</strong></div>
+                <div class="note-title">猜你需要优雅法杖动作！来和我们斯卡蒂学吧！</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_01.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a149e390000000035033732" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_01', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_01', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_01', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_02" data-id="XHS_STAFF_02" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_02.jpg', 'XHS_STAFF_02', '月月月', 'BloodEmbracesAIITide', '640×960')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_02.jpg" alt="XHS_STAFF_02" loading="lazy">
+                <span class="badge-id">XHS_STAFF_02</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_02"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>月月月</strong></div>
+                <div class="note-title">BloodEmbracesAIITide</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_02.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a2d3d500000000022026409" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_02', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_02', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_02', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_03" data-id="XHS_STAFF_03" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_03.jpg', 'XHS_STAFF_03', '摆烂的🍟', '法杖动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_03.jpg" alt="XHS_STAFF_03" loading="lazy">
+                <span class="badge-id">XHS_STAFF_03</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_03"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>摆烂的🍟</strong></div>
+                <div class="note-title">法杖动作参考</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_03.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a2005ad0000000006033601" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_03', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_03', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_03', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_04" data-id="XHS_STAFF_04" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_04.jpg', 'XHS_STAFF_04', '之桃之桃', '魔法不是束缚', '640×960')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_04.jpg" alt="XHS_STAFF_04" loading="lazy">
+                <span class="badge-id">XHS_STAFF_04</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_04"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>之桃之桃</strong></div>
+                <div class="note-title">魔法不是束缚</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_04.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6915a11b0000000005013d54" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_04', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_04', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_04', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_05" data-id="XHS_STAFF_05" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_05.jpg', 'XHS_STAFF_05', '予海Anastasia', '长柄法杖参考动作‖洛天依流光协奏cos', '640×960')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_05.jpg" alt="XHS_STAFF_05" loading="lazy">
+                <span class="badge-id">XHS_STAFF_05</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_05"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>予海Anastasia</strong></div>
+                <div class="note-title">长柄法杖参考动作‖洛天依流光协奏cos</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_05.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a1157fa000000003701f081" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_05', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_05', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_05', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_06" data-id="XHS_STAFF_06" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_06.jpg', 'XHS_STAFF_06', '多喝水（右上角放大镜搜动作关键词', '', '640×1138')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_06.jpg" alt="XHS_STAFF_06" loading="lazy">
+                <span class="badge-id">XHS_STAFF_06</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×1138</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_06"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>多喝水（右上角放大镜搜动作关</strong></div>
+                <div class="note-title"></div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_06.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a8003250000000022033be6" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_06', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_06', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_06', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_07" data-id="XHS_STAFF_07" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_07.jpg', 'XHS_STAFF_07', '麻雀的鸟巢', '法杖角色动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_07.jpg" alt="XHS_STAFF_07" loading="lazy">
+                <span class="badge-id">XHS_STAFF_07</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_07"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>麻雀的鸟巢</strong></div>
+                <div class="note-title">法杖角色动作参考</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_07.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6980719d000000002801fa03" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_07', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_07', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_07', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_08" data-id="XHS_STAFF_08" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_08.jpg', 'XHS_STAFF_08', '尽夏', '摄影拍照动作｜魔女法杖专题', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_08.jpg" alt="XHS_STAFF_08" loading="lazy">
+                <span class="badge-id">XHS_STAFF_08</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_08"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>尽夏</strong></div>
+                <div class="note-title">摄影拍照动作｜魔女法杖专题</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_08.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6823354a000000002202ae77" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_08', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_08', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_08', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_09" data-id="XHS_STAFF_09" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_09.jpg', 'XHS_STAFF_09', 'yu', '万物有灵 生生不息', '640×965')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_09.jpg" alt="XHS_STAFF_09" loading="lazy">
+                <span class="badge-id">XHS_STAFF_09</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×965</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_09"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>yu</strong></div>
+                <div class="note-title">万物有灵 生生不息</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_09.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a048647000000003501f8d3" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_09', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_09', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_09', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_10" data-id="XHS_STAFF_10" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_10.jpg', 'XHS_STAFF_10', '幸平一', '法杖动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_10.jpg" alt="XHS_STAFF_10" loading="lazy">
+                <span class="badge-id">XHS_STAFF_10</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_10"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>幸平一</strong></div>
+                <div class="note-title">法杖动作参考</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_10.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a1ec9d80000000038020df9" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_10', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_10', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_10', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_11" data-id="XHS_STAFF_11" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_11.jpg', 'XHS_STAFF_11', '知了鱼', '这是谁的小鹿呀', '640×981')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_11.jpg" alt="XHS_STAFF_11" loading="lazy">
+                <span class="badge-id">XHS_STAFF_11</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×981</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_11"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>知了鱼</strong></div>
+                <div class="note-title">这是谁的小鹿呀</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_11.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a030bb8000000003703420c" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_11', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_11', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_11', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_12" data-id="XHS_STAFF_12" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_12.jpg', 'XHS_STAFF_12', '多喝水（右上角放大镜搜动作关键词', '长法杖通用', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_12.jpg" alt="XHS_STAFF_12" loading="lazy">
+                <span class="badge-id">XHS_STAFF_12</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_12"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>多喝水（右上角放大镜搜动作关</strong></div>
+                <div class="note-title">长法杖通用</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_12.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/695612cd0000000021031152" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_12', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_12', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_12', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_13" data-id="XHS_STAFF_13" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_13.jpg', 'XHS_STAFF_13', '摆烂的🍟', '大乔/法杖动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_13.jpg" alt="XHS_STAFF_13" loading="lazy">
+                <span class="badge-id">XHS_STAFF_13</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_13"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>摆烂的🍟</strong></div>
+                <div class="note-title">大乔/法杖动作参考</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_13.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a55f62b000000000803e35f" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_13', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_13', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_13', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_14" data-id="XHS_STAFF_14" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_14.jpg', 'XHS_STAFF_14', '桃田心Nya', '耀嘉音及法杖角色拍照动作大赏｜cos动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_14.jpg" alt="XHS_STAFF_14" loading="lazy">
+                <span class="badge-id">XHS_STAFF_14</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_14"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>桃田心Nya</strong></div>
+                <div class="note-title">耀嘉音及法杖角色拍照动作大赏｜cos动作参考</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_14.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/68e4b5110000000003013feb" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_14', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_14', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_14', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_STAFF_15" data-id="XHS_STAFF_15" data-category="PROP_AND_SCEPTER">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_15.jpg', 'XHS_STAFF_15', '静岛山色飞渡', '拍照姿势分享第8期｜法杖篇', '640×853')">
+                <img src="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_15.jpg" alt="XHS_STAFF_15" loading="lazy">
+                <span class="badge-id">XHS_STAFF_15</span>
+                <span class="badge-cat">法杖道具</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_STAFF_15"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>静岛山色飞渡</strong></div>
+                <div class="note-title">拍照姿势分享第8期｜法杖篇</div>
+                <div class="query-text">🔍 小红书检索: 法杖 cos 拍照姿势</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/PROP_AND_SCEPTER/XHS_STAFF_15.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6960de0b000000000a0294a3" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_STAFF_15', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_STAFF_15', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_STAFF_15', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_01" data-id="XHS_FIELD_01" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_01.jpg', 'XHS_FIELD_01', '西柚iovoie', '萌妹万用无道具场照姿势参考', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_01.jpg" alt="XHS_FIELD_01" loading="lazy">
+                <span class="badge-id">XHS_FIELD_01</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_01"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>西柚iovoie</strong></div>
+                <div class="note-title">萌妹万用无道具场照姿势参考</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_01.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a8da990000000000302a909" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_01', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_01', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_01', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_02" data-id="XHS_FIELD_02" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_02.jpg', 'XHS_FIELD_02', '咬一口糯米饼', '黛冬优子｜小偶像棚拍姿势参考·站姿', '640×1138')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_02.jpg" alt="XHS_FIELD_02" loading="lazy">
+                <span class="badge-id">XHS_FIELD_02</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×1138</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_02"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>咬一口糯米饼</strong></div>
+                <div class="note-title">黛冬优子｜小偶像棚拍姿势参考·站姿</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_02.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a4c7e01000000000f01dead" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_02', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_02', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_02', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_03" data-id="XHS_FIELD_03" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_03.jpg', 'XHS_FIELD_03', '夏色Key', '流萤.反差感', '640×1137')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_03.jpg" alt="XHS_FIELD_03" loading="lazy">
+                <span class="badge-id">XHS_FIELD_03</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×1137</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_03"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>夏色Key</strong></div>
+                <div class="note-title">流萤.反差感</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_03.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a00951000000000060358c0" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_03', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_03', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_03', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_04" data-id="XHS_FIELD_04" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_04.jpg', 'XHS_FIELD_04', '小喆sama_', '小乔时之魔女/无道具可爱少女 万用动作参考', '640×1138')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_04.jpg" alt="XHS_FIELD_04" loading="lazy">
+                <span class="badge-id">XHS_FIELD_04</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×1138</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_04"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>小喆sama_</strong></div>
+                <div class="note-title">小乔时之魔女/无道具可爱少女 万用动作参考</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_04.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a5f6119000000001d022456" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_04', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_04', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_04', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_05" data-id="XHS_FIELD_05" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_05.jpg', 'XHS_FIELD_05', '思漓儿', '谁家小蛋糕这么甜呀', '640×960')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_05.jpg" alt="XHS_FIELD_05" loading="lazy">
+                <span class="badge-id">XHS_FIELD_05</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_05"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>思漓儿</strong></div>
+                <div class="note-title">谁家小蛋糕这么甜呀</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_05.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69f992e9000000003502a8ef" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_05', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_05', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_05', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_06" data-id="XHS_FIELD_06" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_06.jpg', 'XHS_FIELD_06', '小羊不是眠羊', '妲己美乐蒂女仆咖啡～想喝点啥？', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_06.jpg" alt="XHS_FIELD_06" loading="lazy">
+                <span class="badge-id">XHS_FIELD_06</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_06"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>小羊不是眠羊</strong></div>
+                <div class="note-title">妲己美乐蒂女仆咖啡～想喝点啥？</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_06.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/695e57ac0000000021031aba" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_06', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_06', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_06', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_07" data-id="XHS_FIELD_07" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_07.jpg', 'XHS_FIELD_07', '白榆寒酥', '小乔动作参考｜无道具萌妹动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_07.jpg" alt="XHS_FIELD_07" loading="lazy">
+                <span class="badge-id">XHS_FIELD_07</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_07"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>白榆寒酥</strong></div>
+                <div class="note-title">小乔动作参考｜无道具萌妹动作参考</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_07.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/68dba0c700000000070364cc" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_07', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_07', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_07', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_08" data-id="XHS_FIELD_08" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_08.jpg', 'XHS_FIELD_08', '茶冻草莓', '有人会喜欢这种小海报吗？', '640×896')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_08.jpg" alt="XHS_FIELD_08" loading="lazy">
+                <span class="badge-id">XHS_FIELD_08</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×896</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_08"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>茶冻草莓</strong></div>
+                <div class="note-title">有人会喜欢这种小海报吗？</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_08.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/68e4a0300000000004028c47" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_08', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_08', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_08', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_09" data-id="XHS_FIELD_09" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_09.jpg', 'XHS_FIELD_09', '海盐梦梦子', '白石杏漫展场照动作大赏', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_09.jpg" alt="XHS_FIELD_09" loading="lazy">
+                <span class="badge-id">XHS_FIELD_09</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_09"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>海盐梦梦子</strong></div>
+                <div class="note-title">白石杏漫展场照动作大赏</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_09.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69fc1c2d000000001a02e152" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_09', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_09', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_09', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_10" data-id="XHS_FIELD_10" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_10.jpg', 'XHS_FIELD_10', '邪恶耙耙柑', '西格莉卡场照动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_10.jpg" alt="XHS_FIELD_10" loading="lazy">
+                <span class="badge-id">XHS_FIELD_10</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_10"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>邪恶耙耙柑</strong></div>
+                <div class="note-title">西格莉卡场照动作参考</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_10.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69fc65b10000000036019c05" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_10', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_10', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_10', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_11" data-id="XHS_FIELD_11" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_11.jpg', 'XHS_FIELD_11', '九千歲.', '漫展场照萝莉角色参考姿势', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_11.jpg" alt="XHS_FIELD_11" loading="lazy">
+                <span class="badge-id">XHS_FIELD_11</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_11"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>九千歲.</strong></div>
+                <div class="note-title">漫展场照萝莉角色参考姿势</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_11.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a9422420000000020033bfa" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_11', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_11', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_11', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_12" data-id="XHS_FIELD_12" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_12.jpg', 'XHS_FIELD_12', '阿川川川', 'nozomi power！萌妹动作参考', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_12.jpg" alt="XHS_FIELD_12" loading="lazy">
+                <span class="badge-id">XHS_FIELD_12</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_12"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>阿川川川</strong></div>
+                <div class="note-title">nozomi power！萌妹动作参考</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_12.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a256dc2000000000702664a" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_12', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_12', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_12', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_13" data-id="XHS_FIELD_13" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_13.jpg', 'XHS_FIELD_13', '宫本宝藏', 'Rin酱💛', '640×960')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_13.jpg" alt="XHS_FIELD_13" loading="lazy">
+                <span class="badge-id">XHS_FIELD_13</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_13"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>宫本宝藏</strong></div>
+                <div class="note-title">Rin酱💛</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_13.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/685bc8c000000000100117eb" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_13', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_13', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_13', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_14" data-id="XHS_FIELD_14" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_14.jpg', 'XHS_FIELD_14', '三月Mitsuki', '无道具拍照姿｜元气动态感JK动作参考📸', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_14.jpg" alt="XHS_FIELD_14" loading="lazy">
+                <span class="badge-id">XHS_FIELD_14</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_14"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>三月Mitsuki</strong></div>
+                <div class="note-title">无道具拍照姿｜元气动态感JK动作参考📸</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_14.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a43b560000000000e038401" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_14', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_14', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_14', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_FIELD_15" data-id="XHS_FIELD_15" data-category="CONVENTION_FIELD">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_15.jpg', 'XHS_FIELD_15', '思漓儿', '小圆九连！', '640×853')">
+                <img src="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_15.jpg" alt="XHS_FIELD_15" loading="lazy">
+                <span class="badge-id">XHS_FIELD_15</span>
+                <span class="badge-cat">漫展实战</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_FIELD_15"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>思漓儿</strong></div>
+                <div class="note-title">小圆九连！</div>
+                <div class="query-text">🔍 小红书检索: 漫展拍照姿势 女角色</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/CONVENTION_FIELD/XHS_FIELD_15.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a0805db000000003503b757" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_FIELD_15', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_FIELD_15', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_FIELD_15', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_01" data-id="XHS_HOK_GIRLS_01" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_01.jpg', 'XHS_HOK_GIRLS_01', '無眠月（修炼后期版）', '【后期展示】王者异域团片', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_01.jpg" alt="XHS_HOK_GIRLS_01" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_01</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_01"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>無眠月（修炼后期版）</strong></div>
+                <div class="note-title">【后期展示】王者异域团片</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_01.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6ab51967000000001203b42e" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_01', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_01', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_01', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_02" data-id="XHS_HOK_GIRLS_02" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_02.jpg', 'XHS_HOK_GIRLS_02', '国秋果', '北京ijoy漫展cos西施拍照姿势', '640×978')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_02.jpg" alt="XHS_HOK_GIRLS_02" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_02</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×978</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_02"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>国秋果</strong></div>
+                <div class="note-title">北京ijoy漫展cos西施拍照姿势</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_02.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a6b3b4100000000350150c7" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_02', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_02', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_02', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_03" data-id="XHS_HOK_GIRLS_03" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_03.jpg', 'XHS_HOK_GIRLS_03', '遇见神鹿、', '岁岁年年花相似，共识人间有珍味', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_03.jpg" alt="XHS_HOK_GIRLS_03" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_03</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_03"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>遇见神鹿、</strong></div>
+                <div class="note-title">岁岁年年花相似，共识人间有珍味</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_03.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a475402000000000f01c638" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_03', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_03', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_03', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_04" data-id="XHS_HOK_GIRLS_04" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_04.jpg', 'XHS_HOK_GIRLS_04', '云离饱饱', '嫦娥落花微雨cos正片', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_04.jpg" alt="XHS_HOK_GIRLS_04" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_04</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_04"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>云离饱饱</strong></div>
+                <div class="note-title">嫦娥落花微雨cos正片</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_04.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a453c41000000000603348d" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_04', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_04', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_04', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_05" data-id="XHS_HOK_GIRLS_05" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_05.jpg', 'XHS_HOK_GIRLS_05', '祖鹅。（磁场净化版）', '我们这版四美cos能打几分？', '640×429')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_05.jpg" alt="XHS_HOK_GIRLS_05" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_05</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×429</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_05"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>祖鹅。（磁场净化版）</strong></div>
+                <div class="note-title">我们这版四美cos能打几分？</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_05.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69aabb96000000001a02b515" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_05', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_05', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_05', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_06" data-id="XHS_HOK_GIRLS_06" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_06.jpg', 'XHS_HOK_GIRLS_06', '鱼蛋圆圆📸', '美！到！失！语！', '640×1138')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_06.jpg" alt="XHS_HOK_GIRLS_06" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_06</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×1138</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_06"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>鱼蛋圆圆📸</strong></div>
+                <div class="note-title">美！到！失！语！</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_06.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6974cd6f00000000220088a1" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_06', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_06', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_06', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_07" data-id="XHS_HOK_GIRLS_07" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_07.jpg', 'XHS_HOK_GIRLS_07', '镜怜', '我把四美从游戏里扣出来了', '640×960')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_07.jpg" alt="XHS_HOK_GIRLS_07" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_07</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×960</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_07"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>镜怜</strong></div>
+                <div class="note-title">我把四美从游戏里扣出来了</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_07.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a0eec1c0000000008026284" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_07', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_07', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_07', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_08" data-id="XHS_HOK_GIRLS_08" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_08.jpg', 'XHS_HOK_GIRLS_08', '姜姜姜', '一些在洱海拍的大乔动作参考～', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_08.jpg" alt="XHS_HOK_GIRLS_08" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_08</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_08"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>姜姜姜</strong></div>
+                <div class="note-title">一些在洱海拍的大乔动作参考～</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_08.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/694aa733000000000d03d870" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_08', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_08', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_08', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_09" data-id="XHS_HOK_GIRLS_09" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_09.jpg', 'XHS_HOK_GIRLS_09', '阿圆酱', '预告｜谁说团片不能一条龙！', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_09.jpg" alt="XHS_HOK_GIRLS_09" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_09</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_09"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>阿圆酱</strong></div>
+                <div class="note-title">预告｜谁说团片不能一条龙！</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_09.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/67ded51c000000001d022bf5" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_09', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_09', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_09', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_10" data-id="XHS_HOK_GIRLS_10" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_10.jpg', 'XHS_HOK_GIRLS_10', '凉城OuO', '完成成就', '640×441')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_10.jpg" alt="XHS_HOK_GIRLS_10" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_10</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×441</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_10"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>凉城OuO</strong></div>
+                <div class="note-title">完成成就</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_10.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a684fe9000000000301e6d0" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_10', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_10', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_10', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_11" data-id="XHS_HOK_GIRLS_11" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_11.jpg', 'XHS_HOK_GIRLS_11', '云离饱饱', '貂蝉cos拍照姿势分享', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_11.jpg" alt="XHS_HOK_GIRLS_11" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_11</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_11"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>云离饱饱</strong></div>
+                <div class="note-title">貂蝉cos拍照姿势分享</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_11.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69b39522000000001e00ffca" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_11', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_11', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_11', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_12" data-id="XHS_HOK_GIRLS_12" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_12.jpg', 'XHS_HOK_GIRLS_12', 'emo', '所以有人看到最后一张吗？告诉我', '640×959')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_12.jpg" alt="XHS_HOK_GIRLS_12" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_12</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×959</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_12"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>emo</strong></div>
+                <div class="note-title">所以有人看到最后一张吗？告诉我</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_12.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a9b76b1000000002a006ed9" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_12', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_12', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_12', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_13" data-id="XHS_HOK_GIRLS_13" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_13.jpg', 'XHS_HOK_GIRLS_13', 'zZz（努力📷版）', '峡谷里最权威的二人！', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_13.jpg" alt="XHS_HOK_GIRLS_13" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_13</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_13"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>zZz（努力📷版）</strong></div>
+                <div class="note-title">峡谷里最权威的二人！</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_13.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/6a9b817a000000002901bc23" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_13', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_13', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_13', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_14" data-id="XHS_HOK_GIRLS_14" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_14.jpg', 'XHS_HOK_GIRLS_14', 'A-快门工.寂尘📷', '请选择你的英雄', '640×853')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_14.jpg" alt="XHS_HOK_GIRLS_14" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_14</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×853</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_14"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>A-快门工.寂尘📷</strong></div>
+                <div class="note-title">请选择你的英雄</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_14.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/67d258b200000000090384fa" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_14', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_14', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_14', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="cand-card" id="card-XHS_HOK_GIRLS_15" data-id="XHS_HOK_GIRLS_15" data-category="WANG_ZHAOJUN_HOK">
+            <div class="card-img-wrap" onclick="viewLightbox('../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_15.jpg', 'XHS_HOK_GIRLS_15', '你有如如可爱吗', 'ijoy的中路交给我们四美你放心', '640×480')">
+                <img src="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_15.jpg" alt="XHS_HOK_GIRLS_15" loading="lazy">
+                <span class="badge-id">XHS_HOK_GIRLS_15</span>
+                <span class="badge-cat">王者荣耀</span>
+                <span class="badge-res">640×480</span>
+                <div class="user-choice-badge" id="badge-choice-XHS_HOK_GIRLS_15"></div>
+            </div>
+            <div class="card-meta">
+                <div class="author-row">📷 创作者: <strong>你有如如可爱吗</strong></div>
+                <div class="note-title">ijoy的中路交给我们四美你放心</div>
+                <div class="query-text">🔍 小红书检索: 大乔 西施 貂蝉 cos 拍照</div>
+                <div class="links-group">
+                    <a href="../staging/xhs_downloads/WANG_ZHAOJUN_HOK/XHS_HOK_GIRLS_15.jpg" target="_blank" class="meta-link">本地原图</a>
+                    <a href="https://www.xiaohongshu.com/explore/69887e100000000028022f4a" target="_blank" rel="noopener noreferrer" class="meta-link">小红书原帖</a>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-decision btn-keep" onclick="setDecision('XHS_HOK_GIRLS_15', 'KEEP')">✓ 保留 (KEEP)</button>
+                    <button class="btn-decision btn-maybe" onclick="setDecision('XHS_HOK_GIRLS_15', 'MAYBE')">? 待定 (MAYBE)</button>
+                    <button class="btn-decision btn-reject" onclick="setDecision('XHS_HOK_GIRLS_15', 'REJECT')">✕ 淘汰 (REJECT)</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div id="lightbox" onclick="closeLightbox(event)">
+        <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+        <img id="lightbox-img" src="" alt="Full view">
+        <div id="lightbox-info"></div>
+    </div>
+
+    <script>
+        const decisions = {};
+        const LOCAL_STORAGE_KEY = 'xhs_pose_decisions';
+
+        try {
+            const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (cached) {
+                Object.assign(decisions, JSON.parse(cached));
+                applyAllDecisions();
+            }
+        } catch(e) {}
+
+        function setDecision(cid, choice) {
+            if (decisions[cid] === choice) {
+                delete decisions[cid];
+            } else {
+                decisions[cid] = choice;
+            }
+            updateCardUI(cid);
+            saveDecisions();
+            updateStats();
+        }
+
+        function updateCardUI(cid) {
+            const card = document.getElementById('card-' + cid);
+            if (!card) return;
+            card.classList.remove('state-keep', 'state-maybe', 'state-reject');
+            const choice = decisions[cid];
+            const badge = document.getElementById('badge-choice-' + cid);
+            if (choice) {
+                card.classList.add('state-' + choice.toLowerCase());
+                badge.innerText = choice;
+            } else {
+                badge.innerText = '';
+            }
+        }
+
+        function applyAllDecisions() {
+            for (const cid of Object.keys(decisions)) {
+                updateCardUI(cid);
+            }
+            updateStats();
+        }
+
+        function updateStats() {
+            let k = 0, m = 0, r = 0;
+            for (const c of Object.values(decisions)) {
+                if (c === 'KEEP') k++;
+                if (c === 'MAYBE') m++;
+                if (c === 'REJECT') r++;
+            }
+            document.getElementById('stat-keep').innerText = k;
+            document.getElementById('stat-maybe').innerText = m;
+            document.getElementById('stat-reject').innerText = r;
+        }
+
+        function saveDecisions() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(decisions));
+            } catch(e) {}
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const cards = document.querySelectorAll('.cand-card');
+            cards.forEach(card => {
+                if (cat === 'ALL' || card.dataset.category === cat) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function viewLightbox(src, cid, author, title, res) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-info').innerHTML = `<strong>${cid}</strong> [作者: ${author}] | 分辨率: ${res}<br><span style="color:#ff4d6a;">${title}</span>`;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox(e) {
+            if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-close')) {
+                document.getElementById('lightbox').classList.remove('active');
+            }
+        }
+
+        function exportDecisions() {
+            const keeps = [];
+            const maybes = [];
+            const rejects = [];
+            for (const [id, choice] of Object.entries(decisions)) {
+                if (choice === 'KEEP') keeps.push(id);
+                if (choice === 'MAYBE') maybes.push(id);
+                if (choice === 'REJECT') rejects.push(id);
+            }
+            const data = {
+                exported_at: new Date().toISOString(),
+                summary: { keep: keeps.length, maybe: maybes.length, reject: rejects.length },
+                keep_ids: keeps,
+                maybe_ids: maybes,
+                reject_ids: rejects,
+                all_decisions: decisions
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'xhs_pose_decisions.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('lightbox').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

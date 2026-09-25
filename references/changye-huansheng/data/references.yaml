@@ -1,0 +1,3592 @@
+- id: OFFICIAL_001
+  file: refs/00_OFFICIAL/OFFICIAL_001_key_visual.webp
+  category: 00_OFFICIAL
+  priority: CORE
+  source:
+    url: https://pvp.qq.com/web201605/herodetail/152.shtml
+    page_title: 王者荣耀官方英雄与皮肤爆料站 - 王昭君·长夜焕生
+    author: 王者荣耀官方 / 天美工作室群
+    platform: pvp.qq.com / 小红书官方
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 1.0
+  aesthetic_value: 0.98
+  technical_value: 0.95
+  source_confidence: 1.0
+  production_cost: HIGH
+  reference_roles:
+  - COLOR_PALETTE
+  - KEY_VISUAL
+  - LIGHTING_DIRECTION
+  - CHARACTER_SILHOUETTE
+  observed:
+  - 官方2121x1080高清横版美宣海报原画。
+  - 画面以深蓝暗调海洋为大底（约70%面积），右上角有强烈斜射暖金日光（约10%面积），人物及水母周身泛出高饱和冷青色生物荧光（约20%面积）。
+  - 人物右手持水母竖琴法杖向左上方延展，身周环绕多只大小不一的半透明发光小水母。
+  - 水母帽与披肩呈现高半透明透光感，边缘被右上角暖金与身周青蓝两道轮廓光同时切割。
+  inferred:
+  - 画面构图可能具有相当于35mm焦段在微仰视角下的透视拉伸感。
+  - 右上方暖光可能用于烘托'破晓长夜'的叙事主题，与水底冰冷形成极强冷暖冲突。
+  - 水母帽材质在原画设定中推测为次表面散射（SSS）半透明硅胶或特级透光欧根纱。
+  proposed:
+  - 现场作为 Shot 01（Hero Shot 全景）的唯一构图与光比色彩基准。
+  - 建议执行时在右上方架设 3200K 暖光束（模拟晨曦穿透），左侧及背景铺设深蓝泛光与冷青边缘光，复刻冷暖双轮廓。
+  do_not_copy:
+  - 原画中夸张的非人类肢体拉伸比例（如过长的小腿）不可生硬强求真人模特复刻，需通过镜头广角畸变合理转译。
+  - 不可将背景调成毫无暖色渗入的死黑死蓝。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_08
+  - SHOT_10
+  search_keyword: 王昭君 长夜焕生 原画 官方
+  notes: 全项目视觉基准图，所有色彩与情绪的最高仲裁依据。
+  image_quality:
+    width: 2121
+    height: 1080
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方2121x1080高清横版美宣海报原画。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方2121x1080高清横版美宣海报原画。
+- id: OFFICIAL_002
+  file: refs/00_OFFICIAL/OFFICIAL_002_character_detail.webp
+  category: 00_OFFICIAL
+  priority: CORE
+  source:
+    url: https://pvp.qq.com/web201605/herodetail/152.shtml
+    page_title: 王者荣耀官方英雄海报角色特写裁剪
+    author: 王者荣耀官方 / 天美工作室群
+    platform: pvp.qq.com / 小红书官方
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 1.0
+  aesthetic_value: 0.96
+  technical_value: 0.9
+  source_confidence: 1.0
+  production_cost: LOW
+  reference_roles:
+  - HAIR_STRUCTURE
+  - FACIAL_EXPRESSION
+  - MAKEUP_COLOR
+  - CHEST_CORE
+  observed:
+  - 官方原画上半身微距特写（1080x1080）。
+  - 面部为通透冷白肤色，眼影为微弱粉紫色系，睫毛修长，瞳孔为深邃蓝紫色并带有高光星点。
+  - 发型为浅蓝至浅紫渐变微卷波波头（Bob cut），头顶有一根向上自然翘起并分叉的发光呆毛（象征水母触角与长生选手聪明草）。
+  - 胸前佩戴一枚深红色菱形能量晶核（AG超玩会战队应援色彩蛋），周围环绕白色半透明珊瑚状颈饰。
+  inferred:
+  - 面部神态呈现空灵、恬静、微带悲悯的神圣感，视线并非对准正前方，而是向右下方微垂后轻扬。
+  - 胸前红宝石是全身唯一的暖红点缀，推测在视觉上承担打破蓝冷单调的视觉锚点功能。
+  proposed:
+  - 妆造团队以此图作为假发修剪（波波头内扣弧度+发光触角呆毛）与眼影唇釉选色的硬性基准。
+  - 近景肖像拍摄（Shot 04）时，需确保胸前红色吊坠反光清晰可见。
+  do_not_copy:
+  - 不可将假发做成普通直长发或凌乱披肩发，波波头内卷轮廓是本皮肤专属特征。
+  - 不可遗漏胸前的红宝石核心。
+  use_for_shots:
+  - SHOT_02
+  - SHOT_04
+  - SHOT_06
+  search_keyword: 王昭君 长夜焕生 面部特写 官方
+  notes: 妆面与发型修剪的一手依据。
+  image_quality:
+    width: 1080
+    height: 1080
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方原画上半身微距特写（1080x1080）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方原画上半身微距特写（1080x1080）。
+- id: OFFICIAL_003
+  file: refs/00_OFFICIAL/OFFICIAL_003_model_turnaround_front.webp
+  category: 00_OFFICIAL
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生模型三视图 - 正面
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 1.0
+  aesthetic_value: 0.88
+  technical_value: 0.98
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - COSTUME_SILHOUETTE
+  - 3D_MODEL
+  - HEMLINE_GEOMETRY
+  - PROPORTIONS
+  observed:
+  - 官方3D提取资产：水母竖琴法杖（武器）的正视、侧视、后视及顶视三视图（1080x1472）。
+  - 法杖顶端为半透明水母钟形伞盖与弧形晶体竖琴融合构型，琴身带冰晶折射质感，琴弦为5根笔直荧光弦。
+  - 握杆为银蓝螺旋金属渐变，下端带海螺与晶锥配重。
+  inferred:
+  - 裙摆剪裁模拟水母伞盖在水中收缩舒张的波浪花边，静态站立时依然保持弧形伞状张力。
+  proposed:
+  - COS服装版型核验基准：裙摆支撑必须有内衬鱼骨或双层压褶以维持波浪弧度，不可软榻下垂。
+  do_not_copy:
+  - 游戏内为了性能简化的低多边形直边细节不可直接照搬，实物服装应采用更细腻的高定面料工艺。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_03
+  - SHOT_07
+  search_keyword: 王昭君 长夜焕生 3D模型 正面
+  notes: 官方3D资产武器竖琴法杖三视图，道具翻模与持握核心基准。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：水母竖琴法杖（武器）的正视、侧视、后视及顶视三视图（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：水母竖琴法杖（武器）的正视、侧视、后视及顶视三视图（1080x1472）。
+- id: OFFICIAL_004
+  file: refs/00_OFFICIAL/OFFICIAL_004_model_turnaround_back.webp
+  category: 00_OFFICIAL
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生模型三视图 - 背面
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 1.0
+  aesthetic_value: 0.88
+  technical_value: 0.98
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - BACK_STRUCTURE
+  - TRAIN_DRAPING
+  - SHOULDER_STRAPS
+  observed:
+  - 官方3D提取资产：王昭君正面上半身特写立绘（1080x1472）。
+  - 展现银白水母抹胸、腰部镂空流光材质、两侧透明泡泡袖与扇贝形波浪短裙摆上沿。
+  - 头戴透明水母伞盖帽，两侧长发垂落，胸前佩戴AG战队红宝石核心与珊瑚软骨托架。
+  inferred:
+  - 背部结构高度强调女性背部线条的轻盈通透感，拍摄背面或回眸视角时具有极高美感价值。
+  proposed:
+  - 指导 Shot 06（美背与回眸视角）的服装背部穿戴检验与肩带隐形固定。
+  do_not_copy:
+  - 避免背后拉链或绑带穿帮露在露背区域外。
+  use_for_shots:
+  - SHOT_06
+  - SHOT_08
+  search_keyword: 王昭君 长夜焕生 3D模型 背面
+  notes: 官方3D资产正面半身，抹胸、腰腹镂空与正面服饰立体结构最直接参照。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君正面上半身特写立绘（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君正面上半身特写立绘（1080x1472）。
+- id: OFFICIAL_005
+  file: refs/00_OFFICIAL/OFFICIAL_005_weapon_harp_staff_detail.webp
+  category: 00_OFFICIAL
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生武器竖琴特写
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 1.0
+  aesthetic_value: 0.92
+  technical_value: 0.98
+  source_confidence: 0.98
+  production_cost: MEDIUM
+  reference_roles:
+  - WEAPON_PROP
+  - CRYSTAL_MATERIAL
+  - HARP_STRUCTURE
+  observed:
+  - 官方3D提取资产：王昭君后背全头纱披肩半身特写（1080x1472）。
+  - 展现水母帽顶自发光小水母触须、大面积半透明青绿薄纱下垂至后腰、以及透过薄纱隐现的深蓝星空露背裙。
+  inferred:
+  - 武器既是法杖也是乐器，手持方式应允许手指自然搭在琴弦上作拨弦状。
+  proposed:
+  - 实体道具制作验收：琴弓必须使用高透光环氧树脂或亚克力，并在琴框内槽预埋超细 5V 青色 LED 柔性灯带提供物理内发光。
+  do_not_copy:
+  - 禁止使用不透光的廉价 EVA 泡沫喷漆制作琴框，否则逆光下无法产生水晶折射。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_05
+  - SHOT_09
+  search_keyword: 王昭君 长夜焕生 武器 竖琴 细节
+  notes: 官方3D资产背面全透光披肩与头纱层次，回眸与背面构图基准。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君后背全头纱披肩半身特写（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君后背全头纱披肩半身特写（1080x1472）。
+- id: OFFICIAL_006
+  file: refs/00_OFFICIAL/OFFICIAL_006_headpiece_jellyfish_veil.webp
+  category: 00_OFFICIAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生水母头冠面纱细节
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 1.0
+  aesthetic_value: 0.94
+  technical_value: 0.96
+  source_confidence: 0.98
+  production_cost: MEDIUM
+  reference_roles:
+  - HEADPIECE
+  - VEIL_CONSTRUCTION
+  - TRANSLUCENT_SHEER
+  observed:
+  - 官方3D提取资产：王昭君背面短发与披肩分层结构（1080x1472）。
+  - 去除外层大面纱后的后脑假发层次，展现羽毛状/水母状剪裁发尾与后颈线条。
+  inferred:
+  - 头饰具有一定重量，若固定不稳容易在模特抬头或低头时滑落，且易在正面主光下形成重度下眼窝阴影。
+  proposed:
+  - 拍摄现场必须配置前下方反光板消除帽檐阴影，且帽胚内侧应缝制暗夹紧固在发网骨架上。
+  do_not_copy:
+  - 切勿使用厚实白布，必须选用透光率在 60% 以上的玻璃欧根纱。
+  use_for_shots:
+  - SHOT_02
+  - SHOT_04
+  - SHOT_06
+  search_keyword: 王昭君 长夜焕生 水母帽 头饰
+  notes: 官方3D资产背面发型分层，假发修剪内层结构依据。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君背面短发与披肩分层结构（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君背面短发与披肩分层结构（1080x1472）。
+- id: OFFICIAL_007
+  file: refs/00_OFFICIAL/OFFICIAL_007_costume_tail_structure.webp
+  category: 00_OFFICIAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生裙摆下摆结构
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 0.95
+  aesthetic_value: 0.86
+  technical_value: 0.92
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - COSTUME_HEM
+  - FABRIC_GRADIENT
+  observed:
+  - 官方3D提取资产：王昭君无假发遮挡的大露背与肩带结构（1080x1472）。
+  - 清晰展现深V露背剪裁、交叉透明细肩带贴合走线、以及水母短裙摆后部波浪褶皱。
+  inferred:
+  - 多层叠压产生水波层层荡漾的立体感，走动时裙摆会自然摆动。
+  proposed:
+  - 指导下半身特写与走动抓拍动作设计。
+  do_not_copy:
+  - 不可将下摆做成单层平面布料剪裁。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_08
+  search_keyword: 王昭君 长夜焕生 裙摆细节
+  notes: 官方3D资产大露背与肩带隐形走线绝对依据，指导Coser背部穿戴与防走光。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君无假发遮挡的大露背与肩带结构（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君无假发遮挡的大露背与肩带结构（1080x1472）。
+- id: OFFICIAL_008
+  file: refs/00_OFFICIAL/OFFICIAL_008_chest_core_coral_accessory.webp
+  category: 00_OFFICIAL
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生胸前核心饰品
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 0.98
+  aesthetic_value: 0.9
+  technical_value: 0.9
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - ACCESSORY_PROP
+  - CHEST_CORE
+  observed:
+  - 官方3D提取资产：王昭君全身正视角A-Pose标准立绘（1080x1080）。
+  - 完整展现头冠、抹胸、短裙、双臂水母长飘带、修长双腿与渐变透明高跟鞋的全身体态比例。
+  inferred:
+  - 宝石材质为高折射率透明红色树脂，受光时会有清脆的单点高光。
+  proposed:
+  - 服化团队必须精准还原红宝石棱角切割面。
+  do_not_copy:
+  - 不可使用扁平印刷贴纸替代。
+  use_for_shots:
+  - SHOT_02
+  - SHOT_04
+  - SHOT_10
+  search_keyword: 王昭君 长夜焕生 胸口宝石 细节
+  notes: 官方3D资产全身正面A-Pose，漫展全身体态与比例最高基准。
+  image_quality:
+    width: 1080
+    height: 1080
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君全身正视角A-Pose标准立绘（1080x1080）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君全身正视角A-Pose标准立绘（1080x1080）。
+- id: OFFICIAL_009
+  file: refs/00_OFFICIAL/OFFICIAL_009_model_turnaround_side.webp
+  category: 00_OFFICIAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生模型三视图 - 侧面
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 1.0
+  aesthetic_value: 0.88
+  technical_value: 0.96
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - SIDE_PROFILE
+  - SPINE_ALIGNMENT
+  - POSTURE_CURVE
+  observed:
+  - 官方3D提取资产：王昭君前侧方45度半身立体视角（1080x1472）。
+  - 展现胸部立体杯型、腰腹镂空侧面厚度、肩部半透泡泡袖与头纱向后自然飘散的立体空间关系。
+  inferred:
+  - 侧面剪影呈流畅的微 S 形，前短后长的裙摆为腿部留出前伸空间，避免臃肿。
+  proposed:
+  - 摄影师指导模特侧身站位与佩戴水母帽的角度校准基准。
+  do_not_copy:
+  - 避免帽子向后仰翻导致面容全露失去神性神秘感。
+  use_for_shots:
+  - SHOT_03
+  - SHOT_05
+  search_keyword: 王昭君 长夜焕生 3D模型 侧面
+  notes: 官方3D资产侧前45度视角，指导半身侧角运镜与V100单灯侧光雕刻。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君前侧方45度半身立体视角（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君前侧方45度半身立体视角（1080x1472）。
+- id: OFFICIAL_010
+  file: refs/00_OFFICIAL/OFFICIAL_010_hair_bobcut_back_structure.webp
+  category: 00_OFFICIAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生发型后颈细节
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 0.95
+  aesthetic_value: 0.86
+  technical_value: 0.92
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - WIG_STYLING
+  - HAIR_BACK
+  observed:
+  - 官方3D提取资产：王昭君正侧方90度半身侧颜与胸腰线条（1080x1472）。
+  - 清晰展现水母头冠倾角、侧面立挺下颌线、挺拔胸腰S曲线与薄纱向后飞掠的流线型。
+  inferred:
+  - 假发需分层内扣打毛定型才能在走动或微风中保持结构不散。
+  proposed:
+  - 假发师修剪发尾分簇与颈部内收层次对照。
+  do_not_copy:
+  - 不可修剪成一刀切的死板平头波波头。
+  use_for_shots:
+  - SHOT_06
+  search_keyword: 王昭君 长夜焕生 假发结构 后部
+  notes: 官方3D资产90度正侧颜与脊柱S形体态，Shot 05与侧脸特写基准。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君正侧方90度半身侧颜与胸腰线条（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君正侧方90度半身侧颜与胸腰线条（1080x1472）。
+- id: OFFICIAL_011
+  file: refs/00_OFFICIAL/OFFICIAL_011_harp_crystal_translucency.webp
+  category: 00_OFFICIAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生竖琴晶体透光特写
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 0.98
+  aesthetic_value: 0.92
+  technical_value: 0.92
+  source_confidence: 0.98
+  production_cost: MEDIUM
+  reference_roles:
+  - WEAPON_PROP
+  - CRYSTAL_REFRACTION
+  observed:
+  - 官方3D提取资产：王昭君后侧方45度半透明披纱与拖尾层叠（1080x1472）。
+  - 展现背部V字下沿、双层水母长拖尾向地面垂直垂落的透光渐变质感。
+  inferred:
+  - 高折射率物理质感在实拍逆光下能够自发产生棱镜光散。
+  proposed:
+  - 道具表面建议抛光并涂刷微量透明清漆以增强镜面高光。
+  do_not_copy:
+  - 避免哑光磨砂质感导致失真。
+  use_for_shots:
+  - SHOT_05
+  search_keyword: 王昭君 长夜焕生 竖琴 晶体质感
+  notes: 官方3D资产后侧45度拖尾与背部透光，回眸构图与高定质感参考。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君后侧方45度半透明披纱与拖尾层叠（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君后侧方45度半透明披纱与拖尾层叠（1080x1472）。
+- id: OFFICIAL_012
+  file: refs/00_OFFICIAL/OFFICIAL_012_jellyfish_veil_top_angle.webp
+  category: 00_OFFICIAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生帽盖顶视几何图
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 0.96
+  aesthetic_value: 0.88
+  technical_value: 0.94
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - HEADPIECE_GEOMETRY
+  - CONCENTRIC_RINGS
+  observed:
+  - 官方3D提取资产：王昭君后背骨架与折叠拖尾内部透视结构（1080x1472）。
+  - 关闭半透明度后的工程结构图，标注'这张把后面的不透明度关了，好观察结构'，清晰展现骨架受力与折叠层数。
+  inferred:
+  - 水母帽有清晰的仿生骨架支撑体系，并非随意堆叠的软纱。
+  proposed:
+  - 帽胚内部建议采用 1mm 细软钢丝或透明定型骨条做出 8 根肋骨支撑。
+  do_not_copy:
+  - 不可做成塌陷无骨的浴帽状。
+  use_for_shots:
+  - SHOT_06
+  search_keyword: 王昭君 长夜焕生 水母帽 俯视
+  notes: 官方3D资产后背工程解剖图，服装工坊版型硬骨架制作依据。
+  image_quality:
+    width: 1080
+    height: 1472
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君后背骨架与折叠拖尾内部透视结构（1080x1472）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君后背骨架与折叠拖尾内部透视结构（1080x1472）。
+- id: OFFICIAL_013
+  file: refs/00_OFFICIAL/OFFICIAL_013_shoes_ankle_shell_ornament.webp
+  category: 00_OFFICIAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/69723231000000000903aa59
+    page_title: 王者荣耀王昭君长夜焕生足部鞋履细节
+    author: '王者荣耀官方 (提取: 舟楫不避狂澜)'
+    platform: 游戏内3D模型提取 / 小红书
+    source_type: OFFICIAL
+    verified: true
+  target_relevance: 0.9
+  aesthetic_value: 0.84
+  technical_value: 0.88
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - FOOTWEAR
+  - ANKLE_ACCESSORY
+  observed:
+  - 官方3D提取资产：王昭君正侧面90度全身立姿（1080x1080）。
+  - 从头顶小水母到脚底高跟鞋的完整侧面全身投影，展现双腿笔直度、足尖下绷角度与长拖尾飘拂长度。
+  inferred:
+  - 脚背全露配合透明高跟，视觉上拉长小腿线条并突显水生精灵的赤足感。
+  proposed:
+  - 全身立姿及仰角拍摄时（Shot 01、07）核验鞋履穿戴。
+  do_not_copy:
+  - 严禁穿着普通白色厚底皮鞋或长靴。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_07
+  search_keyword: 王昭君 长夜焕生 鞋子 细节
+  notes: 官方3D资产正侧面全身立姿，指导漫展全身侧立与足背绷紧线条。
+  image_quality:
+    width: 1080
+    height: 1080
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方3D提取资产：王昭君正侧面90度全身立姿（1080x1080）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  character_anchor: 官方3D提取资产：王昭君正侧面90度全身立姿（1080x1080）。
+- id: COSTUME_001
+  file: refs/01_COSTUME/COSTUME_001_full_physical_dress.webp
+  category: 01_COSTUME
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/6a4ce71d0000000007022652
+    page_title: 王昭君长夜焕生实拍样衣全景
+    author: 久七
+    platform: 小红书
+    source_type: COSPLAY
+    verified: true
+  target_relevance: 0.92
+  aesthetic_value: 0.85
+  technical_value: 0.9
+  source_confidence: 0.9
+  production_cost: MEDIUM
+  reference_roles:
+  - PHYSICAL_COSTUME
+  - FABRIC_DRAPING
+  - EMBROIDERY_REFLECTIVITY
+  observed:
+  - 国内制衣工坊实做物理COS样衣上身实拍全景（1080x1620）。
+  - 缎面在摄影室内硬光照射下产生高光斑块，下摆双层欧根纱具有真实悬垂与自然微透光。
+  - 水母帽配有垂坠珍珠链与半透明渐变飘带。
+  inferred:
+  - 实物面料的高光反光率较高，若现场主光未经柔化可能在胸前与肩部产生死白过曝。
+  - 下摆欧根纱需风机辅助吹动才能展开，静止状态下多自然下垂贴合腿部。
+  proposed:
+  - 拍摄现场主光必须加装大面积双层柔光箱/柔光伞，压制缎面过硬的镜面高光；侧方配备风机低档微吹保持下摆舒展。
+  do_not_copy:
+  - 样衣胸口拼接若有明显缝合针脚需后期修平。
+  - 不可任由假发刘海塌陷，需加强发根蓬松度。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_05
+  search_keyword: 王昭君 长夜焕生 cos 全身
+  notes: 现有三方COS服装实物落地的现实参考。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 国内制衣工坊实做物理COS样衣上身实拍全景（1080x1620）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: COSTUME_002
+  file: refs/01_COSTUME/COSTUME_002_hat_drape_detail.webp
+  category: 01_COSTUME
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/6a4ce71d0000000007022652
+    page_title: 王昭君长夜焕生水母帽檐垂感细节
+    author: 久七
+    platform: 小红书
+    source_type: COSPLAY
+    verified: true
+  target_relevance: 0.9
+  aesthetic_value: 0.82
+  technical_value: 0.88
+  source_confidence: 0.9
+  production_cost: LOW
+  reference_roles:
+  - HEADPIECE_PHYSICAL
+  - SHADOW_OCCLUSION
+  observed:
+  - 半身近景展示实物水母帽佩戴状态（1080x1620）。
+  - 帽檐压褶透光纱向前方倾斜，飘带下垂至锁骨下方，刺绣在侧光下呈现立体凹凸纹理。
+  inferred:
+  - 当光线从斜上方打下时，帽檐下沿会在鼻梁与眼窝投下明显锯齿状阴影。
+  proposed:
+  - 明确要求前下方 30° 放置补光板或补光灯棒，强制填平帽檐阴影。
+  do_not_copy:
+  - 切勿让下垂飘带遮挡模特嘴唇与眼神光。
+  use_for_shots:
+  - SHOT_02
+  - SHOT_04
+  search_keyword: 王昭君 长夜焕生 cos 半身 水母帽
+  notes: 证明帽檐阴影遮挡问题的关键物理证据。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 半身近景展示实物水母帽佩戴状态（1080x1620）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: COSTUME_003
+  file: refs/01_COSTUME/COSTUME_003_ivh_hydrozoa_dress.webp
+  category: 01_COSTUME
+  priority: CORE
+  source:
+    url: https://www.irisvanherpen.com/haute-couture/sensory-seas
+    page_title: Iris van Herpen Haute Couture SS20 'Sensory Seas' - Hydrozoa
+    author: Iris van Herpen
+    platform: irisvanherpen.com / 巴黎高定时装周
+    source_type: EDITORIAL
+    verified: true
+  target_relevance: 0.88
+  aesthetic_value: 0.98
+  technical_value: 0.96
+  source_confidence: 0.98
+  production_cost: HIGH
+  reference_roles:
+  - BIOMIMETIC_COUTURE
+  - TRANSLUCENT_MESH
+  - JELLYFISH_FINS
+  observed:
+  - 顶级高定时装秀场走秀图（1080x1440）。
+  - 激光切割透明 PETG 材质与极薄玻璃欧根纱（Glass Organza）层叠拼接，形成如同水母触手和伞缘呼吸脉动的流动轮廓。
+  - 材质在秀场顶逆光照射下呈现近乎悬浮的半透明发光体视觉。
+  inferred:
+  - 高级通透感的来源不是一层简单的死白纱，而是多层微小弧形切片在逆光下的次表面重叠衍射。
+  proposed:
+  - 服化团队若需升级服装档次，可在水母帽与拖尾边缘叠加手工激光裁切的透明热定型欧根纱波浪片，提升生动海洋仿生感。
+  do_not_copy:
+  - 严禁照搬其先锋暗黑复杂的解构轮廓，王昭君长夜焕生本尊属于优雅端庄神女定位，应保持整体造型的纯净感。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_06
+  search_keyword: Iris van Herpen Sensory Seas Hydrozoa
+  notes: 跨界高定时装水母生物仿生材料的最高标准。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1440
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 顶级高定时装秀场走秀图（1080x1440）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: COSTUME_004
+  file: refs/01_COSTUME/COSTUME_004_ivh_pleated_translucent_fin.webp
+  category: 01_COSTUME
+  priority: SUPPORT
+  source:
+    url: https://www.irisvanherpen.com/haute-couture/sensory-seas
+    page_title: Iris van Herpen Haute Couture SS20 压褶半透明翼状细节
+    author: Iris van Herpen
+    platform: irisvanherpen.com / 巴黎高定时装周
+    source_type: EDITORIAL
+    verified: true
+  target_relevance: 0.85
+  aesthetic_value: 0.95
+  technical_value: 0.94
+  source_confidence: 0.98
+  production_cost: HIGH
+  reference_roles:
+  - PLEATED_ORGANZA
+  - LIGHT_TRANSMISSION
+  observed:
+  - 压褶高定面料特写（1080x1439）。
+  - 极细密的手工风琴褶在微弱侧光下呈现极为细腻的明暗渐变排线，通透而不单薄。
+  inferred:
+  - 细密压褶能够捕获逆光形成光晕，极大增强轮廓边缘的光感厚度。
+  proposed:
+  - 用于水母帽边缘纱幔的压褶工艺选型参考。
+  do_not_copy:
+  - 不可采用粗大塑料褶皱。
+  use_for_shots:
+  - SHOT_04
+  - SHOT_06
+  search_keyword: Iris van Herpen Sensory Seas pleats
+  notes: 半透明压褶光影质感极佳示范。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1439
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 压褶高定面料特写（1080x1439）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: COSTUME_005
+  file: refs/01_COSTUME/COSTUME_005_underwater_fabric_waterproofing.webp
+  category: 01_COSTUME
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/6922dec0000000001e00bb1a
+    page_title: 水下COS教程 - 面料与妆容防水加固指南
+    author: 在贵阳摄影师七哥 / 桥南
+    platform: 小红书
+    source_type: TUTORIAL
+    verified: true
+  target_relevance: 0.86
+  aesthetic_value: 0.8
+  technical_value: 0.92
+  source_confidence: 0.9
+  production_cost: LOW
+  reference_roles:
+  - WATERPROOF_MAKEUP
+  - FABRIC_PREPARATION
+  observed:
+  - 水下/仿水下妆造与服装预处理对比（1080x1620）。
+  - 轻薄雪纺与薄纱在空气中具有良好飘逸性，金属配件涂刷防护甲油胶，妆容采用'妆前乳+持妆粉底+定妆喷雾+散粉+定妆喷雾'的三明治定妆法。
+  inferred:
+  - 若现场伴随水气喷雾或湿发拍摄，常规二次元浓妆会在 15 分钟内花妆晕染。
+  proposed:
+  - 妆造师必须严格采用高防水防汗三明治定妆体系，并在假发根部喷涂高强度定型胶。
+  do_not_copy:
+  - 不要选用容易吸水变重下沉的厚重棉麻或厚缎。
+  use_for_shots:
+  - SHOT_03
+  - SHOT_04
+  search_keyword: 水下 cos 妆容 防水分层 准备
+  notes: 湿水与仿水实战妆造防崩塌指南。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 水下/仿水下妆造与服装预处理对比（1080x1620）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: STYLE_001
+  file: refs/02_STYLE/STYLE_001_hanging_jellyfish_portrait.webp
+  category: 02_STYLE
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/6a37bcbf000000002003a270
+    page_title: 白棚置景透明水母人像创作成片
+    author: 暮影_MUYING / 白川川
+    platform: 小红书
+    source_type: EDITORIAL
+    verified: true
+  target_relevance: 0.88
+  aesthetic_value: 0.92
+  technical_value: 0.92
+  source_confidence: 0.92
+  production_cost: MEDIUM
+  reference_roles:
+  - SET_INSTALLATION
+  - STUDIO_CREATIVE
+  - DEPTH_OF_FIELD
+  observed:
+  - 摄影棚内利用吊顶鱼线悬挂多顶实体手工半透明水母道具（1080x1440）。
+  - 顶光照射在水母伞盖上，在人物周围形成错落的前景虚焦与背景浮游层次，产生轻盈流动的高级艺术感。
+  inferred:
+  - 实物水母道具相比纯后期贴图，能提供完全符合现场主光物理方向的高光反光与漫反射阴影，代入感极大增强。
+  proposed:
+  - 现场建议在天花板横梁架设 3-5 个用透明欧根纱与气泡球自制的手工水母作为前景遮挡物，拉开景深（Shot 01、06）。
+  do_not_copy:
+  - 避免水母悬挂过低直接撞头，鱼线需选用直径 0.2mm 以下的透明钓鱼线。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_06
+  - SHOT_09
+  search_keyword: 水母 置景 拍摄 人像 艺术
+  notes: 证明物理置景水母在摄影棚内可行性的核心案例。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1440
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 摄影棚内利用吊顶鱼线悬挂多顶实体手工半透明水母道具（1080x1440）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: STYLE_002
+  file: refs/02_STYLE/STYLE_002_dreamy_blue_jellyfish_lake.webp
+  category: 02_STYLE
+  priority: OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/6a8abc650000000028022929
+    page_title: 坠入梦境之湖 - 水母主题幽蓝人像
+    author: mmelody5📷 / 一口忆酱
+    platform: 小红书
+    source_type: COSPLAY
+    verified: true
+  target_relevance: 0.75
+  aesthetic_value: 0.9
+  technical_value: 0.78
+  source_confidence: 0.85
+  production_cost: LOW
+  reference_roles:
+  - COLOR_MOOD
+  - DREAMY_BLUE
+  - DEEP_SHADOWS
+  observed:
+  - 高对比深幽蓝冷色调人像成片（1080x1855）。
+  - 整体背景深暗偏黛蓝，人物身披白色半透明纱在冷青色环境中形成强烈的明暗反差。
+  inferred:
+  - 原片为《胜利女神：妮姬》角色莉贝雷利奥（Liberelio）的同人COS，并非王昭君。
+  - 其调色风格与长夜焕生的冷调夜色氛围有一定相似度。
+  proposed:
+  - 仅作为深暗蓝冷色调氛围与白色半透明纱明度分离度的参考。
+  do_not_copy:
+  - 【红线】严禁抄袭其角色本身的护士服/异端者颈饰与黑色机械配件，该角色并非王昭君！
+  - 不可将色调做成纯死灰蓝。
+  use_for_shots:
+  - SHOT_07
+  search_keyword: 坠入梦境之湖 水母 摄影
+  notes: 非目标角色！仅参考冷色反差，严防角色元素污染。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1855
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 高对比深幽蓝冷色调人像成片（1080x1855）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: STYLE_003
+  file: refs/02_STYLE/STYLE_003_simulated_underwater_dry_set.webp
+  category: 02_STYLE
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/69edef1a000000001f000433
+    page_title: 仿水下拍摄 - 悬停入深海
+    author: 熊猫小涯
+    platform: 小红书
+    source_type: EDITORIAL
+    verified: true
+  target_relevance: 0.92
+  aesthetic_value: 0.94
+  technical_value: 0.96
+  source_confidence: 0.94
+  production_cost: MEDIUM
+  reference_roles:
+  - DRY_UNDERWATER
+  - WEIGHTLESS_SUSPENSION
+  - CAUSTICS_SURFACE
+  observed:
+  - 陆地暗棚仿水下拍摄全身照（1080x1620）。
+  - 背景为纯黑色吸光布，顶置水波焦散灯投射在白色蓬松裙摆上，模特呈漂浮悬停姿态，假发干燥完整，无泡水塌陷痕迹。
+  inferred:
+  - 通过侧向低速风机吹拂轻纱与地面支撑木箱抠除技术，在陆地上实现了超越真水下的纯净漂浮感，彻底规避了真水棚毁假发、花妆、模特憋气面部狰狞的致命缺陷。
+  proposed:
+  - 作为 Shot 03（失重悬浮）与 Shot 08（动态飞扬）的唯一技术路线范本：坚决采用陆地暗棚仿水下！
+  do_not_copy:
+  - 原片模特身着 Lolita 裙摆，不可照搬其服装剪裁，需替换为王昭君长夜焕生水母下摆。
+  use_for_shots:
+  - SHOT_03
+  - SHOT_08
+  search_keyword: 仿水下拍摄 悬停入深海
+  notes: 全案最重要的技术突破点：以陆地仿水下代替真水棚。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 陆地暗棚仿水下拍摄全身照（1080x1620）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: STYLE_004
+  file: refs/02_STYLE/STYLE_004_ivh_sensory_seas_silhouette.webp
+  category: 02_STYLE
+  priority: SUPPORT
+  source:
+    url: https://www.irisvanherpen.com/haute-couture/sensory-seas
+    page_title: Iris van Herpen Sensory Seas 极简高定秀场剪影
+    author: Iris van Herpen
+    platform: irisvanherpen.com / 巴黎高定时装周
+    source_type: EDITORIAL
+    verified: true
+  target_relevance: 0.85
+  aesthetic_value: 0.96
+  technical_value: 0.9
+  source_confidence: 0.98
+  production_cost: HIGH
+  reference_roles:
+  - FASHION_EDITORIAL
+  - CLEAN_BACKGROUND
+  - NEGATIVE_SPACE
+  observed:
+  - 纯黑极简背景下走秀全身摄影（1080x1439）。
+  - 大面积暗黑负空间包裹中央发光水母轮廓裙，视觉极为高级洗练，无杂乱背景干扰。
+  inferred:
+  - 高级感来源于对背景信息的极度克制，使观众全部注意力集中于人物发光边缘与材质流动。
+  proposed:
+  - 指导摄影师在全景镜头（Shot 07）中保持画面留白率在 50% 以上，拒绝廉价花哨的贴纸背景。
+  do_not_copy:
+  - 避免模特表情过于冷酷厌世，王昭君角色应保有一丝悲悯与救赎温情。
+  use_for_shots:
+  - SHOT_07
+  search_keyword: Iris van Herpen Sensory Seas silhouette runway
+  notes: 高级时装剪影与负空间掌控标杆。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1439
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 纯黑极简背景下走秀全身摄影（1080x1439）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: REJECT_003
+  file: refs/90_REJECTED/REJECT_003_nikke_liberelio_quadruped_kneel.webp
+  category: 90_REJECTED
+  priority: REJECT
+  source:
+    url: https://www.xiaohongshu.com/explore/6a7db3f70000000028000ce9
+    page_title: 水母拟人清冷感面部仰角特写
+    author: 诗译📷
+    platform: 小红书
+    source_type: COSPLAY
+    verified: true
+  target_relevance: 0.78
+  aesthetic_value: 0.88
+  technical_value: 0.86
+  source_confidence: 0.88
+  production_cost: LOW
+  reference_roles:
+  - FACIAL_ANGLE
+  - COOL_EXPRESSION
+  - HEAD_TILT
+  observed:
+  - 实拍图为《胜利女神：妮姬》角色莉贝雷利奥（Liberelio）的Cosplay。
+  - 模特身穿紧身连体衣，四肢着地（双膝跪地、双手撑地）趴在白色地面上，身体前倾昂首，重点展示胸部与紧身衣。
+  - 动作带有强烈性暗示和二次元肉感风格。
+  inferred:
+  - 该动作无论在角色设定还是场景执行上均严重脱离《王者荣耀》王昭君长夜焕生的庄严神性、悲悯与灵动特质。
+  - 在漫展公共场合趴在地上撑地极为不雅、地面污脏、且极易招致围观拥堵。
+  proposed:
+  - 彻底移入 90_REJECTED 废弃库，作为严禁模仿的反面教材！
+  do_not_copy:
+  - 严禁模仿四肢着地爬行姿态
+  - 严禁引入妮姬角色要素与胸前大面积低俗露肉构图
+  use_for_shots:
+  - SHOT_04
+  search_keyword: 水母 清冷感 姿势 拍照公式
+  notes: 审计发现图文严重不符，实为妮姬莉贝雷利奥趴地姿态，已正式降级废弃。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 实拍图为《胜利女神：妮姬》角色莉贝雷利奥（Liberelio）的Cosplay。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: LIGHTING_001
+  file: refs/04_LIGHTING/LIGHTING_001_ocean_caustic_sample.webp
+  category: 04_LIGHTING
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/671aed0e0000000021002e6b
+    page_title: 水纹灯人像摄影成片效果
+    author: 摄影师贾超（灯光版）
+    platform: 小红书
+    source_type: BTS
+    verified: true
+  target_relevance: 0.92
+  aesthetic_value: 0.9
+  technical_value: 0.94
+  source_confidence: 0.95
+  production_cost: MEDIUM
+  reference_roles:
+  - WATER_CAUSTICS
+  - SKIN_PROJECTION
+  - LIGHT_CONTRAST
+  observed:
+  - 模特面部及锁骨清晰映射出动态水波纹光束（1080x1621）。
+  - 高光焦散线锐利明亮（RGB约220~240），暗部阴影保持深蓝通透，无明显夜店霓虹脏色。
+  inferred:
+  - 水波焦散由带旋转水波纹镜片的聚光灯打出，灯头距模特距离适中（约 2~3 米），使光纹聚集成网状高反差。
+  proposed:
+  - Shot 04（水光抚颊）的实拍布光基准，水纹灯焦点调至模特眼部与锁骨，营造真实深海水波映射感。
+  do_not_copy:
+  - 切勿让最粗的水纹阴影线直接横切模特鼻梁正中央，需微调灯位避开五官关键中轴线。
+  use_for_shots:
+  - SHOT_03
+  - SHOT_04
+  search_keyword: 水纹灯 人像 摄影 效果
+  notes: 真实水波纹投影在皮肤上的高水准实操范式。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1621
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 模特面部及锁骨清晰映射出动态水波纹光束（1080x1621）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: LIGHTING_002
+  file: refs/04_LIGHTING/LIGHTING_002_cyan_amber_portrait_sample.webp
+  category: 04_LIGHTING
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/67a33b56000000001800fff2
+    page_title: 全彩灯光肖像创作 - 冷青与暖橙双色温对比
+    author: 南光摄影 / Luciana Abella
+    platform: Nanlite 官方发布 / 小红书
+    source_type: BTS
+    verified: true
+  target_relevance: 0.9
+  aesthetic_value: 0.96
+  technical_value: 0.95
+  source_confidence: 0.98
+  production_cost: MEDIUM
+  reference_roles:
+  - DUAL_COLOR_TEMPERATURE
+  - CYAN_AMBER_SPLIT
+  - RIM_LIGHTING
+  observed:
+  - 专业棚拍时尚肖像（1080x1350）。
+  - 面部左侧为主冷青色（Peacock Blue）深邃雕刻，右后侧为高色温差的暖琥珀橙金轮廓逆光，背景极暗，冷暖对冲极其高级。
+  inferred:
+  - 左右两侧光源色温跨度极大（一侧约 8000K+Cyan，另一侧约 3000K+Amber），通过色彩互补将人物立体感彻底剥离背景。
+  proposed:
+  - Shot 01（Hero Shot）与 Shot 10（长夜尽头）的双色温布光标准：深海蓝底+暖金破晓轮廓。
+  do_not_copy:
+  - 原片为欧美浓颜肖像，本案王昭君为东方古典面孔，冷暖光过渡需更加柔和，切勿打出过于粗暴的阴阳脸。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_10
+  search_keyword: 全彩灯光 人像创作 肖像照 南光
+  notes: 冷青与暖金双色温对撞的商业摄影标杆。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1350
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 专业棚拍时尚肖像（1080x1350）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: PROP_001
+  file: refs/05_SET_PROP/PROP_001_luminous_orb_handheld.webp
+  category: 05_SET_PROP
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/67ce4b10000000002903b0eb
+    page_title: 手持发光晶球道具实拍与环境光溢出
+    author: ，bzn
+    platform: 小红书
+    source_type: COSPLAY
+    verified: true
+  target_relevance: 0.9
+  aesthetic_value: 0.92
+  technical_value: 0.94
+  source_confidence: 0.92
+  production_cost: LOW
+  reference_roles:
+  - PRACTICAL_LIGHT
+  - LIGHT_SPILL
+  - ORGANIC_INTERACTION
+  observed:
+  - 模特掌心握有一枚高亮自发光晶球（1080x1439）。
+  - 晶球发出的光线真实照亮了模特手指内侧的半透明血肉质感、下巴底面与胸前衣领，产生无与伦比的物理真实环境光溢出（Light Spill）。
+  inferred:
+  - 如果空手纯靠后期贴发光水母，手指之间绝不可能出现如此符合物理光学的接触阴影与透光反差。
+  proposed:
+  - 拍摄 Shot 02（掌心水母）时，强烈建议模特手中握持一枚小型内置青白 LED 发光球（道具成本极低），实拍下物理光晕后再由后期覆盖合成水母触须。
+  do_not_copy:
+  - 切勿让发光球的电线或电池仓外露穿帮。
+  use_for_shots:
+  - SHOT_02
+  search_keyword: 海洋 水母装 水晶球道具 实拍
+  notes: 实拍自发光道具解决后期贴图塑料感的最强方案。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1439
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 模特掌心握有一枚高亮自发光晶球（1080x1439）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: PROP_002
+  file: refs/05_SET_PROP/PROP_002_jellyfish_prop_rigging.webp
+  category: 05_SET_PROP
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/6a37bcbf000000002003a270
+    page_title: 摄影棚手搓悬吊透明水母装置花絮
+    author: 暮影_MUYING / 白川川
+    platform: 小红书
+    source_type: BTS
+    verified: true
+  target_relevance: 0.92
+  aesthetic_value: 0.85
+  technical_value: 0.98
+  source_confidence: 0.95
+  production_cost: MEDIUM
+  reference_roles:
+  - PROP_MAKING
+  - RIGGING_BTS
+  - ORGANZA_BALL
+  observed:
+  - 影棚置景制作幕后花絮（1440x1080）。
+  - 水母伞盖主体由透明亚克力空心半球配合压褶欧根纱包裹而成，下方悬挂细透明蕾丝、亚克力珠链与反光光纤丝带，通过魔术腿和鱼线悬吊在顶棚 C-Stand 上。
+  inferred:
+  - 单只手工水母材料成本低廉（约 30-50 元），但在影棚逆光照射下呈现极其高级的半透明光感。
+  proposed:
+  - 美术置景团队据此制作 3-5 顶直径 30~50cm 的悬吊水母道具，吊挂于人物上方与前景不同深度。
+  do_not_copy:
+  - 避免使用过于厚重的胶水产生发黄发黑胶痕。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_06
+  - SHOT_09
+  search_keyword: 水母 置景 手搓 制作花絮
+  notes: 物理水母道具制作与悬吊工程指南。
+  expo_feasibility: D
+  image_quality:
+    width: 1440
+    height: 1080
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 影棚置景制作幕后花絮（1440x1080）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POST_001
+  file: refs/06_POST/POST_001_caustic_skin_retouch_cleanup.webp
+  category: 06_POST
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/67ce4b10000000002903b0eb
+    page_title: 水光星芒与冷色调皮肤质感精修范式
+    author: ，bzn
+    platform: 小红书
+    source_type: BTS
+    verified: true
+  target_relevance: 0.9
+  aesthetic_value: 0.94
+  technical_value: 0.94
+  source_confidence: 0.92
+  production_cost: LOW
+  reference_roles:
+  - FREQUENCY_SEPARATION
+  - SKIN_CLEANUP
+  - EYE_CATCHLIGHT
+  observed:
+  - 精修特写人像（1080x1439）。
+  - 面部皮肤白皙通透，水纹投影在阴影处过渡极其柔和，无发青发脏杂斑，眼球带有晶莹明亮的高光点（Catchlight）。
+  inferred:
+  - 后期修图师使用了高低频磨皮（Frequency Separation）：低频层压暗/抹平了水纹投影在阴影区造成的黄绿杂色与色阶断层，高频层完整保留了皮肤纹理与锐利水波线条。
+  proposed:
+  - 制定后期修图规范：严禁使用整体一键平滑磨皮（会将水波纹洗掉），必须采用高低频分离精修皮肤，并在眼眸叠加微弱青光。
+  do_not_copy:
+  - 切勿过度磨皮导致皮肤失去真实毛孔质感变成塑料充气娃娃。
+  use_for_shots:
+  - SHOT_02
+  - SHOT_04
+  search_keyword: 海洋星光梦境 修图 精修 教程
+  notes: 解决实拍水波纹容易让面部变脏的最重要后期技术准则。
+  expo_feasibility: B
+  image_quality:
+    width: 1080
+    height: 1439
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 精修特写人像（1080x1439）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: BTS_001
+  file: refs/07_BTS_TECHNICAL/BTS_001_caustic_lighting_diagram.webp
+  category: 07_BTS_TECHNICAL
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/671aed0e0000000021002e6b
+    page_title: 实战水波纹布光四灯阵列图解
+    author: 摄影师贾超（灯光版）
+    platform: 小红书
+    source_type: BTS
+    verified: true
+  target_relevance: 0.94
+  aesthetic_value: 0.85
+  technical_value: 0.98
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - LIGHTING_DIAGRAM
+  - LAMP_POSITIONS
+  - SETUP_GUIDE
+  observed:
+  - 真实影棚现场灯位图解手绘图（1080x1621）。
+  - 标注：主光为常亮水纹灯置于模特斜上方高位；背景打大面积深蓝 LED 染色；侧后方 135° 架设闪光灯加色纸做轮廓切光；正面有白色反光板补阴影。
+  inferred:
+  - 水波焦散必须由常亮灯产生，因常亮灯旋转水波镜片具有连续运动特性，快门速度在 1/125s~1/160s 可精准凝固水纹切线。
+  proposed:
+  - 灯光组进场布光 1:1 复刻此四灯阵列作为基础光底。
+  do_not_copy:
+  - 避免背景灯功率过大冲淡前景焦散反差。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_03
+  - SHOT_04
+  - SHOT_07
+  search_keyword: 水纹灯 布光 图解 教程
+  notes: 全案灯光组现场落地的实操布光宝典。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1621
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 真实影棚现场灯位图解手绘图（1080x1621）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: BTS_002
+  file: refs/07_BTS_TECHNICAL/BTS_002_nanlite_color_diagram.webp
+  category: 07_BTS_TECHNICAL
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/67a33b56000000001800fff2
+    page_title: Nanlite 全彩影视多灯系统 3D 渲染灯位图
+    author: 南光摄影 / Luciana Abella
+    platform: Nanlite 官方发布 / 小红书
+    source_type: BTS
+    verified: true
+  target_relevance: 0.9
+  aesthetic_value: 0.88
+  technical_value: 0.98
+  source_confidence: 0.98
+  production_cost: MEDIUM
+  reference_roles:
+  - COMMERCIAL_LIGHTING
+  - EQUIPMENT_SETUP
+  - 3D_DIAGRAM
+  observed:
+  - 官方工业级灯位图（1080x1350）。
+  - 清晰标明灯具型号：主光 Alien 300C、侧轮廓 Forza 500B II + 19° 聚光成像筒投光、侧夹光 PavoSlim 120C × 2。
+  inferred:
+  - 成像筒的加入能够精准控制逆光光束只打在发丝和肩胛，完全不漏光到正面镜头造成眩光。
+  proposed:
+  - 高规格拍摄方案：右上方破晓暖光建议使用带保荣口聚焦筒（Snoot/Spotlight）的 COB 灯具，确保光束锐利如利剑切入水底。
+  do_not_copy:
+  - 无需照搬一模一样的昂贵品牌型号，同类型 COB 与平板灯均可替代。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_10
+  search_keyword: 南光 全彩 人像创作 灯位图
+  notes: 专业商业人像双色温控光设备配比方案。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1350
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 官方工业级灯位图（1080x1350）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: BTS_003
+  file: refs/07_BTS_TECHNICAL/BTS_003_underwater_cosplay_prep_guide.webp
+  category: 07_BTS_TECHNICAL
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/6922dec0000000001e00bb1a
+    page_title: 水下 COS 准备清单与保暖固定实操指南
+    author: 在贵阳摄影师七哥 / 桥南
+    platform: 小红书
+    source_type: TUTORIAL
+    verified: true
+  target_relevance: 0.88
+  aesthetic_value: 0.82
+  technical_value: 0.94
+  source_confidence: 0.9
+  production_cost: LOW
+  reference_roles:
+  - CHECKLIST
+  - ON_SET_SAFETY
+  - ACCESSORY_FIXING
+  observed:
+  - 实战物料清单文字图（1080x1620）。
+  - 列明发胶、别针、一字夹、防水暗扣、大浴巾保暖设备与隐形安全防护建议。
+  inferred:
+  - 水系拍摄模特极易发生失温、饰品滑脱和配件翻卷，准备工作直接决定现场拍摄效率。
+  proposed:
+  - 直接转译为现场执行清单（On-Set Checklist）的防护物资核验标准。
+  do_not_copy:
+  - 无。
+  use_for_shots:
+  - SHOT_01
+  - SHOT_03
+  - SHOT_08
+  search_keyword: 水下 cos 教程 准备 清单
+  notes: 现场保障与防护核验清单的一手来源。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 实战物料清单文字图（1080x1620）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: REJECT_001
+  file: refs/90_REJECTED/REJECT_001_post_tutorial_cover_text_clutter.webp
+  category: 90_REJECTED
+  priority: REJECT
+  source:
+    url: https://www.xiaohongshu.com/explore/685917ec000000001d00e14a
+    page_title: 绝美发光水母剪映教程封面
+    author: 爱学习顶呱呱
+    platform: 小红书
+    source_type: TUTORIAL
+    verified: false
+  target_relevance: 0.3
+  aesthetic_value: 0.2
+  technical_value: 0.15
+  source_confidence: 0.3
+  production_cost: LOW
+  reference_roles: []
+  observed:
+  - 小红书社交媒体营销教程封面（1080x1439）。
+  - 画面被巨大黄色和红色卡通大字严重遮挡（'第三步 剪映合成大片'、'宝子们快冲！'），仅有几行简短手机软件操作文案。
+  inferred:
+  - 属于低质社交媒体引流营销图，无任何专业分层通道或可复现的摄影/后期合成技术信息。
+  proposed:
+  - 坚决移入废弃库（refs/90_REJECTED/），禁止进入正式摄影参考板。
+  do_not_copy:
+  - 禁止将营销封面当作后期技术参考。
+  use_for_shots: []
+  search_keyword: 水母 特效 教程
+  notes: 【审计废弃】违反规则12F（禁止收教程封面）与规则2（错图标注、大字污染、信息贫乏）。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1439
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 小红书社交媒体营销教程封面（1080x1439）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_002
+  file: refs/90_REJECTED/REJECT_002_ai_tutorial_promo_card.webp
+  category: 90_REJECTED
+  priority: REJECT
+  source:
+    url: https://www.xiaohongshu.com/explore/685917ec000000001d00e14a
+    page_title: 用AI解锁绝美发光水母全流程拆解卡
+    author: 爱学习顶呱呱
+    platform: 小红书
+    source_type: TUTORIAL
+    verified: false
+  target_relevance: 0.35
+  aesthetic_value: 0.25
+  technical_value: 0.2
+  source_confidence: 0.3
+  production_cost: LOW
+  reference_roles: []
+  observed:
+  - AI生图营销宣传图（1080x1440）。
+  - 顶部占满大号渐变艺术字（'用AI解锁绝美发光水母 全流程拆解'），底部为 AI 生成的发光水母插画。
+  inferred:
+  - AI概念图无法证明物理结构可靠性，且营销排版破坏了视觉参考的纯净度。
+  proposed:
+  - 移入废弃库保留审计记录。
+  do_not_copy:
+  - 禁止采纳其卡通化AI发光色调。
+  use_for_shots: []
+  search_keyword: 发光水母 AI 教程
+  notes: 【审计废弃】违反规则12F与规则2（AI营销排版、信息密度过低）。
+  expo_feasibility: D
+  image_quality:
+    width: 1080
+    height: 1440
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: AI生图营销宣传图（1080x1440）。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: LIGHTING_003
+  file: refs/04_LIGHTING/LIGHTING_003_expo_single_light_sculpting.webp
+  category: 04_LIGHTING
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/6a2fd1fb000000000702df85
+    page_title: 一个万能漫展场照灯位 - 离机单灯漫展实战
+    author: 秋桑桑桑.📷 / 一点都不容易的易
+    platform: 小红书
+    source_type: EXPO_FIELD_PHOTO
+    verified: true
+  target_relevance: 0.98
+  aesthetic_value: 0.95
+  technical_value: 0.99
+  source_confidence: 0.98
+  production_cost: LOW
+  expo_feasibility: A
+  reference_roles:
+  - ONE_LIGHT_SETUP
+  - OFF_CAMERA_FLASH
+  - EXPO_BACKGROUND_SEPARATION
+  observed:
+  - 大型漫展场馆暗调背景实景场照，模特身穿华丽长裙、戴宽檐帽手持权杖。
+  - 单只离机闪光灯从前侧方高位打入，柔和雕刻面部五官轮廓与裙面褶皱金线。
+  - 背景为漫展天花板与虚化圆形光斑，人物立体感极强地从深暗背景中跃出。
+  inferred:
+  - 实证了单个便携闪光灯（如 Godox V100 + 圆形柔光罩）完全可以在漫展场馆内完成商业级质感人像，无需多灯复杂布光。
+  proposed:
+  - 作为全项目漫展单灯布光（LIGHT_MODE_01）的最高实操标杆！
+  do_not_copy:
+  - 不要机顶直闪
+  - 不要盲目追求全黑死背景
+  use_for_shots:
+  - SHOT_01
+  - SHOT_02
+  - SHOT_03
+  - SHOT_04
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 大型漫展场馆暗调背景实景场照，模特身穿华丽长裙、戴宽檐帽手持权杖。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  lighting_observation: 暗色展馆背景中，人物面部与前胸受前侧方较柔和的光源照亮，背部与头发轮廓有边缘光勾勒，背景展馆顶灯形成圆形散景。
+  source_claim: 来自原作者文字：使用漫展单灯配合柔光附件拍摄；图片本身仅为成片视觉效果，无现场光路布设照片。
+  lighting_inference: 通过压暗展馆环境曝光（低ISO、较快快门），配合单灯离机闪光照亮人物，可将主体从昏暗背景中剥离，形成油画质感。
+  possible_application: 王昭君深海神女角色在暗调展区利用 Godox V100 加圆形柔光附件压暗背景、雕刻面部与服饰质感时可借鉴此光比。
+- id: BTS_004
+  file: refs/07_BTS_TECHNICAL/BTS_004_expo_hall_light_stands_setup.webp
+  category: 07_BTS_TECHNICAL
+  priority: CORE
+  source:
+    url: https://www.xiaohongshu.com/explore/6a2fd1fb000000000702df85
+    page_title: 一个万能漫展场照灯位 - 漫展场馆实地布光位示意
+    author: 秋桑桑桑.📷
+    platform: 小红书
+    source_type: EXPO_FIELD_BTS
+    verified: true
+  target_relevance: 0.95
+  aesthetic_value: 0.82
+  technical_value: 0.98
+  source_confidence: 0.98
+  production_cost: LOW
+  expo_feasibility: A
+  reference_roles:
+  - LIGHT_STAND_PLACEMENT
+  - EXPO_SPACE_STRATEGY
+  - SAFETY_STAND
+  observed:
+  - 漫展空旷展厅内的实地灯架布置实拍，清晰标注了各灯位与相机的空间几何距离与地面反折结构。
+  inferred:
+  - 在漫展有限空间内，轻装快速机动是单兵摄影师生存的第一准则。
+  proposed:
+  - 指导摄影师现场单灯单架的安全立足点与走位。
+  do_not_copy:
+  - 漫展高峰期切勿在主通道摊开4支大型灯架
+  use_for_shots:
+  - SHOT_01
+  - SHOT_02
+  - SHOT_03
+  image_quality:
+    width: 1440
+    height: 1080
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 漫展空旷展厅内的实地灯架布置实拍，清晰标注了各灯位与相机的空间几何距离与地面反折结构。
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  technical_observation: 大型漫展空旷展厅内多组不同摄影师布置的柔光箱与灯架实拍，图中手写粉色字母标注了 A、B、C、D 四个点位/区域。
+  source_claim: 原作者展示展馆现场各拍摄点位与柔光设备分布空间，未提供毫米级布光尺寸或现场测光数值。
+  context: 大型漫展空旷区域实地设备架设环境与多组摄影师之间的安全间距参考。
+  possible_application: 了解漫展现场灯架占地面积、柔光箱开角以及与其他拍摄者之间的间距，避免人流碰撞打翻灯架。
+- id: BTS_005
+  file: refs/07_BTS_TECHNICAL/BTS_005_folded_light_stands_hardware.webp
+  category: 07_BTS_TECHNICAL
+  priority: SUPPORT
+  source:
+    url: https://www.xiaohongshu.com/explore/68e8f98e0000000007002896
+    page_title: 漫展便携灯位与器材分享
+    author: 猫又来喽
+    platform: 小红书
+    source_type: EXPO_EQUIPMENT_BTS
+    verified: true
+  target_relevance: 0.97
+  aesthetic_value: 0.94
+  technical_value: 0.99
+  source_confidence: 0.98
+  production_cost: LOW
+  expo_feasibility: A
+  reference_roles:
+  - LIGHT_STAND_SELECTION
+  - HARDWARE_PORTABILITY
+  observed:
+  - 漫展暗调环境中单灯精准塑形，高光与阴影过渡柔和细腻，人物质感高级脱俗。
+  inferred:
+  - 充分证明 Godox V100 单灯离机配合柔光罩的极致成片品质。
+  proposed:
+  - 作为 LIGHT_MODE_01 的核心布光参考。
+  do_not_copy:
+  - 不要机顶直闪
+  use_for_shots:
+  - SHOT_01
+  - SHOT_02
+  - SHOT_03
+  - SHOT_04
+  image_quality:
+    width: 1080
+    height: 1440
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 非人物姿态；画面为四支不同规格便携反折灯架（黑/紫/金圈）收折平放于展馆水泥地对比
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+  technical_observation: 四支不同规格的便携反折灯架（黑色、金圈、紫圈）折叠平放于展馆水泥地面上，展示不同管径与折叠收纳长度对比。
+  source_claim: 原作者漫展器材收纳笔记，分享自用轻量反折灯架配置，未声明现场布光参数。
+  context: 大型漫展单人出勤轻量灯架选型与现场收纳尺寸参考。
+  possible_application: 单人摄影师在评估 Godox V100 及圆形柔光箱承重时，对比轻量反折灯架的收纳体积与展开抗倾倒能力。
+- id: POSE_0101
+  file: refs/03_POSE/01_STANDING/POSE_0101_standing_casual_ponytail.webp
+  category: 03_POSE
+  subcategory: 01_STANDING
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.92
+  aesthetic_value: 0.94
+  technical_value: 0.93
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - GENTLE_STANDING
+  - HAIR_VEIL_INTERACTION
+  source:
+    url: https://www.xiaohongshu.com/explore/69fc1c2d000000001a02e152
+    page_title: 白石漫展场照（原标题未完整记录）
+    author: 未记录 (白石漫展场照)
+    platform: 小红书
+    source_type: EXPO_FIELD_PHOTO
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1619
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 漫展走廊3/4微侧身站立，左手反手轻捏耳后发梢与头纱边，右手屈肘收于胸前，下半身微侧跨步拉长身形，眼神灵动微带笑意
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 漫展走廊实拍环境，背景带有展馆玻璃窗自然散景与微弱人流反光。
+  - 模特呈 3/4 微侧站姿，双肩自然形成高低落差，左手轻提发尾形成动作张力。
+  - 面部朝向镜头正面，受光均匀自然，眼神带笑不呆板。
+  inferred:
+  - 等效 50mm 焦段在大光圈（f/2.0左右）下成功将漫展背景虚化，剥离人物主体。
+  - 轻抚发尾的动作能有效解决 Coser 手部僵硬无处安放的问题。
+  proposed:
+  - 作为漫展现场开场第一组必保站姿（Shot 01 / Chain 01 原型A）。
+  - 摄影师站立平视，V100 于右前侧 45 度微补面光即可出片。
+  do_not_copy:
+  - 不可让 Coser 双手死死贴在身体两侧呆立。
+  - 不可让人物正对镜头站成证件照大头照。
+  director_script: “身体往右侧微转30度，重心压在后脚；左手抬起来轻轻捏住耳后的发梢与垂纱，脸转回来找我镜头，眼神清冷带一点浅笑！”
+  model_setup: 站姿侧身30度，重心在后腿，前脚脚尖点地绷直；左手抬起虚握发尾，右手收于胸前。
+  camera_position: 平视略微俯角，离地约 1.4 米，距离模特 1.8-2.2 米。
+  recommended_lens: Sony 50mm f/1.8 (光圈全开 f/1.8 - f/2.0)
+  crop: 七分身至大半身，保留发梢与裙摆轮廓
+  micro_adjustments:
+  - 下巴微收收紧下颌线
+  - 捏发尾的手指放松切勿用力扯头发
+  common_failures:
+  - 正对镜头站成死板证件照
+  - 手部过于用力导致手背青筋凸起
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0102
+  file: refs/03_POSE/01_STANDING/POSE_0102_standing_hands_on_hips.webp
+  category: 03_POSE
+  subcategory: 01_STANDING
+  priority: SUPPORT
+  expo_feasibility: A
+  target_relevance: 0.88
+  aesthetic_value: 0.9
+  technical_value: 0.93
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - AUTHORITY_STANCE
+  source:
+    url: https://www.xiaohongshu.com/explore/68e8f98e0000000007002896
+    page_title: 猫又来喽 附场照灯位图及思路
+    author: 猫又来喽
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1440
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 漫展暗调展区正面双脚分开站稳，双手叉腰手肘向两侧撑开轮廓，头部微倾，眼神自信直视镜头（降权说明：双手叉腰过于霸气战斗化，与王昭君神性轻盈气质不符，降为 SUPPORT 轮廓备选）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 漫展暗色展区实拍，背景为展馆高挑钢架与点光源，轮廓光分离明确。
+  - 模特双腿微张形成稳定支撑三角，双手叉腰手臂拉开肩部宽度，气场从容自信。
+  inferred:
+  - 双手叉腰时手肘向后略收，能避免正面手臂过粗，同时显出腰身曲线。
+  proposed:
+  - 适用于表现王昭君雪国神女统御之威严站姿。
+  - 单灯架于前方 45 度打亮面部，后方借场馆顶灯勾勒发冠与肩部轮廓。
+  do_not_copy:
+  - 不可双手过分下压导致双肩耸起。
+  - 不可两脚完全并拢失去站姿气场。
+  director_script: “双脚分开与肩同宽站稳，双手叉腰撑开肩膀轮廓；头微歪10度，收下巴，看我镜头！”
+  model_setup: 站姿正面挺胸，双腿微张；双手虎口卡住高腰线，手肘自然向两侧展出；下巴微收。
+  camera_position: 胸口高度平视，离地约 1.2 米，距离模特 2.0 米。
+  recommended_lens: Sony 50mm f/1.8 (f/2.2)
+  crop: 全身至七分身，展示完整服装气场
+  micro_adjustments:
+  - 手肘稍向后别，显出腰细
+  - 重心稍压单侧脚，打破绝对对称死板感
+  common_failures:
+  - 耸肩导致脖子变短
+  - 手臂挡住腰侧刺绣细节
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0103
+  file: refs/03_POSE/01_STANDING/POSE_0103_standing_window_salute_gaze.webp
+  category: 03_POSE
+  subcategory: 01_STANDING
+  priority: SUPPORT
+  expo_feasibility: A
+  target_relevance: 0.89
+  aesthetic_value: 0.91
+  technical_value: 0.9
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - LIGHT_INTERACTION
+  source:
+    url: https://www.xiaohongshu.com/explore/67d80400000000001203fe8f
+    page_title: 鹿岛姿势表（原标题未完整记录）
+    author: 未记录 (鹿岛姿势表)
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1650
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 漫展大面积落地窗前侧身站立，右手抬至眉骨作远眺手势，左手向斜后方自然舒展，身体微侧迎向自然光（说明：自然光利用范本，但远眺手势略偏现代活泼，保留为 SUPPORT 自然光采光参考）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 漫展大落地玻璃窗自然采光环境，窗外自然散射天光作为大面积柔光面光。
+  - 模特右手轻抬至额侧远眺，左手向后下方舒展，双腿微交叉站立。
+  inferred:
+  - 漫展自然采光窗是不用架灯即可出大片的黄金点位，能完美还原神女凝视海渊晨曦的情绪。
+  proposed:
+  - 如果漫展展厅内过于拥挤，带 Coser 前往连廊大落地窗处执行此姿势。
+  - 无需闪光灯，纯靠自然窗光 + 50mm f/1.8 拍摄。
+  do_not_copy:
+  - 不可将手掌整个盖在额头遮挡眼睛受光。
+  - 不可背对窗光导致面部死黑欠曝。
+  director_script: “侧身站在窗前，右手抬到眉毛旁边做远眺动作，左手向后自然微张，头转向窗户光线方向，看远方！”
+  model_setup: 身体面朝落地窗侧立45度，右手两指轻搭眉峰，左手向后自然下摆；脸迎向窗光。
+  camera_position: 侧向平视微仰，离地 1.3 米。
+  recommended_lens: Sony 50mm f/1.8 (f/2.0)
+  crop: 全身直幅构图，包含落地窗透视线条
+  micro_adjustments:
+  - 手掌微侧，指尖触眉梢别压眉毛
+  - 视线看向窗外远方天际，眼神带憧憬
+  common_failures:
+  - 手势遮挡眼神光
+  - 身体转得太背导致面部阴影过大
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0104
+  file: refs/03_POSE/01_STANDING/POSE_0104_standing_pillar_v_sign.webp
+  category: 03_POSE
+  subcategory: 01_STANDING
+  priority: SUPPORT
+  expo_feasibility: A
+  target_relevance: 0.87
+  aesthetic_value: 0.9
+  technical_value: 0.91
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - ENV_INTERACTION
+  source:
+    url: https://www.xiaohongshu.com/explore/6a9b847e000000002b012ba1
+    page_title: 明日香 摇滚乐队 cosplay
+    author: 大道寺cheese【图文版】
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 身体靠在立柱侧面，双腿前后错开，右手在帽檐侧面做手势，借力立柱（降权说明：现代街头摇滚风格较强且带V字俏皮感，与神圣神女有代沟，降为 SUPPORT 借柱站姿备选）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 利用建筑物立柱作为纵深引导与身体倚靠支撑，腿部大跨度错开拉长纵深线条。
+  - 身体重心倾斜倚靠支撑物，动作自然松弛。
+  inferred:
+  - 漫展现场的大白柱子或场馆立柱是天然的避人屏障，借柱站立能快速出片。
+  proposed:
+  - 在漫展人流密集走道处，寻找场馆承重立柱借力执行。
+  - 将手部 V 手势替换为轻触水母头纱边缘。
+  do_not_copy:
+  - 不可整个人瘫软靠在柱子上导致衣物褶皱变形。
+  - 不可让柱子完全挡住身体半边。
+  director_script: “后背轻靠这根柱子，重心后移；右腿往前伸直，右手抬到头冠旁边虚搭，眼神清冷看着我！”
+  model_setup: 单肩轻靠立柱，前腿向前伸展脚背绷直；右手手指轻触耳侧头纱，身体形成微 S 曲线。
+  camera_position: 低机位微仰（离地 60cm），利用柱子作画面一侧边缘遮挡拉纵深。
+  recommended_lens: Sony 24-240mm (@35mm, f/4.0) 或 50mm f/1.8
+  crop: 全身构图，突出腿长与建筑立柱垂直线条
+  micro_adjustments:
+  - 前脚脚尖用力点地拉长腿部
+  - 背部悬空留出2公分距离别把水母纱压扁
+  common_failures:
+  - 靠柱子太实在把背部配件压坏
+  - 角度过侧导致看不到脸部
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0201
+  file: refs/03_POSE/02_STOOL_SEATED/POSE_0201_stool_leg_extension_open_arms.webp
+  category: 03_POSE
+  subcategory: 02_STOOL_SEATED
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.96
+  aesthetic_value: 0.95
+  technical_value: 0.96
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - STOOL_SEATED_POSE
+  - JELLYFISH_FLOATING
+  - BALLET_FOOT_EXTENSION
+  - EXPO_FEASIBILITY
+  source:
+    url: https://www.xiaohongshu.com/explore/67c802000000000014023b12
+    page_title: 吧台椅/梯子坐姿分享 (原标题)
+    author: 舟零
+    platform: 小红书
+    source_type: POSE_TUTORIAL
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 圆凳端坐，右腿向前下方斜向伸直并紧绷脚尖拉长腿部线条，左腿弯曲交叠，双手向两侧微张手心向上如水母浮游态，浅蓝短发，眼神直视镜头
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 模特浅蓝短发造型与王昭君长夜焕生短发高度呼应。
+  - 单腿向前斜伸有效避免小凳坐姿腿部堆叠挤压大腿肉的问题。
+  - 双手展开的动态具有极强的水下悬浮、水母触手舒展张力。
+  inferred:
+  - 漫展现场利用随身携带的小马扎即可完美复刻该姿态。
+  - 50mm 在低机位仰拍能同时拉长腿部线条并规避展馆背景杂乱人流。
+  proposed:
+  - 作为马扎坐姿系列的核心第一张（Shot 03 / Chain 03 原型F）。
+  - V100 设在正面偏高 45 度顺光打亮面部与双臂轮廓。
+  do_not_copy:
+  - 不可全臀深坐马扎
+  - 不可勾脚尖
+  director_script: “坐在小马扎前三分之一，右腿向前斜着伸直，脚尖绷紧；双手像水母触手一样向身体两侧自然浮开，下巴微收，眼神看镜头！”
+  model_setup: 小凳/马扎浅坐，单腿向前斜伸绷直脚尖，双手向两侧展开手心向上微屈手腕。
+  camera_position: 低机位，离地约 0.8-1.0 米，平视胸腹部。
+  recommended_lens: Sony 50mm f/1.8 (光圈 f/2.0)
+  crop: 竖幅全身，底部保留绷直的脚尖
+  micro_adjustments:
+  - 脚尖必须完全绷直延长小腿视觉长度
+  - 双手不要死死伸直，手肘和手腕保留微弧度
+  common_failures:
+  - 整个人瘫坐在马扎深处导致驼背大肚子
+  - 脚尖回勾导致小腿显得粗短
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0202
+  file: refs/03_POSE/02_STOOL_SEATED/POSE_0202_stool_chest_touch_lean_back.webp
+  category: 03_POSE
+  subcategory: 02_STOOL_SEATED
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.95
+  aesthetic_value: 0.94
+  technical_value: 0.95
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - STOOL_SEATED_POSE
+  - CHEST_GEM_TOUCH
+  - LEAN_BACK_ELEGANCE
+  - EXPO_FEASIBILITY
+  source:
+    url: https://www.xiaohongshu.com/explore/67c802000000000014023b12
+    page_title: 吧台椅/梯子坐姿分享 (原标题)
+    author: 舟零
+    platform: 小红书
+    source_type: POSE_TUTORIAL
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 圆凳坐姿身体微微后仰，左手向后撑住椅面边缘，右手手指轻抚锁骨与胸前宝石位置，双腿并拢斜向前伸绷脚尖，头部微仰神圣苏醒态
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 身体微后仰拉长颈部线条，面部自然迎向上方光源。
+  - 右手食指与中指轻搭锁骨下方，绝妙对应王昭君长夜焕生胸口红核珊瑚。
+  - 双腿斜伸保持下半身纤细轮廓。
+  inferred:
+  - 极度适合在漫展现场展示胸口宝石做工与锁骨高光。
+  - V100 柔光箱置于正上方 60 度下打，能在锁骨与胸前产生立体阴影。
+  proposed:
+  - 作为马扎坐姿系列第二张（Shot 04 / Chain 03 原型B）。
+  do_not_copy:
+  - 不可死按胸口
+  - 不可过度后仰挤出下巴肉
+  director_script: “身体重心稍稍后倾，左手在身后撑住马扎边缘；右手食指轻轻贴在胸口红核宝石上方，双腿斜伸绷直脚尖，下巴轻抬！”
+  model_setup: 马扎坐姿躯干后仰约15度，后手撑凳，前手抚胸，双腿斜向伸展。
+  camera_position: 胸口高度平视，离地约 1.0 米。
+  recommended_lens: Sony 50mm f/1.8
+  crop: 七分身至大半身，重点展示胸口手势与下颌线
+  micro_adjustments:
+  - 后仰幅度不要太大防止脖颈挤压颈纹
+  - 抚胸手指要轻搭，切勿手掌死按胸部
+  common_failures:
+  - 后仰塌腰导致重心失衡摔倒
+  - 手掌死按胸口挡住红核宝石细节
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0203
+  file: refs/03_POSE/02_STOOL_SEATED/POSE_0203_stool_hug_knees_head_tilt.webp
+  category: 03_POSE
+  subcategory: 02_STOOL_SEATED
+  priority: SUPPORT
+  expo_feasibility: B
+  target_relevance: 0.91
+  aesthetic_value: 0.93
+  technical_value: 0.91
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - MELANCHOLY_ETHEREAL
+  source:
+    url: https://www.xiaohongshu.com/explore/692819db000000001e031c31
+    page_title: 绫波丽户外场照（原标题未完整记录）
+    author: 未记录 (绫波丽户外场照)
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1441
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 台阶低坐姿双腿屈膝收于胸前，双手合抱膝盖，头部微侧枕于膝头，浅蓝短发垂落，眼神空灵悲悯凝视（说明：空灵悲悯情绪极佳，但抱膝会遮挡裙身前襟与胸口红核宝石，保留为 SUPPORT 情绪参考）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 低坐姿态，双膝屈起收拢，双手轻环抱膝盖侧面。
+  - 头部微倾侧枕在膝盖上，蓝短发垂落，面部神态极度空灵悲悯。
+  - 构图收缩紧凑，非常适合漫展狭窄拥挤环境避开杂乱路人。
+  inferred:
+  - 收拢四肢的抱膝姿态能将人物包围在一个极紧凑的框内，背景穿帮几率降到最低。
+  proposed:
+  - 漫展 Coser 走累休息时，坐在小马扎上收拢双腿拍摄此组情绪镜头。
+  - 突出王昭君长夜孤寂守护的叙事情感。
+  do_not_copy:
+  - 不可将整张脸埋进膝盖中导致五官被头发完全遮挡。
+  - 不可双手死死勒紧膝盖导致肩膀拱起像团肉球。
+  director_script: “坐在小马扎上把双腿屈起来抱在胸前，头轻轻往右侧偏，靠在膝盖上；眼神放空一点，看我镜头！”
+  model_setup: 坐在马扎上双膝微屈抬起，双手轻环在小腿侧面；头侧枕于右膝，发丝垂落，眼神平视镜头。
+  camera_position: 低机位平视（离地 0.8 米），与模特眼平线对齐。
+  recommended_lens: Sony 50mm f/1.8 (f/1.8 大光圈全开)
+  crop: 中景半身至坐姿全身，背景完全虚化成光斑
+  micro_adjustments:
+  - 拨开脸颊右侧刘海露出一双清澈眼睛
+  - 下颌微收保持面颊线条优美
+  common_failures:
+  - 头发遮挡住全部五官
+  - 腿部过度蜷缩导致服装配件压变形
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0301
+  file: refs/03_POSE/03_HALF_BODY/POSE_0301_half_body_hand_reach_perspective.webp
+  category: 03_POSE
+  subcategory: 03_HALF_BODY
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.94
+  aesthetic_value: 0.95
+  technical_value: 0.96
+  source_confidence: 0.96
+  production_cost: LOW
+  reference_roles:
+  - PERSPECTIVE_REACH
+  - DIVINE_AWAKENING
+  - HALF_BODY_IMMERSION
+  source:
+    url: https://www.xiaohongshu.com/explore/684c98000000000010012e45
+    page_title: 室内科幻风绫波丽cos攻略（模特：雪糕）
+    author: 武于钧 (模特：雪糕)
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1918
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 半身微俯前倾，右手五指自然舒展探向镜头前方形成强烈透视引导，左侧身体收紧，面容冷静神圣直视，浅蓝发丝垂落
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 近大远小的强烈手部透视，赋予画面极强的深海交互与召唤感。
+  - 模特神态宁静神圣，发丝与肩部线条利落。
+  inferred:
+  - 非常适合在展馆狭窄空间拍摄半身神性召唤大片，无需多余背景。
+  - A7M4 眼部追焦锁定眼睛，50mm f/2.2 让前景手产生奶油般虚化。
+  proposed:
+  - 作为半身互动核心参考（Shot 05 / Chain 02 原型E）。
+  do_not_copy:
+  - 手掌完全挡住面部
+  - 手势过于僵硬像抓取武器
+  director_script: “上身往前探一点，右手五指张开慢慢朝我镜头伸手，手腕放松；眼睛透过手指看我镜头，表现深海神女唤醒契约的宿命感！”
+  model_setup: 半身微前倾，单手向镜头探出，五指微张微曲，头部端正眼神穿透手指看镜头。
+  camera_position: 胸口平视，距离模特约 1.2-1.5 米，右手距离前组镜片约 30-40 厘米。
+  recommended_lens: Sony 50mm f/1.8 (光圈 f/2.2 控制手部虚化与眼睛锐度)
+  crop: 半身特写，手掌占据画面前景下半部
+  micro_adjustments:
+  - 手部伸出角度略偏侧，切勿完全挡住眼部
+  - 手掌五指保持柔和起伏，不要像抓东西一样僵硬
+  common_failures:
+  - 手掌直挺挺挡在脸前导致脸部被遮挡
+  - 焦点对在手指上导致面部完全脱焦虚化
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0302
+  file: refs/03_POSE/03_HALF_BODY/POSE_0302_half_body_high_angle_reach.webp
+  category: 03_POSE
+  subcategory: 03_HALF_BODY
+  priority: SUPPORT
+  expo_feasibility: A
+  target_relevance: 0.9
+  aesthetic_value: 0.92
+  technical_value: 0.93
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - HIGH_ANGLE_DEPTH
+  source:
+    url: https://www.xiaohongshu.com/explore/694eb1380000000022026cf9
+    page_title: 室内科幻风绫波丽cos攻略（模特：雪糕）
+    author: 武于钧 (模特：雪糕)
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1919
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 高机位俯拍半身，模特头部微侧仰起，右手朝镜头方向虚伸，浅蓝发丝散开，眼神清冷神秘（说明：神态与透视极佳，但高俯拍需要摄影师踩梯凳或在漫展二楼，执行门槛偏高，保留为 SUPPORT 特殊视角）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 俯视角大景深半身构图，模特仰面迎向高处镜头，右手向镜头斜上方舒展伸出。
+  - 深蓝机架与地面金属反光形成冰冷深海基调，眼神空灵纯粹。
+  inferred:
+  - 高机位俯拍能彻底避开漫展地平线上的杂乱路人人头，是最干净的机位选择之一。
+  proposed:
+  - 摄影师站上小马扎或垫脚高机位俯拍，Coser 仰头看镜头。
+  - 彻底规避漫展背景路人穿帮。
+  do_not_copy:
+  - 不可俯拍角度过垂直导致模特变成大头侏儒身材。
+  - 不可让模特下巴仰得过高露鼻孔。
+  director_script: “我机位抬高从上往下拍，你头稍微抬起一点看镜头，右手五指微微张开伸向我，表情带一点清冷神圣感！”
+  model_setup: 站姿或微屈膝，上身后仰迎向高空机位；右手向上扬起伸向镜头，面容微侧仰视。
+  camera_position: 高机位俯角（相机举高至 2.1 米），斜向下 45 度俯冲。
+  recommended_lens: Sony 50mm f/1.8 (f/2.2)
+  crop: 大半身俯拍构图，手掌在画面前景下方
+  micro_adjustments:
+  - 头部微侧10度避免正仰露鼻孔
+  - 右手手腕下沉展示纤细手腕
+  common_failures:
+  - 俯拍角度过陡显脸大身子小
+  - 模特仰头刺眼眯眼
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0401
+  file: refs/03_POSE/04_CLOSEUP/POSE_0401_closeup_chin_touch_contemplation.webp
+  category: 03_POSE
+  subcategory: 04_CLOSEUP
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.95
+  aesthetic_value: 0.96
+  technical_value: 0.95
+  source_confidence: 0.96
+  production_cost: LOW
+  reference_roles:
+  - FACE_CLOSEUP
+  - CHIN_TOUCH_GESTURE
+  - DIVINE_CONTEMPLATION
+  - 50MM_PORTRAIT
+  source:
+    url: https://www.xiaohongshu.com/explore/66e01234000000001102aabb
+    page_title: 深海水母少女私影场照
+    author: 鹿岛漫展组 / 漫展少女
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 半身特写端坐，头部微仰，右手食指与中指指尖轻触下唇与下巴边缘，眼神空灵望向上方，面容柔和静思，蓝调通透
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 纯净清透的蓝白色系氛围，指尖点下巴的手势极度典雅高贵。
+  - 面部微仰凸显精致下颌线与修长脖颈。
+  inferred:
+  - 取代原过肩持刀等战斗性特写，完美传达王昭君长夜焕生沉静、神圣、柔和的视觉DNA。
+  - 漫展现场只要背景相对干净，单灯加柔光附件就能出极品大头特写。
+  proposed:
+  - 作为面部核心精致特写示范（Shot 06 / 原型G）。
+  do_not_copy:
+  - 不可死按面颊挤出嘟嘟肉
+  - 不可做俏皮卖萌嘟嘴
+  director_script: “下巴微微抬起，右手食指指尖虚搭在下唇边上，不要压到脸颊；眼神望向头顶灯光方向，流露深海神女微思的气质！”
+  model_setup: 半身近景，单手虚搭下巴，头部轻仰15度，眼神空灵看向斜上方。
+  camera_position: 平视略微仰角，距离模特约 1.5 米。
+  recommended_lens: Sony 50mm f/1.8 (光圈 f/2.0)
+  crop: 胸部以上特写，保留下巴、手部指尖与头顶头饰
+  micro_adjustments:
+  - 手指必须是虚触下唇，绝对不可用力按压导致面颊变形
+  - 嘴角保持放松自然微抿
+  common_failures:
+  - 整只手掌托住腮帮子把脸挤变形
+  - 眼神涣散死板无神
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0501
+  file: refs/03_POSE/05_HANDS_EXPRESSION/POSE_0501_hands_clasp_chest_prayer.webp
+  category: 03_POSE
+  subcategory: 05_HANDS_EXPRESSION
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.96
+  aesthetic_value: 0.95
+  technical_value: 0.95
+  source_confidence: 0.96
+  production_cost: LOW
+  reference_roles:
+  - CHEST_PRAYER
+  - HOLY_DEVOTION
+  - CRYSTAL_RESONANCE
+  - STILL_DYNAMICS
+  source:
+    url: https://www.xiaohongshu.com/explore/67d80400000000001203fe8f
+    page_title: 鹿岛姿势表（原标题未完整记录）
+    author: 未记录 (鹿岛姿势表)
+    platform: 小红书
+    source_type: POSE_TUTORIAL
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1621
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 双手在胸前合十微扣紧贴锁骨，手指修长合拢，头部微微倾斜，眼神温柔清澈注视镜头，裙摆微动，体态神圣虔诚
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 双手胸前合十是最纯粹的神圣仪式感姿势，与长夜焕生神女救赎背景契合。
+  - 动作收敛，对漫展现场空间要求极小（仅需0.5平米）。
+  inferred:
+  - 能在杂乱展馆中瞬间收束画面视线，让观者聚焦在面部与胸前双手上。
+  - 极度利于新手 Coser 快速进入角色情绪，免除四肢不知如何摆放的尴尬。
+  proposed:
+  - 作为神女祈愿神圣仪态必保镜头（Shot 07 / Chain 02 原型B/H）。
+  do_not_copy:
+  - 不可十指交叉扭紧
+  - 不可死死夹紧双肘
+  director_script: “双手在胸前合拢微扣，指尖向上贴在锁骨下方；头轻轻向左偏一点，眼睛温柔看着镜头，表现神女虔诚祈愿！”
+  model_setup: 正面微侧站立，双手胸前合十，手指并拢微弯，头微偏。
+  camera_position: 眼平偏俯角，离地约 1.5 米。
+  recommended_lens: Sony 50mm f/1.8
+  crop: 七分身至半身，双手合十处于黄金分割点
+  micro_adjustments:
+  - 双手手指自然并拢贴合，手背向镜头微倾展现手指修长
+  - 肩膀下沉，拉长颈部线条
+  common_failures:
+  - 双手紧扣如打架握拳
+  - 耸肩导致气质萎靡
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0601
+  file: refs/03_POSE/06_PROP_WEAPON/POSE_0601_staff_vertical_ground_lean.webp
+  category: 03_POSE
+  subcategory: 06_PROP_WEAPON
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.93
+  aesthetic_value: 0.92
+  technical_value: 0.94
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - PROP_STAFF_LEAN
+  - VERTICAL_RESTING_STANCE
+  - NON_COMBAT_ELEGANCE
+  - EXPO_FEASIBILITY
+  source:
+    url: https://www.xiaohongshu.com/explore/692019db000000001e031c31
+    page_title: 明日香 摇滚乐队 cosplay（图文版）
+    author: 大道寺cheese【图文版】
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1621
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 台阶立柱旁站立，长道具/琴立于地面，右手扶持道具顶部琴头，左手轻倚身侧栏杆/腰间，身体微倾借力，眼神沉静清冷平视前方
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 长道具立地斜倚彻底规避了武器刀剑攻击感，完美转化为法杖/竖琴的非战斗优雅静驻态。
+  - 单侧借力使腰胯自然形成S弯曲，体态修长自然。
+  inferred:
+  - 王昭君的竖琴法杖极具分量，漫展现场长时间手持会疲劳；立地扶持极大减轻 Coser 负担。
+  - 垂直线条在杂乱漫展背景中形成强大的视觉支撑轴。
+  proposed:
+  - 作为法杖静驻核心方案（Shot 08 / Chain 04 原型C）。
+  do_not_copy:
+  - 不可死抓法杖
+  - 不可将法杖当拐杖用力按压
+  director_script: “法杖底部立在地面上，右手轻轻搭在法杖顶端；左手搭在腰间或者栏杆上，身体微微斜靠，眼神清冷平视我镜头！”
+  model_setup: 单侧立姿，长柄法杖垂立于地面，单手虚扶顶部，另一手叉腰或搭于腰际，身体重心偏一侧。
+  camera_position: 腰平微仰，离地约 1.1 米。
+  recommended_lens: Sony 50mm f/1.8
+  crop: 大全身或大半身，法杖垂直线条与人物身体构成平行引导线
+  micro_adjustments:
+  - 法杖不要直挺挺垂直，略微向外倾斜5度更具美感
+  - 手指放松搭在顶端，切勿用力死抓法杖头
+  common_failures:
+  - 法杖横挡在身前切断身体轮廓
+  - 握法杖过于用力显得紧张粗笨
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0602
+  file: refs/03_POSE/06_PROP_WEAPON/POSE_0602_staff_low_angle_stride.webp
+  category: 03_POSE
+  subcategory: 06_PROP_WEAPON
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.93
+  aesthetic_value: 0.93
+  technical_value: 0.95
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - PROP_STAFF_STRIDE
+  - CROSS_LEG_EXTENSION
+  - DYNAMIC_WALKING
+  - EXPO_FEASIBILITY
+  source:
+    url: https://www.xiaohongshu.com/explore/68d20300000000001301fa23
+    page_title: 漫展人像布光与姿势示例（原标题未完整记录）
+    author: 未记录 (漫展人像布光与姿势示例)
+    platform: 小红书
+    source_type: EXPO_FIELD_PHOTO
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1612
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 漫展现场低机位全身站姿，双腿交叉步伐拉长腿部比例，双手横持长道具横于髋前，头戴蝴蝶结微侧，眼神沉着看向镜头，背景展馆灯光虚化
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 真实漫展展馆实拍，单灯控光将人物与背后人流完美分离。
+  - 双腿交叉步伐从低机位看具有极佳的视觉延展性，横置道具形成水平稳定基线。
+  inferred:
+  - 王昭君法杖横于髋前能清晰展示竖琴晶体与珊瑚纹样，且不遮挡胸口红核与腰线。
+  - 漫展走道内仅需向前跨半步即可完成，占地极小。
+  proposed:
+  - 作为法杖动态持握核心方案（Shot 09 / Chain 04 原型C）。
+  do_not_copy:
+  - 不可横持挡胸
+  - 不可双手死握两端成单杠
+  director_script: “双腿交叉走一步站定，拉长下半身线条；双手把法杖横在腰胯前，手腕放松自然下垂，脸微侧看我镜头！”
+  model_setup: 交叉步站立，双膝微蹭拉长腿部，双手横握长道具于髋部前方，手腕自然垂落。
+  camera_position: 低机位仰拍，离地约 0.6-0.8 米，仰角 15 度。
+  recommended_lens: Sony 50mm f/1.8
+  crop: 竖幅全身，头顶与脚底各留 10% 留白
+  micro_adjustments:
+  - 法杖横置位置保持在髋骨高度，不可挡住胸口宝石
+  - 前脚脚跟踩实，后脚脚尖点地
+  common_failures:
+  - 道具横在胸口直接挡死服装核心细节
+  - 双腿平行傻站像木桩
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0701
+  file: refs/03_POSE/07_TURNING_DYNAMIC/POSE_0701_back_turn_over_shoulder_gaze.webp
+  category: 03_POSE
+  subcategory: 07_TURNING_DYNAMIC
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.97
+  aesthetic_value: 0.96
+  technical_value: 0.95
+  source_confidence: 0.96
+  production_cost: LOW
+  reference_roles:
+  - BACK_VIEW_TURN
+  - OPEN_BACK_DRESS_SHOWCASE
+  - VEIL_FLOW_DISPLAY
+  - OVER_SHOULDER_GAZE
+  source:
+    url: https://www.xiaohongshu.com/explore/68f00100000000001503cb89
+    page_title: 长刀场照动作组图（原标题未完整记录）
+    author: 双喜📷
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1621
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 全景完全背对镜头站立，右手持长道具指向地面，左手自然置于腰髋侧，肩膀压平，头部向右后方转过肩凝视镜头，眼神清冷神秘，长发披散背部
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 完全背身构图是展示角色后背露背剪裁与后脑发型结构的终极方案。
+  - 转头过肩的眼神极具神秘清冷感，与长夜焕生深海救赎者的冷艳气质无缝咬合。
+  inferred:
+  - 王昭君长夜焕生皮肤背后拥有巨大的水母垂纱与深V露背设计，正面无法展示，此姿势不可替代。
+  - 漫展现场只要利用展馆单灯打背侧逆光，即可让头纱边缘发光轮廓分明。
+  proposed:
+  - 作为背身回眸后背头纱必保核心方案（Shot 10 / Chain 05 原型D）。
+  do_not_copy:
+  - 不可扭头过猛挤出深颈纹
+  - 不可驼背弓腰
+  director_script: “背对我站立，肩膀放平下沉；慢慢回头看我的镜头，下巴稍微收一点；右手顺着身侧垂下法杖，展现后背和水母大拖尾！”
+  model_setup: 身体完全背对镜头，头部转过肩约 75 度，重心落在靠近镜头的单侧腿，后背挺直。
+  camera_position: 肩平高度，离地约 1.3 米。
+  recommended_lens: Sony 50mm f/1.8
+  crop: 大半身至全身，完整展现背部镂空、头纱与肩颈线条
+  micro_adjustments:
+  - 转头时下巴轻压向肩部，切勿仰头露出鼻孔
+  - 靠近镜头的肩膀微压低，防止耸肩遮挡下颌线
+  common_failures:
+  - 转头幅度过大把脖子扭出严重深颈纹
+  - 背部驼背显得疲惫松垮
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0702
+  file: refs/03_POSE/07_TURNING_DYNAMIC/POSE_0702_side_standing_door_frame.webp
+  category: 03_POSE
+  subcategory: 07_TURNING_DYNAMIC
+  priority: SUPPORT
+  expo_feasibility: A
+  target_relevance: 0.9
+  aesthetic_value: 0.92
+  technical_value: 0.93
+  source_confidence: 0.98
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - FRAME_COMPOSITION
+  source:
+    url: https://www.xiaohongshu.com/explore/694eb1380000000022026cf9
+    page_title: 室内科幻风绫波丽cos攻略（模特：雪糕）
+    author: 武于钧 (模特：雪糕)
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1918
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 身处垂直门框/立柱内侧站立，左手扶住门框侧壁，右手手指虚搭领口，身体微侧，头部转正直视镜头（说明：门框立柱前景框架感优秀，但动作略偏紧绷，保留为 SUPPORT 借物构图参考）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 利用垂直建筑门框/立柱进行框景构图，模特侧身立于框内，单手扶框，另一手轻触领口。
+  - 双腿前后站立，身体曲线在垂直框线对比下极为修长。
+  inferred:
+  - 漫展展位出入口门框或通道立柱能有效屏蔽周边嘈杂路人，天然框景能提升画面秩序感。
+  proposed:
+  - 在漫展展馆门框或大型展位结构边侧执行此姿势。
+  - 利用门框作为画面的黑色负空间遮挡杂人。
+  do_not_copy:
+  - 不可整个身子缩在门框后面只探出一个头。
+  - 不可双手死抠门框像被困住求救。
+  director_script: “站在立柱或者展位侧框旁边，一只手轻轻扶住边框，另一只手轻按领口；侧过身来，脸转正看镜头！”
+  model_setup: 身体倚立在门框边缘，左手五指自然贴在门框侧面；右手轻抚锁骨下缘；身体微侧，脸正对镜头。
+  camera_position: 平视机位（离地 1.3 米），正对门框纵深中轴线。
+  recommended_lens: Sony 50mm f/1.8 (f/2.0)
+  crop: 全身直幅构图，以门框作为垂直前景框架
+  micro_adjustments:
+  - 手扶门框时手指自然并拢别抓握
+  - 身体与门框保持 5cm 空隙避免被阴影吞没
+  common_failures:
+  - 门框遮挡住主体一半身躯
+  - 杂乱路人从门框另一侧穿帮
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0801
+  file: refs/03_POSE/08_LOW_ANGLE/POSE_0801_low_angle_divine_arch_stretch.webp
+  category: 03_POSE
+  subcategory: 08_LOW_ANGLE
+  priority: CORE
+  expo_feasibility: A
+  target_relevance: 0.96
+  aesthetic_value: 0.97
+  technical_value: 0.95
+  source_confidence: 0.96
+  production_cost: LOW
+  reference_roles:
+  - DIVINE_LOW_ANGLE
+  - S_CURVE_STRETCH
+  - VEIL_CASCADE
+  - ARCHITECTURAL_BORROW
+  source:
+    url: https://www.xiaohongshu.com/explore/66b04800000000001e02ef34
+    page_title: 水下/水族馆水母裙实拍
+    author: 深海水族场照实录
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 低机位全身仰望，身体呈优美S形微后仰延伸，单手优雅抬起虚触上方拱形建筑/立柱，长裙摆与透明水母拖纱自然下垂，眼神仰望神圣光芒
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 彻底取代了原先镰刀低蹲的暴力战斗感，以空灵拉伸的身体曲线展现深海神女的威严神性。
+  - 水母垂纱自然垂坠，与抬高的手臂形成垂直视觉落差。
+  inferred:
+  - 漫展现场可以寻找走廊大理石立柱、展台边缘拱形框架执行借力拉伸。
+  - 低机位把展馆人流完全压在腰部以下，天空/天花板成为纯净背景。
+  proposed:
+  - 作为神性全身低机位终极压轴方案（Shot 11 / 原型H）。
+  do_not_copy:
+  - 不可直拍鼻孔
+  - 不可大劈叉战斗蹲姿
+  director_script: “相机贴地仰拍；重心放在后腿，身体后仰拉出S形线条，右手轻轻抬高虚摸头顶立柱或虚空，头仰起看上方，水母长纱自然下垂！”
+  model_setup: 微仰展体，单手抬高触碰立柱/虚空，后脚承重前脚绷直，头微仰注视光源方向。
+  camera_position: 极低机位贴地仰拍，离地 0.4-0.6 米。
+  recommended_lens: Sony 50mm f/1.8 (或 24-240mm 广角端 24-35mm)
+  crop: 竖幅超长大全身，仰拍强化神性纵深感
+  micro_adjustments:
+  - 抬起的手腕要软，手指成阶梯状虚托，不可僵硬伸爪
+  - 面部微仰但下颌不可过于上翻
+  common_failures:
+  - 仰拍角度过猛直接拍鼻孔
+  - 身体僵硬像摸墙电击
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_0802
+  file: refs/03_POSE/08_LOW_ANGLE/POSE_0802_low_angle_wide_stance_perspective.webp
+  category: 03_POSE
+  subcategory: 08_LOW_ANGLE
+  priority: SUPPORT
+  expo_feasibility: A
+  target_relevance: 0.91
+  aesthetic_value: 0.93
+  technical_value: 0.94
+  source_confidence: 0.95
+  production_cost: LOW
+  reference_roles:
+  - POSE_DIRECTING
+  - EXPO_FEASIBILITY
+  - WIDE_PERSPECTIVE_DEPTH
+  source:
+    url: https://www.xiaohongshu.com/explore/6a9b847e000000002b012ba1
+    page_title: 明日香 摇滚乐队 cosplay
+    author: 大道寺cheese【图文版】
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 纵深狭长通道极低机位仰拍，双腿大步张开前弓后绷拉长双腿，上身前探俯视镜头（降权说明：大跨步攻击蹲姿过于侵略性战斗化，与长夜焕生空灵神圣不符，降为 SUPPORT 透视备选）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 利用纵深走廊/墙面构建强透视，低机位广角仰视，前脚大步跨向镜头下方拉开空间距离。
+  - 身体微前俯，双肩舒展，眼神专注。
+  inferred:
+  - 低机位配合纵深通道能形成强大的视觉引导线，将漫展过道转化为空旷深海走廊。
+  proposed:
+  - 漫展场馆内两面展墙之间的过道空间实测执行。
+  - 单灯 V100 前置 45 度顺光打亮，背景自然压暗。
+  do_not_copy:
+  - 不可弓步过深变成武术压腿导致失去美感。
+  - 不可前脚鞋底全部挡住镜头正面。
+  director_script: “找一条纵深过道，我蹲低贴地拍；双腿前后拉开形成大跨步，身体往前微倾，眼神冷峻盯紧镜头！”
+  model_setup: 前后大跨步站立，前腿微屈膝，后腿伸直紧绷；双手扶膝或下垂，上身微前倾盯镜头。
+  camera_position: 蹲姿贴地（离地 25cm），向上仰角 20 度。
+  recommended_lens: Sony 24-240mm (@28-35mm 广角端) 或 50mm f/1.8
+  crop: 全身广角透视直幅，两侧通道形成引导线
+  micro_adjustments:
+  - 前脚膝盖内扣别大外八字
+  - 眼神压向相机镜头中心
+  common_failures:
+  - 两侧通道杂人进入画面
+  - 前倾过大导致面部完全在阴影里
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_002
+  file: refs/03_POSE/02_STOOL_SEATED/POSE_002_seated_chin_gesture.webp
+  category: 03_POSE
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/68c4ec9b000000001b0323c8
+    page_title: 水母主题拍照姿势 - 手势轻捧微光
+    author: 大道寺cheese【图文版】
+    platform: 小红书
+    source_type: TUTORIAL
+    verified: true
+  target_relevance: 0.85
+  aesthetic_value: 0.86
+  technical_value: 0.92
+  source_confidence: 0.9
+  production_cost: LOW
+  reference_roles:
+  - HAND_GESTURE
+  - HOLDING_OBJECT
+  - GAZE_DIRECTION
+  observed:
+  - 实拍图显示模特侧坐于白色浴缸边缘，双腿自然倾斜下垂，右手手指轻触下颌，头部微侧。
+  - 上方悬挂巨型水母装置，背景为纯蓝影棚布光。
+  inferred:
+  - 去除去除浴缸和水母吊顶后，此坐姿与手指抚颊手势可在漫展使用折叠小马扎 100% 复刻。
+  proposed:
+  - 作为漫展坐姿核心方案（POSE_STOOL），用于缓解 Coser 站立疲劳，同时快速出片。
+  do_not_copy:
+  - 不可要求漫展有浴缸置景与吊挂水母
+  - 不要照搬JK水手服配饰
+  use_for_shots:
+  - SHOT_02
+  search_keyword: 水母 捧水母 拍照 姿势
+  notes: 双手托捧动作与视线聚焦示范。
+  expo_feasibility: D
+  model_setup: stool
+  camera_position: front-right 20°, eye level
+  recommended_lens: 50mm f/1.8 或 24-240 @ 50–70mm
+  crop: full body / 3/4
+  director_script: 侧身坐小马扎上，右腿往前伸一点，脚尖点地绷直。右手轻轻抬起来放在下巴右侧，不要真托住脸，两指微触即可。眼神看我镜头偏右上方一点，别直瞪镜头，表情放柔和。
+  micro_adjustments:
+  - 双腿不要平行并拢，靠近镜头的一条腿往前伸展拉长线条
+  - 手指触下巴要轻，绝不要用力挤压面部肌肉导致肉被压变形
+  - 挺胸立腰，不要因坐着而弓背
+  common_failures:
+  - 坐姿放松导致腹部衣褶堆叠
+  - 用力托脸导致脸颊变形
+  - 双腿垂直90度坐立显得呆板腿短
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 模特坐在白色浴缸边缘，右手上抬靠近下巴，双腿并拢悬垂，大型水母发光吊饰，属棚拍置景
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: PARTIAL
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: POSE_004
+  file: refs/03_POSE/08_LOW_ANGLE/POSE_004_underwater_column_floating.webp
+  category: 03_POSE
+  priority: STUDIO_OPTIONAL
+  source:
+    url: https://www.xiaohongshu.com/explore/69edef1a000000001f000433
+    page_title: 仿水下失重漂浮弓背姿态
+    author: 熊猫小涯
+    platform: 小红书
+    source_type: EDITORIAL
+    verified: true
+  target_relevance: 0.95
+  aesthetic_value: 0.94
+  technical_value: 0.98
+  source_confidence: 0.94
+  production_cost: MEDIUM
+  reference_roles:
+  - WEIGHTLESS_ARCH
+  - BODY_SUSPENSION
+  - FALLING_DYNAMICS
+  observed:
+  - 实拍图为真水下摄影，模特身穿白色Lolita裙坐于水下罗马柱上，发丝在水中完全失重向上漂浮，闭目敛神，双手微扬。
+  inferred:
+  - 该图具有极高水下失重动势艺术参考价值，但 100% 依赖专业潜水恒温摄影池，漫展现场物理不可行。
+  proposed:
+  - 移入 STUDIO_OPTIONAL 艺术参考库，漫展现场仅作为后期 AI 背景扩展和姿态舒展的视觉灵感。
+  do_not_copy:
+  - 切勿在漫展现场尝试水下浮动发型动作
+  use_for_shots:
+  - SHOT_03
+  search_keyword: 仿水下 悬浮 姿势 侧卧
+  notes: 深海沉睡悬浮动作的教科书级实操范本。
+  expo_feasibility: D
+  model_setup: underwater_pool
+  camera_position: underwater low angle
+  recommended_lens: 50mm f/1.8
+  crop: full body
+  director_script: （漫展不可执行，真水下摄影棚限定）
+  micro_adjustments:
+  - 水下闭气
+  - 四肢失重舒展
+  - 脚尖下绷
+  common_failures:
+  - 漫展完全无水下条件
+  - 陆地无法实现头发真实360度水下浮动
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 真实水下摄影，模特身穿白色洛丽塔连衣裙和发冠，坐在白色罗马石柱顶端悬空，双手平举闭眼发丝上飘
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'NO'
+    visually_verified: true
+  review_status: PRESELECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0101_standing_cross_feet_
+  file: refs/90_REJECTED/POSE_0101_standing_cross_feet_45deg.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0101_standing_cross_feet_45deg，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0101_standing_cross_feet_45deg.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0102_standing_hand_to_nec
+  file: refs/90_REJECTED/POSE_0102_standing_hand_to_neck_cape_flow.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0102_standing_hand_to_neck_cape_flow，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0102_standing_hand_to_neck_cape_flow.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0103_standing_scepter_han
+  file: refs/90_REJECTED/POSE_0103_standing_scepter_hand_on_hip.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0103_standing_scepter_hand_on_hip，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0103_standing_scepter_hand_on_hip.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0104_staff_ground_stance_
+  file: refs/90_REJECTED/POSE_0104_staff_ground_stance_noble.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0104_staff_ground_stance_noble，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0104_staff_ground_stance_noble.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0201_stool_staff_chin_ges
+  file: refs/90_REJECTED/POSE_0201_stool_staff_chin_gesture.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0201_stool_staff_chin_gesture，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0201_stool_staff_chin_gesture.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0202_stool_crossed_legs_f
+  file: refs/90_REJECTED/POSE_0202_stool_crossed_legs_forward_lean.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0202_stool_crossed_legs_forward_lean，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0202_stool_crossed_legs_forward_lean.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0203_stool_staff_horizont
+  file: refs/90_REJECTED/POSE_0203_stool_staff_horizontal_cross.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0203_stool_staff_horizontal_cross，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0203_stool_staff_horizontal_cross.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0301_half_body_forward_le
+  file: refs/90_REJECTED/POSE_0301_half_body_forward_lean_intense_gaze.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0301_half_body_forward_lean_intense_gaze，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0301_half_body_forward_lean_intense_gaze.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0302_half_body_hand_near_
+  file: refs/90_REJECTED/POSE_0302_half_body_hand_near_mouth_meditation.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0302_half_body_hand_near_mouth_meditation，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0302_half_body_hand_near_mouth_meditation.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0303_half_body_staff_hori
+  file: refs/90_REJECTED/POSE_0303_half_body_staff_horizontal_point.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0303_half_body_staff_horizontal_point，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0303_half_body_staff_horizontal_point.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0401_face_glove_closeup_g
+  file: refs/90_REJECTED/POSE_0401_face_glove_closeup_glance.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0401_face_glove_closeup_glance，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0401_face_glove_closeup_glance.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0402_low_angle_closeup_co
+  file: refs/90_REJECTED/POSE_0402_low_angle_closeup_cool_look.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0402_low_angle_closeup_cool_look，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0402_low_angle_closeup_cool_look.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0403_closeup_fan_mask_sid
+  file: refs/90_REJECTED/POSE_0403_closeup_fan_mask_side_glance.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0403_closeup_fan_mask_side_glance，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0403_closeup_fan_mask_side_glance.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0501_hands_cupping_face_v
+  file: refs/90_REJECTED/POSE_0501_hands_cupping_face_veil_peep.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0501_hands_cupping_face_veil_peep，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0501_hands_cupping_face_veil_peep.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0502_hands_umbrella_shaft
+  file: refs/90_REJECTED/POSE_0502_hands_umbrella_shaft_interact.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0502_hands_umbrella_shaft_interact，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0502_hands_umbrella_shaft_interact.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0601_staff_vertical_stand
+  file: refs/90_REJECTED/POSE_0601_staff_vertical_standing_grip.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0601_staff_vertical_standing_grip，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0601_staff_vertical_standing_grip.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0602_staff_two_handed_fro
+  file: refs/90_REJECTED/POSE_0602_staff_two_handed_front_guard.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0602_staff_two_handed_front_guard，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0602_staff_two_handed_front_guard.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0702_dynamic_turn_one_leg
+  file: refs/90_REJECTED/POSE_0702_dynamic_turn_one_leg_pivot.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0702_dynamic_turn_one_leg_pivot，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0702_dynamic_turn_one_leg_pivot.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0703_turn_weapon_over_sho
+  file: refs/90_REJECTED/POSE_0703_turn_weapon_over_shoulder.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0703_turn_weapon_over_shoulder，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0703_turn_weapon_over_shoulder.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0802_low_angle_leg_projec
+  file: refs/90_REJECTED/POSE_0802_low_angle_leg_projection_stool.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0802_low_angle_leg_projection_stool，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0802_low_angle_leg_projection_stool.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0901_classic_back_turn_gl
+  file: refs/90_REJECTED/POSE_0901_classic_back_turn_glance_rim.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0901_classic_back_turn_glance_rim，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0901_classic_back_turn_glance_rim.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0902_back_view_umbrella_f
+  file: refs/90_REJECTED/POSE_0902_back_view_umbrella_fan_lift.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_0902_back_view_umbrella_fan_lift，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_0902_back_view_umbrella_fan_lift.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_1001_standing_arms_raised
+  file: refs/90_REJECTED/POSE_1001_standing_arms_raised_stretch.webp
+  category: 90_REJECTED
+  priority: REJECT
+  rejection_reason: 人工视觉审计淘汰：360x480低清网页缩略图/拼图/大面积教程文字覆盖/动作标签严重名不副实，禁止进入CORE。
+  source:
+    url: https://www.xiaohongshu.com/explore/69f1e5a000000000350390c1
+    author: Eyra
+    platform: 小红书
+    verified: false
+  image_quality:
+    width: 360
+    height: 480
+    source_quality: THUMBNAIL
+    quality_pass: false
+  visual_audit:
+    actual_pose: 人工视觉审计淘汰留档文件：POSE_1001_standing_arms_raised_stretch，分辨率360x480
+    filename_match: 'NO'
+    metadata_match: 'NO'
+    director_script_match: 'NO'
+    visually_verified: true
+  observed:
+  - 淘汰文件留档：POSE_1001_standing_arms_raised_stretch.webp
+  do_not_copy:
+  - 严重残缺/低清/名不副实，禁止作为摄影参考。
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0401_closeup_over_shoulder_gaze
+  file: refs/90_REJECTED/REJECT_POSE_0401_closeup_over_shoulder_gaze.webp
+  category: 90_REJECTED
+  priority: REJECT
+  source:
+    url: https://www.xiaohongshu.com/explore/68f00100000000001503cb89
+    page_title: 长刀场照动作组图
+    author: 双喜📷
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  target_relevance: 0.5
+  aesthetic_value: 0.85
+  technical_value: 0.85
+  source_confidence: 0.95
+  production_cost: LOW
+  expo_feasibility: C
+  reference_roles:
+  - REJECTED_MARTIAL_BLADE
+  image_quality:
+    width: 1080
+    height: 1621
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 面部与胸像大特写，双手将长刀刀镡举至头顶上方过肩凝视镜头（淘汰：动作过于武力打斗化）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 动作打斗感过强
+  inferred:
+  - 不适合长夜焕生
+  proposed:
+  - 归入淘汰库
+  do_not_copy:
+  - 双手举刀过顶
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0601_staff_diagonal_cross_chest
+  file: refs/90_REJECTED/REJECT_POSE_0601_staff_diagonal_cross_chest.webp
+  category: 90_REJECTED
+  priority: REJECT
+  source:
+    url: https://www.xiaohongshu.com/explore/68f00100000000001503cb89
+    page_title: 长刀场照动作组图
+    author: 双喜📷
+    platform: 小红书
+    source_type: COSPLAY_PHOTOGRAPHY
+    verified: true
+  target_relevance: 0.55
+  aesthetic_value: 0.86
+  technical_value: 0.88
+  source_confidence: 0.95
+  production_cost: LOW
+  expo_feasibility: C
+  reference_roles:
+  - REJECTED_MARTIAL_BLADE
+  image_quality:
+    width: 1080
+    height: 1621
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 双手一高一低握持黑色长刀横跨胸前形成对角线格斗防守（淘汰：刀剑格斗感过重）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 防守持刀格斗
+  inferred:
+  - 切断胸口宝石视线
+  proposed:
+  - 归入淘汰库
+  do_not_copy:
+  - 横刀胸前格斗
+  review_status: REJECTED
+  field_pack_eligible: false
+- id: REJECT_POSE_0801_low_angle_ground_scythe_stance
+  file: refs/90_REJECTED/REJECT_POSE_0801_low_angle_ground_scythe_stance.webp
+  category: 90_REJECTED
+  priority: REJECT
+  source:
+    url: https://www.xiaohongshu.com/explore/6a1005000000000019013c78
+    page_title: 低视角拍摄合集❤
+    author: 果果酱啦啦啦
+    platform: 小红书
+    source_type: EXPO_FIELD_PHOTO
+    verified: true
+  target_relevance: 0.5
+  aesthetic_value: 0.85
+  technical_value: 0.85
+  source_confidence: 0.95
+  production_cost: LOW
+  expo_feasibility: C
+  reference_roles:
+  - REJECTED_MARTIAL_SCYTHE
+  image_quality:
+    width: 1080
+    height: 1620
+    source_quality: HQ_DOWNLOAD
+    quality_pass: true
+  visual_audit:
+    actual_pose: 漫展内贴地极低机位仰拍，双腿分开大步站稳双手斜持长柄镰刀后置（淘汰：死神镰刀攻击性过烈）
+    filename_match: 'YES'
+    metadata_match: 'YES'
+    director_script_match: 'YES'
+    visually_verified: true
+  observed:
+  - 大跨度镰刀战斗姿势
+  inferred:
+  - 缺乏女性柔美神圣感
+  proposed:
+  - 归入淘汰库
+  do_not_copy:
+  - 大弓步死神持镰
+  review_status: REJECTED
+  field_pack_eligible: false

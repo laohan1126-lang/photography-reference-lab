@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Browser profiles and caches (sensitive user data & large cache)
+**/edge_xhs_profile/
+**/edge_profile/
+**/.bsk/
+daemon.lock
+
+# OS generated
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDE and Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
