@@ -1,0 +1,20 @@
+{
+  "base": "b95f37540ada1bae18de949873bdbbcce021e621",
+  "sha": "a947cddbc795a24f7482bc049d6ab92a13e7fbf6",
+  "tree": "9d845cae3619db9c11fc56b22ded5fd22f2c1cfd",
+  "files": ["AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/CODEX_REGRESSION.md", "docs/COMPATIBILITY.md", "docs/SOURCE_ASSESSMENT.md", "docs/WORKER_PROTOCOL.md", "docs/tasks/2026-09-27-personal-library.md", "pyproject.toml", "ref_lab/__init__.py", "ref_lab/acquisition.py", "ref_lab/api.py", "ref_lab/catalog_data.py", "ref_lab/cli.py", "ref_lab/db.py", "ref_lab/export.py", "ref_lab/imports.py", "ref_lab/migrations.py", "ref_lab/models.py", "ref_lab/providers.py", "ref_lab/recycle.py", "ref_lab/service.py", "tests/test_browser.py", "tests/test_live_system_regression.py", "tests/test_personal_library.py", "tests/test_ui_components.py", "web/app.js", "web/index.html", "web/styles.css"],
+  "before_sha256": "35d9bdea83bc40e71cd5ac30d2ea778f7eba00e183141e8a14c7c09b80ef72eb",
+  "after_sha256": "a9e0dca53e2c16f9843bcaafd069942f7dea6252911be3d89546a0e8a3347958",
+  "delta_sha256": "484e9d292b927559c24d0d29072dc3d0e289007e2976604453ce18c5683043e8",
+  "chunks": [
+    {"path": ".agent-transport/chunk-00.b64", "sha256": "9564e16a3d433c2588029721605538d4ffc1c7709486213b136faa4b448a6db4"},
+    {"path": ".agent-transport/chunk-01.b64", "sha256": "da3ab747742f8d823b2036500b89b4cef7ad2988e77d107956c97428196e8f47"},
+    {"path": ".agent-transport/chunk-02.b64", "sha256": "5bf78063231382d856496a8e324068c77647b9aee2f69db6a9f74f26f71eebb6"},
+    {"path": ".agent-transport/chunk-03.b64", "sha256": "2f7956ac4a9e4a8a57606440e62f888998603039c64dc3e2bb8a2be95f2d0bff"},
+    {"path": ".agent-transport/chunk-04.b64", "sha256": "4ba7adf45940c22979a248e725e54c98b578cfde07c3b5da638b39d05de6a3d7"},
+    {"path": ".agent-transport/chunk-05.b64", "sha256": "43337928353663c4704d988ce6268b0d9fd7c61f2d98fccc0bc4876a67aba685"},
+    {"path": ".agent-transport/chunk-06.b64", "sha256": "8511e7ab16b734c5041e92df768885af4a9e70bca1f168c5f7c3b3884bf1b9bb"},
+    {"path": ".agent-transport/chunk-07.b64", "sha256": "884ebb65b288bd9649d82bd7dd2ec28f16282e5ea8362bf8eceb8c6ae0040ef1"}
+  ],
+  "commit_base64": "dHJlZSA5ZDg0NWNhZTM2MTlkYjljMTFmYzU2YjIyZGVkNWZkMjJmMmMxY2ZkCnBhcmVudCBiOTVmMzc1NDBhZGExYmFlMThkZTk0OTg3M2JkYmJjY2UwMjFlNjIxCmF1dGhvciBSZWZlcmVuY2UgTGFiIEFnZW50IDxyZWZlcmVuY2UtbGFiLWFnZW50QHVzZXJzLm5vcmVwbHkuZ2l0aHViLmNvbT4gMTc5MDQ0NjY3OSArMDAwMApjb21taXR0ZXIgUmVmZXJlbmNlIExhYiBBZ2VudCA8cmVmZXJlbmNlLWxhYi1hZ2VudEB1c2Vycy5ub3JlcGx5LmdpdGh1Yi5jb20+IDE3OTA0NDY2NzkgKzAwMDAKCmZlYXQ6IHNlcGFyYXRlIGdsb2JhbCBpbnNwaXJhdGlvbiBhbmQgYXNzZXQgZGlzY292ZXJ5LCBzaW1wbGlmeSBjdXJhdGlvbiBhbmQgQWdlbnQgZmllbGQgY2FyZHMK"
+}
