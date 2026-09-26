@@ -1,0 +1,98 @@
+name: Validate isolated personal library
+on:
+  push:
+    branches: ['ops/reference-workspace-20260927']
+    paths: ['.agent-transport/manifest.json']
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reconstruct and verify exact tested source tree
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, hashlib, json, os, pathlib, subprocess
+          repo = pathlib.Path.cwd()
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          manifest = json.loads((repo/'.agent-transport/manifest.json').read_text())
+          assert manifest['base'] == 'b95f37540ada1bae18de949873bdbbcce021e621'
+          names = manifest['files']
+          assert len(names) == len(set(names))
+          assert all(not pathlib.PurePosixPath(n).is_absolute() and '..' not in pathlib.PurePosixPath(n).parts for n in names)
+          assert all(n.startswith(('ref_lab/','tests/','web/','docs/')) or n in {'AGENTS.md','README.md','pyproject.toml'} for n in names)
+          before = {}
+          for name in names:
+              p = subprocess.run(['git','show',manifest['base']+':'+name],stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
+              before[name] = p.stdout.decode() if p.returncode == 0 else None
+          before_bytes = json.dumps(before,ensure_ascii=False,separators=(',',':')).encode()
+          assert hashlib.sha256(before_bytes).hexdigest() == manifest['before_sha256']
+          (root/'reference-before.json').write_bytes(before_bytes)
+          encoded = ''
+          for chunk in manifest['chunks']:
+              path = pathlib.PurePosixPath(chunk['path'])
+              assert path.parent == pathlib.PurePosixPath('.agent-transport') and path.suffix == '.b64'
+              raw = (repo/path).read_bytes()
+              assert hashlib.sha256(raw).hexdigest() == chunk['sha256'], chunk['path']
+              encoded += raw.decode().strip()
+          delta = base64.b64decode(encoded,validate=True)
+          assert hashlib.sha256(delta).hexdigest() == manifest['delta_sha256']
+          (root/'reference-delta.zst').write_bytes(delta)
+          subprocess.run(['zstd','-d','--patch-from='+str(root/'reference-before.json'),str(root/'reference-delta.zst'),'-o',str(root/'reference-after.json')],check=True)
+          after_bytes = (root/'reference-after.json').read_bytes()
+          assert hashlib.sha256(after_bytes).hexdigest() == manifest['after_sha256']
+          files = json.loads(after_bytes)
+          assert list(files) == names
+          work = root/'checked-code'
+          subprocess.run(['git','worktree','add','--detach',str(work),manifest['base']],check=True)
+          for name, content in files.items():
+              path = work/name
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(content,encoding='utf-8')
+          subprocess.run(['git','add','--',*names],cwd=work,check=True)
+          tree = subprocess.check_output(['git','write-tree'],cwd=work).decode().strip()
+          assert tree == manifest['tree']
+          commit = base64.b64decode(manifest['commit_base64'],validate=True)
+          assert commit.startswith(('tree '+tree+'\nparent '+manifest['base']+'\n').encode())
+          sha = subprocess.check_output(['git','hash-object','-t','commit','-w','--stdin'],input=commit,cwd=work).decode().strip()
+          assert sha == manifest['sha']
+          subprocess.run(['git','checkout','--detach',sha],cwd=work,check=True)
+          assert not subprocess.check_output(['git','status','--porcelain'],cwd=work)
+          # Only the dedicated validation branch. No force, target or main writes.
+          subprocess.run(['git','push','origin','HEAD:refs/heads/codex/personal-library-validation-20260927'],cwd=work,check=True)
+          print('Exact checkpoint registered:',sha,'tree:',tree)
+          PY
+      - name: Install test dependencies
+        working-directory: ${{ runner.temp }}/checked-code
+        run: |
+          python -m pip install -e '.[test]'
+          python -m playwright install --with-deps chromium
+      - name: Full backend, real HTTP, historical migration and offline tests
+        working-directory: ${{ runner.temp }}/checked-code
+        env:
+          LAB_TEST_ARTIFACTS: test-results/synthetic-browser
+          LAB_TEST_REPORTS: test-results/reports
+        run: |
+          mkdir -p test-results
+          git rev-parse HEAD | tee test-results/commit.txt
+          node --check web/app.js
+          python -m compileall -q ref_lab tools tests
+          python -m pytest -q --junitxml=test-results/results.xml | tee test-results/pytest.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: personal-library-validation
+          path: ${{ runner.temp }}/checked-code/test-results
+          retention-days: 7
+          if-no-files-found: warn
