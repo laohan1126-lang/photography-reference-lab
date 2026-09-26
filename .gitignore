@@ -7,29 +7,37 @@ __pycache__/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Virtual Environments
+# Virtual environments
 venv/
 .venv/
 env/
 ENV/
-
-# Browser profiles and caches (sensitive user data & large cache)
+# Private runtime data and secrets
+.local/
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-*
+# Browser profiles and caches
 **/edge_xhs_profile/
 **/edge_profile/
 **/.bsk/
 daemon.lock
-
-# OS generated
+# OS / editors
 .DS_Store
 Thumbs.db
 ehthumbs.db
-
-# IDE and Editor
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# Logs
+# Generated tests / distributions
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+/dist/
+test-results/
+playwright-report/
 *.log

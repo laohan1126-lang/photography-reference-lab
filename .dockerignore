@@ -1,0 +1,8 @@
+*
+!pyproject.toml
+!README.md
+!ref_lab/
+!ref_lab/**
+!web/
+!web/**
+ref_lab/__pycache__/
