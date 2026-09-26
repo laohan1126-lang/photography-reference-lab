@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 import uvicorn
 from playwright.sync_api import expect
+from browser_assertions import wait_until
 from conftest import TOKEN
 from test_browser import browser_page, unlock  # shared real-HTTP browser fixture
 from ref_lab.api import create_app
@@ -88,9 +89,9 @@ def test_real_history_migration_upgrade_and_idempotence(migrated_history,tmp_pat
 def real_curation_journey(page,library):
     """Same GUI journey can run over HTTP or an explicitly labeled DOM bridge."""
     expect(page.locator('#page-count')).to_have_text('1–60 / 302')
-    page.wait_for_function('document.querySelector("#main-image").naturalWidth>0')
+    wait_until(page, 'document.querySelector("#main-image").naturalWidth>0')
     page.locator('#view-original').click()
-    page.wait_for_function('document.querySelector("#lightbox-image").naturalWidth>0')
+    wait_until(page, 'document.querySelector("#lightbox-image").naturalWidth>0')
     page.locator('#lightbox-close').click()
     target=page.evaluate('''()=>{const s=document.querySelector('#filmstrip');window.oldStrip=s;s.scrollLeft=2500;
         const b=s.getBoundingClientRect();window.oldScroll=s.scrollLeft;
@@ -102,7 +103,7 @@ def real_curation_journey(page,library):
     selected=page.evaluate('state.activeId')
     page.locator('#auto-advance').uncheck()
     page.locator('[data-decision=inspiration]').click()
-    page.wait_for_function('!state.busy')
+    wait_until(page, '!state.busy')
     assert library.inspirations()['total']==1
     assert library.reference(selected)['review'] is None
     page.get_by_role('button',name='新建角色项目',exact=True).click()
@@ -120,11 +121,11 @@ def real_curation_journey(page,library):
     ref=library.references(second['id'])['items'][0]
     assert ref['asset_sha']==library.reference(selected)['asset_sha']
     assert ref['review'] is None and ref['card'] is None and not ref['field_ready']
-    page.locator('[data-decision=reject]').click();page.wait_for_function('!state.busy')
+    page.locator('[data-decision=reject]').click();wait_until(page, '!state.busy')
     assert library.references(second['id'])['total']==0
     assert library.inspirations()['total']==1
     page.get_by_role('button',name='已淘汰 / 恢复',exact=True).click()
-    page.get_by_role('button',name='恢复这张图片',exact=True).click();page.wait_for_function('!state.busy')
+    page.get_by_role('button',name='恢复这张图片',exact=True).click();wait_until(page, '!state.busy')
     assert library.references(second['id'])['total']==1
     page.get_by_role('button',name='角色精选',exact=True).click()
     page.get_by_role('button',name='制作现场卡',exact=True).click()

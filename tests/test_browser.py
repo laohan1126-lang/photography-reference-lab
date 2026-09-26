@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 import uvicorn
 from playwright.sync_api import expect
+from browser_assertions import wait_until
 from ref_lab.api import create_app
 from ref_lab.config import Settings
 from ref_lab.models import CandidateInput, Card, ProjectInput, ReferenceEdit, Source, VisualReview
@@ -97,7 +98,7 @@ def test_browser_select_persist_filter_and_mobile(live_site, browser_page):
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     artifact(page,'mobile-synthetic-reference.png')
     page.locator('#view-original').click()
-    page.wait_for_function('document.querySelector("#lightbox-image").naturalWidth>0')
+    wait_until(page, 'document.querySelector("#lightbox-image").naturalWidth>0')
     page.locator('#lightbox-close').click()
     page.get_by_role('button',name='现场卡',exact=True).click()
     page.get_by_text('还没有已确认的现场卡',exact=True).wait_for()
@@ -151,7 +152,7 @@ def test_browser_agent_result_accept_and_offline_pack(live_site,browser_page,tmp
         archive.extractall(extracted) # Trusted output produced by this test.
     page.context.set_offline(True)
     page.goto((extracted/'index.html').as_uri())
-    page.wait_for_function('document.querySelector("#photo").naturalWidth>0')
+    wait_until(page, 'document.querySelector("#photo").naturalWidth>0')
     guide=page.locator('#guide').text_content()
     assert '身体先朝那边' in guide and '现有器材方案' in guide
     assert '后期路线：cleanup' in guide and '只清理合成测试背景' in guide

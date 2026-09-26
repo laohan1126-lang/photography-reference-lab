@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 from playwright.sync_api import expect
+from browser_assertions import wait_until
 from conftest import add_reference, card_data, review_data, image_bytes
 from ref_lab.models import ProjectInput, JobInput, AnalysisResult
 
@@ -90,7 +91,7 @@ def ui(component_factory, client, library, project):
 
 
 def idle(page):
-    page.wait_for_function('!state.busy')
+    wait_until(page, '!state.busy')
 
 
 def advanced(page, title='审美笔记与借鉴点（选填）'):
@@ -249,7 +250,7 @@ def test_pagination_auto_advance_and_refresh_focus(component_factory, client, li
     reopened=component_factory(old_hash)
     expect(reopened.locator('#page-count')).to_have_text('61–65 / 65')
     assert reopened.evaluate('state.activeId')==first_id
-    reopened.wait_for_function('document.querySelector("#main-image").naturalWidth>0')
+    wait_until(reopened, 'document.querySelector("#main-image").naturalWidth>0')
     expect(reopened.locator('#main-image')).to_be_visible()
     assert library.reference(first_id)['decision']=='maybe'
     expect(reopened.locator('[data-decision=maybe]')).to_have_class('chosen')
@@ -299,7 +300,23 @@ def test_stale_edit_conflict_does_not_claim_success_or_advance(ui, client):
 
 def test_image_load_recovers_after_transient_error(ui):
     page,_,_=ui
-    page.wait_for_function('document.querySelector("#main-image").naturalWidth>0')
+    wait_until(page, 'document.querySelector("#main-image").naturalWidth>0')
     page.locator('#main-image').evaluate("img=>{img.hidden=true;document.querySelector('#missing-image').hidden=false;img.dispatchEvent(new Event('load'));}")
     expect(page.locator('#main-image')).to_be_visible()
     expect(page.locator('#missing-image')).to_be_hidden()
+
+
+def test_browser_wait_does_not_require_unsafe_eval(component_factory):
+    page = component_factory()
+    # The real site sends this in its HTTP header. Exercise a false first poll
+    # under the same eval restriction even in the component-only environment.
+    page.evaluate('''() => {
+        const policy = document.createElement('meta');
+        policy.httpEquiv = 'Content-Security-Policy';
+        policy.content = "script-src 'self'";
+        document.head.appendChild(policy);
+        window.testWaitReady = false;
+        setTimeout(() => { window.testWaitReady = true; }, 150);
+    }''')
+    wait_until(page, 'window.testWaitReady')
+    assert page.evaluate('window.testWaitReady') is True
