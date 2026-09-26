@@ -80,12 +80,17 @@ jobs:
               assert page.evaluate('window.testWaitReady') is True
           '''
           with Path('tests/test_ui_components.py').open('a') as f: f.write(regression)
+          p = Path('tests/test_browser.py')
+          s = p.read_text()
+          assert s.count("assert 'AGENT_INSTRUCTIONS.md' in archive.namelist()") == 1
+          s = s.replace("assert 'AGENT_INSTRUCTIONS.md' in archive.namelist()", "assert 'AGENT_TASK.md' in archive.namelist()\n        instructions=archive.read('AGENT_TASK.md').decode()\n        assert job['id'] in instructions and '不代替用户确认' in instructions")
+          p.write_text(s)
           paths = ['tests/browser_assertions.py','tests/test_ui_components.py','tests/test_browser.py','tests/test_live_system_regression.py']
           subprocess.run(['git','add','--',*paths],check=True)
           tree = subprocess.check_output(['git','write-tree']).decode().strip()
-          assert tree == '8f1238ca7f670539015dffef346e7d219110432b', tree
+          assert tree == '56daee6955a4870fe79dedf80e34437920a63c94', tree
           subprocess.run(['git','diff','--cached','--check'],check=True)
-          subprocess.run(['git','-c','user.name=Reference Lab Agent','-c','user.email=reference-lab-agent@users.noreply.github.com','commit','-m','test: keep real browser polling compatible with strict CSP'],check=True)
+          subprocess.run(['git','-c','user.name=Reference Lab Agent','-c','user.email=reference-lab-agent@users.noreply.github.com','commit','-m','test: validate actual Agent bundles with strict CSP browser assertions'],check=True)
           PY
       - name: Install
         run: |
