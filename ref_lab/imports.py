@@ -11,7 +11,7 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
 import yaml
 from .db import encode
-from .models import CandidateInput, NoteInput, ProjectInput, Source
+from .models import CandidateInput, NoteInput, ProjectInput, Source, CollectionReport, PackCandidate, AnalysisImport
 from .policy import digest
 from .service import Library, Problem
 
@@ -52,39 +52,88 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
     if "manifest.json" not in files:
         raise ValueError("Candidate ZIP must have manifest.json at its root")
     manifest = json.loads(files["manifest.json"])
-    if not isinstance(manifest, dict) or manifest.get("schema_version") != 1 or not isinstance(manifest.get("candidates"), list):
-        raise ValueError("Expected schema_version=1 and a candidates array")
+    if not isinstance(manifest, dict) or manifest.get("schema_version") not in {1, 2} or not isinstance(manifest.get("candidates"), list):
+        raise ValueError("Expected schema_version 1 or 2 and a candidates array")
     if len(manifest["candidates"]) > 1000:
         raise ValueError("A candidate package may contain at most 1000 entries")
     library.project(project_id)
+    declared_job = str(manifest.get("job_id", ""))
+    if declared_job and job_id and declared_job != job_id:
+        raise Problem(409, "候选包属于另一个采集任务")
+    job_id = job_id or declared_job
+    job = library.job(job_id) if job_id else None
+    if job and (job["project_id"] != project_id or job["kind"] != "collection" or job["status"] == "cancelled"):
+        raise Problem(409, "候选包任务不匹配或已取消")
+    execution = CollectionReport.model_validate(manifest["execution_report"]) if manifest.get("execution_report") else None
+    if manifest["schema_version"] == 2 and (not job_id or not execution):
+        raise ValueError("schema_version 2 requires job_id and execution_report")
     report = {"created": 0, "existing": 0, "missing": 0, "errors": [], "reference_ids": []}
     for index, item in enumerate(manifest["candidates"]):
         try:
             if not isinstance(item, dict): raise ValueError("Candidate must be an object")
+            if manifest["schema_version"] == 2:
+                item = PackCandidate.model_validate(item).model_dump()
             filename = archive_name(item["file"])
             if filename not in files: raise ValueError("Referenced image is missing from archive")
             # A file package cannot claim that the human has already verified the source or image.
             source = Source.model_validate({**item.get("source", {}), "source_confirmed": False})
-            asset = library.ingest_asset(files[filename], filename)
             key = str(item.get("id", ""))
             if not key: raise ValueError("Each candidate needs a stable id")
             batch = str(manifest.get("batch_id", digest(files["manifest.json"].decode("utf-8"))[:16]))
-            result = library.add_candidate(project_id, CandidateInput(asset_sha=asset["id"], title=item.get("title", ""),
-                source=source, import_key=f"package:{batch}:{key}", legacy_notes=item.get("notes", ""), job_id=job_id))
+            candidate = CandidateInput(title=item.get("title", ""), source=source,
+                import_key=f"package:{batch}:{key}", legacy_notes=item.get("notes", ""), job_id=job_id,
+                discovery_intent=item.get("discovery_intent", "unknown"), discovery_reason=item.get("discovery_reason", ""),
+                discovery_url=item.get("discovery_url", ""))
+            asset = library.ingest_asset(files[filename], filename)
+            candidate.asset_sha = asset["id"]
+            result = library.add_candidate(project_id, candidate)
             report["created" if result["created"] else "existing"] += 1
             report["reference_ids"].append(result["reference"]["id"])
         except (ValueError, KeyError, TypeError, Problem) as exc:
             report["errors"].append({"index": index, "id": item.get("id") if isinstance(item, dict) else None, "error": str(exc)})
+    if job_id and execution:
+        if report["errors"]:
+            execution = execution.model_copy(update={"status": "blocked", "summary": "部分候选导入失败；" + execution.summary})
+        report["job"] = library.record_collection_report(job_id, execution)
     return report
 
 
-def import_notion(library: Library, project_id: str, content: bytes) -> dict:
+def import_analyses(library: Library, project_id: str, raw: bytes, job_id: str = "") -> dict:
+    if len(raw) > 8 * 1024 * 1024:
+        raise Problem(413, "Analysis JSON exceeds 8 MiB")
+    payload = json.loads(raw)
+    if not isinstance(payload, dict) or payload.get("schema_version") != 1 or not isinstance(payload.get("items"), list) or len(payload["items"]) > 200:
+        raise Problem(422, "Expected schema_version=1 and up to 200 analysis items")
+    declared = str(payload.get("job_id", ""))
+    if job_id and declared != job_id:
+        raise Problem(409, "分析结果属于另一个任务")
+    job_id = declared or job_id
+    library.project(project_id)
+    if job_id:
+        job = library.job(job_id)
+        if job["project_id"] != project_id or job["kind"] != "analysis":
+            raise Problem(409, "分析任务不匹配")
+    report = {"imported": [], "errors": []}
+    for index, item in enumerate(payload["items"]):
+        try:
+            reference_id = item["reference_id"]
+            ref = library.reference(reference_id)
+            if ref["project_id"] != project_id: raise Problem(409, "Wrong project")
+            data = AnalysisImport.model_validate({key: value for key, value in item.items() if key != "reference_id"})
+            library.apply_analysis(reference_id, data.result, data.expected_revision, data.producer, job_id)
+            report["imported"].append(reference_id)
+        except (Problem, ValueError, KeyError, TypeError) as exc:
+            report["errors"].append({"index": index, "error": str(exc)})
+    return report
+
+
+def import_notion(library: Library, project_id: str | None, content: bytes) -> dict:
     """Import Markdown/CSV Notion exports, preserving original text and local image links.
 
     HTML is deliberately not executed/rendered. Export Markdown & CSV from Notion.
     """
     files = read_archive(content)
-    library.project(project_id)
+    if project_id is not None: library.project(project_id)
     image_map, errors = {}, []
     for name, raw in files.items():
         if PurePosixPath(name).suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}:

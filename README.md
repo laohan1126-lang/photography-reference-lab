@@ -1,72 +1,84 @@
 # Photography Reference Lab · 参考实验室
 
-私人 cosplay / 日常人像审美库、独立大图筛选工作台和现场摄影资料卡。
+个人 Cosplay / 日常人像摄影参考库：**搜一批独立图片 → 快速挑选 → 留住审美 → 给少数真正想拍的图片制作现场卡**。不是企业素材后台，不以接单变现为前提。
 
-**v0.2 是可运行的应用重构，不是旧看板的换皮。** FastAPI + SQLite + 原始图片文件存储 + 无构建步骤的 Web 界面。角色项目、人工选择、图片核验、资料卡、任务、笔记和变更事件分别持久保存。旧 `references/`、`images/`、`staging/` 及历史 HTML 保留，不作为新系统的事实来源直接发布。
-
-## 启动（Python 3.11+）
+## 启动与升级（Python 3.11+）
 
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\Activate.ps1
 # macOS / Linux: source .venv/bin/activate
 python -m pip install -e ".[test]"
+# 首次导入仓库历史素材；可重复执行，不重置原选择：
 python -m ref_lab migrate-legacy
 python -m ref_lab doctor
 python -m ref_lab serve
 ```
 
-访问 `http://127.0.0.1:8765`。另开终端执行 `python -m ref_lab token` 取得本机口令。默认数据目录 `.local/`，不会提交数据库、登录口令、浏览器档案或新收集的私人图片。Windows 可先运行 `./install.ps1`。
+打开 `http://127.0.0.1:8765`，另一个终端执行 `python -m ref_lab token` 取得本机口令。默认数据目录 `.local/`；Windows 可先运行 `./install.ps1`。已有数据库直接启动会迁移；**沿用原来的 `LAB_DATA_DIR`，不要误建一个空库**。
 
-旧素材迁移可重复执行，按导入标识和实际文件 SHA-256 去重；真实人工 KEEP / MAYBE / REJECT 记录被保留。**历史动作说明、标题和搜索分类只保存为未验证旧信息；缺图如实记录，不伪造图片或核验结果。** 原仓库有公开素材，新的私人访问控制不会撤回已经公开过的 Git 历史。
+v0.3 的数据库版本为 2。升级版本 1 前，自动通过 SQLite backup API 生成同数据目录下的 `library-before-v2-*.sqlite3`，然后事务迁移。图片原字节、旧选择、反馈、卡片和版本号保留；这份自动备份只有数据库，完整备份仍需：
 
-## 已实现的主流程
+```bash
+python -m ref_lab backup --output ../reference-lab-backup.zip
+```
 
-1. 建立多个角色项目：仅角色名必填，作品、服装版本和自由要求选填，器材条件可修改。
-2. 上传独立图片或导入候选 ZIP；保留接收到的文件原始字节，另生成展示图和缩略图。精确重复按哈希合并，近似重复仅提示。
-3. 单图大图筛选、原尺寸查看、保留 / 待定 / 淘汰、审美反馈、借鉴维度、灵感收藏、搜索与分页。选择写入数据库，不依赖 localStorage。
-4. 人工逐图核验，或将已保留参考交给外部 Agent / 可选 API 执行器。图片事实、布光推测与可执行拍摄方案分开；AI 结果只能成为草稿。
-5. 来源、图片、角色适配和资料卡门槛满足后，由用户单独确认现场卡。改图会撤销旧核验和选择；改要求会使旧卡待复核。并发编辑使用版本冲突检查。
-6. 导出带独立图片的离线拍摄 ZIP：解压后打开 `index.html`，现场口令优先，布光、后期和来源可继续阅读。灵感包明确不是现场指令。
-7. 导入 Notion **Markdown & CSV ZIP**，保留本地图片和源路径、提示未解析引用；笔记可编辑，重复导入不会覆盖已经编辑的笔记。
-8. 采集 / 分析任务有实际状态、检查点、候选数量和失败记录。备份、完整性检查、数据库迁移入口和可选 Notion 意图记录同步已提供。
+恢复须停服务，在新的空目录解压完整备份，再用该目录启动并 `doctor`。不要把旧版本代码指向已升级数据库。
 
-## 采集与 AI 分析不是假按钮
+## 下一次打开应该怎么用
 
-网站建立任务后，默认显示“等待执行／受阻”，不会自动宣称搜索完成。
+**拍摄项目 → 挑参考**：角色名必填，作品、服装版本和自由要求选填。独立大图旁只有四个主要选择：本角色参考 **K**、通用灵感 **I**、待定 **M**、淘汰 **X**。左右键切图，可关闭“选择后下一张”。审美笔记、来源纠错、手动编辑藏在次级折叠区。选为本角色参考表示“值得用于这个项目”，并不宣称图中就是目标角色。
 
-- **不使用付费 API**：下载任务 ZIP，让本地 Codex / Antigravity 读取独立图片，按 `docs/WORKER_PROTOCOL.md` 返回候选包或分析 JSON，网站导入并逐项校验。
-- **本地浏览器采集**：安装 Playwright，在自己明确授权的本机 Chromium / Edge CDP 会话运行 `python -m ref_lab collect --job JOB_ID --cdp http://127.0.0.1:9222 --search`。不提供验证码绕过、隐藏 API、Cookie 导出或 CDN 地址猜测。仅尝试正常可见页面，受阻就停止并保留进展。网站不能接管另一台电脑的浏览器。
-- **可选 OpenAI API**：显式配置 `OPENAI_API_KEY` 与 `LAB_ANALYSIS_MODEL` 后，运行 `python -m ref_lab analyze --job JOB_ID --confirm-external-images`。这个命令向 API 发送所选参考展示图，需要相应权限和独立 API 费用；不是使用 ChatGPT 网页 Pro 次数。启动网站不会自动调用它。
-- 复杂合成卡可以保存背景生成提示词；本版不自动生成背景、不重绘实拍人物、不自动操作 PS。
+**我的审美库**与项目平级，即使没有任何项目也能上传收藏。可以长期保存动作、表情、构图、光线、色彩、电影画面等，再引用到多个角色。同一个文件按 SHA-256 只存一份。已有项目选择（包括淘汰）不会因再次引用而被静默改变；一个项目淘汰图片不会删除全局收藏或其他项目的使用关系。
 
-采集器的默认搜索词只是起点。项目自由要求完整进入任务包和 AI 分析上下文；本地简单采集器**没有声称已经通过 LLM 理解所有自由要求或保证素材语义正确**。需要 Agent 按任务要求扩展检索、查看实际图片。
+**角色精选 → 制作现场卡**：只给真正想拍的几张制卡。建立任务 → 交给 Agent → 导入分析草稿 → 检查口令、图像判断与来源 → 单独确认。AI 判断错时修正，不需要先手填所有事实。不是所有保留图都适合现场卡；`card:null` 是允许的有效分析结论。图片、来源、选择或要求改变会撤销受影响的确认。
+
+**现场卡**仍是一图一卡：可说出口的引导、静态和情境动作、摄影师动作、安全降级、可见光线证据、布光推测、现有器材方案、PS 路线和必要的背景需求。项目设置中的“离线拍摄包”包含独立图片和完整静态页面；不依赖现场网络。摄影笔记独立保存，也兼容旧项目笔记与 Notion Markdown/CSV ZIP 导入。
+
+## 默认采集：BrowserSkill + Codex / Antigravity
+
+点“找一批参考”，保存完整角色、作品、版本、项目要求、器材和本轮自由要求，再下载任务包或复制执行提示词。**网页不会自动唤醒本机 Agent，也不会把等待状态写成已搜完**；这是实际任务包 / CLI 交接，不是云端自动调度器。
+
+本地 Agent 使用已安装的腾讯 BrowserSkill，在用户授权的真实浏览器里制定检索计划、扩展中日英关键词、评估多个来源、逐张下载并记录出处，返回候选包。小红书和 Pinterest 优先，其他来源按任务质量选择，不机械维护九个网站的专用爬虫。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。来源检查、低产停止原因和数量缺口进入回执。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
+
+同一数据目录下也可以直接交接：
+
+```bash
+python -m ref_lab export-job --job JOB_ID --output job.zip
+# Agent 读取包、正常浏览并返回 result.zip，或分析图片返回 analysis.json。
+python -m ref_lab import-job --job JOB_ID --input result.zip
+python -m ref_lab import-job --job ANALYSIS_JOB_ID --input analysis.json
+```
+
+**正常流程不需要独立 OpenAI API。** 不会启动付费调用；旧 `collect` / `analyze` 命令仅为兼容保留，见 [兼容边界](docs/COMPATIBILITY.md)。Pro / Codex / Antigravity 的实际可用能力和额度仍以用户自己的 Agent 环境为准。未连接、登录受阻、结果不全必须如实报告。
+
+## 淘汰、恢复与磁盘空间
+
+淘汰立即从默认候选流消失；“已淘汰 / 恢复”可以恢复原选择，但不恢复旧现场卡确认。移出审美库也有独立恢复入口。
+
+默认**不自动删除文件**。需要释放磁盘时先检查清单，再显式执行：
+
+```bash
+python -m ref_lab cleanup --days 30
+python -m ref_lab cleanup --days 30 --apply
+```
+
+最短保留 7 天。只清理明确回收、足够旧、没有有效使用关系的内容寻址文件；保护其他项目、全局收藏、笔记和未结束分析任务引用。元数据、来源与事件保留，不删除仓库历史素材。文件已清理的条目须重新导入相同字节才能恢复；误删恢复还可依赖完整备份。没有明确回收依据的孤儿文件不凭猜测删除。
 
 ## 回归与维护
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py
 node --check web/app.js
 python -m playwright install chromium
 python -m pytest -q tests/test_ui_components.py
-python -m pytest -q tests/test_browser.py
-python -m ref_lab backup --output ../reference-lab-backup.zip
+python -m pytest -q tests/test_browser.py tests/test_live_system_regression.py
 ```
 
-测试中的人物类型标注来自明确标记的**合成测试数据**，只验证流程门槛，不证明模型的真实图像识别准确率。组件测试用无网络 API 桥接；完整浏览器测试另测实际 HTTP、Cookie 和离线文件。见 [Codex 回归清单](docs/CODEX_REGRESSION.md)。
+组件测试是真实 Chromium DOM，但用 TestClient 显式桥接网络；HTTP、Cookie 和 `file://` 离线测试单列。历史图片测试不填造角色、灯光或授权事实。最新结果和限制见 [本轮记录](docs/tasks/2026-09-27-personal-library.md)、[回归说明](docs/CODEX_REGRESSION.md)。代码任务先记意图、后记实际证据；[AGENTS.md](AGENTS.md) 与 Git 任务记录为协作约定，Notion 仅是显式授权的可选同步视图。
 
-每个有意义的开发任务先写 `docs/tasks/` 意图与验收，再改代码。`tools/finish_task.py` 提供显式路径提交、回归、可选推送及远端 SHA 核对；不会强推 main。Notion 是可选同步视图，不是唯一事实源。共同规则见 [AGENTS.md](AGENTS.md)。
+## 私人部署边界
 
-## 部署边界
+FastAPI + SQLite WAL + 原始图片文件 + 无构建步骤的 Web。默认仅监听回环地址，单所有者使用。数据库、登录口令、浏览器档案和新增私人图片不提交 Git。已有公开 Git 历史无法通过私人页面撤回。公网部署前配置 HTTPS、随机 `LAB_ACCESS_TOKEN`、准确 `LAB_PUBLIC_ORIGIN`、持久卷和备份，参见 [部署说明](docs/DEPLOYMENT.md)。本版本不自动部署、不合并 main、不自动操作 PS、不重绘人物。
 
-这是**单所有者私人工作台**，不是多租户公共图片平台。默认只监听回环地址。部署到域名前，需要 HTTPS 反向代理、随机 `LAB_ACCESS_TOKEN`、准确的 `LAB_PUBLIC_ORIGIN`、持久化数据卷和备份。配置示例见 `.env.example`；Python 不会自动加载 `.env`，需由终端或部署工具提供环境变量。
-
-```bash
-docker build -t photography-reference-lab .
-# 在 --env-file 指定的文件中配置随机口令与实际 HTTPS origin。
-docker run --env-file .env -p 127.0.0.1:8765:8765 -v photography-data:/data photography-reference-lab
-```
-
-Docker 镜像不复制旧参考素材；先在本地迁移，或由管理员单独挂载指定旧目录执行迁移。代码仓库可公开，私人数据和未授权参考图不能因网站上线而自动公开。原始图片可能保留 EXIF，离线 ZIP 是私人数据副本，下载后不能远程撤回。
-
-详细设计：[架构](docs/ARCHITECTURE.md) · [执行器协议](docs/WORKER_PROTOCOL.md) · [部署与安全](docs/DEPLOYMENT.md) · [本轮任务记录](docs/tasks/2026-09-25-library-rebuild.md)。
+详细设计：[架构](docs/ARCHITECTURE.md) · [执行器协议](docs/WORKER_PROTOCOL.md)。

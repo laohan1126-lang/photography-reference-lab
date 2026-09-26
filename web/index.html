@@ -26,8 +26,9 @@
   <div id="application" class="app-shell" hidden>
     <aside class="sidebar">
       <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark">R.</span><span>参考实验室<small>REFERENCE LAB</small></span></a>
-      <div class="side-heading"><span>我的角色项目</span><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></div>
+      <div class="side-heading"><span>拍摄项目</span><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></div>
       <nav id="project-list" aria-label="角色项目"></nav>
+      <nav id="global-nav" aria-label="我的资料"><button data-view="inspiration">♡ 我的审美库</button><button data-view="jobs">采集任务</button><button data-view="notes">摄影笔记</button></nav>
       <div class="side-note"><span class="status-dot"></span><strong>PRIVATE WORKSPACE</strong><p>审美由你决定。<br>图片事实与 AI 推测分开保存。</p></div>
       <button id="lock-library" class="quiet">锁定参考库</button>
     </aside>
@@ -36,11 +37,9 @@
       <section id="project-header" class="project-header"></section>
       <div id="stats" class="stats" aria-label="项目统计"></div>
       <nav id="view-tabs" class="view-tabs" aria-label="工作区视图">
-        <button data-view="references" class="active">候选池</button><button data-view="field">现场卡</button>
-        <button data-view="inspiration">灵感库</button><button data-view="jobs">采集与分析</button>
-        <button data-view="notes">摄影笔记</button><button data-view="events">变更记录</button>
+        <button data-view="references" class="active">挑参考</button><button data-view="selected">角色精选</button><button data-view="field">现场卡</button><button data-view="recycle">已淘汰 / 恢复</button>
       </nav>
-      <div id="view" aria-live="polite"></div>
+      <div id="view"></div>
       <footer class="workspace-footer"><span>先选择，再分析。未知不等于通过。</span><span id="version">v0.2</span></footer>
     </main>
   </div>

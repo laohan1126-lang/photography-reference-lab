@@ -67,6 +67,11 @@ class CandidateInput(Strict):
     import_key: Annotated[str, Field(max_length=600)] = ""
     legacy_notes: Text = ""
     job_id: Short = ""
+    discovery_intent: Literal["unknown", "exact_character", "transferable_pose", "aesthetic"] = "unknown"
+    discovery_reason: Text = ""
+    discovery_url: Annotated[str, Field(max_length=4000)] = ""
+
+    _discovery_url = field_validator("discovery_url")(safe_url)
 
 
 class ReferenceEdit(Strict):
@@ -155,6 +160,8 @@ class JobInput(Strict):
     kind: Literal["collection", "analysis"]
     reference_ids: list[Short] = Field(default_factory=list, max_length=50)
     notes: Text = ""
+    target_count: int = Field(default=80, ge=1, le=500)
+    preferred_sources: list[Short] = Field(default_factory=lambda: ["xiaohongshu", "pinterest"], max_length=12)
 
 
 class JobResult(Strict):
@@ -190,3 +197,82 @@ class NoteEdit(Strict):
     expected_revision: int = Field(ge=1)
     title: Annotated[str, Field(min_length=1, max_length=400)]
     body: Annotated[str, Field(max_length=200000)]
+
+
+class InspirationInput(Strict):
+    asset_sha: Digest
+    title: Short = ""
+    source: Source = Field(default_factory=Source)
+    preference: Text = ""
+    borrow: list[Short] = Field(default_factory=list, max_length=20)
+
+
+class InspirationEdit(Strict):
+    expected_revision: int = Field(ge=1)
+    title: Short | None = None
+    preference: Text | None = None
+    borrow: list[Short] | None = Field(default=None, max_length=20)
+    source: Source | None = None
+    active: bool | None = None
+
+
+class InspirationUse(Strict):
+    expected_revision: int = Field(ge=1)
+    project_id: Short
+
+
+class AcceptanceInput(RevisionInput):
+    source: Source | None = None
+    allow_cross_domain: bool | None = None
+
+
+class SourceCheck(Strict):
+    source: Short
+    status: Literal["usable", "login_required", "blocked", "unavailable", "untested"]
+    detail: Text = ""
+
+
+class QueryAttempt(Strict):
+    source: Short
+    query: Short
+    kept: int = Field(default=0, ge=0, le=1000)
+    stop_reason: Short = ""
+
+
+class CollectionReport(Strict):
+    producer: Annotated[str, Field(min_length=1, max_length=200)]
+    status: Literal["completed", "blocked", "failed"]
+    summary: NonEmpty
+    source_checks: list[SourceCheck] = Field(default_factory=list, max_length=30)
+    query_log: list[QueryAttempt] = Field(default_factory=list, max_length=200)
+    gaps: list[Short] = Field(default_factory=list, max_length=30)
+
+
+class PackCandidate(Strict):
+    id: Annotated[str, Field(min_length=1, max_length=200)]
+    file: Annotated[str, Field(min_length=1, max_length=600)]
+    title: Short = ""
+    source: Source = Field(default_factory=Source)
+    discovery_intent: Literal["unknown", "exact_character", "transferable_pose", "aesthetic"] = "unknown"
+    discovery_reason: Text = ""
+    discovery_url: Annotated[str, Field(max_length=4000)] = ""
+    notes: Text = ""
+    _url = field_validator("discovery_url")(safe_url)
+
+
+class CandidatePackage(Strict):
+    schema_version: Literal[2] = 2
+    job_id: Short
+    batch_id: Annotated[str, Field(min_length=1, max_length=200)]
+    candidates: list[PackCandidate] = Field(max_length=1000)
+    execution_report: CollectionReport
+
+
+class AnalysisItem(AnalysisImport):
+    reference_id: Short
+
+
+class AnalysisPackage(Strict):
+    schema_version: Literal[1] = 1
+    job_id: Short
+    items: list[AnalysisItem] = Field(max_length=200)

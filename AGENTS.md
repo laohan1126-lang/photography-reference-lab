@@ -4,7 +4,7 @@
 Private cosplay and everyday portrait reference library. The owner's goals are social connection, aesthetic exploration and reliable field guidance, not compulsory monetization or elaborate commercial sets. Character name is required; other requirements are free text. Preserve human taste and choices.
 
 ## Read before editing
-Read README.md, docs/ARCHITECTURE.md, and the relevant docs/tasks entry. For acquisition also read notes/collection-workflow.md and docs/WORKER_PROTOCOL.md. The v0.2 entry point is `python -m ref_lab`; old generated boards and collectors are historical, not trusted verification paths.
+Read README.md, docs/ARCHITECTURE.md, and the relevant docs/tasks entry. For acquisition also read notes/collection-workflow.md and docs/WORKER_PROTOCOL.md. The current entry point is `python -m ref_lab`; old generated boards and collectors are historical, not trusted verification paths.
 
 ## Non-negotiable invariants
 - Search queries, titles and existing categories are discovery metadata, NOT image observations.
@@ -23,4 +23,10 @@ Read README.md, docs/ARCHITECTURE.md, and the relevant docs/tasks entry. For acq
 5. Git versioned tasks are canonical. Sync a compact Notion view only when configured and authorized. A failed Notion sync is pending, not a successful write, and must not erase a valid Git checkpoint.
 6. Final handoff: branch + commit + tested scope + unverified scope + runnable regression instructions. Never call a waiting job completed, or an unrun test passed.
 
-Default regression: `python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py`; `node --check web/app.js`; browser/component tests per docs/CODEX_REGRESSION.md. Every bug fix should add or update a regression that represents the actual failure.
+Default regression: `python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py`; `node --check web/app.js`; browser/component tests per docs/CODEX_REGRESSION.md. Every bug fix should add or update a regression that represents the actual failure.
+
+## Personal-library invariants (v0.3)
+- Asset identity, discovery intent, actual observations, global inspiration and project use are distinct. Never infer character identity from the search project.
+- Global inspiration has no project parent; changing one project selection must not remove other uses. Preserve keyed filmstrip nodes during curation.
+- BrowserSkill + local Codex / Antigravity task packages are the default; no standalone paid API requirement. Report waiting/blocked honestly.
+- Cleanup is explicit, delayed and reference-aware. Do not run destructive tests against the owner’s normal data.

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import os
+import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,13 +54,29 @@ class Database:
     def __init__(self, path: Path):
         self.path = path
         path.parent.mkdir(parents=True, exist_ok=True)
+        self.migration_report = None
         with self.read() as con:
             version = con.execute("PRAGMA user_version").fetchone()[0]
-            if version not in {0, 1}:
+            if version not in {0, 1, 2}:
                 raise RuntimeError(f"Unsupported database schema {version}; restore or migrate explicitly")
-            con.executescript(SCHEMA)
-            con.execute("PRAGMA user_version=1")
-            con.commit()
+            if version == 1:
+                # Online SQLite backup includes WAL; a raw file copy would not.
+                fd, backup_name = tempfile.mkstemp(prefix="library-before-v2-", suffix=".sqlite3", dir=path.parent)
+                os.close(fd)
+                with sqlite3.connect(backup_name) as destination:
+                    con.backup(destination)
+                self.migration_report = {"backup": backup_name}
+        with self.transaction() as con:
+            version = con.execute("PRAGMA user_version").fetchone()[0]
+            for statement in SCHEMA.split(";"):
+                if statement.strip():
+                    con.execute(statement)
+            if version < 2:
+                from .migrations import upgrade_catalog
+                report = upgrade_catalog(con)
+                self.migration_report = {**(self.migration_report or {}), **report, "from": version, "to": 2}
+                self.event(con, None, "schema", "schema.migrated", self.migration_report, "migration")
+                con.execute("PRAGMA user_version=2")
 
     def connection(self) -> sqlite3.Connection:
         con = sqlite3.connect(self.path, timeout=15)

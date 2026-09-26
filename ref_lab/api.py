@@ -16,10 +16,10 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import __version__
 from .config import Settings
 from .export import build_job_pack, build_pack
-from .imports import import_candidates, import_notion
+from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
 from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardInput, JobInput, JobResult,
                      NoteEdit, NoteInput, PackInput, ProjectEdit, ProjectInput, ReferenceEdit, ReflectionInput,
-                     RevisionInput, ReviewInput, Source, Strict, VisualReview)
+                     RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport)
 from .security import BodyLimitMiddleware, COOKIE, csrf_for, make_session, valid_session
 from .service import Library, Problem
 
@@ -124,8 +124,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/capabilities")
     def capabilities():
-        return {"collection": "local_browser_or_package", "analysis": "optional_local_worker",
-                "openai_configured": bool(os.environ.get("OPENAI_API_KEY") and os.environ.get("LAB_ANALYSIS_MODEL")),
+        return {"collection": "agent_browserskill_package", "analysis": "agent_package",
+                "independent_api_required": False,
                 "notion": "markdown_csv_import_and_optional_task_sync", "offline": "downloadable_zip",
                 "visibility": "private", "automatic_background_search": False}
 
@@ -152,8 +152,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/projects/{project_id}/references")
     def references(project_id: str, limit: int = Query(60, ge=1, le=200), offset: int = Query(0, ge=0),
-                   q: str = Query("", max_length=400), decision: str = "", state: str = "", lane: str = "", kind: str = ""):
-        return library.references(project_id, limit=limit, offset=offset, query=q, decision=decision, state=state, lane=lane, kind=kind)
+                   q: str = Query("", max_length=400), decision: str = "", state: str = "", lane: str = "", kind: str = "", include_rejected: bool = False, job_id: str = "", focus_id: str = ""):
+        return library.references(project_id, limit=limit, offset=offset, query=q, decision=decision, state=state, lane=lane, kind=kind, include_rejected=include_rejected, job_id=job_id, focus_id=focus_id)
 
     @app.post("/api/projects/{project_id}/references", status_code=201)
     def candidate(project_id: str, data: CandidateInput): return library.add_candidate(project_id, data, actor="human")
@@ -173,7 +173,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return library.save_card(reference_id, data.card, data.expected_revision)
 
     @app.post("/api/references/{reference_id}/accept")
-    def accept(reference_id: str, data: RevisionInput): return library.accept_card(reference_id, data.expected_revision)
+    def accept(reference_id: str, data: AcceptanceInput):
+        return library.accept_card(reference_id, data.expected_revision, source=data.source, allow_cross_domain=data.allow_cross_domain)
 
     @app.post("/api/references/{reference_id}/analysis")
     def analysis(reference_id: str, data: AnalysisImport):
@@ -196,6 +197,51 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         asset = library.ingest_asset(file.file.read(settings.max_upload_bytes + 1), file.filename or "")
         return library.replace_asset(reference_id, asset["id"], expected_revision)
 
+    @app.get("/api/assets/{sha}/context")
+    def asset_context(sha: str): return library.asset_context(sha)
+
+    @app.post("/api/references/{reference_id}/restore")
+    def restore(reference_id: str, data: RevisionInput):
+        return library.restore_reference(reference_id, data.expected_revision)
+
+    @app.post("/api/references/{reference_id}/inspiration")
+    def save_inspiration(reference_id: str, data: RevisionInput):
+        return library.save_reference_inspiration(reference_id, data.expected_revision)
+
+    @app.get("/api/inspirations")
+    def inspirations(limit: int = Query(60, ge=1, le=200), offset: int = Query(0, ge=0),
+                     q: str = Query("", max_length=400), recycled: bool = False):
+        return library.inspirations(limit=limit, offset=offset, query=q, recycled=recycled)
+
+    @app.post("/api/inspirations", status_code=201)
+    def create_inspiration(data: InspirationInput): return library.create_inspiration(data)
+
+    @app.get("/api/inspirations/{inspiration_id}")
+    def inspiration(inspiration_id: str): return library.inspiration(inspiration_id)
+
+    @app.patch("/api/inspirations/{inspiration_id}")
+    def edit_inspiration(inspiration_id: str, data: InspirationEdit): return library.edit_inspiration(inspiration_id, data)
+
+    @app.post("/api/inspirations/{inspiration_id}/use")
+    def use_inspiration(inspiration_id: str, data: InspirationUse):
+        return library.use_inspiration(inspiration_id, data.project_id, data.expected_revision)
+
+    @app.post("/api/imports/notion")
+    def import_global_notes(file: UploadFile = File(...)):
+        return import_notion(library, None, file.file.read(settings.max_body_bytes + 1))
+
+    @app.get("/api/notes")
+    def all_notes(): return library.notes()
+
+    @app.post("/api/notes", status_code=201)
+    def create_global_note(data: NoteInput): return library.add_note(None, data)
+
+    @app.get("/api/jobs")
+    def all_jobs(): return library.jobs()
+
+    @app.post("/api/jobs/{job_id}/report")
+    def collection_report(job_id: str, data: CollectionReport): return library.record_collection_report(job_id, data)
+
     @app.get("/api/assets/{sha}/{variant}")
     def image(sha: str, variant: str):
         asset = library.asset(sha)
@@ -212,25 +258,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return import_notion(library, project_id, file.file.read(settings.max_body_bytes + 1))
 
     @app.post("/api/projects/{project_id}/imports/analyses")
-    def import_analyses(project_id: str, file: UploadFile = File(...)):
-        raw = file.file.read(8 * 1024 * 1024 + 1)
-        if len(raw) > 8 * 1024 * 1024: raise Problem(413, "Analysis JSON exceeds 8 MiB")
-        payload = json.loads(raw)
-        if not isinstance(payload, dict) or payload.get("schema_version") != 1 or not isinstance(payload.get("items"), list) or len(payload["items"]) > 200:
-            raise Problem(422, "Expected schema_version=1 and up to 200 analysis items")
-        report = {"imported": [], "errors": []}
-        library.project(project_id)
-        for index, item in enumerate(payload["items"]):
-            try:
-                reference_id = item["reference_id"]
-                ref = library.reference(reference_id)
-                if ref["project_id"] != project_id: raise Problem(409, "Wrong project")
-                data = AnalysisImport.model_validate({key: value for key, value in item.items() if key != "reference_id"})
-                library.apply_analysis(reference_id, data.result, data.expected_revision, data.producer, str(payload.get("job_id", "")))
-                report["imported"].append(reference_id)
-            except (Problem, ValueError, KeyError, TypeError) as exc:
-                report["errors"].append({"index": index, "error": str(exc)})
-        return report
+    def import_analyses(project_id: str, file: UploadFile = File(...), job_id: str = Form("")):
+        return import_analysis_results(library, project_id, file.file.read(8 * 1024 * 1024 + 1), job_id)
 
     @app.get("/api/projects/{project_id}/notes")
     def notes(project_id: str): return library.notes(project_id)

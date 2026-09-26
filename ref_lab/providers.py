@@ -69,6 +69,7 @@ class OpenAIAnalyzer:
 def run_analysis_job(library: Library, job_id: str, analyzer: OpenAIAnalyzer) -> dict:
     job = library.job(job_id)
     if job["kind"] != "analysis": raise Problem(409, "Not an analysis job")
+    if job["status"] == "succeeded": return job
     job = library.transition_job(job_id, "running", job["revision"], "本地执行器逐张分析；每张完成后保存检查点", actor="worker")
     try:
         project = library.project(job["project_id"])
@@ -85,6 +86,7 @@ def run_analysis_job(library: Library, job_id: str, analyzer: OpenAIAnalyzer) ->
             result = analyzer.analyze(library.assets.path(ref["asset"], "preview").read_bytes(), context)
             library.apply_analysis(ident, result, snapshot["revision"], f"openai:{analyzer.model}", job_id)
         latest = library.job(job_id)
+        if latest["status"] == "succeeded": return latest
         return library.transition_job(job_id, "succeeded", latest["revision"], "逐图分析已保存为草稿；尚未代替用户验收", actor="worker")
     except Exception as exc:
         latest = library.job(job_id)
