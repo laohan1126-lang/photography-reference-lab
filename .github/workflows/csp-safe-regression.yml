@@ -1,0 +1,120 @@
+name: CSP-safe full regression
+on:
+  push:
+    branches: ['ops/reference-workspace-20260927']
+    paths: ['.github/workflows/csp-safe-regression.yml']
+permissions:
+  contents: write
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 603e30b42167d0de0fb57d1c5a49c789818e43fb
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply reviewed test-only correction and verify exact tree
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          assert subprocess.check_output(['git','rev-parse','HEAD']).decode().strip() == '603e30b42167d0de0fb57d1c5a49c789818e43fb'
+          helper = '''"""Bounded browser assertions without page-side eval or CSP exceptions."""
+          from __future__ import annotations
+
+          import time
+
+          from playwright.sync_api import Page
+
+
+          def wait_until(page: Page, expression: str, timeout: int = 10000) -> None:
+              """Poll through Playwright's evaluation command, not a page-side eval loop.
+
+              wait_for_function's polling implementation uses eval in the main world in
+              some browser/Playwright versions. Keep the application's strict CSP intact.
+              This helper is only for test-owned predicates, never untrusted expressions.
+              """
+              deadline = time.monotonic() + timeout / 1000
+              while True:
+                  if page.evaluate(expression):
+                      return
+                  if time.monotonic() >= deadline:
+                      raise AssertionError(f"Browser condition timed out after {timeout} ms: {expression}")
+                  page.wait_for_timeout(25)
+          '''
+          path = Path('tests/browser_assertions.py')
+          assert not path.exists()
+          path.write_text(helper)
+          for name, count in (('test_ui_components.py', 3), ('test_browser.py', 2), ('test_live_system_regression.py', 5)):
+              p = Path('tests') / name
+              s = p.read_text()
+              assert s.count('.wait_for_function(') == count
+              assert s.count('from playwright.sync_api import expect') == 1
+              s = s.replace('from playwright.sync_api import expect','from playwright.sync_api import expect\nfrom browser_assertions import wait_until')
+              for page in ('page','reopened'):
+                  s = s.replace(f'{page}.wait_for_function(', f'wait_until({page}, ')
+              p.write_text(s)
+          regression = '''
+
+          def test_browser_wait_does_not_require_unsafe_eval(component_factory):
+              page = component_factory()
+              # The real site sends this in its HTTP header. Exercise a false first poll
+              # under the same eval restriction even in the component-only environment.
+              page.evaluate(\'''() => {
+                  const policy = document.createElement('meta');
+                  policy.httpEquiv = 'Content-Security-Policy';
+                  policy.content = "script-src 'self'";
+                  document.head.appendChild(policy);
+                  window.testWaitReady = false;
+                  setTimeout(() => { window.testWaitReady = true; }, 150);
+              }\''')
+              wait_until(page, 'window.testWaitReady')
+              assert page.evaluate('window.testWaitReady') is True
+          '''
+          with Path('tests/test_ui_components.py').open('a') as f: f.write(regression)
+          paths = ['tests/browser_assertions.py','tests/test_ui_components.py','tests/test_browser.py','tests/test_live_system_regression.py']
+          subprocess.run(['git','add','--',*paths],check=True)
+          tree = subprocess.check_output(['git','write-tree']).decode().strip()
+          assert tree == '8f1238ca7f670539015dffef346e7d219110432b', tree
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          subprocess.run(['git','-c','user.name=Reference Lab Agent','-c','user.email=reference-lab-agent@users.noreply.github.com','commit','-m','test: keep real browser polling compatible with strict CSP'],check=True)
+          PY
+      - name: Install
+        run: |
+          python -m pip install -e '.[test]'
+          python -m playwright install --with-deps chromium
+      - name: Test real HTTP, offline packages and historical migration
+        env:
+          LAB_TEST_ARTIFACTS: test-results/synthetic-browser
+          LAB_TEST_REPORTS: test-results/reports
+        run: |
+          mkdir -p test-results
+          git rev-parse HEAD | tee test-results/commit.txt
+          node --check web/app.js
+          python -m compileall -q ref_lab tools tests
+          python -m pytest -q --junitxml=test-results/results.xml | tee test-results/pytest.txt
+      - name: Push only passing checkpoint to validation branch
+        run: |
+          git push origin HEAD:refs/heads/codex/personal-library-validation-20260927
+          test "$(git ls-remote origin refs/heads/codex/personal-library-validation-20260927 | cut -f1)" = "$(git rev-parse HEAD)"
+      - name: Export code-only incremental bundle
+        if: always()
+        run: |
+          mkdir -p test-results
+          git branch tested-snapshot HEAD
+          git bundle create test-results/tested-code.bundle tested-snapshot ^b95f37540ada1bae18de949873bdbbcce021e621
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: csp-safe-regression
+          path: test-results
+          retention-days: 7
+          if-no-files-found: warn
