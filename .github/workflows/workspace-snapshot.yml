@@ -1,0 +1,30 @@
+name: Isolated reference workspace snapshot
+on:
+  push:
+    branches: ['ops/reference-workspace-20260927']
+    paths: ['.github/workflows/workspace-snapshot.yml']
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b95f37540ada1bae18de949873bdbbcce021e621
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Bundle only the authorized target history (no runtime data or Git credentials)
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = b95f37540ada1bae18de949873bdbbcce021e621
+          git branch snapshot-baseline HEAD
+          git bundle create "$RUNNER_TEMP/photography-reference-baseline.bundle" snapshot-baseline
+          git bundle verify "$RUNNER_TEMP/photography-reference-baseline.bundle"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reference-baseline-bundle
+          path: ${{ runner.temp }}/photography-reference-baseline.bundle
+          retention-days: 1
+          if-no-files-found: error
