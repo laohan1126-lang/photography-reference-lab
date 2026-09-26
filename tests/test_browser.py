@@ -117,7 +117,9 @@ def test_browser_agent_result_accept_and_offline_pack(live_site,browser_page,tmp
     task_path=tmp_path/'job.zip';info.value.save_as(task_path)
     with zipfile.ZipFile(task_path) as archive:
         bundle=json.loads(archive.read('job.json'))
-        assert 'AGENT_INSTRUCTIONS.md' in archive.namelist()
+        assert 'AGENT_TASK.md' in archive.namelist()
+        instructions=archive.read('AGENT_TASK.md').decode()
+        assert job['id'] in instructions and '不代替用户确认' in instructions
         assert len(bundle['references'])==1
         ref=bundle['references'][0]
         assert hashlib.sha256(archive.read(ref['bundle_image'])).hexdigest()==ref['asset_sha']
