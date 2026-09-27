@@ -1,0 +1,32 @@
+name: Candidate loop transport
+on:
+  push:
+    branches: ['ops/candidate-loop-workspace-20260928']
+    paths: ['.github/workflows/candidate-sync.yml']
+permissions:
+  contents: read
+jobs:
+  transport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a930cfdfec01013ac0d52d6bd7744febb96fb29c
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Export exact intent checkpoint only
+        run: |
+          test "$(git rev-parse HEAD)" = a930cfdfec01013ac0d52d6bd7744febb96fb29c
+          git branch candidate-current HEAD
+          git bundle create "$RUNNER_TEMP/candidate-current.bundle" candidate-current ^18b2f308ecdbcb9da6608279bf13c65a80e29235
+          git bundle verify "$RUNNER_TEMP/candidate-current.bundle"
+          sha256sum "$RUNNER_TEMP/candidate-current.bundle" > "$RUNNER_TEMP/candidate-current.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidate-current-bundle
+          path: |
+            ${{ runner.temp }}/candidate-current.bundle
+            ${{ runner.temp }}/candidate-current.sha256
+          retention-days: 3
+          if-no-files-found: error
