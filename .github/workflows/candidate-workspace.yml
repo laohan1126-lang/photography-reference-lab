@@ -1,0 +1,59 @@
+name: Candidate loop isolated baseline
+on:
+  push:
+    branches: ['ops/candidate-loop-workspace-20260928']
+    paths: ['.github/workflows/candidate-workspace.yml']
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 18b2f308ecdbcb9da6608279bf13c65a80e29235
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Export authorized baseline history without runtime data or credentials
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = 18b2f308ecdbcb9da6608279bf13c65a80e29235
+          git branch candidate-baseline HEAD
+          git bundle create "$RUNNER_TEMP/candidate-baseline.bundle" candidate-baseline
+          git bundle verify "$RUNNER_TEMP/candidate-baseline.bundle"
+          sha256sum "$RUNNER_TEMP/candidate-baseline.bundle" > "$RUNNER_TEMP/candidate-baseline.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidate-baseline-bundle
+          path: |
+            ${{ runner.temp }}/candidate-baseline.bundle
+            ${{ runner.temp }}/candidate-baseline.sha256
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install -e '.[test]'
+      - run: python -m playwright install --with-deps chromium
+      - name: Run all existing tests without product modifications
+        run: |
+          mkdir -p test-results
+          git rev-parse HEAD > test-results/commit.txt
+          python -m pip freeze > test-results/dependencies.txt
+          python -m pytest -q --junitxml=test-results/results.xml
+          node --check web/app.js
+          python -m compileall -q ref_lab tools tests
+        env:
+          LAB_TEST_ARTIFACTS: test-results/browser
+          LAB_TEST_REPORTS: test-results/reports
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: candidate-baseline-test-evidence
+          path: test-results
+          retention-days: 3
+          if-no-files-found: warn
