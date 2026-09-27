@@ -9,7 +9,19 @@ const kinds = { unknown: '尚未分类', cosplay_photo: '真人 cosplay', portra
 let toastTimer, modalDirty = false;
 
 
-function toast(message, error = false) { $('toast').textContent = message; $('toast').className = 'toast' + (error ? ' error' : ''); $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 5500); }
+function toast(message, error = false) {
+    const el = $('toast');
+    el.textContent = message;
+    el.className = 'toast' + (error ? ' error' : '');
+    if ($('editor')?.open) {
+        if (el.parentElement !== $('editor')) $('editor').appendChild(el);
+    } else if (el.parentElement !== document.body) {
+        document.body.appendChild(el);
+    }
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.hidden = true, 5500);
+}
 function listen(root, selector, event, fn) { const target = typeof root === 'string' ? $(root) : root; target.querySelectorAll(selector).forEach(node => node.addEventListener(event, e => Promise.resolve(fn(e, node)).catch(showError))); }
 function showError(error) { console.error(error); toast(error.message || '操作失败', true); }
 async function api(path, options = {}) {
@@ -50,22 +62,42 @@ function badge(text, style = '') { return `<span class="badge ${esc(style)}">${e
 function empty(title, message, action = '', actionId = '') { return `<section class="empty-state"><span class="empty-mark">R.</span><h2>${esc(title)}</h2><p>${esc(message)}</p>${action ? `<button class="primary" id="${actionId}">${esc(action)}</button>` : ''}</section>`; }
 function modal(title, content) { modalDirty = false; $('editor-title').textContent = title; $('editor-content').innerHTML = content; if (!$('editor').open)
     $('editor').showModal(); return $('editor-content'); }
-function closeModal() { modalDirty = false; $('editor').close(); }
+function closeModal() {
+    modalDirty = false;
+    $('editor').close();
+    if ($('toast') && $('toast').parentElement !== document.body) {
+        document.body.appendChild($('toast'));
+    }
+}
 function manualCloseModal() { if ($('editor-content').querySelector('[data-pending]')) { toast('正在保存，请勿重复操作'); return; } if (!modalDirty || window.confirm('对话框有未保存的内容，仍然关闭？'))
     closeModal(); }
 function requireSaved() { if (state.dirty) {
     toast('请先保存当前审美反馈，再进行核验或制作。');
     return false;
 } return true; }
-function formSubmit(root, handler) { const form = root.querySelector('form'); form.addEventListener('submit', async (e) => { e.preventDefault(); const button = form.querySelector('[type=submit]'); button.disabled = true; form.dataset.pending = "true"; try {
-    await handler(values(form), form);
+function formSubmit(root, handler) {
+    const form = root.querySelector('form');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const button = form.querySelector('[type=submit]');
+        button.disabled = true;
+        form.dataset.pending = "true";
+        const progress = form.querySelector('#import-progress');
+        if (progress) { progress.textContent = ""; progress.className = ""; }
+        try {
+            await handler(values(form), form);
+        } catch (error) {
+            if (progress) {
+                progress.textContent = error.message || "操作失败";
+                progress.className = "error-text";
+            }
+            showError(error);
+        } finally {
+            button.disabled = false;
+            delete form.dataset.pending;
+        }
+    });
 }
-catch (error) {
-    showError(error);
-}
-finally {
-    button.disabled = false; delete form.dataset.pending;
-} }); }
 async function download(path, name, body) { const blob = await api(path, { method: body ? 'POST' : 'GET', body, download: true }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 15000); }
 async function copy(text) { try {
     await navigator.clipboard.writeText(text);
@@ -465,7 +497,29 @@ async function newAnalysis(ids) {
 async function jobHandoff(jobId) {
     const job=await api(`/api/jobs/${jobId}`), bundle=await api(`/api/jobs/${jobId}/bundle`);
     const prompt=`请在 Photography Reference Lab 项目中处理任务 ${job.id}。先执行 python -m ref_lab export-job --job ${job.id} --output job-${job.id.slice(0,8)}.zip（已有包则直接读取，不覆盖）。解压后读取 AGENT_TASK.md 与完整 job.json，按协议使用 ${job.kind==='collection'?'BrowserSkill 搜图':'独立图片逐张分析制卡'}，交回结果并用 import-job 导入。不要改用户的选择或代替确认；没有独立 API 费用。受阻如实报告。若本机不是同一 LAB_DATA_DIR，改用我交给你的任务 ZIP。`;
-    const root=modal(job.kind==='collection'?'让 Agent 搜一批好参考':'制作现场卡 · 交给 Agent',`<p class="notice">${esc(statuses[job.status])}。此处没有自动启动 Codex；把任务交给已经登录的本地 Agent。</p><h3>1 · 取得完整任务</h3><p>包含角色、完整自由要求、器材、任务快照${job.kind==='analysis'?'和独立原图':'及三层检索策略'}。</p><button id="download-task" class="primary">下载任务 ZIP</button><h3>2 · 交给 Codex / Antigravity</h3><button id="copy-agent-task">复制执行提示词</button><details><summary>查看本轮协议</summary><pre>${esc(bundle.agent_instructions)}</pre></details><h3>3 · 导回结果，由你检查</h3><button id="import-task-result">${job.kind==='collection'?'导入候选包':'导入分析结果'}</button><p class="form-help">也可让 Agent 在同一数据目录运行 import-job；导入的图片仍待你挑选，资料卡仍是草稿。</p>`);
+    const isAnalysis = job.kind === 'analysis';
+    const actionBtnText = isAnalysis ? '✨ 本地 Antigravity 一键分析' : '✨ 本地 Antigravity 一键搜图采集';
+    const actionHelp = isAnalysis ? '直接调用本机已登录的 Antigravity，自动解析图片并生成现场卡草稿；无需下载和手动导入。' : '调用本机 BrowserSkill / Edge 自动检索小红书与 Pinterest 并导入候选；无需下载任务包和手动导入。';
+    const root=modal(isAnalysis?'制作现场卡 · 本地 Agent':'让 Agent 搜一批好参考',`<p class="notice">${esc(statuses[job.status])}。支持直接调用本机已登录的 Antigravity 与 BrowserSkill。</p><div class="action-banner"><button id="run-antigravity" class="primary" style="width:100%;font-size:14px;padding:10px 16px;margin-bottom:6px">${esc(actionBtnText)}</button><p class="form-help" style="margin-bottom:14px">${esc(actionHelp)}</p></div><h3>1 · 取得完整任务</h3><p>包含角色、完整自由要求、器材、任务快照${isAnalysis?'和独立原图':'及三层检索策略'}。</p><button id="download-task" class="primary">下载任务 ZIP</button><h3>2 · 交给 Codex / Antigravity</h3><button id="copy-agent-task">复制执行提示词</button><details><summary>查看本轮协议</summary><pre>${esc(bundle.agent_instructions)}</pre></details><h3>3 · 导回结果，由你检查</h3><button id="import-task-result">${isAnalysis?'导入分析结果':'导入候选包'}</button><p class="form-help">也可让 Agent 在同一数据目录运行 import-job；导入的图片仍待你挑选，资料卡仍是草稿。</p>`);
+    if ($('run-antigravity')) {
+        $('run-antigravity').onclick = async () => {
+            const btn = $('run-antigravity');
+            btn.disabled = true;
+            btn.textContent = isAnalysis ? '⏳ 本地 Antigravity 正在分析中（预计 15~30 秒）...' : '⏳ 本地 Agent 正在小红书与 Pinterest 检索采集中（预计 20~40 秒）...';
+            try {
+                await api(`/api/jobs/${job.id}/run-antigravity`, { method: 'POST' });
+                toast(isAnalysis ? '本地 Antigravity 分析完成！草稿已就绪' : '本地 Agent 采集完成！候选已入库待选');
+                closeModal();
+                await loadReferences();
+                await renderStats();
+                if (state.view === 'jobs') await renderJobs();
+            } catch (error) {
+                showError(error);
+                btn.disabled = false;
+                btn.textContent = actionBtnText;
+            }
+        };
+    }
     $('download-task').onclick=()=>download(`/api/jobs/${job.id}/download`,`job-${job.id.slice(0,8)}.zip`).catch(showError);
     $('copy-agent-task').onclick=()=>copy(prompt);
     $('import-task-result').onclick=()=>importDialog(job.kind==='collection'?'candidates':'analyses',job.id,job.project_id);

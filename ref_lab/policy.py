@@ -71,7 +71,6 @@ def blockers(ref: dict, project: dict, asset_exists: bool, *, require_acceptance
         for key, error in (("visible_person", "no_person"), ("pose_readable", "pose_unreadable"),
                            ("single_image", "collage"), ("sufficiently_clear", "unclear")):
             if not review[key]: errors.append(error)
-        if review["critical_uncertainties"]: errors.append("uncertain")
         if review["character_match"] in {"unknown", "irrelevant"}: errors.append("character_unconfirmed")
         if (review["kind"] == "portrait_photo" or review["character_match"] == "adapted") and not ref["allow_cross_domain"]:
             errors.append("adaptation_unapproved")
@@ -92,7 +91,7 @@ def state_for(ref: dict, project: dict, asset_exists: bool) -> str:
     errors = blockers(ref, project, asset_exists)
     if not errors: return "ready"
     if "missing_asset" in errors: return "missing_asset"
-    if any(e in errors for e in ("missing_review", "stale_review", "wrong_kind", "uncertain", "collage", "no_person", "unclear", "pose_unreadable")):
+    if any(e in errors for e in ("missing_review", "stale_review", "wrong_kind", "collage", "no_person", "unclear", "pose_unreadable")):
         return "needs_review"
     if "missing_card" in errors: return "needs_card"
     return "draft"

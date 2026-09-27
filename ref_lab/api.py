@@ -292,6 +292,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         path = build_job_pack(library, job_id)
         return FileResponse(path, media_type="application/zip", filename=f"job-{job_id[:8]}.zip", background=BackgroundTask(path.unlink, missing_ok=True))
 
+    @app.post("/api/jobs/{job_id}/run-antigravity")
+    def run_antigravity(job_id: str):
+        job = library.job(job_id)
+        if job["kind"] == "analysis":
+            from .providers import AntigravityAnalyzer, run_analysis_job
+            analyzer = AntigravityAnalyzer()
+            return run_analysis_job(library, job_id, analyzer)
+        elif job["kind"] == "collection":
+            from .collector import run_browser_collection_job
+            return run_browser_collection_job(library, job_id)
+        raise Problem(400, f"未知任务类型: {job['kind']}")
+
     @app.post("/api/jobs/{job_id}/status")
     def job_status(job_id: str, data: JobResult):
         return library.transition_job(job_id, data.status, data.expected_revision, data.detail)

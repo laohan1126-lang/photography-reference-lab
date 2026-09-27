@@ -2,6 +2,10 @@
 from __future__ import annotations
 
 import base64
+import glob
+import shutil
+import subprocess
+import tempfile
 import json
 import os
 from pathlib import Path
@@ -66,7 +70,113 @@ class OpenAIAnalyzer:
             raise ProviderError("分析输出未通过本地结构与完整性校验") from exc
 
 
-def run_analysis_job(library: Library, job_id: str, analyzer: OpenAIAnalyzer) -> dict:
+def find_antigravity_cli() -> str | None:
+    env = os.environ.get("ANTIGRAVITY_CLI")
+    if env and Path(env).exists():
+        return env
+    cand = shutil.which("agy") or shutil.which("agy.exe")
+    if cand:
+        return cand
+    patterns = [
+        "/mnt/c/Users/*/AppData/Local/agy/bin/agy.exe",
+        "C:/Users/*/AppData/Local/agy/bin/agy.exe",
+        "/mnt/c/Users/*/AppData/Local/Programs/agy/bin/agy.exe",
+    ]
+    for p in patterns:
+        matches = glob.glob(p)
+        if matches:
+            return matches[0]
+    return None
+
+
+class AntigravityAnalyzer:
+    def __init__(self, cli_path: str | None = None, model: str = "gemini-3.7-flash-medium"):
+        self.cli_path = cli_path or find_antigravity_cli()
+        if not self.cli_path:
+            raise ProviderError("未找到本地 Antigravity CLI (agy.exe)；请确认已安装桌面客户端")
+        self.model = model
+        self.producer_name = f"antigravity:{model}"
+
+    def analyze(self, image_bytes: bytes, context: dict) -> AnalysisResult:
+        temp_base = Path("/mnt/c/Users/Dell/AppData/Local/Temp")
+        if not temp_base.exists():
+            temp_base = Path(tempfile.gettempdir())
+        
+        tmp_wsl = tempfile.mkdtemp(prefix="ref_lab_agy_", dir=temp_base)
+        tmp_path = Path(tmp_wsl)
+        try:
+            preview_file = tmp_path / "preview.jpg"
+            preview_file.write_bytes(image_bytes)
+
+            folder_name = tmp_path.name
+            if str(tmp_path).startswith("/mnt/c/"):
+                win_dir = f"C:\\Users\\Dell\\AppData\\Local\\Temp\\{folder_name}"
+            else:
+                win_dir = str(tmp_path)
+            win_img = f"{win_dir}\\preview.jpg"
+
+            schema = AnalysisResult.model_json_schema()
+            schema_compact = json.dumps(schema)
+
+            proj = context.get("project", {})
+            char = proj.get("character", "")
+            costume = proj.get("costume", "")
+            work = proj.get("work", "")
+            brief = proj.get("brief", "")
+            gear = proj.get("gear", "")
+            borrow = ", ".join(context.get("borrow", []))
+            notes = context.get("task_notes", "")
+            asset_sha = context.get("asset_sha", "")
+
+            prompt = f"""{ANALYSIS_INSTRUCTION}
+
+Project Context:
+Character: {char}
+Costume: {costume}
+Work: {work}
+Brief: {brief}
+Gear: {gear}
+Borrow: {borrow}
+Notes: {notes}
+Asset SHA: {asset_sha}
+
+Step 1: Use your tool view_file to inspect the image file: {win_img}
+Step 2: Output ONLY a JSON object that satisfies this schema (no markdown formatting, no conversational text, no backticks):
+{schema_compact}
+"""
+            cmd = [
+                self.cli_path,
+                "-p", prompt,
+                "--model", self.model,
+                "--output-format", "text",
+                "--dangerously-skip-permissions"
+            ]
+
+            res = subprocess.run(cmd, cwd=tmp_wsl, capture_output=True, text=True, timeout=120)
+            if res.returncode != 0:
+                raise ProviderError(f"Antigravity CLI 执行失败 (exit {res.returncode}): {res.stderr[:500]}")
+            
+            raw_text = res.stdout.strip()
+            if not raw_text:
+                raise ProviderError("Antigravity 未返回分析结果文本")
+            
+            if raw_text.startswith("```"):
+                raw_text = raw_text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            
+            try:
+                data = json.loads(raw_text)
+            except json.JSONDecodeError as err:
+                raise ProviderError(f"Antigravity 输出不是合法 JSON: {raw_text[:200]}") from err
+            
+            try:
+                return AnalysisResult.model_validate(data)
+            except Exception as exc:
+                raise ProviderError(f"Antigravity 分析输出结构校验失败: {exc}") from exc
+        finally:
+            shutil.rmtree(tmp_wsl, ignore_errors=True)
+
+
+def run_analysis_job(library: Library, job_id: str, analyzer: Any) -> dict:
     job = library.job(job_id)
     if job["kind"] != "analysis": raise Problem(409, "Not an analysis job")
     if job["status"] == "succeeded": return job
@@ -84,7 +194,12 @@ def run_analysis_job(library: Library, job_id: str, analyzer: OpenAIAnalyzer) ->
             context = {"project": {key: project[key] for key in ("character", "work", "costume", "brief", "gear")},
                        "asset_sha": ref["asset_sha"], "preference": ref["preference"], "borrow": ref["borrow"], "task_notes": job["notes"]}
             result = analyzer.analyze(library.assets.path(ref["asset"], "preview").read_bytes(), context)
-            library.apply_analysis(ident, result, snapshot["revision"], f"openai:{analyzer.model}", job_id)
+            producer = getattr(analyzer, "producer_name", f"openai:{getattr(analyzer, 'model', 'unknown')}")
+            library.apply_analysis(ident, result, snapshot["revision"], producer, job_id)
+            if result.card:
+                ref_now = library.reference(ident)
+                if not ref_now.get("card"):
+                    library.save_card(ident, result.card, ref_now["revision"])
         latest = library.job(job_id)
         if latest["status"] == "succeeded": return latest
         return library.transition_job(job_id, "succeeded", latest["revision"], "逐图分析已保存为草稿；尚未代替用户验收", actor="worker")

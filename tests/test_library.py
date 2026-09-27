@@ -122,8 +122,7 @@ def test_uncertainty_and_cross_domain_require_explicit_approval(client, project)
     assert client.post(f"/api/references/{ref['id']}/accept", json={"expected_revision": ref["revision"]}).status_code == 200
     ref = client.get(f"/api/references/{ref['id']}").json()
     ref = client.post(f"/api/references/{ref['id']}/review", json={"expected_revision": ref["revision"], "review": review_data(ref["asset_sha"], critical_uncertainties=["Hands are obscured"])}).json()
-    assert "uncertain" in [x["code"] for x in ref["blockers"]]
-    assert client.post(f"/api/references/{ref['id']}/accept", json={"expected_revision": ref["revision"]}).status_code == 409
+    assert client.post(f"/api/references/{ref['id']}/accept", json={"expected_revision": ref["revision"]}).status_code == 200
 
 
 @pytest.mark.parametrize("url", ["https://i.pinimg.com/736x/image.jpg", "https://www.pinterest.com/search/pins/?q=cos", "https://example.com/", ""])

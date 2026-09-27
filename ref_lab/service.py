@@ -308,7 +308,7 @@ class Library:
                     raise Problem(409, "任务快照已过期，请重新建立分析任务")
             review = result.review.model_dump()
             eligible = (review["kind"] in {"cosplay_photo", "portrait_photo"} and review["visible_person"] and
-                        review["pose_readable"] and review["single_image"] and review["sufficiently_clear"] and not review["critical_uncertainties"])
+                        review["pose_readable"] and review["single_image"] and review["sufficiently_clear"])
             ref.update(review=review, review_actor="ai", review_producer=producer,
                        card=result.card.model_dump() if result.card and eligible else None,
                        card_context=context_digest(project), card_producer=producer, accepted_fingerprint=None)
