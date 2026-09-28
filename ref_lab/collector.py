@@ -143,6 +143,9 @@ def ensure_bsk_browser(bsk_bin: str) -> str | None:
     try:
         browsers = json.loads(p.stdout)
         if browsers:
+            for b in browsers:
+                if b.get("browser_name") == "edge":
+                    return b["instance_id"]
             return browsers[0]["instance_id"]
     except Exception:
         pass
@@ -157,6 +160,9 @@ def ensure_bsk_browser(bsk_bin: str) -> str | None:
         try:
             browsers = json.loads(p.stdout)
             if browsers:
+                for b in browsers:
+                    if b.get("browser_name") == "edge":
+                        return b["instance_id"]
                 return browsers[0]["instance_id"]
         except Exception:
             pass
@@ -203,7 +209,7 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
                 }));
                 return imgs;
             })()"""
-            eval_p = subprocess.run([bsk_bin, "evaluate", "--json", expr, "--session", session_id], capture_output=True, text=True, env=env)
+            eval_p = subprocess.run([bsk_bin, "evaluate", "--session", session_id, "--json", expr], capture_output=True, text=True, env=env)
             try:
                 raw_eval = json.loads(eval_p.stdout)
                 records = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
@@ -253,7 +259,7 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
                     }));
                     return imgs;
                 })()"""
-                eval_p = subprocess.run([bsk_bin, "evaluate", "--json", pin_expr, "--session", session_id], capture_output=True, text=True, env=env)
+                eval_p = subprocess.run([bsk_bin, "evaluate", "--session", session_id, "--json", pin_expr], capture_output=True, text=True, env=env)
                 try:
                     raw_eval = json.loads(eval_p.stdout)
                     pin_records = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
@@ -296,10 +302,6 @@ def run_browser_collection_job(library: Library, job_id: str) -> dict:
     if job["kind"] != "collection":
         raise Problem(409, "Not a collection job")
 
-    if os.environ.get("LAB_COLLECTION_COMMAND", "").strip():
-        from .agent_collection import run_collection_attempt
-        return run_collection_attempt(library, job_id)
-
     if os.environ.get("PYTEST_CURRENT_TEST"):
         from .agent_collection import run_collection_attempt
         return run_collection_attempt(library, job_id)
@@ -316,6 +318,10 @@ def run_browser_collection_job(library: Library, job_id: str) -> dict:
                 if latest["status"] == "running":
                     library.transition_job(job_id, "blocked", latest["revision"], f"BrowserSkill 搜图受阻: {exc}", actor="worker")
                 raise
+
+    if os.environ.get("LAB_COLLECTION_COMMAND", "").strip():
+        from .agent_collection import run_collection_attempt
+        return run_collection_attempt(library, job_id)
 
     from .agent_collection import run_collection_attempt
     return run_collection_attempt(library, job_id)
