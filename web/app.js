@@ -117,6 +117,25 @@ function rememberNavigation() {
     try { history.replaceState(null, '', '#'+q); } catch { /* Sandboxed component tests need no browser history. */ }
 }
 function resetFilters() { state.offset=0; state.query=''; state.decision=''; state.kind=''; state.jobId=''; state.focusId=null; state.recycled=false; state.activeId=null; state.dirty=false; state.selectLast=false; }
+function selectionHas(id){return state.selection.some(item=>item.id===id);}
+function updateSelectionUI(){
+    const button=$('selection-actions');
+    if(button){button.disabled=!state.selection.length;button.textContent=`已选 ${state.selection.length} · 批量/沟通板`;}
+    const toggle=$('toggle-selection'), ref=current();
+    if(toggle&&ref)toggle.textContent=selectionHas(ref.id)?'移出批量选择':'加入批量选择';
+    const strip=$('filmstrip');
+    if(strip)[...strip.children].forEach(node=>node.classList.toggle('batch-selected',selectionHas(node.dataset.ref)));
+}
+function toggleProjectSelection(ref){
+    if(ref.detached_at||ref.decision==='reject'){toast('已移出或已淘汰的参考请先恢复');return;}
+    const index=state.selection.findIndex(item=>item.id===ref.id);
+    if(index>=0)state.selection.splice(index,1);
+    else{
+        if(state.selection.length>=24){toast('一次最多选择 24 张；沟通板会按每页 4 张分页',true);return;}
+        state.selection.push({id:ref.id,title:ref.title,asset_sha:ref.asset_sha});
+    }
+    updateSelectionUI();
+}
 function safeDiscard() { return !state.busy && (!state.dirty || window.confirm('当前审美反馈尚未保存。仍然离开？')); }
 async function boot() {
     const session = await api('/api/session');
@@ -216,7 +235,7 @@ function mountReferenceShell() {
     if (view.dataset.shell===key&&$('filmstrip')) return;
     view.dataset.shell=key;
     const global=state.view==='inspiration';
-    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}<span class="spacer"></span><small>${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="image-stage" id="image-stage"><img id="main-image" alt=""><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
+    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}${!global?'<button id="selection-actions" class="quiet">已选 0 · 批量/沟通板</button>':''}<span class="spacer"></span><small>${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="image-stage" id="image-stage"><img id="main-image" alt=""><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
     const change=async(key,element)=>{
         if (state[key]===element.value) return;
         if (!safeDiscard()) { element.value=state[key];return; }
@@ -228,6 +247,8 @@ function mountReferenceShell() {
     $('decision-filter').onchange=e=>change('decision',e.target).catch(showError);
     $('kind-filter').onchange=e=>change('kind',e.target).catch(showError);
     if ($('finish-screening-btn')) $('finish-screening-btn').onclick=()=>finishScreeningSessionModal();
+    if ($('selection-actions')) $('selection-actions').onclick=()=>selectionActionsDialog();
+    updateSelectionUI();
 
     if ($('toggle-recycled')) $('toggle-recycled').onclick=()=>{if(!safeDiscard())return;state.recycled=!state.recycled;state.offset=0;state.activeId=null;loadReferences().catch(showError);};
     // Delegation is installed once. Selection never rebinds 60 thumbnail handlers.
@@ -298,6 +319,7 @@ function renderReferenceView() {
     $('previous-page').disabled=state.offset===0;
     $('next-page').disabled=state.offset+state.limit>=state.total;
     if(state.refs.length)renderActiveReference();
+    updateSelectionUI();
 }
 function renderActiveReference() {
     const ref=current();if(!ref)return;
