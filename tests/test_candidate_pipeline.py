@@ -188,13 +188,14 @@ def test_identity_preflight_kamen_rider_durendal_vs_sabela():
     assert "Sabela" in res_sabela["reason"] or "佩剑" in res_sabela["reason"]
     assert res_sabela["transferable_candidate"] is True
 
-    # Matching candidate: Kamen Rider Durendal
+    # Metadata that names Durendal is still not visual identity proof.
     durendal_meta = {
         "title": "假面骑士恒剑 Durendal 海洋历史 时国剑界时",
         "source": {"search_query": "假面骑士恒剑", "search_category": "cosplay_photo"},
     }
     res_durendal = evaluate_identity(make_test_image(), durendal_meta, durendal_ctx)
-    assert res_durendal["prediction"] == "match"
+    assert res_durendal["prediction"] == "uncertain"
+    assert "未从图像确认" in res_durendal["reason"]
 
 
 # ==============================================================================
