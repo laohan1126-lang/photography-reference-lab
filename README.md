@@ -78,7 +78,7 @@ python -m ref_lab cleanup --days 30 --apply
 ## 回归与维护
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py tests/test_reference_transfer_board.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py tests/test_reference_transfer_board.py tests/test_collect_adapter.py
 node --check web/app.js
 python -m playwright install chromium
 python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
