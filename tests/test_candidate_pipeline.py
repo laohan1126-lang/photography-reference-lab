@@ -426,7 +426,9 @@ def test_api_candidate_preflight_and_filtered_restoration(client):
     })
     assert r_norm.status_code == 201
     norm_ref = r_norm.json()["reference"]
-    assert norm_ref["preflight_status"] == "passed"
+    # Title/search metadata may suggest cosplay, but without a real visual
+    # classifier it must not be promoted to a visual PASS.
+    assert norm_ref["preflight_status"] == "uncertain"
     assert norm_ref["preflight_filtered"] is False
 
     # Collage candidate
