@@ -160,6 +160,11 @@ def test_project_archive_hides_project_but_preserves_shared_assets_and_global_in
 
     blocked_job = client.post(f"/api/projects/{project['id']}/jobs", json={"kind": "collection"})
     assert blocked_job.status_code == 409
+    blocked_edit = client.patch(
+        f"/api/references/{ref['id']}",
+        json={"expected_revision": ref["revision"], "decision": "maybe"},
+    )
+    assert blocked_edit.status_code == 409
 
     restored = client.post(
         f"/api/projects/{project['id']}/restore",
