@@ -45,3 +45,22 @@ The owner also reported that projects can be created from the left sidebar but c
 ## Verification boundary
 
 Unit/integration tests can verify state transitions, preservation and protocol rules. They cannot prove that an Agent visually classifies arbitrary real images correctly. Live re-scan of the owner's Wang Zhaojun / Arima Kana examples remains a separate Agent/visual validation step and must be reported as VERIFIED / UNVERIFIED / BLOCKED based on actual image inspection.
+
+
+## Implementation checkpoint
+
+Implemented on task branch `codex/modality-project-archive-20260928`:
+
+- Candidate protocol now defines explicit visual `content_type`, relative `identity_prediction`, confidence, visual evidence and reason. Only real-person cosplay/portrait + identity match is an automatic preflight pass; non-real modalities and mismatch are filtered; unknown/uncertain remain uncertain.
+- New schema-3 collection packages require per-candidate preflight. Import remains compatible with schema 1/2 and does not invent preflight for historical packages.
+- Preflight is stored on Reference separately from human K/I/M/X and field-card VisualReview. Default reference queries exclude filtered items; `view_filtered=true` and the “已过滤候选” UI keep them visible and recoverable. Human restore records an override without rewriting the original preflight evidence.
+- Replacing image bytes clears old preflight, so an assessment cannot silently survive a new asset.
+- Project “delete” is soft archive: active project lists hide it, an archived-project UI can restore it, and data/refs/jobs/notes/events/assets are retained. Shared asset bytes, Global Inspiration and other project uses are not physically deleted. Archived projects reject normal mutation/job paths until restored.
+- README, ARCHITECTURE, WORKER_PROTOCOL and CODEX regression instructions were updated to match the new protocol and recovery semantics.
+- `tests/test_modality_archive.py` covers routing/recovery, mismatch/uncertain, schema3 vs legacy schema2 behavior, and project archive preservation. CI core regression was extended to run it.
+
+### Verification boundary retained
+
+Synthetic protocol tests prove state, compatibility and preservation rules only. They do **not** prove that a vision-capable Agent will classify the owner's Wang Zhaojun screenshots/mannequin/illustration correctly. Those exact live assets must be re-scanned by Antigravity/BrowserSkill (or another authorized image-inspecting Agent), opened individually, and reported separately as live visual validation. Historical schema1/2 candidates remain unreviewed until such a scan; no metadata-based backfill is performed.
+
+A GitHub Actions run for code checkpoint `06fb24a6cb22256ecb1daa161c0812f71c5e6d0e` completed all core Python 3.11/3.13 and browser jobs successfully; the 3.13 core job reported 88 passed and `node --check web/app.js` / compileall succeeded. Later archive-freeze and documentation commits require the final-head CI to be checked before integration.
