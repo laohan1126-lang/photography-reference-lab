@@ -151,7 +151,7 @@ class Library:
               payload: object, actor: str = "human") -> dict:
         ref["revision"] += 1
         ref["updated_at"] = now()
-        ref["state"] = state_for(ref, project, self._asset_exists(con, ref))
+        ref["state"] = "detached" if ref.get("detached_at") else state_for(ref, project, self._asset_exists(con, ref))
         con.execute("UPDATE refs SET asset_sha=?,decision=?,state=?,data=? WHERE id=?",
                     (ref["asset_sha"], ref["decision"], ref["state"], encode(ref), ref["id"]))
         self.db.event(con, ref["project_id"], ref["id"], action, payload, actor)
@@ -162,11 +162,12 @@ class Library:
         exists = self._asset_exists(con, ref)
         result = dict(ref)
         result["asset"] = row_data(con, "assets", ref["asset_sha"]) if ref["asset_sha"] else None
-        result["state"] = state_for(ref, project, exists)
+        detached = bool(ref.get("detached_at"))
+        result["state"] = "detached" if detached else state_for(ref, project, exists)
         result["blockers"] = [{"code": x, "message": MESSAGES[x]} for x in blockers(ref, project, exists)]
-        result["field_ready"] = not result["blockers"]
+        result["field_ready"] = not result["blockers"] and not detached
         result["file_available"] = exists
-        result["selected_for_project"] = ref["decision"] == "keep" and ref["lane"] == "field"
+        result["selected_for_project"] = not detached and ref["decision"] == "keep" and ref["lane"] == "field"
         saved = con.execute("SELECT id FROM inspirations WHERE asset_sha=? AND active=1", (ref["asset_sha"],)).fetchone()
         result["inspiration_id"] = saved[0] if saved else None
         result["workflow_stage"] = self._workflow_stage(con, ref, project, result)
@@ -184,6 +185,7 @@ class Library:
                "decision": decision, "lane": "field", "preference": "", "borrow": [], "allow_cross_domain": False,
                "discovery_intent": data.discovery_intent, "discovery_reason": data.discovery_reason,
                "preflight": None, "preflight_status": "unreviewed", "preflight_filtered": False, "preflight_override": False,
+               "detached_at": None, "detached_to_project_id": None, "detached_reason": "",
                "review": None, "review_actor": "", "review_producer": "", "card": None, "card_context": "",
                "card_producer": "", "accepted_fingerprint": None, "reflections": [], "revision": 1,
                "created_at": now(), "updated_at": now()}
@@ -272,12 +274,16 @@ class Library:
 
     def references(self, project_id: str, *, limit: int = 60, offset: int = 0, query: str = "",
                    decision: str = "", state: str = "", lane: str = "", kind: str = "",
-                   include_rejected: bool = False, view_filtered: bool = False,
+                   include_rejected: bool = False, view_filtered: bool = False, view_recycle: bool = False,
                    job_id: str = "", focus_id: str = "", preflight_status: str = "") -> dict:
         clauses, args = ["project_id=?"], [project_id]
-        if view_filtered:
+        if view_recycle:
+            clauses.append("(decision='reject' OR json_extract(data,'$.detached_at') IS NOT NULL)")
+        elif view_filtered:
+            clauses.append("json_extract(data,'$.detached_at') IS NULL")
             clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=1")
         else:
+            clauses.append("json_extract(data,'$.detached_at') IS NULL")
             clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=0")
             if not include_rejected and decision != "reject" and state != "rejected":
                 clauses.append("decision<>'reject'")
@@ -313,7 +319,7 @@ class Library:
             count = con.execute(f"SELECT COUNT(*) FROM refs WHERE {where}", args).fetchone()[0]
             rows = con.execute(f"SELECT data FROM refs WHERE {where} ORDER BY rowid LIMIT ? OFFSET ?", (*args, limit, offset))
             items = [self._decorate(con, json.loads(r[0]), project) for r in rows]
-            if not focus_id and not view_filtered:
+            if not focus_id and not view_filtered and not view_recycle:
                 try:
                     from .aesthetic_profile import get_current_profile
                     from .ranking import score_and_rank_candidates
@@ -328,13 +334,15 @@ class Library:
         with self.db.read() as con:
             row_data(con, "projects", project_id)
             result = {"total": 0, "pending": 0, "keep": 0, "maybe": 0, "reject": 0, "ready": 0}
-            for row in con.execute("SELECT decision,COUNT(*) FROM refs WHERE project_id=? GROUP BY decision", (project_id,)):
+            active = "project_id=? AND json_extract(data,'$.detached_at') IS NULL"
+            for row in con.execute(f"SELECT decision,COUNT(*) FROM refs WHERE {active} GROUP BY decision", (project_id,)):
                 result[row[0]] = row[1]
                 result["total"] += row[1]
-            result["ready"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND state='ready' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
-            result["selected"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND decision='keep' AND json_extract(data,'$.lane')='field' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
-            result["filtered"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=1", (project_id,)).fetchone()[0]
-            result["visible"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND decision<>'reject' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["ready"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND state='ready' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["selected"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision='keep' AND json_extract(data,'$.lane')='field' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["filtered"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=1", (project_id,)).fetchone()[0]
+            result["visible"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision<>'reject' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["detached"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND json_extract(data,'$.detached_at') IS NOT NULL", (project_id,)).fetchone()[0]
             return result
 
     def edit_reference(self, ident: str, data: ReferenceEdit) -> dict:
@@ -647,6 +655,7 @@ class Library:
                           "Return null card for irrelevant/uncertain images. Never accept a field card for the user."]}
 
     def _workflow_stage(self, con: sqlite3.Connection, ref: dict, project: dict, result: dict) -> str:
+        if ref.get("detached_at"): return "detached"
         if ref["decision"] == "reject": return "rejected"
         if ref["decision"] != "keep": return "candidate"
         if ref["lane"] == "inspiration": return "inspiration"
