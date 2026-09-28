@@ -308,7 +308,7 @@ function renderReferenceView() {
     $('reference-content').hidden=!state.refs.length;
     $('reference-empty').hidden=!!state.refs.length;
     if (!state.refs.length) {
-        const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',recycle:'没有已淘汰或移出当前项目的图片'};
+        const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',recycle:'没有已淘汰图片'};
         $('reference-empty').innerHTML=empty(titles[state.view]||'没有匹配的候选','可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。');
     }
     $('collection-context').textContent=state.jobId?'正在查看一个采集任务的发现结果；不代表已确认图片属于这个角色。':state.view==='filtered'?'这里保留被视觉预检降级的候选。过滤不是 K/I/M/X，也不会删除资产；可以人工恢复后再决定。':state.view==='recycle'?'这里同时包含 X 淘汰和从当前项目移出的引用。两者都只影响本项目；其他项目和全局收藏不会一起删除。':'';
