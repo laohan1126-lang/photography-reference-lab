@@ -131,15 +131,17 @@ python -m ref_lab import-job --job JOB_ID --input analysis.json
 
 默认仍是任务 ZIP 交接。不再自动启动 Edge/daemon，不绑定固定用户名、扩展 ID 或“小红书→Pinterest”，不因缺少 BrowserSkill 而偷偷转用 headless Pinterest。`POST /api/jobs/{id}/run-antigravity` 为兼容保留，但采集分支现在调用 `agent_collection.py` 的显式适配器；分析分支没有在此检查点重写。
 
-`LAB_COLLECTION_COMMAND` 是 **JSON argv 字符串数组**，不是 shell 字符串。例如下面只是自建适配器的接口形状，`local_collection_adapter.py` **不是仓库已经提供的真实供应商适配器**：
+`LAB_COLLECTION_COMMAND` 是 **JSON argv 字符串数组**，不是 shell 字符串。仓库现在提供 `tools/collect_adapter.py` 作为最小可用的本地**严格搜索适配器**；它不是视觉 Agent。典型形状：
 
 ```text
-["python", "/absolute/path/local_collection_adapter.py", "--task", "{task_file}", "--output", "{result_file}"]
+["python", "/absolute/path/tools/collect_adapter.py", "{task_file}", "{result_file}"]
 ```
 
-参数必须含 `{task_file}` 或 `{task_dir}`，以及 `{result_file}`。运行时替换为本轮私有临时目录的绝对路径。请在本机先读取已安装 Agent/BrowserSkill 技能，以实际 CLI 合约编写适配器；本仓库不猜测 Codex/Antigravity 的模型名、权限绕过参数或版本选项。未配置/配置不合法/可执行程序不存在，均返回真实 `blocked`，可继续下载任务包手动执行。
+参数必须含 `{task_file}` 或 `{task_dir}`，以及 `{result_file}`。运行时替换为本轮私有临时目录的绝对路径。未配置/配置不合法/可执行程序不存在，均返回真实 `blocked`，可继续下载任务包手动执行。
 
-适配器必须读取 `AGENT_TASK.md`、`job.json` 及 schema，自主制定来源和关键词计划，尊重登录/验证码/访问控制，只把本任务的 schema3 `result.zip` 写到指定路径。不要直接访问个人数据库或调用 import-job；导入由网站负责。没有付费模型调用、浏览器自动安装、Cookie 导出或隐藏 API 的授权。
+`tools/collect_adapter.py` 会读取项目角色、作品、服装/皮肤和本轮 notes，把明确的 COS/指定皮肤要求变成硬搜索约束；使用 Bing Photo + Large 过滤，并拒绝标题/描述/页面上下文中明确出现的游戏截图/特效展示、插画/立绘/壁纸、CG/建模、商品/人台/服装展示等结果。它不使用搜索 query 本身作为“这张图是真人 COS”的证据，不在原图下载失败时偷偷回退缩略图，并在本轮内做 SHA + dHash 去重。
+
+由于这个适配器没有视觉模型，它**故意返回 schema 2**，不填写 `preflight`，也不能宣称 identity/modality 已视觉通过。若使用真正能逐图看图的 BrowserSkill/Agent，则仍应按上面的 schema 3 协议返回实际图像观察。无论哪条路径，都不要直接访问个人数据库或调用 import-job；导入由网站负责。没有付费模型调用、浏览器自动安装、Cookie 导出或隐藏 API 的授权。
 
 执行器 `shell=False`，不转发应用 `LAB_ACCESS_TOKEN`，给适配器单独的临时 `LAB_DATA_DIR`。stdout/stderr 丢弃而不是当成结果或审计日志，避免记录令牌/原始模型输出。程序退出码为 0 仍必须有合法 ZIP、正确 job_id 和本包有效候选回执；错包、空包、非零退出均不能用历史累计数量冒充本次完成。非零退出不接受该次输出，须由适配器在可正常交付的部分成功情况下返回退出码 0 + `execution_report.status:blocked`。
 
