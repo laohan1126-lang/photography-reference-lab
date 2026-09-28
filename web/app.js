@@ -325,6 +325,23 @@ function pageReferences(delta,last=false) {
 }
 
 
+async function archiveProject(project) {
+    if(!safeDiscard())return;
+    if(!window.confirm(`删除项目“${project.character}”？项目会移到回收区；图片、全局审美收藏、其他项目引用和历史记录不会物理删除。`))return;
+    await api(`/api/projects/${project.id}`,{method:'DELETE',body:{expected_revision:project.revision}});
+    state.project=null;resetFilters();await loadProjects();toast('项目已移到回收区，可恢复');
+}
+function archivedProjectsDialog() {
+    const body=state.archivedProjects.length
+        ? `<p class="form-help">恢复项目不会复制图片，也不会改变其他项目或全局审美库。</p>${state.archivedProjects.map(p=>`<div class="event-card"><strong>${esc(p.character)}</strong><small>${esc(p.costume||p.work||'拍摄项目')}</small><button data-restore-project="${esc(p.id)}">恢复项目</button></div>`).join('')}`
+        : '<p>没有已删除项目。</p>';
+    const root=modal('已删除项目',body);
+    listen(root,'[data-restore-project]','click',async(e,n)=>{
+        const p=state.archivedProjects.find(x=>x.id===n.dataset.restoreProject);if(!p)return;
+        await api(`/api/projects/${p.id}/restore`,{method:'POST',body:{expected_revision:p.revision}});
+        closeModal();await loadProjects(p.id);toast('项目已恢复');
+    });
+}
 function projectEditor(project = null) { if (!safeDiscard())
     return; const root = modal(project ? '角色、要求与器材' : '新建角色项目', `<form><p class="form-help">只有角色名是必填。额外要求直接写成自然语言，不需要套固定分类。修改要求会让旧资料卡重新等待核对。</p><div class="form-grid">${label('角色名 *', 'character', project?.character || '', 'text', 'required maxlength="120"')}${label('出自作品（选填）', 'work', project?.work || '', 'text', 'maxlength="400"')}${label('服装／皮肤版本（选填）', 'costume', project?.costume || '', 'text', 'maxlength="400"')}<div class="full">${area('补充要求', 'brief', project?.brief || '', 'placeholder="例如：漫展拍摄，想多看站姿和回眸，不要复杂布景；要自然，但保留角色的疏离感。" maxlength="12000"')}</div><div class="full"><details><summary>我的器材与拍摄条件</summary>${area('设备／环境限制', 'gear', project?.gear || '', 'placeholder="留空则使用当前预设：A7M4、50mm、24–240mm、V100 一灯与柔光附件。" maxlength="12000"')}</details></div></div><div class="form-actions"><button class="primary" type="submit">${project ? '保存修改' : '建立项目'}</button></div></form>`); formSubmit(root, async (data) => { if (!project && !data.gear)
     delete data.gear; const p = await api(project ? `/api/projects/${project.id}` : '/api/projects', { method: project ? 'PUT' : 'POST', body: project ? { ...data, expected_revision: project.revision } : data }); closeModal(); resetFilters(); state.view="references"; await loadProjects(p.id); toast('角色项目已保存'); }); }
@@ -494,7 +511,7 @@ async function openProjectReference(projectId,referenceId) {
     if(!safeDiscard())return;
     const ref=await api(`/api/references/${referenceId}`);
     state.project=state.projects.find(p=>p.id===projectId);
-    resetFilters();state.view=ref.decision==='reject'?'recycle':ref.selected_for_project?'selected':'references';
+    resetFilters();state.view=ref.preflight_filtered?'filtered':ref.decision==='reject'?'recycle':ref.selected_for_project?'selected':'references';
     state.activeId=ref.id;state.focusId=ref.id;await refreshView();
 }
 function useInspirationDialog(item) {
