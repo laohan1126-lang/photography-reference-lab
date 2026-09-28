@@ -418,6 +418,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/static/{filename}")
     def static(filename: str):
         if filename not in {"app.js", "styles.css"}: raise Problem(404, "Static file not found")
-        return FileResponse(settings.web_dir / filename)
+        return FileResponse(settings.web_dir / filename, headers={"Cache-Control": "no-cache, must-revalidate"})
 
     return app
