@@ -19,7 +19,7 @@ python -m playwright install chromium
 ## 自动回归
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py tests/test_reference_transfer_board.py
 node --check web/app.js
 python -m compileall -q ref_lab tools tests
 python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
@@ -40,7 +40,11 @@ HTTP 测试真实启动 Uvicorn、登录取得 Cookie、上传/下载候选 ZIP 
 
 采集 schema3 后，人工抽看“已过滤候选”：游戏 UI / 游戏截图、插画、假人/服装/商品展示、拼图、空场景不应继续显示成默认真人 cosplay PASS；错角色真人图应 mismatch，无法可靠判断应 uncertain。必须打开实际图片核对，不能用标题或检索词作为通过证据。过滤条目可人工恢复，恢复不自动设置 K/I/M/X。
 
-点通用灵感进入独立审美库；引用到第二角色后核对同一图片、旧项目选择不变、新项目没有继承角色事实或卡片。没有项目时仍可直接收藏或写笔记。项目设置中删除一个专用测试项目，确认刷新后从普通侧栏消失、回收入口可见；共享图片、全局收藏与其他项目引用仍在；恢复后项目关系回来。390px 宽度不横向溢出。
+点通用灵感进入独立审美库；引用到第二角色后核对同一图片、旧项目选择不变、新项目没有继承角色事实或卡片。没有项目时仍可直接收藏或写笔记。项目设置中删除一个专用测试项目，确认刷新后从普通侧栏消失、回收入口可见；共享图片、全局收藏与其他项目引用仍在；恢复后项目关系回来。
+
+再验证跨项目复用：对同一真实图片分别执行“复制”和“转移”。复制后当前项目仍在，目标项目应是 pending 且没有继承原角色 preflight/review/card；转移后当前项目进入“已淘汰 / 移出 / 恢复”，但 decision 不能被偷改成 X，恢复后原选择仍在。若目标项目原先已有这张 Asset，不得覆盖它自己的选择/笔记。
+
+沟通板用真实横图+竖图至少各一张：选择 1–4 张应下载一张 1800×1400 PNG，人物/构图不被强裁；选择 5 张以上应得到按 4 张一页的 ZIP。打开导出 PNG 检查排序、短备注、可读性和留白；不能只检查 ZIP 文件名。390px 宽度不横向溢出。
 
 角色精选中只挑几张“制作现场卡”。未交给 Agent 的任务应保持等待；真实导入后才显示草稿/分析结论。检查用户不确认时 ready=0；图片/来源/要求改变后旧确认失效。图中真有可执行人物姿势、来源与授权范围是否准确，必须人工或实际逐图分析；不要以测试通过代替。
 
