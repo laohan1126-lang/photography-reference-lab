@@ -32,9 +32,10 @@ def detect_modality(image: Image.Image, metadata: dict[str, Any]) -> tuple[str, 
     title_lower = title.lower()
     source = metadata.get("source") or {}
     source_url = (source.get("page_url") or "").lower()
-    query = (source.get("search_query") or "").lower()
     tags = str(source.get("search_category") or "").lower()
-    combined = f"{title_lower} {source_url} {query} {tags}"
+    # Search queries are discovery intent, never image facts. In particular,
+    # a query containing "cos" must not turn an unrelated result into cosplay.
+    combined = f"{title_lower} {source_url} {tags}"
 
     if title.startswith("BTS_") or any(k in combined for k in ["bts", "器材", "机位", "布光图", "灯位", "镜头", "相机", "柔光"]):
         return "equipment", ["画面为布光环境/摄影器材或花絮，非可执行人像摆姿主图"]
@@ -49,8 +50,8 @@ def detect_modality(image: Image.Image, metadata: dict[str, Any]) -> tuple[str, 
             return "game_screenshot", ["游戏引擎3D模型网格与贴图渲染特征", "画面为建模T-pose或游戏场景渲染截图"]
         return "official_illustration", ["官方2D角色概念图/立绘插画", "非真人光学镜头摄影画面"]
 
-    if any(k in combined for k in ["截图", "游戏截图", "游戏画面", "screenshot", "cg", "建模", "3d模型"]):
-        return "game_screenshot", ["检测为游戏界面、引擎即时渲染或游戏截图"]
+    if any(k in combined for k in ["截图", "游戏截图", "游戏画面", "screenshot", "游戏cg", "皮肤特效", "特效设计", "技能特效", "皮肤展示", "建模", "3d模型", "3d model", "render"]):
+        return "game_screenshot", ["来源标题/页面上下文明示游戏画面、特效展示或3D渲染；不能当真人摄影"]
 
     if any(k in combined for k in ["插画", "同人画", "立绘", "原画", "手绘", "illustration", "fanart", "pixiv", "厚涂"]):
         mod = "official_illustration" if any(k in combined for k in ["官方", "立绘", "原画"]) else "fan_art"
@@ -68,10 +69,14 @@ def detect_modality(image: Image.Image, metadata: dict[str, Any]) -> tuple[str, 
     if detect_collage(image):
         return "collage", ["检测为多图拼图/九宫格，非独立摄影参考"]
 
-    if title.startswith("COS_") or title.startswith("LIVE_") or title.startswith("SEL_") or any(k in combined for k in ["cos", "cosplay", "场照", "正片", "摄影", "出镜"]):
-        return "real_person_cosplay", ["真人 Cosplay 摄影画面", "具备光学镜头实拍特征与真实光影景深"]
+    # Only trusted internal prefixes can assert a real-person modality here.
+    # Ordinary title/page metadata such as "cos/正片/摄影" is not visual proof.
+    if title.startswith("COS_") or title.startswith("LIVE_") or title.startswith("SEL_"):
+        return "real_person_cosplay", ["内部已标注的真人参考条目；仍需项目级身份核验"]
+    if any(k in combined for k in ["cos", "cosplay", "场照", "正片", "摄影", "出镜"]):
+        return "unknown", ["来源元数据提示 cosplay/摄影，但当前确定性预检没有视觉分类器，不能据此宣称真人实拍"]
 
-    return "real_person_cosplay", ["真实光学镜头人像画面"]
+    return "unknown", ["没有足够的图像级证据判定真人/插画/游戏模态，诚实保留 unknown"]
 
 
 
@@ -305,12 +310,19 @@ def evaluate_identity(
                 "reason": "头部特征区域呈明显蓝色调（与黑川茜蓝发特征高度吻合），不符合有马加奈暗红短发",
                 "transferable_candidate": True,
             }
-        if red_ratio > 0.15 or any(a in combined_text for a in all_aliases):
+        if red_ratio > 0.15:
             return {
                 "prediction": "match",
-                "confidence": "high" if red_ratio > 0.15 else "medium",
-                "reason": "视觉色彩与有马加奈发色/贝雷帽特征相吻合",
+                "confidence": "high",
+                "reason": "头部视觉色彩区域与有马加奈暗红短发特征相吻合",
                 "transferable_candidate": False,
+            }
+        if any(a in combined_text for a in all_aliases):
+            return {
+                "prediction": "uncertain",
+                "confidence": "medium",
+                "reason": "标题/检索上下文包含有马加奈别名，但 metadata 不是视觉身份事实",
+                "transferable_candidate": True,
             }
         return {
             "prediction": "uncertain",
@@ -338,10 +350,10 @@ def evaluate_identity(
             }
         if any(a in combined_text for a in all_aliases):
             return {
-                "prediction": "match",
-                "confidence": "high",
-                "reason": "特征与假面骑士恒剑 (Durendal) 海洋纹理装甲吻合",
-                "transferable_candidate": False,
+                "prediction": "uncertain",
+                "confidence": "medium",
+                "reason": "标题/检索上下文包含恒剑别名，但未从图像确认海洋装甲、头雕或时国剑界时",
+                "transferable_candidate": True,
             }
         return {
             "prediction": "uncertain",
@@ -376,16 +388,16 @@ def evaluate_identity(
             }
         if any(a in combined_text for a in all_aliases):
             return {
-                "prediction": "match",
-                "confidence": "high",
-                "reason": "角色名及皮肤版本与目标角色王昭君吻合",
-                "transferable_candidate": False,
+                "prediction": "uncertain",
+                "confidence": "medium",
+                "reason": "标题/检索上下文包含王昭君别名，但当前规则没有图像级证据确认角色与皮肤",
+                "transferable_candidate": True,
             }
         return {
-            "prediction": "match",
-            "confidence": "medium",
-            "reason": "具备王昭君长夜焕生相关服饰或动作特征",
-            "transferable_candidate": False,
+            "prediction": "uncertain",
+            "confidence": "low",
+            "reason": "缺乏图像级证据确认王昭君长夜焕生，诚实保留为不确定",
+            "transferable_candidate": True,
         }
 
     # Case D: Anyoji Hime
@@ -400,10 +412,10 @@ def evaluate_identity(
                 }
         if any(a in combined_text for a in all_aliases):
             return {
-                "prediction": "match",
-                "confidence": "high",
-                "reason": "角色名与目标角色安养寺姬芽吻合",
-                "transferable_candidate": False,
+                "prediction": "uncertain",
+                "confidence": "medium",
+                "reason": "标题/检索上下文包含安养寺姬芽别名，但 metadata 不能代替视觉身份判断",
+                "transferable_candidate": True,
             }
         return {
             "prediction": "uncertain",
@@ -415,10 +427,10 @@ def evaluate_identity(
     # General character default
     if any(a in combined_text for a in all_aliases):
         return {
-            "prediction": "match",
+            "prediction": "uncertain",
             "confidence": "medium",
-            "reason": f"符合角色 {canonical} 别名或检索依据",
-            "transferable_candidate": False,
+            "reason": f"标题/检索上下文包含角色 {canonical} 别名，但缺少图像级身份依据",
+            "transferable_candidate": True,
         }
 
     return {
