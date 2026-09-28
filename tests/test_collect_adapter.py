@@ -11,6 +11,8 @@ from PIL import Image
 from ref_lab.agent_collection import run_collection_attempt
 from ref_lab.models import JobInput
 from ref_lab.preflight import detect_modality, evaluate_identity
+from ref_lab.service import Library
+from ref_lab.db import encode
 from ref_lab.identity import build_identity_context
 from conftest import image_bytes
 from tools.collect_adapter import (
@@ -195,3 +197,34 @@ with zipfile.ZipFile(sys.argv[2], 'w') as z:
         assert ref["preflight"] is None
         assert ref["preflight_status"] == "unreviewed"
         assert ref["decision"] == "pending"
+
+
+def test_startup_repairs_known_fake_local_adapter_preflight(client, project, library):
+    ref = add_reference(client, project, seed=77)
+    with library.db.transaction() as con:
+        row = con.execute("SELECT data FROM refs WHERE id=?", (ref["id"],)).fetchone()
+        data = json.loads(row[0])
+        data["title"] = "王昭君FMVP皮肤长夜焕生特效设计介绍"
+        data["source"]["search_query"] = "王昭君 长夜焕生 cos 正片"
+        data["preflight"] = {
+            "producer": "local_collection_adapter",
+            "content_type": "real_person_cosplay",
+            "identity_prediction": "match",
+            "confidence": "medium",
+            "visual_evidence": ["真人实拍", "符合检索词"],
+            "reason": "metadata-only false positive",
+            "status": "passed",
+            "status_reason": "身份与质量预检均通过",
+        }
+        data["preflight_status"] = "passed"
+        data["preflight_filtered"] = False
+        con.execute("UPDATE refs SET data=? WHERE id=?", (encode(data), ref["id"]))
+
+    repaired_library = Library(library.settings)
+    repaired = repaired_library.reference(ref["id"])
+    assert repaired["preflight"]["producer"] == "vision-preflight-gate"
+    assert repaired["preflight"]["content_type"] == "game_screenshot"
+    assert repaired["preflight_status"] == "filtered"
+    assert repaired["preflight_filtered"] is True
+    assert repaired["invalidated_preflights"][-1]["producer"] == "local_collection_adapter"
+    assert repaired["decision"] == ref["decision"]
