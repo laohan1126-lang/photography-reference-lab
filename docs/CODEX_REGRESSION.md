@@ -19,7 +19,7 @@ python -m playwright install chromium
 ## 自动回归
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py tests/test_reference_transfer_board.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py tests/test_reference_transfer_board.py tests/test_collect_adapter.py tests/test_candidate_pipeline.py
 node --check web/app.js
 python -m compileall -q ref_lab tools tests
 python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
@@ -39,6 +39,8 @@ HTTP 测试真实启动 Uvicorn、登录取得 Cookie、上传/下载候选 ZIP 
 进入“挑参考”，把缩略图滑到后段，点击当前可见图、左右键、K/I/M/X；开关自动下一张都不应突然回首图。淘汰立即消失，“已淘汰 / 恢复”能找回原选择。筛选和刷新保存当前位置与服务器选择；大图临时加载失败后恢复也不能一直隐藏。
 
 采集 schema3 后，人工抽看“已过滤候选”：游戏 UI / 游戏截图、插画、假人/服装/商品展示、拼图、空场景不应继续显示成默认真人 cosplay PASS；错角色真人图应 mismatch，无法可靠判断应 uncertain。必须打开实际图片核对，不能用标题或检索词作为通过证据。过滤条目可人工恢复，恢复不自动设置 K/I/M/X。
+
+本地 `tools/collect_adapter.py` 是严格搜索器，不是视觉 Agent。用真实任务写“只找该皮肤的 COS 正片”时，检查生成 query 确实带角色+皮肤+本轮要求和负向排除；重新搜一轮后逐张打开实际候选，记录真人目标皮肤命中率。游戏/特效展示、插画/立绘/壁纸、CG/建模、商品/人台不应为了凑 target_count 被导入。新适配器返回 schema2，候选应是 unreviewed，而不是伪造 passed。
 
 点通用灵感进入独立审美库；引用到第二角色后核对同一图片、旧项目选择不变、新项目没有继承角色事实或卡片。没有项目时仍可直接收藏或写笔记。项目设置中删除一个专用测试项目，确认刷新后从普通侧栏消失、回收入口可见；共享图片、全局收藏与其他项目引用仍在；恢复后项目关系回来。
 
