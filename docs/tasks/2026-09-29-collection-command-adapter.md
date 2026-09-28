@@ -39,3 +39,23 @@ Configure a working local collection adapter (`LAB_COLLECTION_COMMAND`) so click
   - Successfully imported 30 real candidates.
   - Status transitioned from `blocked` to `succeeded`.
   - All candidates now available in the project for human review.
+
+
+## 2026-09-29 correction after live user review
+
+The transport implementation above worked, but its semantic claim was too strong. Live review showed the adapter importing game/CG/illustration results for a “specific-skin cosplay photos only” request and labeling them as visual preflight passes.
+
+Root cause: the adapter treated the search query itself (which already contained `cos`) as evidence that each returned image was real cosplay, and emitted Schema 3 visual-preflight fields without running a vision model. Therefore the earlier statement “visual preflight for each candidate” did **not** prove image content correctness.
+
+Superseding behavior is defined in `2026-09-29-strict-search-filter.md`:
+
+- local `collect_adapter.py` is search-only and returns Schema 2;
+- user notes + exact character/skin constraints are enforced during search;
+- Bing Photo + Large and explicit negative category terms are applied;
+- strong game/illustration/CG/product markers are rejected before import;
+- the query itself can never make a candidate count as cosplay;
+- no thumbnail fallback is used when the original image URL fails;
+- exact SHA + within-run dHash near-duplicate suppression remains;
+- deterministic server preflight is conservative and does not turn metadata aliases into visual `match`.
+
+The earlier live result “30 candidates imported” is retained as transport evidence only. It is **not** evidence of 30 correct cosplay photographs.
