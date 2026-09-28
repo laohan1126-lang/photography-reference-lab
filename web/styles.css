@@ -492,6 +492,25 @@ hr {
   outline:2px solid var(--accent);
   outline-offset:1px
 }
+.filmstrip .batch-selected {
+  box-shadow:inset 0 0 0 3px #c79c68;
+}
+.filmstrip .batch-selected::before {
+  content:"✓";
+  position:absolute;
+  top:3px;
+  left:3px;
+  z-index:2;
+  min-width:17px;
+  height:17px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#c79c68;
+  color:#14242e;
+  font-size:10px;
+  font-weight:700
+}
 .filmstrip .verdict {
   position:absolute;
   bottom:2px;
