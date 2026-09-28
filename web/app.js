@@ -410,7 +410,7 @@ async function archiveProject(project) {
     if(!safeDiscard())return;
     if(!window.confirm(`删除项目“${project.character}”？项目会移到回收区；图片、全局审美收藏、其他项目引用和历史记录不会物理删除。`))return;
     await api(`/api/projects/${project.id}`,{method:'DELETE',body:{expected_revision:project.revision}});
-    state.project=null;resetFilters();await loadProjects();toast('项目已移到回收区，可恢复');
+    state.project=null;state.selection=[];resetFilters();await loadProjects();toast('项目已移到回收区，可恢复');
 }
 function archivedProjectsDialog() {
     const body=state.archivedProjects.length
@@ -491,6 +491,7 @@ function recommendationBadges(ref) {
 
 function renderDetail(ref) {
     const selected=ref.selected_for_project, stage=stages[ref.workflow_stage]||statuses[ref.state];
+    const detached=!!ref.detached_at;
     const recycled=ref.decision==='reject';
     const preflightFiltered=state.view==='filtered'&&ref.preflight_filtered;
     const pf=ref.preflight;
@@ -535,8 +536,9 @@ async function savePreference() {
     finally {state.busy=false;}
 }
 function matchesCurrentView(ref) {
+    if(state.view==='recycle')return ref.decision==='reject'||!!ref.detached_at;
+    if(ref.detached_at)return false;
     if(state.view==='filtered')return !!ref.preflight_filtered;
-    if(state.view==='recycle')return ref.decision==='reject';
     if(ref.decision==='reject'&&state.decision!=='reject')return false;
     if(state.view==='selected')return ref.selected_for_project;
     if(state.view==='field')return ref.field_ready;
@@ -630,7 +632,7 @@ async function openProjectReference(projectId,referenceId) {
     if(!safeDiscard())return;
     const ref=await api(`/api/references/${referenceId}`);
     state.project=state.projects.find(p=>p.id===projectId);
-    resetFilters();state.view=ref.preflight_filtered?'filtered':ref.decision==='reject'?'recycle':ref.selected_for_project?'selected':'references';
+    resetFilters();state.view=ref.detached_at?'recycle':ref.preflight_filtered?'filtered':ref.decision==='reject'?'recycle':ref.selected_for_project?'selected':'references';
     state.activeId=ref.id;state.focusId=ref.id;await refreshView();
 }
 function useInspirationDialog(item) {
