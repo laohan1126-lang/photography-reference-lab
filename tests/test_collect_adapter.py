@@ -14,7 +14,7 @@ from ref_lab.preflight import detect_modality, evaluate_identity
 from ref_lab.service import Library
 from ref_lab.db import encode
 from ref_lab.identity import build_identity_context
-from conftest import image_bytes
+from conftest import image_bytes, add_reference
 from tools.collect_adapter import (
     build_policy,
     build_queries,
