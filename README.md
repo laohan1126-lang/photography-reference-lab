@@ -43,7 +43,7 @@ python -m ref_lab backup --output ../reference-lab-backup.zip
 
 点“找一批参考”，保存完整角色、作品、版本、项目要求、器材和本轮自由要求，再下载任务包或复制执行提示词。**默认不会自动唤醒本机 Agent，也不会把等待状态写成已搜完**。可选的 `LAB_COLLECTION_COMMAND` 适配器仅在明确配置、点击启动后运行；没有适配器就保留任务包 / CLI 交接，不偷偷换抓图方式。
 
-本地 Agent 使用已安装的腾讯 BrowserSkill，在用户授权的真实浏览器里制定检索计划、扩展中日英关键词、评估多个来源、逐张下载并记录出处，返回候选包。小红书和 Pinterest 是候选来源，不是固定执行顺序；来源按任务质量与可用性选择，不机械维护九个网站的专用爬虫。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。当前 schema 3 候选包要求 Agent 实际打开每张图片并提交 modality + identity preflight；标题、query、项目名或页面文字不能作为视觉证据。来源检查、低产停止原因和数量缺口进入回执。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
+本地采集有两种能力边界，必须区分。BrowserSkill / 真实视觉 Agent 可以逐张看图并返回 schema 3 preflight；而当前 `tools/collect_adapter.py` 只是严格搜索适配器，没有视觉模型，因此只返回 schema 2 候选包，绝不伪造“真人实拍 / identity match”。它会把项目角色、皮肤/版本和本轮自由要求当作硬搜索上下文，使用 Bing Photo + Large 过滤，并在导入前排除游戏截图/特效展示、插画/立绘/壁纸、CG/建模、商品/人台/服装展示等强负向结果；要求特定皮肤时宁可少图也不拿弱结果补 target_count。搜索 query、标题和项目名仍只是 discovery context，不能升级成视觉事实。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
 
 同一数据目录下也可以直接交接：
 
