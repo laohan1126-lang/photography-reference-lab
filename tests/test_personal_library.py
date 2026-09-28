@@ -33,11 +33,18 @@ def save_global(client, ref):
 
 
 def candidate_zip(job, **overrides):
-    manifest = {"schema_version": 2, "batch_id": "synthetic-batch", "job_id": job["id"],
+    manifest = {"schema_version": 3, "batch_id": "synthetic-batch", "job_id": job["id"],
                 "candidates": [{"id": "one", "file": "images/one.png", "title": "not proof of character",
                     "source": {"page_url": "https://example.com/posts/1", "search_query": "王昭君 cosplay", "source_confirmed": True},
                     "discovery_intent": "transferable_pose", "discovery_reason": "Synthetic protocol test only",
-                    "discovery_url": "https://example.com/search?q=cosplay"}],
+                    "discovery_url": "https://example.com/search?q=cosplay",
+                    "preflight": {
+                        "content_type": "real_person_cosplay",
+                        "identity_prediction": "match",
+                        "confidence": "high",
+                        "visual_evidence": ["Synthetic fixture observation"],
+                        "reason": "Synthetic fixture test",
+                    }}],
                 "execution_report": {"producer": "synthetic-not-live-search", "status": "completed", "summary": "fixture only",
                     "source_checks": [{"source": "pinterest", "status": "untested", "detail": "No live test"}],
                     "query_log": [{"source": "synthetic", "query": "回眸", "kept": 1, "stop_reason": "fixture"}],

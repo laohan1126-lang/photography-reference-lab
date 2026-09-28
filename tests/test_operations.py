@@ -57,7 +57,7 @@ def test_offline_embedded_javascript_parses(tmp_path):
     script = OFFLINE_HTML.split('<script>')[1].split('</script>')[0]
     path = tmp_path/'offline.js'
     path.write_text(script, encoding='utf-8')
-    result = subprocess.run([node,'--check',str(path)], text=True, capture_output=True)
+    result = subprocess.run([node,'--check','offline.js'], cwd=str(tmp_path), text=True, capture_output=True)
     assert result.returncode == 0, result.stderr
 
 
