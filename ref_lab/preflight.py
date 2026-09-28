@@ -247,9 +247,14 @@ def evaluate_identity(
     canonical = context.get("canonical_name", "").strip()
     key = normalize_character_key(canonical)
     title = (metadata.get("title") or "").lower()
-    query = (metadata.get("source", {}).get("search_query") or "").lower()
-    tags = str(metadata.get("source", {}).get("search_category") or "").lower()
-    combined_text = f"{title} {query} {tags}"
+    source = metadata.get("source", {}) or {}
+    source_title = str(source.get("title") or "").lower()
+    source_url = str(source.get("page_url") or "").lower()
+    tags = str(source.get("search_category") or "").lower()
+    # The query says what we hoped to find, not who/what is in the image.
+    # Excluding it here also prevents a target-character query from masking an
+    # explicit confusion character found in the result title/page context.
+    combined_text = f"{title} {source_title} {source_url} {tags}"
 
     confusions = context.get("common_confusions", [])
     aliases = context.get("aliases", {})
