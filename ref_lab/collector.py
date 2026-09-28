@@ -298,30 +298,16 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
 
 
 def run_browser_collection_job(library: Library, job_id: str) -> dict:
+    """Use the configured task/receipt transport in every runtime.
+
+    BrowserSkill + a local Agent remains available through the explicit task
+    package or a configured adapter. Merely finding bsk must not substitute the
+    legacy DOM collector for that adapter, bypass its filters/attempt ownership,
+    or make pytest exercise a different path from the owner's application.
+    """
     job = library.job(job_id)
     if job["kind"] != "collection":
         raise Problem(409, "Not a collection job")
-
-    if os.environ.get("PYTEST_CURRENT_TEST"):
-        from .agent_collection import run_collection_attempt
-        return run_collection_attempt(library, job_id)
-
-    bsk_bin = find_bsk_cli()
-    if bsk_bin:
-        browser_id = ensure_bsk_browser(bsk_bin)
-        if browser_id:
-            library.transition_job(job_id, "running", job["revision"], "本地 BrowserSkill 搜图采集中...", actor="worker")
-            try:
-                return collect_via_bsk(library, job_id, bsk_bin, browser_id)
-            except Exception as exc:
-                latest = library.job(job_id)
-                if latest["status"] == "running":
-                    library.transition_job(job_id, "blocked", latest["revision"], f"BrowserSkill 搜图受阻: {exc}", actor="worker")
-                raise
-
-    if os.environ.get("LAB_COLLECTION_COMMAND", "").strip():
-        from .agent_collection import run_collection_attempt
-        return run_collection_attempt(library, job_id)
 
     from .agent_collection import run_collection_attempt
     return run_collection_attempt(library, job_id)
