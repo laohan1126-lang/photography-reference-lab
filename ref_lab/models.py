@@ -12,6 +12,12 @@ NonEmpty = Annotated[str, Field(min_length=1, max_length=12000)]
 Digest = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
 Kind = Literal["unknown", "cosplay_photo", "portrait_photo", "illustration", "equipment", "location", "collage", "generated"]
 Decision = Literal["pending", "keep", "maybe", "reject"]
+CandidateContentType = Literal[
+    "real_person_cosplay", "real_person_portrait", "game_screenshot", "anime_screenshot",
+    "official_illustration", "fan_art", "costume_display", "mannequin", "product",
+    "collage", "scenery", "unknown"
+]
+IdentityPrediction = Literal["match", "mismatch", "uncertain"]
 
 
 class Strict(BaseModel):
@@ -97,6 +103,14 @@ class VisualReview(Strict):
     critical_uncertainties: list[NonEmpty] = Field(max_length=20)
 
 
+class CandidatePreflight(Strict):
+    content_type: CandidateContentType
+    identity_prediction: IdentityPrediction
+    confidence: Literal["low", "medium", "high"]
+    visual_evidence: list[NonEmpty] = Field(min_length=1, max_length=20)
+    reason: NonEmpty
+
+
 class ReviewInput(Strict):
     expected_revision: int = Field(ge=1)
     review: VisualReview
@@ -146,6 +160,16 @@ class CardInput(Strict):
 
 class RevisionInput(Strict):
     expected_revision: int = Field(ge=1)
+
+
+class CandidatePreflightInput(Strict):
+    expected_revision: int = Field(ge=1)
+    producer: Annotated[str, Field(min_length=1, max_length=200)]
+    preflight: CandidatePreflight
+
+
+class PreflightOverrideInput(RevisionInput):
+    action: Literal["restore"] = "restore"
 
 
 class ReflectionInput(Strict):
@@ -257,11 +281,12 @@ class PackCandidate(Strict):
     discovery_reason: Text = ""
     discovery_url: Annotated[str, Field(max_length=4000)] = ""
     notes: Text = ""
+    preflight: CandidatePreflight | None = None
     _url = field_validator("discovery_url")(safe_url)
 
 
 class CandidatePackage(Strict):
-    schema_version: Literal[2] = 2
+    schema_version: Literal[3] = 3
     job_id: Short
     batch_id: Annotated[str, Field(min_length=1, max_length=200)]
     candidates: list[PackCandidate] = Field(max_length=1000)
