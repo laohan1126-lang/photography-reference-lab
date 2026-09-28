@@ -117,12 +117,12 @@ def build_job_pack(library: Library, job_id: str) -> Path:
             archive.writestr("AGENT_TASK.md", bundle["agent_instructions"])
             archive.writestr("candidate-package.schema.json", encode(CandidatePackage.model_json_schema()))
             archive.writestr("analysis-package.schema.json", encode(AnalysisPackage.model_json_schema()))
-            archive.writestr("manifest.example.json", encode({"schema_version": 2, "job_id": job_id,
+            archive.writestr("manifest.example.json", encode({"schema_version": 3, "job_id": job_id,
                 "batch_id": "replace-with-stable-batch-id", "candidates": [],
                 "execution_report": {"producer": "replace-with-real-agent", "status": "blocked",
                     "summary": "模板未执行，不能当成成功回执", "source_checks": [], "query_log": [], "gaps": ["尚未执行"]}}))
             archive.writestr("analysis-result.schema.json", encode(AnalysisResult.model_json_schema()))
-            archive.writestr("README.txt", "阅读 job.json；逐张打开 images/ 中的独立原图。不得凭标题或分类编造动作。analysis-result.schema.json 定义单条 result；返回 analysis.json 格式见 docs/WORKER_PROTOCOL.md。字段不全或状态过期会被拒绝。所有资料卡仍需用户确认。\n")
+            archive.writestr("README.txt", "阅读 job.json；采集任务必须逐张打开独立候选并按 candidate-package.schema.json 返回视觉 modality + identity preflight，不能凭标题/检索词判角色。分析任务逐张打开 images/ 中原图。字段不全或状态过期会被拒绝；所有 K/I/M/X 与现场卡仍需用户确认。\n")
         return path
     except Exception:
         path.unlink(missing_ok=True)
