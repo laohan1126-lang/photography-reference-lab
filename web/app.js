@@ -353,6 +353,59 @@ function pageReferences(delta,last=false) {
 }
 
 
+function selectionActionsDialog(){
+    if(!state.selection.length){toast('先选择几张参考');return;}
+    const root=modal(\`已选 \${state.selection.length} 张\`,\`<p class="form-help">这只是项目内的临时选择篮，不改变 K/I/M/X。可以批量复制/转移，也可以按当前选择顺序导出模特沟通板。</p><div class="guide-section">\${state.selection.map((item,index)=>\`<p><strong>\${index+1}.</strong> \${esc(item.title)}</p>\`).join('')}</div><div class="form-actions"><button id="selection-transfer">复制 / 转移到项目</button><button id="selection-board" class="primary">导出沟通板</button><button id="selection-clear" class="quiet">清空选择</button></div>\`);
+    $('selection-transfer').onclick=()=>transferReferencesDialog(state.selection);
+    $('selection-board').onclick=()=>contactBoardDialog(state.selection);
+    $('selection-clear').onclick=()=>{state.selection=[];closeModal();updateSelectionUI();};
+}
+async function freshTransferItems(items){
+    const refs=await Promise.all(items.map(item=>api(\`/api/references/\${item.id}\`)));
+    return refs.map(ref=>({reference_id:ref.id,expected_revision:ref.revision}));
+}
+function transferReferencesDialog(items){
+    const selected=(items||[]).filter(Boolean);
+    if(!selected.length){toast('没有可操作的参考');return;}
+    const targets=state.projects.filter(p=>p.id!==state.project?.id);
+    const targetOptions=Object.fromEntries(targets.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')]));
+    const transferForm=targets.length?\`<form id="transfer-form"><p class="notice">复制：当前项目保留；转移：目标项目建立/复用引用后，从当前项目移出。目标项目默认“未选择”，不会继承当前角色判断、preflight、资料卡或验收。</p>\${select('目标项目','target_project_id',targetOptions,targets[0]?.id||'')}\${select('操作','mode',{copy:'复制到目标项目',move:'转移到目标项目'},'copy')}\${select('目标项目初始状态','target_decision',{pending:'未选择（推荐）',keep:'K · 本角色参考',maybe:'M · 待定'},'pending')}<div class="form-actions"><button type="submit" class="primary">执行</button></div></form>\`:'<p class="notice">还没有其他可用拍摄项目。可以先建立目标项目，或仅从当前项目移出。</p>';
+    const root=modal(\`项目复用 · \${selected.length} 张\`,\`\${transferForm}<hr><button id="detach-current" class="danger">仅从当前项目移出</button><p class="form-help">“移出”不是 X 淘汰：图片资产和历史记录保留，可在“已淘汰 / 恢复”里恢复当前项目引用。</p>\`);
+    if($('transfer-form'))formSubmit(root,async data=>{
+        const transferItems=await freshTransferItems(selected);
+        const result=await api(\`/api/projects/\${state.project.id}/references/transfer\`,{method:'POST',body:{items:transferItems,mode:data.mode,target_project_id:data.target_project_id,target_decision:data.target_decision}});
+        if(data.mode==='move')state.selection=state.selection.filter(item=>!selected.some(chosen=>chosen.id===item.id));
+        closeModal();await loadReferences();await renderStats();updateSelectionUI();
+        toast(data.mode==='move'?\`已转移 \${result.items.length} 张；目标项目未继承角色判断\`:\`已复制 \${result.items.length} 张；当前项目保持不变\`);
+    });
+    $('detach-current').onclick=async()=>{
+        if(!window.confirm(\`从当前项目移出这 \${selected.length} 张？图片不会删除，可从项目回收入口恢复。\`))return;
+        const transferItems=await freshTransferItems(selected);
+        await api(\`/api/projects/\${state.project.id}/references/transfer\`,{method:'POST',body:{items:transferItems,mode:'remove',target_project_id:'',target_decision:'pending'}});
+        state.selection=state.selection.filter(item=>!selected.some(chosen=>chosen.id===item.id));
+        closeModal();await loadReferences();await renderStats();updateSelectionUI();toast('已从当前项目移出；没有作为 X 学习');
+    };
+}
+function contactBoardDialog(items){
+    const selected=(items||[]).filter(Boolean);
+    if(!selected.length){toast('先选择几张参考');return;}
+    const rows=selected.map((item,index)=>\`<div class="event-card board-item" data-board-ref="\${esc(item.id)}"><div class="compact-row"><strong>\${index+1}. \${esc(item.title)}</strong><button type="button" data-move="-1">↑</button><button type="button" data-move="1">↓</button></div><div class="compact-row"><img src="/api/assets/\${esc(item.asset_sha)}/thumb" alt="" style="width:72px;height:72px;object-fit:contain"><input data-board-note maxlength="400" placeholder="可选：喜欢这张的动作 / 氛围 / 构图"></div></div>\`).join('');
+    const root=modal('导出模特沟通板',\`<form id="contact-board-form"><p class="notice">每页最多 4 张，保留完整画面不强裁切。1–4 张直接下载 PNG；超过 4 张自动分页并下载 ZIP。这里不是现场卡，也不会改变筛选状态。</p>\${label('沟通板标题（选填）','title',state.project?.character?state.project.character+' · 拍摄参考':'')}<div id="board-items">\${rows}</div><div class="form-actions"><button type="submit" class="primary">生成并下载</button></div></form>\`);
+    listen(root,'[data-move]','click',(e,n)=>{
+        const row=n.closest('[data-board-ref]'), direction=Number(n.dataset.move);
+        const sibling=direction<0?row.previousElementSibling:row.nextElementSibling;
+        if(!sibling)return;
+        if(direction<0)row.parentElement.insertBefore(row,sibling);else row.parentElement.insertBefore(sibling,row);
+    });
+    formSubmit(root,async(data,form)=>{
+        const ordered=[...form.querySelectorAll('[data-board-ref]')].map(node=>({reference_id:node.dataset.boardRef,note:node.querySelector('[data-board-note]').value}));
+        const suffix=ordered.length<=4?'png':'zip';
+        await download(\`/api/projects/\${state.project.id}/contact-board\`,\`\${state.project.character}-沟通板.\${suffix}\`,{title:data.title,items:ordered});
+        closeModal();toast(ordered.length<=4?'沟通板 PNG 已生成':'多页沟通板已生成 ZIP');
+    });
+}
+
+
 async function archiveProject(project) {
     if(!safeDiscard())return;
     if(!window.confirm(`删除项目“${project.character}”？项目会移到回收区；图片、全局审美收藏、其他项目引用和历史记录不会物理删除。`))return;
