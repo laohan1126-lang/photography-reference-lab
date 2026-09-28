@@ -20,7 +20,9 @@ from .imports import import_candidates, import_notion, import_analyses as import
 from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardInput, JobInput, JobResult,
                      NoteEdit, NoteInput, PackInput, ProjectEdit, ProjectInput, ReferenceEdit, ReflectionInput,
                      RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport,
-                     CandidatePreflightInput, PreflightOverrideInput)
+                     CandidatePreflightInput, PreflightOverrideInput,
+                     IdentityContextInput, ConfirmSummaryInput, RollbackProfileInput, PreflightScanInput)
+
 from .security import BodyLimitMiddleware, COOKIE, csrf_for, make_session, valid_session
 from .service import Library, Problem
 
@@ -164,11 +166,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/projects/{project_id}/references")
     def references(project_id: str, limit: int = Query(60, ge=1, le=200), offset: int = Query(0, ge=0),
-                   q: str = Query("", max_length=400), decision: str = "", state: str = "", lane: str = "", kind: str = "", include_rejected: bool = False, view_filtered: bool = False, job_id: str = "", focus_id: str = ""):
-        return library.references(project_id, limit=limit, offset=offset, query=q, decision=decision, state=state, lane=lane, kind=kind, include_rejected=include_rejected, view_filtered=view_filtered, job_id=job_id, focus_id=focus_id)
+                   q: str = Query("", max_length=400), decision: str = "", state: str = "", lane: str = "", kind: str = "",
+                   include_rejected: bool = False, view_filtered: bool = False, job_id: str = "", focus_id: str = "",
+                   preflight_status: str = ""):
+        return library.references(project_id, limit=limit, offset=offset, query=q, decision=decision, state=state, lane=lane, kind=kind,
+                                  include_rejected=include_rejected, view_filtered=view_filtered, job_id=job_id, focus_id=focus_id,
+                                  preflight_status=preflight_status)
+
+    @app.get("/api/projects/{project_id}/identity-context")
+    def get_identity_context(project_id: str):
+        return library.identity_context(project_id)
+
+    @app.post("/api/projects/{project_id}/identity-context")
+    def update_identity_context(project_id: str, data: IdentityContextInput):
+        return library.update_identity_context(project_id, data)
+
+    @app.get("/api/projects/{project_id}/preflights")
+    def list_preflights(project_id: str, status: str = ""):
+        return library.preflights(project_id, status=status)
+
+    @app.post("/api/projects/{project_id}/preflight-scan")
+    def scan_project_preflight(project_id: str, data: PreflightScanInput | None = None):
+        force = data.force if data else False
+        return library.scan_project_preflight(project_id, force=force)
 
     @app.post("/api/projects/{project_id}/references", status_code=201)
     def candidate(project_id: str, data: CandidateInput): return library.add_candidate(project_id, data, actor="human")
+
 
     @app.get("/api/references/{reference_id}")
     def reference(reference_id: str): return library.reference(reference_id)
@@ -223,6 +247,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/references/{reference_id}/restore")
     def restore(reference_id: str, data: RevisionInput):
         return library.restore_reference(reference_id, data.expected_revision)
+
+    @app.post("/api/references/{reference_id}/restore-preflight")
+    def restore_preflight(reference_id: str, data: RevisionInput):
+        return library.restore_preflight_candidate(reference_id, data.expected_revision)
+
+    @app.post("/api/references/{reference_id}/make-transferable")
+    def make_transferable(reference_id: str, data: RevisionInput):
+        return library.make_transferable_candidate(reference_id, data.expected_revision)
+
 
     @app.post("/api/references/{reference_id}/inspiration")
     def save_inspiration(reference_id: str, data: RevisionInput):
@@ -327,6 +360,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/jobs/{job_id}/status")
     def job_status(job_id: str, data: JobResult):
         return library.transition_job(job_id, data.status, data.expected_revision, data.detail)
+
+    @app.get("/api/projects/{project_id}/screening-sessions/current")
+    def current_screening_session(project_id: str):
+        return library.current_screening_session(project_id)
+
+    @app.get("/api/projects/{project_id}/screening-sessions")
+    def screening_sessions(project_id: str):
+        return library.screening_sessions(project_id)
+
+    @app.post("/api/screening-sessions/{session_id}/finish")
+    def finish_session(session_id: str):
+        return library.finish_screening_session(session_id)
+
+    @app.post("/api/screening-sessions/{session_id}/confirm")
+    def confirm_session(session_id: str, data: ConfirmSummaryInput):
+        return library.confirm_screening_summary(session_id, data.accepted_hypotheses, data.apply_to_profile)
+
+    @app.get("/api/profile")
+    def aesthetic_profile():
+        return library.aesthetic_profile()
+
+    @app.get("/api/profile/history")
+    def profile_history():
+        return library.profile_history()
+
+    @app.post("/api/profile/rollback")
+    def rollback_profile(data: RollbackProfileInput):
+        return library.rollback_profile(data.target_version)
+
 
     @app.post("/api/projects/{project_id}/pack")
     def shooting_pack(project_id: str, data: PackInput):

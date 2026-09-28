@@ -15,7 +15,7 @@ Decision = Literal["pending", "keep", "maybe", "reject"]
 CandidateContentType = Literal[
     "real_person_cosplay", "real_person_portrait", "game_screenshot", "anime_screenshot",
     "official_illustration", "fan_art", "costume_display", "mannequin", "product",
-    "collage", "scenery", "unknown"
+    "collage", "scenery", "equipment", "unknown"
 ]
 IdentityPrediction = Literal["match", "mismatch", "uncertain"]
 
@@ -290,10 +290,10 @@ class PackCandidateV3(PackCandidate):
 
 
 class CandidatePackage(Strict):
-    schema_version: Literal[3] = 3
+    schema_version: Literal[2, 3] = 3
     job_id: Short
     batch_id: Annotated[str, Field(min_length=1, max_length=200)]
-    candidates: list[PackCandidateV3] = Field(max_length=1000)
+    candidates: list[PackCandidate] = Field(max_length=1000)
     execution_report: CollectionReport
 
 
@@ -305,3 +305,27 @@ class AnalysisPackage(Strict):
     schema_version: Literal[1] = 1
     job_id: Short
     items: list[AnalysisItem] = Field(max_length=200)
+
+
+class IdentityContextInput(Strict):
+    canonical_name: Annotated[str, Field(min_length=1, max_length=120)]
+    aliases: dict[str, list[Short]] = Field(default_factory=dict)
+    work: Short = ""
+    costume: Short = ""
+    visual_identifiers: list[Short] = Field(default_factory=list, max_length=20)
+    common_confusions: list[dict[str, Any]] = Field(default_factory=list, max_length=20)
+    uncertainties: list[Short] = Field(default_factory=list, max_length=20)
+    reference_provenance: Text = ""
+
+
+class ConfirmSummaryInput(Strict):
+    accepted_hypotheses: list[Text] = Field(default_factory=list, max_length=30)
+    apply_to_profile: bool = True
+
+
+class RollbackProfileInput(Strict):
+    target_version: int = Field(ge=1)
+
+
+class PreflightScanInput(Strict):
+    force: bool = False

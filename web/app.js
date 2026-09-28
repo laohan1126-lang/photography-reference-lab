@@ -6,7 +6,7 @@ const state = { csrf: '', projects: [], archivedProjects: [], project: null, vie
 const decisions = { pending: '未选择', keep: '已保留', maybe: '待定', reject: '已淘汰' };
 const statuses = { candidate: '候选 · 未核验', needs_review: '待逐图核验', needs_card: '待写资料卡', draft: '草稿 · 待确认', ready: '已确认现场卡', rejected: '已淘汰', inspiration: '灵感收藏', missing_asset: '图片缺失', blocked: '等待执行／受阻', running: '处理中', succeeded: '处理完成', failed: '执行失败', cancelled: '已取消', queued: '排队中' };
 const kinds = { unknown: '尚未分类', cosplay_photo: '真人 cosplay', portrait_photo: '普通真人摄影', illustration: '角色插画', equipment: '器材图', location: '场地图', collage: '拼图', generated: 'AI 生成概念' };
-const modalities = { real_person_cosplay:'真人 cosplay', real_person_portrait:'真人普通人像', game_screenshot:'游戏截图 / UI', anime_screenshot:'动画截图', official_illustration:'官方插画', fan_art:'同人插画', costume_display:'服装展示', mannequin:'假人 / 人台', product:'商品图', collage:'拼图 / 九宫格', scenery:'空场景', unknown:'无法可靠判断' };
+const modalities = { real_person_cosplay:'真人 cosplay', real_person_portrait:'真人普通人像', game_screenshot:'游戏截图 / UI', anime_screenshot:'动画截图', official_illustration:'官方插画', fan_art:'同人插画', costume_display:'服装展示', mannequin:'假人 / 人台', product:'商品图', collage:'拼图 / 九宫格', scenery:'空场景', equipment:'器材图 / 花絮', unknown:'无法可靠判断' };
 let toastTimer, modalDirty = false;
 
 
@@ -124,7 +124,7 @@ async function boot() {
     state.csrf=session.csrf; $('version').textContent='v'+session.version;
     state.caps=await api('/api/capabilities');
     const q=new URLSearchParams(location.hash.slice(1));
-    if ([...projectViews,'inspiration','jobs','notes'].includes(q.get('view'))) state.view=q.get('view');
+    if ([...projectViews,'inspiration','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
     state.activeId=q.get('ref'); state.focusId=state.activeId; state.offset=Math.max(0,Number(q.get('offset'))||0);
     state.query=(q.get('q')||'').slice(0,400); state.decision=q.get('decision')||''; state.kind=q.get('kind')||'';
     state.jobId=q.get('job')||''; state.recycled=q.get('recycled')==='1';
@@ -159,7 +159,7 @@ function renderHeader() {
         $('export-pack').onclick=()=>packDialog(); $('show-events').onclick=()=>navigate('events');
         $('archive-project').onclick=()=>archiveProject(p).catch(showError);
     } else {
-        const titles={inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
+        const titles={inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','长期审美倾向模型与版本演进；AI 基于筛选行为形成可复核假说，经你确认后沉淀，可随时回滚。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
         const t=titles[state.view]||titles.inspiration;
         $('project-header').innerHTML=`<div><span class="eyebrow">${t[0]}</span><h1>${t[1]}</h1><p>${t[2]}</p></div>${state.view==='inspiration'?'<div class="header-actions"><button id="add-inspiration" class="primary">＋ 收藏独立图片</button></div>':''}`;
         if ($('add-inspiration')) $('add-inspiration').onclick=()=>importDialog();
@@ -180,8 +180,10 @@ async function refreshView() {
     if (imageViews.includes(state.view)) await loadReferences();
     else if (state.view==='jobs') await renderJobs();
     else if (state.view==='notes') await renderNotes();
+    else if (state.view==='profile') await renderProfile();
     else await renderEvents();
 }
+
 
 
 async function loadReferences(fallbackIndex=0) {
@@ -212,7 +214,7 @@ function mountReferenceShell() {
     if (view.dataset.shell===key&&$('filmstrip')) return;
     view.dataset.shell=key;
     const global=state.view==='inspiration';
-    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}<span class="spacer"></span><small>${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="image-stage" id="image-stage"><img id="main-image" alt=""><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
+    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}<span class="spacer"></span><small>${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="image-stage" id="image-stage"><img id="main-image" alt=""><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
     const change=async(key,element)=>{
         if (state[key]===element.value) return;
         if (!safeDiscard()) { element.value=state[key];return; }
@@ -223,6 +225,8 @@ function mountReferenceShell() {
     $('search-ref').onkeydown=e=>{if(e.key==='Enter')change('query',e.target).catch(showError);};
     $('decision-filter').onchange=e=>change('decision',e.target).catch(showError);
     $('kind-filter').onchange=e=>change('kind',e.target).catch(showError);
+    if ($('finish-screening-btn')) $('finish-screening-btn').onclick=()=>finishScreeningSessionModal();
+
     if ($('toggle-recycled')) $('toggle-recycled').onclick=()=>{if(!safeDiscard())return;state.recycled=!state.recycled;state.offset=0;state.activeId=null;loadReferences().catch(showError);};
     // Delegation is installed once. Selection never rebinds 60 thumbnail handlers.
     $('filmstrip').onclick=e=>{
@@ -378,6 +382,36 @@ function openNote(note) { const root = modal(note.title, `<div class="compact-ro
 async function renderEvents() { const id = state.project.id, epoch = ++state.epoch; const events = await api(`/api/projects/${id}/events?limit=100`); if (epoch !== state.epoch)
     return; $('view').innerHTML = `<div class="notice">显示最近 100 条项目事件。这里记录导入、选择、核验、草稿与确认；代码改动的意图和验收以仓库 docs/tasks 为底稿，Notion 同步是可选视图。</div>${events.map(event => `<details class="event-card"><summary>${esc(event.action)} <small>${esc(event.actor)} · ${esc(event.at.slice(0, 19).replace('T', ' '))}</small></summary><pre>${esc(JSON.stringify(event.data, null, 2))}</pre></details>`).join('') || empty('尚无变更记录', '后续操作会留下实际事件，不会生成虚构的完成日志。')}`; }
 
+function preflightBadge(ref) {
+    const status = ref.preflight_status || ref.preflight?.status;
+    if (!status) return '';
+    const badges = {
+        passed: '<span class="badge badge-success">身份匹配</span>',
+        uncertain: '<span class="badge badge-warning">身份存疑</span>',
+        transferable: '<span class="badge badge-info">可迁移动作</span>',
+        filtered: '<span class="badge badge-danger">已过滤</span>',
+        restored: '<span class="badge badge-info">人工恢复</span>'
+    };
+    const b = badges[status] || `<span class="badge">${esc(status)}</span>`;
+    const reason = ref.preflight_reason || ref.preflight?.status_reason || '';
+    return `<div class="preflight-badge-row">${b} ${reason ? `<small class="preflight-reason">${esc(reason)}</small>` : ''}</div>`;
+}
+
+function recommendationBadges(ref) {
+    const rec = ref.recommendation;
+    if (!rec) return '';
+    const tags = [];
+    if (rec.identity_status && rec.identity_status !== 'passed' && rec.identity_status !== 'restored') {
+        tags.push(`<span class="tag tag-dim">${esc(rec.identity_status)}</span>`);
+    }
+    (rec.photographic_points || []).forEach(p => tags.push(`<span class="tag tag-photo">📷 ${esc(p)}</span>`));
+    (rec.preference_points || []).forEach(p => tags.push(`<span class="tag tag-pref">★ ${esc(p)}</span>`));
+    if (rec.exploration_reason) {
+        tags.push(`<span class="tag tag-explore">✦ ${esc(rec.exploration_reason)}</span>`);
+    }
+    return tags.length ? `<div class="recommendation-tags">${tags.join(' ')}</div>` : '';
+}
+
 function renderDetail(ref) {
     const selected=ref.selected_for_project, stage=stages[ref.workflow_stage]||statuses[ref.state];
     const recycled=ref.decision==='reject';
@@ -385,9 +419,9 @@ function renderDetail(ref) {
     const pf=ref.preflight;
     const next=ref.analysis_job?'查看制卡任务':ref.card?'检查草稿并确认':'制作现场卡';
     const blockers=(ref.blockers||[]).filter(b=>b.code!=='not_accepted');
-    $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p></div>
+    $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p>${preflightBadge(ref)}${recommendationBadges(ref)}</div>
     ${pf?`<section class='gate-box'><strong>候选视觉预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p><small>来自 ${esc(pf.producer||'未记录执行器')}；这是 Agent prediction，不是人工确认。</small></section>`:''}
-    ${preflightFiltered?'<button id="restore-preflight" class="primary">恢复为普通候选</button><p class="muted">恢复只解除预检过滤，不自动设为 K/I/M/X，也不确认角色。</p>':recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration" class="${ref.decision==='keep'&&ref.lane==='inspiration'?'chosen':''}"><strong>通用灵感</strong><small>I · 收藏到我的审美库</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
+    ${preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration" class="${ref.decision==='keep'&&ref.lane==='inspiration'?'chosen':''}"><strong>通用灵感</strong><small>I · 收藏到我的审美库</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
     ${!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
     ${ref.card?cardMarkup(ref.card,ref.field_ready):ref.review?`<section class="guide-section"><h3>分析结论</h3>${ordered(ref.review.observations)}${ref.review.critical_uncertainties.length?`<p>待确认：${esc(ref.review.critical_uncertainties.join('；'))}</p>`:''}<p>${ref.card?'':'尚未生成资料卡。可保留作审美参考，不强行凑拍摄指令。'}</p></section>`:''}
@@ -397,6 +431,7 @@ function renderDetail(ref) {
     ${ref.source.page_url?`<a class="source-link" href="${esc(ref.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:''}`;
     listen('detail-panel','[data-decision]','click',(e,n)=>decide(n.dataset.decision));
     if($('restore-preflight'))$('restore-preflight').onclick=()=>restorePreflight(ref).catch(showError);
+    if($('make-transferable'))$('make-transferable').onclick=()=>makeTransferable(ref).catch(showError);
     if($('restore-reference'))$('restore-reference').onclick=()=>restoreReference(ref).catch(showError);
     if($('make-card'))$('make-card').onclick=()=>{if(!requireSaved())return; (ref.analysis_job?jobHandoff(ref.analysis_job.id):ref.card?Promise.resolve(acceptanceEditor(ref)):newAnalysis([ref.id])).catch(showError);};
     $('preference-form').oninput=()=>{state.dirty=true;$('dirty-indicator').textContent='尚未保存';};
@@ -411,6 +446,7 @@ function renderDetail(ref) {
     $('similar-images').onclick=()=>similarDialog(ref).catch(showError);
     if($('add-reflection'))$('add-reflection').onclick=()=>{if(requireSaved())reflectionEditor(ref);};
 }
+
 function preferenceValues() {
     const form=$('preference-form');if(!form)return{};
     const data=values(form);return {preference:data.preference,borrow:data.borrow.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean)};
@@ -467,6 +503,12 @@ async function restorePreflight(ref) {
     try{await api(`/api/references/${ref.id}/preflight-override`,{method:'POST',body:{expected_revision:ref.revision,action:'restore'}});await loadReferences();await renderStats();toast('已恢复为普通候选；仍需你决定 K/I/M/X');}
     finally{state.busy=false;}
 }
+async function makeTransferable(ref) {
+    if(state.busy)return;state.busy=true;
+    try{await api(`/api/references/${ref.id}/make-transferable`,{method:'POST',body:{expected_revision:ref.revision}});await loadReferences();await renderStats();toast('已降级为通用灵感并解除过滤');}
+    finally{state.busy=false;}
+}
+
 async function saveGlobal(ref) {
     if(!requireSaved()||state.busy)return;state.busy=true;
     try{await api(`/api/references/${ref.id}/inspiration`,{method:'POST',body:{expected_revision:ref.revision}});await loadReferences();toast('已独立收藏；本角色选择保持不变');}
@@ -626,6 +668,176 @@ async function renderNotes() {
     listen('view','[data-note]','click',(e,n)=>openNote(notes.find(x=>x.id===n.dataset.note)));
     listen('view','[data-note]','keydown',(e,n)=>{if(e.key==='Enter')openNote(notes.find(x=>x.id===n.dataset.note));});
 }
+
+async function finishScreeningSessionModal() {
+    if (!state.project) return;
+    try {
+        const currentSess = await api(`/api/projects/${state.project.id}/screening-sessions/current`);
+        const summary = await api(`/api/screening-sessions/${currentSess.id}/finish`, { method: 'POST' });
+        const stats = summary.stats || {};
+        const hypotheses = summary.hypotheses || [];
+        const content = `
+        <div class="session-summary-dialog">
+            <p class="form-help">筛选已完成。系统为你统计了本轮选择，并基于你的实际动作生成了可解释的审美偏好假说。你拥有完全的裁决权。</p>
+            <div class="stats-grid" style="display:flex;gap:12px;margin:12px 0;">
+                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                    <div style="font-size:20px;font-weight:bold;">${stats.viewed || 0}</div>
+                    <small>已浏览</small>
+                </div>
+                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                    <div style="font-size:20px;font-weight:bold;color:var(--accent);">${stats.keep || 0}</div>
+                    <small>保留(K)</small>
+                </div>
+                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                    <div style="font-size:20px;font-weight:bold;color:var(--gold);">${stats.inspiration || 0}</div>
+                    <small>灵感(I)</small>
+                </div>
+                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                    <div style="font-size:20px;font-weight:bold;">${stats.maybe || 0}</div>
+                    <small>待定(M)</small>
+                </div>
+                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                    <div style="font-size:20px;font-weight:bold;color:var(--danger);">${stats.reject || 0}</div>
+                    <small>淘汰(X)</small>
+                </div>
+            </div>
+
+            <form id="session-confirm-form">
+                <h3 style="margin-top:16px;">本轮沉淀假说（勾选你认可的推论）</h3>
+                ${hypotheses.length ? hypotheses.map(h => `
+                    <label class="check" style="margin-bottom:8px;align-items:flex-start;">
+                        <input type="checkbox" name="hypothesis" value="${esc(h.text)}" checked>
+                        <span>
+                            <strong>${esc(h.text)}</strong><br>
+                            <small class="muted">依据: ${esc(h.rationale)} · 置信度: ${esc(h.confidence)}</small>
+                        </span>
+                    </label>
+                `).join('') : '<p class="muted">本轮动作量较少，尚未形成显著的统计倾向假说。</p>'}
+
+                <div style="margin:16px 0;padding:12px;background:#f9f9f9;border-radius:8px;border:1px solid var(--line);">
+                    <label class="check">
+                        <input type="radio" name="apply_choice" value="true" checked>
+                        <span><strong>更新我的长期审美画像</strong>（版本将从 v${summary.current_profile_version} 推进）</span>
+                    </label>
+                    <label class="check" style="margin-top:6px;">
+                        <input type="radio" name="apply_choice" value="false">
+                        <span><strong>这轮不学习</strong>（仅记录筛选完成，不影响全局画像与后续推荐权重）</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary">确认完成本轮筛选</button>
+                </div>
+            </form>
+        </div>`;
+        const root = modal('本轮筛选总结与偏好确认', content);
+        root.querySelector('#session-confirm-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const checkedHypotheses = [...root.querySelectorAll('input[name=hypothesis]:checked')].map(input => input.value);
+            const applyChoice = root.querySelector('input[name=apply_choice]:checked').value === 'true';
+            await api(`/api/screening-sessions/${currentSess.id}/confirm`, {
+                method: 'POST',
+                body: {
+                    accepted_hypotheses: checkedHypotheses,
+                    apply_to_profile: applyChoice
+                }
+            });
+            closeModal();
+            toast(applyChoice ? '本轮总结已确认，审美画像已更新' : '本轮筛选已完成（未更新画像）');
+            await loadReferences();
+            await renderStats();
+        };
+    } catch (err) {
+        showError(err);
+    }
+}
+
+async function renderProfile() {
+    const epoch = ++state.epoch;
+    $('view').dataset.shell = '';
+    const [profile, history] = await Promise.all([
+        api('/api/profile'),
+        api('/api/profile/history')
+    ]);
+    if (epoch !== state.epoch) return;
+
+    const dims = profile.dimensions || {};
+    const dimensionRows = Object.entries(dims).map(([category, weights]) => {
+        const catNames = { angles: '视角偏好', framing: '景别偏好', lighting: '光线偏好', composition: '构图偏好', environment: '场景偏好' };
+        const labelMap = {
+            low_angle: '低角度仰拍', eye_level: '平视', high_angle: '高角度俯拍', dramatic_tilt: '动态倾斜',
+            full_body: '全身', medium_shot: '半身/七分', close_up: '特写',
+            rim_light: '轮廓光/逆光', high_contrast: '高对比侧光', diffuse_soft: '漫射柔光', natural_window: '自然窗光',
+            dynamic_diagonal: '对角线/动态构图', rule_of_thirds: '三分法则', clean_negative_space: '干净留白',
+            studio_clean: '影棚纯色/纯净', textured_location: '实景肌理', crowded_scene: '复杂杂乱背景'
+        };
+        const bars = Object.entries(weights).map(([k, w]) => {
+            const pct = Math.round(w * 100);
+            return `
+            <div style="display:flex;align-items:center;margin-bottom:6px;gap:8px;">
+                <span style="width:110px;font-size:13px;">${esc(labelMap[k] || k)}</span>
+                <div style="flex:1;background:var(--line);height:8px;border-radius:4px;overflow:hidden;">
+                    <div style="background:var(--accent);height:100%;width:${pct}%;"></div>
+                </div>
+                <span style="width:36px;font-size:12px;text-align:right;color:var(--muted);">${w.toFixed(2)}</span>
+            </div>`;
+        }).join('');
+        return `
+        <div class="dimension-card" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px;">
+            <h4 style="margin:0 0 10px 0;font-size:14px;color:var(--ink);">${esc(catNames[category] || category)}</h4>
+            ${bars}
+        </div>`;
+    }).join('');
+
+    const hypothesesHtml = (profile.accepted_hypotheses || []).map(h => `
+        <li style="margin-bottom:6px;">${esc(h)}</li>
+    `).join('') || '<p class="muted">尚未确认任何偏好假说。多挑几轮参考后将自动生成并提示。</p>';
+
+    const historyHtml = (history || []).map(h => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);">
+            <div>
+                <strong>v${h.version}</strong> · <small class="muted">${esc(h.at ? h.at.slice(0, 19).replace('T', ' ') : '')}</small>
+                <div style="font-size:13px;color:var(--muted);">${esc(h.summary)}</div>
+            </div>
+            ${h.version !== profile.version ? `
+                <button class="rollback-btn quiet" data-version="${h.version}" style="border:1px solid var(--line);">回滚至此版本</button>
+            ` : '<span class="badge badge-success">当前生效</span>'}
+        </div>
+    `).join('') || '<p class="muted">暂无历史版本记录。</p>';
+
+    $('view').innerHTML = `
+    <div class="profile-view-layout" style="display:flex;gap:20px;padding:10px 0;">
+        <div style="flex:1.2;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h3 style="margin:0;">偏好维度权重 (当前版本 v${profile.version})</h3>
+                <small class="muted">样本数: ${profile.positive_exemplars?.length || 0} 正样本 / ${profile.explicit_aesthetic_negatives?.length || 0} 负样本</small>
+            </div>
+            ${dimensionRows}
+            <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px;">
+                <h4 style="margin:0 0 8px 0;">已采纳的审美偏好假说</h4>
+                <ul style="margin:0;padding-left:18px;">${hypothesesHtml}</ul>
+            </div>
+        </div>
+        <div style="flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;align-self:flex-start;">
+            <h3 style="margin:0 0 10px 0;">版本历史与可审计回滚</h3>
+            <p class="form-help">历史画像绝不丢失。如果某轮筛选改变过大，随时可以安全回滚到任意历史版本。</p>
+            <div class="history-list">${historyHtml}</div>
+        </div>
+    </div>`;
+
+    listen('view', '.rollback-btn', 'click', async (e, n) => {
+        const ver = Number(n.dataset.version);
+        if (!window.confirm(`确定要将审美画像回滚到 v${ver} 吗？`)) return;
+        try {
+            await api('/api/profile/rollback', { method: 'POST', body: { target_version: ver } });
+            toast(`已成功回滚至画像版本 v${ver}`);
+            await renderProfile();
+        } catch (err) {
+            showError(err);
+        }
+    });
+}
+
 
 
 $('login-form').addEventListener('submit',async e=>{

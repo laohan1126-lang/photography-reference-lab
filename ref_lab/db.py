@@ -57,14 +57,17 @@ class Database:
         self.migration_report = None
         with self.read() as con:
             version = con.execute("PRAGMA user_version").fetchone()[0]
-            if version not in {0, 1, 2}:
+            if version not in {0, 1, 2, 3}:
                 raise RuntimeError(f"Unsupported database schema {version}; restore or migrate explicitly")
-            if version == 1:
+            if version in {1, 2}:
                 # Online SQLite backup includes WAL; a raw file copy would not.
-                fd, backup_name = tempfile.mkstemp(prefix="library-before-v2-", suffix=".sqlite3", dir=path.parent)
+                fd, backup_name = tempfile.mkstemp(prefix=f"library-before-v{version+1}-", suffix=".sqlite3", dir=path.parent)
                 os.close(fd)
-                with sqlite3.connect(backup_name) as destination:
-                    con.backup(destination)
+                dest = sqlite3.connect(backup_name)
+                try:
+                    con.backup(dest)
+                finally:
+                    dest.close()
                 self.migration_report = {"backup": backup_name}
         with self.transaction() as con:
             version = con.execute("PRAGMA user_version").fetchone()[0]
@@ -77,6 +80,15 @@ class Database:
                 self.migration_report = {**(self.migration_report or {}), **report, "from": version, "to": 2}
                 self.event(con, None, "schema", "schema.migrated", self.migration_report, "migration")
                 con.execute("PRAGMA user_version=2")
+                version = 2
+            if version < 3:
+                from .migrations import upgrade_v3
+                report = upgrade_v3(con)
+                initial_from = self.migration_report.get("from", version) if self.migration_report else version
+                self.migration_report = {**(self.migration_report or {}), **report, "from": initial_from, "to": 3}
+                self.event(con, None, "schema", "schema.migrated", self.migration_report, "migration")
+                con.execute("PRAGMA user_version=3")
+
 
     def connection(self) -> sqlite3.Connection:
         con = sqlite3.connect(self.path, timeout=15)

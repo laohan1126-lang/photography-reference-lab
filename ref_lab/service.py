@@ -48,7 +48,7 @@ def ensure_active_project(project: dict) -> None:
 _REAL_PERSON_MODALITIES = {"real_person_cosplay", "real_person_portrait"}
 _FILTERED_MODALITIES = {
     "game_screenshot", "anime_screenshot", "official_illustration", "fan_art",
-    "costume_display", "mannequin", "product", "collage", "scenery",
+    "costume_display", "mannequin", "product", "collage", "scenery", "equipment",
 }
 
 
@@ -232,6 +232,31 @@ class Library:
                     raise ValueError("Invalid initial decision")
                 ref = self._insert_reference(con, project, data, decision, actor)
                 created = True
+                if data.asset_sha and actor not in {"legacy_migration", "import"}:
+
+                    try:
+                        from .identity import get_identity_context, build_identity_context, save_identity_context
+                        from .preflight import run_candidate_preflight, save_preflight
+                        id_ctx = get_identity_context(con, project_id=project_id)
+                        if not id_ctx:
+                            id_ctx = build_identity_context(project["character"], project.get("work", ""), project.get("costume", ""), project.get("brief", ""))
+                            save_identity_context(con, project_id, id_ctx)
+                        asset = row_data(con, "assets", data.asset_sha)
+                        img_path = self.assets.path(asset)
+                        if img_path.exists():
+                            pf = run_candidate_preflight(img_path, metadata=ref, context=id_ctx, asset_sha=data.asset_sha, project_id=project_id, reference_id=ref["id"])
+                            save_preflight(con, pf)
+                            ref["preflight_status"] = pf["status"]
+                            ref["preflight_reason"] = pf["status_reason"]
+                            ref["preflight_id"] = pf["id"]
+                            ref["preflight"] = pf
+                            ref["dhash"] = pf.get("dhash", "")
+                            ref["preflight_filtered"] = (pf["status"] == "filtered")
+                            ref["preflight_override"] = False
+                            con.execute("UPDATE refs SET data=? WHERE id=?", (encode(ref), ref["id"]))
+                    except Exception:
+                        pass
+
             if record_context:
                 record_discovery(con, ref, data.source.model_dump(), job_id=data.job_id or None,
                                  project_snapshot=(job.get("project_snapshot") if job else project) if actor != "legacy_migration" else None,
@@ -248,7 +273,7 @@ class Library:
     def references(self, project_id: str, *, limit: int = 60, offset: int = 0, query: str = "",
                    decision: str = "", state: str = "", lane: str = "", kind: str = "",
                    include_rejected: bool = False, view_filtered: bool = False,
-                   job_id: str = "", focus_id: str = "") -> dict:
+                   job_id: str = "", focus_id: str = "", preflight_status: str = "") -> dict:
         clauses, args = ["project_id=?"], [project_id]
         if view_filtered:
             clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=1")
@@ -256,6 +281,9 @@ class Library:
             clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=0")
             if not include_rejected and decision != "reject" and state != "rejected":
                 clauses.append("decision<>'reject'")
+        if preflight_status:
+            clauses.append("COALESCE(json_extract(data,'$.preflight_status'),'unreviewed')=?")
+            args.append(preflight_status)
         if job_id:
             job = self.job(job_id)
             if job["project_id"] != project_id or job["kind"] != "collection":
@@ -284,7 +312,17 @@ class Library:
                 offset = position // limit * limit
             count = con.execute(f"SELECT COUNT(*) FROM refs WHERE {where}", args).fetchone()[0]
             rows = con.execute(f"SELECT data FROM refs WHERE {where} ORDER BY rowid LIMIT ? OFFSET ?", (*args, limit, offset))
-            return {"items": [self._decorate(con, json.loads(r[0]), project) for r in rows], "total": count, "offset": offset, "limit": limit}
+            items = [self._decorate(con, json.loads(r[0]), project) for r in rows]
+            if not focus_id and not view_filtered:
+                try:
+                    from .aesthetic_profile import get_current_profile
+                    from .ranking import score_and_rank_candidates
+                    profile = get_current_profile(con)
+                    items = score_and_rank_candidates(items, profile)
+                except Exception:
+                    pass
+            return {"items": items, "total": count, "offset": offset, "limit": limit}
+
 
     def stats(self, project_id: str) -> dict:
         with self.db.read() as con:
@@ -776,3 +814,164 @@ class Library:
                        last_receipt_reference_ids=current_ids)
             evidence = {"report": report.model_dump(), "reference_ids": current_ids, "attempt_id": attempt_id}
             return self._save_job(con, job, "collection.reported", evidence, "agent")
+
+    def identity_context(self, project_id: str) -> dict:
+        from .identity import get_identity_context, build_identity_context, save_identity_context
+        with self.db.transaction() as con:
+            ctx = get_identity_context(con, project_id=project_id)
+            if not ctx:
+                project = row_data(con, "projects", project_id)
+                ctx = build_identity_context(
+                    project.get("character", ""),
+                    project.get("work", ""),
+                    project.get("costume", ""),
+                    project.get("brief", ""),
+                )
+                save_identity_context(con, project_id, ctx)
+            return ctx
+
+    def update_identity_context(self, project_id: str, data: IdentityContextInput) -> dict:
+        from .identity import get_identity_context, save_identity_context
+        with self.db.transaction() as con:
+            existing = get_identity_context(con, project_id=project_id)
+            new_version = (existing.get("version", 1) + 1) if existing else 1
+            ctx_dict = data.model_dump()
+            ctx_dict["version"] = new_version
+            ctx_dict["updated_at"] = now()
+            saved = save_identity_context(con, project_id, ctx_dict)
+            self.db.event(con, project_id, saved["id"], "identity_context.updated", {"version": new_version})
+            return saved
+
+    def preflights(self, project_id: str, status: str = "") -> list[dict]:
+        from .preflight import list_preflights
+        with self.db.read() as con:
+            return list_preflights(con, project_id, status=status or None)
+
+    def scan_project_preflight(self, project_id: str, force: bool = False) -> dict:
+        from .identity import get_identity_context, build_identity_context, save_identity_context
+        from .preflight import run_candidate_preflight, save_preflight
+        with self.db.transaction() as con:
+            project = row_data(con, "projects", project_id)
+            id_ctx = get_identity_context(con, project_id=project_id)
+            if not id_ctx:
+                id_ctx = build_identity_context(project["character"], project.get("work", ""), project.get("costume", ""), project.get("brief", ""))
+                save_identity_context(con, project_id, id_ctx)
+
+            refs_rows = con.execute("SELECT id, asset_sha, data FROM refs WHERE project_id=?", (project_id,)).fetchall()
+            scanned = 0
+            filtered = 0
+            passed = 0
+            uncertain = 0
+            for rid, sha, rdata_str in refs_rows:
+                ref = json.loads(rdata_str)
+                if not force and ref.get("preflight_status") and "preflight" in ref:
+                    if ref.get("preflight_filtered"):
+                        filtered += 1
+                    elif ref.get("preflight_status") == "passed":
+                        passed += 1
+                    else:
+                        uncertain += 1
+                    continue
+
+                asset = row_data(con, "assets", sha) if sha else None
+                if not asset:
+                    continue
+                img_path = self.assets.path(asset)
+                if not img_path.exists():
+                    continue
+
+                pf = run_candidate_preflight(img_path, metadata=ref, context=id_ctx, asset_sha=sha, project_id=project_id, reference_id=rid)
+                save_preflight(con, pf)
+                ref["preflight_status"] = pf["status"]
+                ref["preflight_reason"] = pf["status_reason"]
+                ref["preflight_id"] = pf["id"]
+                ref["preflight"] = pf
+                ref["dhash"] = pf.get("dhash", "")
+                ref["preflight_filtered"] = (pf["status"] == "filtered")
+                con.execute("UPDATE refs SET data=? WHERE id=?", (encode(ref), rid))
+                scanned += 1
+                if pf["status"] == "filtered":
+                    filtered += 1
+                elif pf["status"] == "passed":
+                    passed += 1
+                else:
+                    uncertain += 1
+
+            return {
+                "total": len(refs_rows),
+                "scanned": scanned,
+                "passed": passed,
+                "filtered": filtered,
+                "uncertain": uncertain
+            }
+
+    def restore_preflight_candidate(self, ident: str, revision: int) -> dict:
+        with self.db.transaction() as con:
+            ref = row_data(con, "refs", ident)
+            check_revision(ref, revision)
+            project = row_data(con, "projects", ref["project_id"])
+            ref["preflight_filtered"] = False
+            ref["preflight_override"] = True
+            ref["preflight_status"] = "restored"
+            ref["revision"] += 1
+            ref["updated_at"] = now()
+            con.execute("UPDATE refs SET data=? WHERE id=?", (encode(ref), ident))
+            self.db.event(con, project["id"], ident, "reference.preflight_restored", {"revision": ref["revision"]})
+            return self._decorate(con, ref, project)
+
+    def make_transferable_candidate(self, ident: str, revision: int) -> dict:
+        with self.db.transaction() as con:
+            ref = row_data(con, "refs", ident)
+            check_revision(ref, revision)
+            project = row_data(con, "projects", ref["project_id"])
+            ref["preflight_filtered"] = False
+            ref["preflight_override"] = True
+            ref["preflight_status"] = "transferable"
+            ref["allow_cross_domain"] = True
+            ref["lane"] = "inspiration"
+            ref["revision"] += 1
+            ref["updated_at"] = now()
+            con.execute("UPDATE refs SET data=? WHERE id=?", (encode(ref), ident))
+            self.db.event(con, project["id"], ident, "reference.made_transferable", {"revision": ref["revision"]})
+            return self._decorate(con, ref, project)
+
+    def current_screening_session(self, project_id: str) -> dict:
+        from .screening import get_or_create_active_session
+        with self.db.transaction() as con:
+            return get_or_create_active_session(con, project_id)
+
+    def screening_sessions(self, project_id: str) -> list[dict]:
+        from .screening import list_sessions
+        with self.db.read() as con:
+            return list_sessions(con, project_id)
+
+    def finish_screening_session(self, session_id: str) -> dict:
+        from .screening import finish_screening_session
+        with self.db.transaction() as con:
+            res = finish_screening_session(con, session_id)
+            self.db.event(con, res.get("project_id"), session_id, "screening_session.finished", res)
+            return res
+
+    def confirm_screening_summary(self, session_id: str, accepted_hypotheses: list[str], apply_to_profile: bool = True) -> dict:
+        from .screening import confirm_session_summary
+        with self.db.transaction() as con:
+            res = confirm_session_summary(con, session_id, accepted_hypotheses, apply_to_profile)
+            self.db.event(con, None, session_id, "screening_summary.confirmed", res)
+            return res
+
+    def aesthetic_profile(self) -> dict:
+        from .aesthetic_profile import get_current_profile
+        with self.db.transaction() as con:
+            return get_current_profile(con)
+
+    def profile_history(self) -> list[dict]:
+        from .aesthetic_profile import list_profile_history
+        with self.db.read() as con:
+            return list_profile_history(con)
+
+    def rollback_profile(self, target_version: int) -> dict:
+        from .aesthetic_profile import rollback_profile
+        with self.db.transaction() as con:
+            res = rollback_profile(con, target_version)
+            self.db.event(con, None, "current", "aesthetic_profile.rolled_back", {"target_version": target_version, "new_version": res["version"]})
+            return res

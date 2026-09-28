@@ -59,3 +59,47 @@ def upgrade_catalog(con: sqlite3.Connection) -> dict:
     for table, key in (("discoveries", "discoveries"), ("inspirations", "inspirations"), ("asset_observations", "observations")):
         report[key] = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
     return report
+
+
+V3_SCHEMA = """
+CREATE TABLE IF NOT EXISTS identity_contexts (
+ id TEXT PRIMARY KEY, project_id TEXT REFERENCES projects(id),
+ character TEXT NOT NULL, version INTEGER NOT NULL, data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS identity_project ON identity_contexts(project_id, version);
+CREATE INDEX IF NOT EXISTS identity_character ON identity_contexts(character);
+CREATE TABLE IF NOT EXISTS preflights (
+ id TEXT PRIMARY KEY, asset_sha TEXT NOT NULL REFERENCES assets(id),
+ project_id TEXT REFERENCES projects(id), reference_id TEXT REFERENCES refs(id),
+ identity_context_id TEXT, status TEXT NOT NULL, data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS preflight_asset ON preflights(asset_sha);
+CREATE INDEX IF NOT EXISTS preflight_project ON preflights(project_id, status);
+CREATE INDEX IF NOT EXISTS preflight_ref ON preflights(reference_id);
+CREATE TABLE IF NOT EXISTS screening_sessions (
+ id TEXT PRIMARY KEY, project_id TEXT REFERENCES projects(id),
+ status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT, data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS session_project ON screening_sessions(project_id, status);
+CREATE TABLE IF NOT EXISTS aesthetic_profiles (
+ id TEXT PRIMARY KEY, version INTEGER NOT NULL, updated_at TEXT NOT NULL, data TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS profile_version_idx ON aesthetic_profiles(version);
+CREATE TABLE IF NOT EXISTS aesthetic_profile_history (
+ id INTEGER PRIMARY KEY AUTOINCREMENT, version INTEGER NOT NULL, at TEXT NOT NULL, action TEXT NOT NULL, data TEXT NOT NULL
+);
+"""
+
+
+def upgrade_v3(con: sqlite3.Connection) -> dict:
+    for statement in V3_SCHEMA.split(";"):
+        if statement.strip():
+            con.execute(statement)
+    from .aesthetic_profile import get_current_profile
+    profile = get_current_profile(con)
+    return {
+        "identity_contexts": con.execute("SELECT COUNT(*) FROM identity_contexts").fetchone()[0],
+        "preflights": con.execute("SELECT COUNT(*) FROM preflights").fetchone()[0],
+        "screening_sessions": con.execute("SELECT COUNT(*) FROM screening_sessions").fetchone()[0],
+        "aesthetic_profiles": con.execute("SELECT COUNT(*) FROM aesthetic_profiles").fetchone()[0],
+    }
