@@ -27,7 +27,7 @@ python -m ref_lab backup --output ../reference-lab-backup.zip
 
 ## 下一次打开应该怎么用
 
-**拍摄项目 → 挑参考**：角色名必填，作品、服装版本和自由要求选填。独立大图旁只有四个主要选择：本角色参考 **K**、通用灵感 **I**、待定 **M**、淘汰 **X**。左右键切图，可关闭“选择后下一张”。审美笔记、来源纠错、手动编辑藏在次级折叠区。选为本角色参考表示“值得用于这个项目”，并不宣称图中就是目标角色。
+**拍摄项目 → 挑参考**：角色名必填，作品、服装版本和自由要求选填。独立大图旁只有四个主要选择：本角色参考 **K**、通用灵感 **I**、待定 **M**、淘汰 **X**。左右键切图，可关闭“选择后下一张”。审美笔记、来源纠错、手动编辑藏在次级折叠区。选为本角色参考表示“值得用于这个项目”，并不宣称图中就是目标角色。采集 Agent 的视觉预检会把游戏/动画截图、插画、假人/服装/商品展示、拼图、空场景及高可信错角色从默认真人候选流降到“已过滤候选”；过滤不等于 X，也不删除资产，用户可以恢复。
 
 **我的审美库**与项目平级，即使没有任何项目也能上传收藏。可以长期保存动作、表情、构图、光线、色彩、电影画面等，再引用到多个角色。同一个文件按 SHA-256 只存一份。已有项目选择（包括淘汰）不会因再次引用而被静默改变；一个项目淘汰图片不会删除全局收藏或其他项目的使用关系。
 
@@ -39,7 +39,7 @@ python -m ref_lab backup --output ../reference-lab-backup.zip
 
 点“找一批参考”，保存完整角色、作品、版本、项目要求、器材和本轮自由要求，再下载任务包或复制执行提示词。**默认不会自动唤醒本机 Agent，也不会把等待状态写成已搜完**。可选的 `LAB_COLLECTION_COMMAND` 适配器仅在明确配置、点击启动后运行；没有适配器就保留任务包 / CLI 交接，不偷偷换抓图方式。
 
-本地 Agent 使用已安装的腾讯 BrowserSkill，在用户授权的真实浏览器里制定检索计划、扩展中日英关键词、评估多个来源、逐张下载并记录出处，返回候选包。小红书和 Pinterest 是候选来源，不是固定执行顺序；来源按任务质量与可用性选择，不机械维护九个网站的专用爬虫。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。来源检查、低产停止原因和数量缺口进入回执。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
+本地 Agent 使用已安装的腾讯 BrowserSkill，在用户授权的真实浏览器里制定检索计划、扩展中日英关键词、评估多个来源、逐张下载并记录出处，返回候选包。小红书和 Pinterest 是候选来源，不是固定执行顺序；来源按任务质量与可用性选择，不机械维护九个网站的专用爬虫。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。当前 schema 3 候选包要求 Agent 实际打开每张图片并提交 modality + identity preflight；标题、query、项目名或页面文字不能作为视觉证据。来源检查、低产停止原因和数量缺口进入回执。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
 
 同一数据目录下也可以直接交接：
 
@@ -56,11 +56,11 @@ python -m ref_lab import-job --job ANALYSIS_JOB_ID --input analysis.json
 
 [2026-09-28 collector 检查点](docs/tasks/2026-09-28-collector-checkpoint.md) 修复固定/静默采集回退、旧导入数量冒充新成功、HTTP 200 被界面误报完成的问题。候选包原始回执与服务端本包导入证据分开，重试和取消保留历史图片。配置接口与明确限制见 [适配器协议](docs/WORKER_PROTOCOL.md#2026-09-28-未发布检查点本地采集适配器)。
 
-**这不是完整候选生产线发布。** 尚无独立 identity/quality preflight、摄影/偏好排序、结束筛选会话、版本化审美画像。供应商 CLI 适配器尚需本机实现/接通；未证明真实 BrowserSkill 搜图质量或原生 Windows 进程生命周期。现有分析提供器的固定路径/参数也没有在此 collector 检查点中解决。不要把本检查点直接当成日常库的已验收升级。
+**这不是完整候选生产线发布。** 当前增加了可审计的候选 modality + identity preflight 协议、过滤/恢复路径和安全项目回收，但真实图片分类准确率仍必须由本机 Agent 逐图实测，不能由协议测试证明。更完整的 quality preflight、摄影/偏好排序、结束筛选会话、版本化审美画像仍未完成。供应商 CLI 适配器尚需本机实现/接通；未证明真实 BrowserSkill 搜图质量或原生 Windows 进程生命周期。现有分析提供器的固定路径/参数也没有在此 collector 检查点中解决。不要把本检查点直接当成日常库的已验收升级。
 
 ## 淘汰、恢复与磁盘空间
 
-淘汰立即从默认候选流消失；“已淘汰 / 恢复”可以恢复原选择，但不恢复旧现场卡确认。移出审美库也有独立恢复入口。
+淘汰立即从默认候选流消失；“已淘汰 / 恢复”可以恢复原选择，但不恢复旧现场卡确认。视觉预检过滤与 X 分开，“已过滤候选”可以人工恢复为普通候选。移出审美库也有独立恢复入口。项目设置中的“删除项目”采用可恢复的软删除：项目从正常列表隐藏，但共享图片、全局审美收藏、其他项目引用和历史记录不物理删除；侧栏回收入口可恢复项目。
 
 默认**不自动删除文件**。需要释放磁盘时先检查清单，再显式执行：
 
@@ -74,7 +74,7 @@ python -m ref_lab cleanup --days 30 --apply
 ## 回归与维护
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py
 node --check web/app.js
 python -m playwright install chromium
 python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
