@@ -19,14 +19,14 @@ python -m playwright install chromium
 ## 自动回归
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py
 node --check web/app.js
 python -m compileall -q ref_lab tools tests
 python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
 python -m pytest -q tests/test_browser.py tests/test_live_system_regression.py
 ```
 
-个人库测试覆盖全局无项目收藏、多项目同字节引用、发现意图不变图像事实、淘汰/恢复、schema1升级、旧选择/确认/笔记保留、任务包/回执/分析部分完成、旧快照拒绝和磁盘清理保护。
+个人库测试覆盖全局无项目收藏、多项目同字节引用、发现意图不变图像事实、淘汰/恢复、schema1升级、旧选择/确认/笔记保留、任务包/回执/分析部分完成、旧快照拒绝和磁盘清理保护。新增 modality/archive 回归覆盖游戏截图等非真人类型进入过滤流、identity mismatch/uncertain 语义、schema3 preflight 导入、schema2 不伪造 preflight，以及项目软删除后共享 Asset / Global Inspiration / 其他项目引用保持。
 
 组件测试使用真实 Chromium + 明示 TestClient 桥接，不覆盖实际 HTTP、Cookie、跨域或离线文件打开。检查 72 张样本中的 DOM 节点身份、已可见缩略图精确滚动位置、K/M/I/X 和两种自动下一张设置、跨页、刷新定位、无项目收藏上传、多角色引用、草稿检查和 409。只通过这些不能声称完整浏览器闭环。
 
@@ -38,7 +38,9 @@ HTTP 测试真实启动 Uvicorn、登录取得 Cookie、上传/下载候选 ZIP 
 
 进入“挑参考”，把缩略图滑到后段，点击当前可见图、左右键、K/I/M/X；开关自动下一张都不应突然回首图。淘汰立即消失，“已淘汰 / 恢复”能找回原选择。筛选和刷新保存当前位置与服务器选择；大图临时加载失败后恢复也不能一直隐藏。
 
-点通用灵感进入独立审美库；引用到第二角色后核对同一图片、旧项目选择不变、新项目没有继承角色事实或卡片。没有项目时仍可直接收藏或写笔记。390px 宽度不横向溢出。
+采集 schema3 后，人工抽看“已过滤候选”：游戏 UI / 游戏截图、插画、假人/服装/商品展示、拼图、空场景不应继续显示成默认真人 cosplay PASS；错角色真人图应 mismatch，无法可靠判断应 uncertain。必须打开实际图片核对，不能用标题或检索词作为通过证据。过滤条目可人工恢复，恢复不自动设置 K/I/M/X。
+
+点通用灵感进入独立审美库；引用到第二角色后核对同一图片、旧项目选择不变、新项目没有继承角色事实或卡片。没有项目时仍可直接收藏或写笔记。项目设置中删除一个专用测试项目，确认刷新后从普通侧栏消失、回收入口可见；共享图片、全局收藏与其他项目引用仍在；恢复后项目关系回来。390px 宽度不横向溢出。
 
 角色精选中只挑几张“制作现场卡”。未交给 Agent 的任务应保持等待；真实导入后才显示草稿/分析结论。检查用户不确认时 ready=0；图片/来源/要求改变后旧确认失效。图中真有可执行人物姿势、来源与授权范围是否准确，必须人工或实际逐图分析；不要以测试通过代替。
 
