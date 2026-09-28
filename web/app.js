@@ -364,10 +364,13 @@ async function renderEvents() { const id = state.project.id, epoch = ++state.epo
 function renderDetail(ref) {
     const selected=ref.selected_for_project, stage=stages[ref.workflow_stage]||statuses[ref.state];
     const recycled=ref.decision==='reject';
+    const preflightFiltered=state.view==='filtered'&&ref.preflight_filtered;
+    const pf=ref.preflight;
     const next=ref.analysis_job?'查看制卡任务':ref.card?'检查草稿并确认':'制作现场卡';
     const blockers=(ref.blockers||[]).filter(b=>b.code!=='not_accepted');
     $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p></div>
-    ${recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration" class="${ref.decision==='keep'&&ref.lane==='inspiration'?'chosen':''}"><strong>通用灵感</strong><small>I · 收藏到我的审美库</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
+    ${pf?`<section class='gate-box'><strong>候选视觉预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p><small>来自 ${esc(pf.producer||'未记录执行器')}；这是 Agent prediction，不是人工确认。</small></section>`:''}
+    ${preflightFiltered?'<button id="restore-preflight" class="primary">恢复为普通候选</button><p class="muted">恢复只解除预检过滤，不自动设为 K/I/M/X，也不确认角色。</p>':recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration" class="${ref.decision==='keep'&&ref.lane==='inspiration'?'chosen':''}"><strong>通用灵感</strong><small>I · 收藏到我的审美库</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
     ${!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
     ${ref.card?cardMarkup(ref.card,ref.field_ready):ref.review?`<section class="guide-section"><h3>分析结论</h3>${ordered(ref.review.observations)}${ref.review.critical_uncertainties.length?`<p>待确认：${esc(ref.review.critical_uncertainties.join('；'))}</p>`:''}<p>${ref.card?'':'尚未生成资料卡。可保留作审美参考，不强行凑拍摄指令。'}</p></section>`:''}
@@ -376,6 +379,7 @@ function renderDetail(ref) {
     ${selected?`<details class="advanced-panel"><summary>拍摄复盘</summary><button id="add-reflection">＋ 记录实拍经验</button>${(ref.reflections||[]).slice(-3).map(x=>`<p>${esc(x.worked||x.failed||x.next_time||'已记录')}</p>`).join('')}</details>`:''}
     ${ref.source.page_url?`<a class="source-link" href="${esc(ref.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:''}`;
     listen('detail-panel','[data-decision]','click',(e,n)=>decide(n.dataset.decision));
+    if($('restore-preflight'))$('restore-preflight').onclick=()=>restorePreflight(ref).catch(showError);
     if($('restore-reference'))$('restore-reference').onclick=()=>restoreReference(ref).catch(showError);
     if($('make-card'))$('make-card').onclick=()=>{if(!requireSaved())return; (ref.analysis_job?jobHandoff(ref.analysis_job.id):ref.card?Promise.resolve(acceptanceEditor(ref)):newAnalysis([ref.id])).catch(showError);};
     $('preference-form').oninput=()=>{state.dirty=true;$('dirty-indicator').textContent='尚未保存';};
@@ -401,6 +405,7 @@ async function savePreference() {
     finally {state.busy=false;}
 }
 function matchesCurrentView(ref) {
+    if(state.view==='filtered')return !!ref.preflight_filtered;
     if(state.view==='recycle')return ref.decision==='reject';
     if(ref.decision==='reject'&&state.decision!=='reject')return false;
     if(state.view==='selected')return ref.selected_for_project;
@@ -438,6 +443,11 @@ async function decide(choice) {
 async function restoreReference(ref) {
     if(state.busy)return;state.busy=true;
     try{await api(`/api/references/${ref.id}/restore`,{method:'POST',body:{expected_revision:ref.revision}});await loadReferences();await renderStats();toast('已恢复原选择；现场卡确认仍需重新检查');}
+    finally{state.busy=false;}
+}
+async function restorePreflight(ref) {
+    if(state.busy)return;state.busy=true;
+    try{await api(`/api/references/${ref.id}/preflight-override`,{method:'POST',body:{expected_revision:ref.revision,action:'restore'}});await loadReferences();await renderStats();toast('已恢复为普通候选；仍需你决定 K/I/M/X');}
     finally{state.busy=false;}
 }
 async function saveGlobal(ref) {
