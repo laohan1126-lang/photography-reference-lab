@@ -59,7 +59,9 @@ def build_pack(library: Library, project_id: str, request: PackInput) -> Path:
     for ident in ids:
         ref = library.reference(ident)
         if ref["project_id"] != project_id: raise Problem(404, "Reference does not belong to project")
-        if request.mode == "field" and not ref["field_ready"]:
+        if ref.get("detached_at"):
+            failures.append({"id": ident, "reason": "detached_from_project"})
+        elif request.mode == "field" and not ref["field_ready"]:
             failures.append({"id": ident, "blockers": ref["blockers"]})
         elif request.mode == "inspiration" and ref["decision"] != "keep":
             failures.append({"id": ident, "reason": "not_selected"})
