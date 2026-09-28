@@ -285,11 +285,15 @@ class PackCandidate(Strict):
     _url = field_validator("discovery_url")(safe_url)
 
 
+class PackCandidateV3(PackCandidate):
+    preflight: CandidatePreflight
+
+
 class CandidatePackage(Strict):
     schema_version: Literal[3] = 3
     job_id: Short
     batch_id: Annotated[str, Field(min_length=1, max_length=200)]
-    candidates: list[PackCandidate] = Field(max_length=1000)
+    candidates: list[PackCandidateV3] = Field(max_length=1000)
     execution_report: CollectionReport
 
 
