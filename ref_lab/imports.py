@@ -47,7 +47,7 @@ def read_archive(content: bytes) -> dict[str, bytes]:
         raise ValueError("Invalid ZIP archive") from exc
 
 
-def import_candidates(library: Library, project_id: str, content: bytes, job_id: str = "") -> dict:
+def import_candidates(library: Library, project_id: str, content: bytes, job_id: str = "", *, attempt_id: str = "") -> dict:
     files = read_archive(content)
     if "manifest.json" not in files:
         raise ValueError("Candidate ZIP must have manifest.json at its root")
@@ -64,6 +64,8 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
     job = library.job(job_id) if job_id else None
     if job and (job["project_id"] != project_id or job["kind"] != "collection" or job["status"] == "cancelled"):
         raise Problem(409, "候选包任务不匹配或已取消")
+    if attempt_id and (not job or job.get("active_attempt_id") != attempt_id or job["status"] != "running"):
+        raise Problem(409, "采集轮次已过期；不导入图片")
     execution = CollectionReport.model_validate(manifest["execution_report"]) if manifest.get("execution_report") else None
     if manifest["schema_version"] == 2 and (not job_id or not execution):
         raise ValueError("schema_version 2 requires job_id and execution_report")
@@ -86,7 +88,7 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
                 discovery_url=item.get("discovery_url", ""))
             asset = library.ingest_asset(files[filename], filename)
             candidate.asset_sha = asset["id"]
-            result = library.add_candidate(project_id, candidate)
+            result = library.add_candidate(project_id, candidate, attempt_id=attempt_id)
             report["created" if result["created"] else "existing"] += 1
             report["reference_ids"].append(result["reference"]["id"])
         except (ValueError, KeyError, TypeError, Problem) as exc:
@@ -94,7 +96,7 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
     if job_id and execution:
         if report["errors"]:
             execution = execution.model_copy(update={"status": "blocked", "summary": "部分候选导入失败；" + execution.summary})
-        report["job"] = library.record_collection_report(job_id, execution)
+        report["job"] = library.record_collection_report(job_id, execution, current_reference_ids=report["reference_ids"], attempt_id=attempt_id)
     return report
 
 

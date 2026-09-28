@@ -37,9 +37,9 @@ python -m ref_lab backup --output ../reference-lab-backup.zip
 
 ## 默认采集：BrowserSkill + Codex / Antigravity
 
-点“找一批参考”，保存完整角色、作品、版本、项目要求、器材和本轮自由要求，再下载任务包或复制执行提示词。**网页不会自动唤醒本机 Agent，也不会把等待状态写成已搜完**；这是实际任务包 / CLI 交接，不是云端自动调度器。
+点“找一批参考”，保存完整角色、作品、版本、项目要求、器材和本轮自由要求，再下载任务包或复制执行提示词。**默认不会自动唤醒本机 Agent，也不会把等待状态写成已搜完**。可选的 `LAB_COLLECTION_COMMAND` 适配器仅在明确配置、点击启动后运行；没有适配器就保留任务包 / CLI 交接，不偷偷换抓图方式。
 
-本地 Agent 使用已安装的腾讯 BrowserSkill，在用户授权的真实浏览器里制定检索计划、扩展中日英关键词、评估多个来源、逐张下载并记录出处，返回候选包。小红书和 Pinterest 优先，其他来源按任务质量选择，不机械维护九个网站的专用爬虫。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。来源检查、低产停止原因和数量缺口进入回执。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
+本地 Agent 使用已安装的腾讯 BrowserSkill，在用户授权的真实浏览器里制定检索计划、扩展中日英关键词、评估多个来源、逐张下载并记录出处，返回候选包。小红书和 Pinterest 是候选来源，不是固定执行顺序；来源按任务质量与可用性选择，不机械维护九个网站的专用爬虫。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。来源检查、低产停止原因和数量缺口进入回执。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
 
 同一数据目录下也可以直接交接：
 
@@ -51,6 +51,12 @@ python -m ref_lab import-job --job ANALYSIS_JOB_ID --input analysis.json
 ```
 
 **正常流程不需要独立 OpenAI API。** 不会启动付费调用；旧 `collect` / `analyze` 命令仅为兼容保留，见 [兼容边界](docs/COMPATIBILITY.md)。Pro / Codex / Antigravity 的实际可用能力和额度仍以用户自己的 Agent 环境为准。未连接、登录受阻、结果不全必须如实报告。
+
+## 当前未发布检查点的边界
+
+[2026-09-28 collector 检查点](docs/tasks/2026-09-28-collector-checkpoint.md) 修复固定/静默采集回退、旧导入数量冒充新成功、HTTP 200 被界面误报完成的问题。候选包原始回执与服务端本包导入证据分开，重试和取消保留历史图片。配置接口与明确限制见 [适配器协议](docs/WORKER_PROTOCOL.md#2026-09-28-未发布检查点本地采集适配器)。
+
+**这不是完整候选生产线发布。** 尚无独立 identity/quality preflight、摄影/偏好排序、结束筛选会话、版本化审美画像。供应商 CLI 适配器尚需本机实现/接通；未证明真实 BrowserSkill 搜图质量或原生 Windows 进程生命周期。现有分析提供器的固定路径/参数也没有在此 collector 检查点中解决。不要把本检查点直接当成日常库的已验收升级。
 
 ## 淘汰、恢复与磁盘空间
 
@@ -68,10 +74,10 @@ python -m ref_lab cleanup --days 30 --apply
 ## 回归与维护
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py
 node --check web/app.js
 python -m playwright install chromium
-python -m pytest -q tests/test_ui_components.py
+python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
 python -m pytest -q tests/test_browser.py tests/test_live_system_regression.py
 ```
 

@@ -115,3 +115,27 @@ python -m ref_lab import-job --job JOB_ID --input analysis.json
 ```
 
 支持分次导入；成功的 reference_ids 留在 completed_ids，重新导出省去已完成图片。`card:null` 也算有真实分析结论，不等于可用现场卡。全部完成才结束分析任务，用户仍须单独检查、确认来源和现场卡。修改项目要求、选择或图片后拒绝过期结果；重新建任务而非覆盖新状态。不要调用 accept 代替用户验收。
+
+## 2026-09-28 未发布检查点：本地采集适配器
+
+此段只描述 collector 安全检查点，**不是完整候选生产线已经实现**。独立身份/质量预检、排序、筛选会话、审美画像版本仍未实现。真实 BrowserSkill / Agent 联调和 Windows 进程生命周期未验收。
+
+默认仍是任务 ZIP 交接。不再自动启动 Edge/daemon，不绑定固定用户名、扩展 ID 或“小红书→Pinterest”，不因缺少 BrowserSkill 而偷偷转用 headless Pinterest。`POST /api/jobs/{id}/run-antigravity` 为兼容保留，但采集分支现在调用 `agent_collection.py` 的显式适配器；分析分支没有在此检查点重写。
+
+`LAB_COLLECTION_COMMAND` 是 **JSON argv 字符串数组**，不是 shell 字符串。例如下面只是自建适配器的接口形状，`local_collection_adapter.py` **不是仓库已经提供的真实供应商适配器**：
+
+```text
+["python", "/absolute/path/local_collection_adapter.py", "--task", "{task_file}", "--output", "{result_file}"]
+```
+
+参数必须含 `{task_file}` 或 `{task_dir}`，以及 `{result_file}`。运行时替换为本轮私有临时目录的绝对路径。请在本机先读取已安装 Agent/BrowserSkill 技能，以实际 CLI 合约编写适配器；本仓库不猜测 Codex/Antigravity 的模型名、权限绕过参数或版本选项。未配置/配置不合法/可执行程序不存在，均返回真实 `blocked`，可继续下载任务包手动执行。
+
+适配器必须读取 `AGENT_TASK.md`、`job.json` 及 schema，自主制定来源和关键词计划，尊重登录/验证码/访问控制，只把本任务的 schema2 `result.zip` 写到指定路径。不要直接访问个人数据库或调用 import-job；导入由网站负责。没有付费模型调用、浏览器自动安装、Cookie 导出或隐藏 API 的授权。
+
+执行器 `shell=False`，不转发应用 `LAB_ACCESS_TOKEN`，给适配器单独的临时 `LAB_DATA_DIR`。stdout/stderr 丢弃而不是当成结果或审计日志，避免记录令牌/原始模型输出。程序退出码为 0 仍必须有合法 ZIP、正确 job_id 和本包有效候选回执；错包、空包、非零退出均不能用历史累计数量冒充本次完成。非零退出不接受该次输出，须由适配器在可正常交付的部分成功情况下返回退出码 0 + `execution_report.status:blocked`。
+
+超时由 `LAB_COLLECTION_TIMEOUT_SECONDS` 设置，默认 600 秒，有限范围 0.1–3600。超时/用户取消会停止该轮子进程。Linux 原生进程组已通过合成进程测试；**原生 Windows 清理依赖 taskkill，父进程提前退出的后代进程清理仍需完善/实测，不能宣称全平台可靠**。不跨 WSL 直接启动 Windows `.exe`。服务、适配器及其浏览器自动化必须在一致的执行环境中联调；也可继续人工任务包交接。适配器应等待并清理自己的所有子进程/BrowserSkill session，不留下分离守护进程。
+
+成功导入只表示候选包被接收，**不代表角色正确、质量通过或用户喜欢**。原始回执在 `execution_report`，服务端实际接收的本包 IDs 在 `last_receipt_reference_ids`。单独提交 `/api/jobs/{id}/report` 不携带已校验的当前包导入证据，因此不能从历史 `imported_ids` 推出新的成功；请使用候选包导入路径。旧显式 job-status 接口仍为兼容保留，不是自动采集的验收证据。
+
+同一有效包重复导入保持幂等；部分有效图片+blocked 回执保持阻断但保留图片。取消或新轮次替代后拒绝旧轮次写入。每次尝试在既有 `events` 表追加 `collection.attempt_started` / `collection.attempt_finished`，包含 attempt_id、代码化失败原因、实际计数、最终状态，不覆盖之前的事件。重启恢复服务进程被强杀时的未结束尝试尚未实现；这是检查点的已知缺口。

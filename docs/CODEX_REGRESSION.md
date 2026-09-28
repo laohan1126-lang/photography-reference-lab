@@ -19,10 +19,10 @@ python -m playwright install chromium
 ## 自动回归
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py
 node --check web/app.js
 python -m compileall -q ref_lab tools tests
-python -m pytest -q tests/test_ui_components.py
+python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
 python -m pytest -q tests/test_browser.py tests/test_live_system_regression.py
 ```
 
@@ -53,3 +53,12 @@ HTTP 测试真实启动 Uvicorn、登录取得 Cookie、上传/下载候选 ZIP 
 `backup` 解压到新的空目录后 doctor；比较原图、项目、收藏、选择、笔记。`cleanup --days 30` 先 dry-run；仅在隔离测试库执行 apply，核对其他项目/全局/笔记/未结束任务保护。不要把正式库当破坏性测试样本。
 
 真实素材截图只放私有 `.local`；CI 仅上传合成截图和不含原图的 JSON 计数/回执。记录失败、跳过、被策略阻止的实际范围；修后复测。最终核对 diff、未跟踪文件、远端 SHA；不 force-push、不合并 main、不自动发布或 Notion 同步。
+
+
+## Collector 检查点回归（2026-09-28，未发布）
+
+最新该检查点结果以 [collector 任务记录](tasks/2026-09-28-collector-checkpoint.md) 为准，不把历史 CI 成功写成本轮成功。运行全部测试：`python -m pytest -q tests`；不能把退出码 1 或带失败的 XML 当成全绿。
+
+`tests/test_collection_runner.py` 使用隔离库和真实启动的 Python 合成适配器，覆盖配置错误、无执行器、非零退出、无结果/坏 ZIP/错任务、超时、取消、旧轮次覆盖、本次空结果不借历史数量、部分图片受阻和正常包幂等。它不是任何真实供应商 CLI/BrowserSkill 的联调证据。`tests/test_collection_ui.py` 是真实 Chromium + TestClient 桥接；检查真实 absent-adapter 路径、各状态响应和迟到回执不破坏另一对话框。
+
+本环境真实 HTTP Chromium 导航出现 `ERR_BLOCKED_BY_ADMINISTRATOR`；用原始 a930cfd 独立 worktree 复测同样失败，不能将其归为本次代码引入。保留真实 HTTP 测试，不改变安全策略、不添加 skip 或改用桥接冒充 HTTP 成功。在授权本地浏览器环境重跑这些测试后才能解除该阻断。Arima Kana / Durendal 实际检索、Windows 进程生命周期和安装的 Agent 适配仍为 UNVERIFIED。

@@ -146,7 +146,7 @@ class Library:
         self.db.event(con, project_id, ref["id"], "candidate.imported", {"source": data.source.model_dump(), "decision": decision}, actor)
         return ref
 
-    def add_candidate(self, project_id: str, data: CandidateInput, *, decision: str = "pending", actor: str = "import", record_context: bool = True) -> dict:
+    def add_candidate(self, project_id: str, data: CandidateInput, *, decision: str = "pending", actor: str = "import", record_context: bool = True, attempt_id: str = "") -> dict:
         with self.db.transaction() as con:
             project = row_data(con, "projects", project_id)
             if data.asset_sha:
@@ -156,6 +156,8 @@ class Library:
             job = row_data(con, "jobs", data.job_id) if data.job_id else None
             if job and (job["project_id"] != project_id or job["kind"] != "collection" or job["status"] == "cancelled"):
                 raise Problem(409, "Candidate does not belong to an open collection job")
+            if attempt_id and (not job or job.get("active_attempt_id") != attempt_id or job["status"] != "running"):
+                raise Problem(409, "采集轮次已取消、结束或被替代；拒绝过期写入")
             alias = con.execute("SELECT ref_id FROM aliases WHERE project_id=? AND import_key=?",
                                 (project_id, data.import_key)).fetchone() if data.import_key else None
             existing = row_data(con, "refs", alias[0]) if alias else None
@@ -623,17 +625,54 @@ class Library:
                     "observations": [json.loads(r[0]) for r in con.execute("SELECT data FROM asset_observations WHERE asset_sha=? ORDER BY rowid DESC", (sha,))],
                     "project_uses": [dict(r) for r in con.execute("SELECT id,project_id,decision,json_extract(data,'$.lane') AS lane FROM refs WHERE asset_sha=?", (sha,))]}
 
-    def record_collection_report(self, ident: str, report: CollectionReport) -> dict:
+    def start_collection_attempt(self, ident: str, revision: int, attempt_id: str) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            check_revision(job, revision)
+            if job["kind"] != "collection" or job["status"] not in {"blocked", "queued", "failed"}:
+                raise Problem(409, "任务不可重复启动；请检查当前状态")
+            job.update(status="running", active_attempt_id=attempt_id,
+                       detail="检查本地 Agent 适配器；本轮尚未收到候选")
+            return self._save_job(con, job, "collection.attempt_started", {"attempt_id": attempt_id}, "worker")
+
+    def finish_collection_attempt(self, ident: str, attempt_id: str, status: str, detail: str, evidence: dict) -> dict:
+        """Audit every exit, but never overwrite a cancellation or newer attempt."""
+        if status not in {"blocked", "failed"}:
+            raise ValueError("Only validated import receipts can complete a collection attempt")
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            owns = job.get("active_attempt_id") == attempt_id
+            if owns and job["status"] == "running":
+                job.update(status=status, detail=detail)
+            payload = {**evidence, "attempt_id": attempt_id, "owns_current_attempt": owns, "status": job["status"]}
+            if owns:
+                job.pop("active_attempt_id", None)
+                return self._save_job(con, job, "collection.attempt_finished", payload, "worker")
+            self.db.event(con, job["project_id"], ident, "collection.attempt_finished", payload, "worker")
+            return job
+
+    def record_collection_report(self, ident: str, report: CollectionReport, *,
+                                 current_reference_ids: list[str] | None = None, attempt_id: str = "") -> dict:
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
             if job["kind"] != "collection" or job["status"] == "cancelled":
                 raise Problem(409, "不是可接收回执的采集任务")
+            if attempt_id and (job.get("active_attempt_id") != attempt_id or job["status"] != "running"):
+                raise Problem(409, "采集轮次已过期；拒绝覆盖回执")
+            current_ids = list(dict.fromkeys(current_reference_ids or []))
+            if not set(current_ids).issubset(job["imported_ids"]):
+                raise Problem(409, "本轮回执包含未导入本任务的条目")
             if job["status"] == "succeeded":
                 if job.get("execution_report") == report.model_dump(): return job
                 raise Problem(409, "任务已完成，不能覆盖旧执行回执")
             job["execution_report"] = report.model_dump()
             status = {"completed": "succeeded", "blocked": "blocked", "failed": "failed"}[report.status]
-            if status == "succeeded" and not job["imported_ids"]:
+            if status == "succeeded" and not current_ids:
                 status = "blocked"
-            job.update(status=status, detail=report.summary if job["imported_ids"] else "未收到有效候选；" + report.summary)
-            return self._save_job(con, job, "collection.reported", report.model_dump(), "agent")
+            # An agent's prose is retained as a report, not presented as image verification.
+            detail = (f"本包接收 {len(current_ids)} 个独立候选（含已存在图片）；未核验角色或摄影质量。"
+                      if current_ids else "本次没有有效候选回执；不沿用历史导入数量判定成功。")
+            job.update(status=status, detail=detail + report.summary,
+                       last_receipt_reference_ids=current_ids)
+            evidence = {"report": report.model_dump(), "reference_ids": current_ids, "attempt_id": attempt_id}
+            return self._save_job(con, job, "collection.reported", evidence, "agent")

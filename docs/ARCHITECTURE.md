@@ -61,3 +61,14 @@
 ## 外部能力边界
 
 BrowserSkill + 本地 Agent 执行，网站是任务与结果系统，不是 BrowserSkill 远程浏览器服务或自动 Agent 调度器。不上传 Cookie，不操作隐藏接口，不猜 CDN 高清地址，不替用户购买订阅。来源状态由每轮真实会话报告，静态来源建议不等于成功采集。保持默认不收费、不公开部署、不重绘人物、不自动操作 Photoshop、不开多人平台。旧 collector/provider 仅兼容入口。
+
+
+## 未发布 collector 检查点（2026-09-28）
+
+`collector.py` 保留显式、受限的历史可见页面采集，不是默认搜图实现。默认一键入口改为 `agent_collection.py`：配置的 argv → 私有任务包目录 → 本地 Agent → 严格 schema2 结果 → 既有 import 服务。网页不绑定网站或供应商 CLI；未配置就是 blocked，无 headless/固定来源回退。尚无实际供应商适配脚本，不能把可测试的传输层当成外部搜图完成。
+
+数据库仍为 schema 2，无表迁移。Job 的可选 `active_attempt_id` 表示当前执行所有权，`last_receipt_reference_ids` 表示最后一个包实际校验导入的条目；累计 imported_ids 仅保留历史。`collection.attempt_started/finished` 和 `collection.reported` 追加到既有事件表，历史记录不覆盖。包回执标 completed 但本包无有效导入时，服务端状态仍 blocked。取消、重复启动、旧轮次覆盖分别由事务检查阻止。
+
+Linux 原生子进程、退出/超时/取消与合成包已可回归；Windows 父进程先退出时的后代清理、服务硬崩溃后的恢复仍未完成验证/实现。自动模式为显式 opt-in；手动任务包路径保留。UI 根据返回的 job.status 显示成功/受阻/失败/取消，而非看到 HTTP 200 就宣称完成；迟到回执不关闭别的编辑对话框。
+
+这一步没有身份预检、基础质量预检、候选排序或审美会话/画像。它没有新的人类选择规则、ML 模型或 Golden Path。完整目标和未完成项保留在两份 2026-09-28 任务记录。

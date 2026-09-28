@@ -23,10 +23,13 @@ Read README.md, docs/ARCHITECTURE.md, and the relevant docs/tasks entry. For acq
 5. Git versioned tasks are canonical. Sync a compact Notion view only when configured and authorized. A failed Notion sync is pending, not a successful write, and must not erase a valid Git checkpoint.
 6. Final handoff: branch + commit + tested scope + unverified scope + runnable regression instructions. Never call a waiting job completed, or an unrun test passed.
 
-Default regression: `python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py`; `node --check web/app.js`; browser/component tests per docs/CODEX_REGRESSION.md. Every bug fix should add or update a regression that represents the actual failure.
+Default regression: `python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py`; `node --check web/app.js`; browser/component tests per docs/CODEX_REGRESSION.md. Every bug fix should add or update a regression that represents the actual failure.
 
 ## Personal-library invariants (v0.3)
 - Asset identity, discovery intent, actual observations, global inspiration and project use are distinct. Never infer character identity from the search project.
 - Global inspiration has no project parent; changing one project selection must not remove other uses. Preserve keyed filmstrip nodes during curation.
 - BrowserSkill + local Codex / Antigravity task packages are the default; no standalone paid API requirement. Report waiting/blocked honestly.
 - Cleanup is explicit, delayed and reference-aware. Do not run destructive tests against the owner’s normal data.
+
+## Collector checkpoint boundary (2026-09-28)
+Read `docs/tasks/2026-09-28-collector-checkpoint.md`. The optional command adapter is a tested internal transport, not a verified vendor/BrowserSkill connection or complete candidate pipeline. Keep live HTTP/platform blocks visible. Do not label missing identity/quality/session/profile work complete. Run the new collector and UI regressions too; never revive the silent headless fallback.

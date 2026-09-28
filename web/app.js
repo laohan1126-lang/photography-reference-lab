@@ -498,18 +498,30 @@ async function jobHandoff(jobId) {
     const job=await api(`/api/jobs/${jobId}`), bundle=await api(`/api/jobs/${jobId}/bundle`);
     const prompt=`请在 Photography Reference Lab 项目中处理任务 ${job.id}。先执行 python -m ref_lab export-job --job ${job.id} --output job-${job.id.slice(0,8)}.zip（已有包则直接读取，不覆盖）。解压后读取 AGENT_TASK.md 与完整 job.json，按协议使用 ${job.kind==='collection'?'BrowserSkill 搜图':'独立图片逐张分析制卡'}，交回结果并用 import-job 导入。不要改用户的选择或代替确认；没有独立 API 费用。受阻如实报告。若本机不是同一 LAB_DATA_DIR，改用我交给你的任务 ZIP。`;
     const isAnalysis = job.kind === 'analysis';
-    const actionBtnText = isAnalysis ? '✨ 本地 Antigravity 一键分析' : '✨ 本地 Antigravity 一键搜图采集';
-    const actionHelp = isAnalysis ? '直接调用本机已登录的 Antigravity，自动解析图片并生成现场卡草稿；无需下载和手动导入。' : '调用本机 BrowserSkill / Edge 自动检索小红书与 Pinterest 并导入候选；无需下载任务包和手动导入。';
-    const root=modal(isAnalysis?'制作现场卡 · 本地 Agent':'让 Agent 搜一批好参考',`<p class="notice">${esc(statuses[job.status])}。支持直接调用本机已登录的 Antigravity 与 BrowserSkill。</p><div class="action-banner"><button id="run-antigravity" class="primary" style="width:100%;font-size:14px;padding:10px 16px;margin-bottom:6px">${esc(actionBtnText)}</button><p class="form-help" style="margin-bottom:14px">${esc(actionHelp)}</p></div><h3>1 · 取得完整任务</h3><p>包含角色、完整自由要求、器材、任务快照${isAnalysis?'和独立原图':'及三层检索策略'}。</p><button id="download-task" class="primary">下载任务 ZIP</button><h3>2 · 交给 Codex / Antigravity</h3><button id="copy-agent-task">复制执行提示词</button><details><summary>查看本轮协议</summary><pre>${esc(bundle.agent_instructions)}</pre></details><h3>3 · 导回结果，由你检查</h3><button id="import-task-result">${isAnalysis?'导入分析结果':'导入候选包'}</button><p class="form-help">也可让 Agent 在同一数据目录运行 import-job；导入的图片仍待你挑选，资料卡仍是草稿。</p>`);
+    const actionBtnText = isAnalysis ? '✨ 本地 Antigravity 一键分析' : '启动已配置的本地采集 Agent';
+    const actionHelp = isAnalysis ? '直接调用本机已登录的 Antigravity，自动解析图片并生成现场卡草稿；无需下载和手动导入。' : '需预先配置 LAB_COLLECTION_COMMAND 本地适配器。Agent 自主选择来源；未配置或受阻时不会改用备用抓图。也可使用下面的任务包交接。';
+    const root=modal(isAnalysis?'制作现场卡 · 本地 Agent':'让 Agent 搜一批好参考',`<p id="agent-run-status" class="notice" role="status">${esc(statuses[job.status])} · ${esc(job.detail)}</p><div class="action-banner"><button id="run-antigravity" class="primary" style="width:100%;font-size:14px;padding:10px 16px;margin-bottom:6px">${esc(actionBtnText)}</button><p class="form-help" style="margin-bottom:14px">${esc(actionHelp)}</p></div><h3>1 · 取得完整任务</h3><p>包含角色、完整自由要求、器材、任务快照${isAnalysis?'和独立原图':'及三层检索策略'}。</p><button id="download-task" class="primary">下载任务 ZIP</button><h3>2 · 交给 Codex / Antigravity</h3><button id="copy-agent-task">复制执行提示词</button><details><summary>查看本轮协议</summary><pre>${esc(bundle.agent_instructions)}</pre></details><h3>3 · 导回结果，由你检查</h3><button id="import-task-result">${isAnalysis?'导入分析结果':'导入候选包'}</button><p class="form-help">也可让 Agent 在同一数据目录运行 import-job；导入的图片仍待你挑选，资料卡仍是草稿。</p>`);
     if ($('run-antigravity')) {
+        $('run-antigravity').disabled = ['running','succeeded','cancelled'].includes(job.status);
         $('run-antigravity').onclick = async () => {
             const btn = $('run-antigravity');
             btn.disabled = true;
-            btn.textContent = isAnalysis ? '⏳ 本地 Antigravity 正在分析中（预计 15~30 秒）...' : '⏳ 本地 Agent 正在小红书与 Pinterest 检索采集中（预计 20~40 秒）...';
+            btn.textContent = isAnalysis ? '本地 Antigravity 正在分析…' : '本地采集 Agent 执行中；等待真实回执…';
             try {
-                await api(`/api/jobs/${job.id}/run-antigravity`, { method: 'POST' });
-                toast(isAnalysis ? '本地 Antigravity 分析完成！草稿已就绪' : '本地 Agent 采集完成！候选已入库待选');
-                closeModal();
+                const result = await api(`/api/jobs/${job.id}/run-antigravity`, { method: 'POST' });
+                const ownsDialog = $('run-antigravity') === btn && $('editor').open;
+                if (ownsDialog) $('agent-run-status').textContent = `${statuses[result.status]||'未知状态'} · ${result.detail||'没有执行详情'}`;
+                if (result.status === 'succeeded') {
+                    toast(isAnalysis ? '分析结果已导入；仍需逐张检查，不能代替人工确认' : '候选包已导入；角色、摄影质量和个人喜好尚待核验');
+                    if (ownsDialog) closeModal();
+                } else {
+                    const label = {blocked:'采集或分析受阻',failed:'执行失败',cancelled:'任务已取消',running:'任务仍在执行'}[result.status]||'未确认完成';
+                    toast(`${label}：${result.detail||'请检查任务状态'}`, result.status !== 'running');
+                    if (ownsDialog) {
+                        btn.disabled = ['running','succeeded','cancelled'].includes(result.status);
+                        btn.textContent = actionBtnText;
+                    }
+                }
                 await loadReferences();
                 await renderStats();
                 if (state.view === 'jobs') await renderJobs();
@@ -527,7 +539,7 @@ async function jobHandoff(jobId) {
 }
 function collectionEditor(projectId=state.project?.id) {
     if(!state.projects.length){projectEditor();return;}
-    const root=modal('这次想找什么参考？',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('期望候选数量（质量优先，不凑数）','target_count',80,'number','min="1" max="500" required')}<p class="form-help">角色、作品、版本、器材和项目完整要求一并保存。小红书、Pinterest 优先，其他来源由 Agent 根据实际质量选择；登录或访问受阻应停止并报告。</p><div class="form-actions"><button type="submit" class="primary">建立采集任务</button></div></form>`);
+    const root=modal('这次想找什么参考？',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('期望候选数量（质量优先，不凑数）','target_count',80,'number','min="1" max="500" required')}<p class="form-help">角色、作品、版本、器材和项目完整要求一并保存。来源由 Agent 根据角色、任务质量与实际可用性选择；不限定站点顺序，登录或访问受阻应停止并报告。</p><div class="form-actions"><button type="submit" class="primary">建立采集任务</button></div></form>`);
     formSubmit(root,async data=>{const job=await api(`/api/projects/${data.project_id}/jobs`,{method:'POST',body:{kind:'collection',notes:data.notes,target_count:Number(data.target_count)}});closeModal();await jobHandoff(job.id);});
 }
 async function renderJobs() {

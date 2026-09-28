@@ -126,6 +126,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def capabilities():
         return {"collection": "agent_browserskill_package", "analysis": "agent_package",
                 "independent_api_required": False,
+                "collection_adapter_configured": bool(os.environ.get("LAB_COLLECTION_COMMAND", "").strip()),
+                "collection_adapter_verified": False,
                 "notion": "markdown_csv_import_and_optional_task_sync", "offline": "downloadable_zip",
                 "visibility": "private", "automatic_background_search": False}
 
