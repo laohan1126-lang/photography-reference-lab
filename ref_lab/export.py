@@ -103,8 +103,12 @@ def build_pack(library: Library, project_id: str, request: PackInput) -> Path:
 def _board_font(size: int):
     candidates = [
         "C:/Windows/Fonts/msyh.ttc",
+        "/mnt/c/Windows/Fonts/msyh.ttc",
         "C:/Windows/Fonts/simhei.ttf",
+        "/mnt/c/Windows/Fonts/simhei.ttf",
         "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+        "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     ]
     for candidate in candidates:
@@ -151,6 +155,15 @@ def _render_contact_page(library: Library, project: dict, entries: list[tuple[di
     elif count == 2:
         cell_w = (width - 2 * margin - gap) // 2
         layout = [(margin, body_top, cell_w, body_h), (margin + cell_w + gap, body_top, cell_w, body_h)]
+    elif count == 3:
+        cell_w = (width - 2 * margin - gap) // 2
+        cell_h = (body_h - gap) // 2
+        center_x = margin + (width - 2 * margin - cell_w) // 2
+        layout = [
+            (margin, body_top, cell_w, cell_h),
+            (margin + cell_w + gap, body_top, cell_w, cell_h),
+            (center_x, body_top + cell_h + gap, cell_w, cell_h),
+        ]
     else:
         cell_w = (width - 2 * margin - gap) // 2
         cell_h = (body_h - gap) // 2

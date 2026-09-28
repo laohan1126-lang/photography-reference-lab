@@ -102,3 +102,32 @@ An earlier intermediate UI commit failed browser regression only because it chan
 ### Still requires local human/live validation
 
 CI uses synthetic images for deterministic output. It proves relationship semantics, data preservation and PNG/ZIP generation, not whether a real model finds the board visually convenient. Antigravity should open the owner's actual library, copy/move real wrong-role references, then export a real mixed portrait/landscape board and visually inspect it before user acceptance.
+
+### Local live validation & visual inspection outcome (2026-09-28 Antigravity)
+
+- **Database protection:** Created full backup `reference-lab-before-transfer-board.zip` of real user database (`.local/regression-real-fixed`, 512 assets, `legacy-changye-huansheng`).
+- **Real data lifecycle verification:**
+  - Copy: asset SHA shared, zero byte duplication, new target ref created in `pending`, source untouched.
+  - Existing target preservation: target choice (`maybe`) and notes preserved; no overwrite.
+  - Move: source detached with `detached_at` timestamp; decision is NOT converted to X/reject; disappears from active views.
+  - Restore: source restored cleanly to active project with original decision intact.
+  - Remove from project: safely detached without mutating asset bytes or Global Inspiration.
+  - Global Inspiration: completely preserved across moves and detaches.
+- **Visual bugs discovered & fixed in `ref_lab/export.py`:**
+  1. WSL/Linux CJK font resolution: Chinese characters rendered as tofu boxes `□□□□` when using DejaVuSans fallback; added `/mnt/c/Windows/Fonts/msyh.ttc`, `/mnt/c/Windows/Fonts/simhei.ttf`, and standard CJK font fallback paths so typography renders in crisp Microsoft YaHei.
+  2. 3-image layout asymmetry: 3rd image was stuck on the bottom-left with an empty right cell; centered the 3rd image horizontally on row 2.
+- **Visual inspections performed via `view_file` on actual rendered PNGs:**
+  - `board_1_image.png`: single image centered, contain-fit without cropping head/limb, clear Chinese text and 1/1 pagination.
+  - `board_2_images.png`: 2 columns side-by-side, balanced margins.
+  - `board_3_images.png`: 2 top, 1 centered bottom, perfectly balanced.
+  - `board_4_images.png`: 2x2 grid with notes and numbers.
+  - `board_reordered.png`: 4 images explicitly reordered matching user-specified sequence.
+  - `pages_5/contact-board-01.png` & `02.png`: 2-page pagination (1/2, 2/2).
+  - `pages_9/contact-board-03.png`: 3-page pagination (3/3).
+- **Regression verification:**
+  - `tests/test_reference_transfer_board.py`: 8 passed.
+  - Core regression (7 suites, 96 tests): 96 passed.
+  - Full test suite: 153 passed.
+  - `node --check web/app.js`: clean.
+  - `python -m compileall -q ref_lab tools tests`: clean.
+- **Live server deployed:** Running on `http://127.0.0.1:18765` backed by user's real library.
