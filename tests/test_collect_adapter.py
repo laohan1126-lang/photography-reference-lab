@@ -228,3 +228,19 @@ def test_startup_repairs_known_fake_local_adapter_preflight(client, project, lib
     assert repaired["preflight_filtered"] is True
     assert repaired["invalidated_preflights"][-1]["producer"] == "local_collection_adapter"
     assert repaired["decision"] == ref["decision"]
+
+
+def test_target_query_cannot_mask_explicit_confusion_character():
+    metadata = {
+        "title": "小乔 cosplay 正片",
+        "source": {
+            "page_url": "https://example.com/xiaoqiao-cos",
+            "title": "小乔 COS",
+            "search_query": "王昭君 长夜焕生 cos 正片",
+            "search_category": "",
+        },
+    }
+    context = build_identity_context("王昭君", "王者荣耀", "长夜焕生")
+    result = evaluate_identity(image_bytes(seed=88, size=(800, 1200)), metadata, context)
+    assert result["prediction"] == "mismatch"
+    assert "小乔" in result["reason"]
