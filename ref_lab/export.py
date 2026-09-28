@@ -131,66 +131,76 @@ def _board_note_lines(text: str, limit: int = 28, lines: int = 2) -> list[str]:
     return chunks
 
 
+def _calculate_grid_layout(count: int, width: int, height: int, margin: int = 24, gap: int = 16) -> list[tuple[int, int, int, int]]:
+    W = width - 2 * margin
+    H = height - 2 * margin
+    if count == 1:
+        return [(margin, margin, W, H)]
+    if count == 2:
+        cell_w = (W - gap) // 2
+        return [(margin, margin, cell_w, H), (margin + cell_w + gap, margin, cell_w, H)]
+    if count == 3:
+        cell_w = (W - gap) // 2
+        cell_h = (H - gap) // 2
+        center_x = margin + (W - cell_w) // 2
+        return [
+            (margin, margin, cell_w, cell_h),
+            (margin + cell_w + gap, margin, cell_w, cell_h),
+            (center_x, margin + cell_h + gap, cell_w, cell_h),
+        ]
+    if count == 4:
+        cell_w = (W - gap) // 2
+        cell_h = (H - gap) // 2
+        return [
+            (margin, margin, cell_w, cell_h),
+            (margin + cell_w + gap, margin, cell_w, cell_h),
+            (margin, margin + cell_h + gap, cell_w, cell_h),
+            (margin + cell_w + gap, margin + cell_h + gap, cell_w, cell_h),
+        ]
+    if count <= 6:
+        cols, rows = 3, 2
+    elif count <= 9:
+        cols, rows = 3, 3
+    elif count <= 12:
+        cols, rows = 4, 3
+    elif count <= 16:
+        cols, rows = 4, 4
+    else:
+        cols = 5
+        rows = (count + cols - 1) // cols
+
+    cell_w = (W - (cols - 1) * gap) // cols
+    cell_h = (H - (rows - 1) * gap) // rows
+    layout = []
+    for i in range(count):
+        r = i // cols
+        c = i % cols
+        x = margin + c * (cell_w + gap)
+        y = margin + r * (cell_h + gap)
+        layout.append((x, y, cell_w, cell_h))
+    return layout
+
+
 def _render_contact_page(library: Library, project: dict, entries: list[tuple[dict, str]],
                          title: str, page_number: int, page_count: int, path: Path) -> None:
-    width, height = 1800, 1400
-    margin, gap, header_h = 70, 34, 120
-    canvas = Image.new("RGB", (width, height), (248, 248, 245))
-    draw = ImageDraw.Draw(canvas)
-    title_font = _board_font(44)
-    meta_font = _board_font(25)
-    note_font = _board_font(27)
-    heading = title.strip() or f"{project['character']} · 拍摄参考"
-    draw.text((margin, 34), heading, font=title_font, fill=(22, 38, 45))
-    meta = f"{project.get('work') or ''} {project.get('costume') or ''}".strip()
-    if meta:
-        draw.text((margin, 88), meta, font=meta_font, fill=(91, 105, 110))
-    draw.text((width - margin - 150, 52), f"{page_number}/{page_count}", font=meta_font, fill=(91, 105, 110))
-
     count = len(entries)
-    body_top = header_h + 20
-    body_h = height - body_top - margin
-    if count == 1:
-        layout = [(margin, body_top, width - 2 * margin, body_h)]
-    elif count == 2:
-        cell_w = (width - 2 * margin - gap) // 2
-        layout = [(margin, body_top, cell_w, body_h), (margin + cell_w + gap, body_top, cell_w, body_h)]
-    elif count == 3:
-        cell_w = (width - 2 * margin - gap) // 2
-        cell_h = (body_h - gap) // 2
-        center_x = margin + (width - 2 * margin - cell_w) // 2
-        layout = [
-            (margin, body_top, cell_w, cell_h),
-            (margin + cell_w + gap, body_top, cell_w, cell_h),
-            (center_x, body_top + cell_h + gap, cell_w, cell_h),
-        ]
+    if count in (7, 8, 9):
+        width, height = 1800, 1800
     else:
-        cell_w = (width - 2 * margin - gap) // 2
-        cell_h = (body_h - gap) // 2
-        layout = [
-            (margin, body_top, cell_w, cell_h),
-            (margin + cell_w + gap, body_top, cell_w, cell_h),
-            (margin, body_top + cell_h + gap, cell_w, cell_h),
-            (margin + cell_w + gap, body_top + cell_h + gap, cell_w, cell_h),
-        ]
+        width, height = 1800, 1400
 
-    for index, ((ref, note), (x, y, cell_w, cell_h)) in enumerate(zip(entries, layout), start=1):
-        draw.rounded_rectangle((x, y, x + cell_w, y + cell_h), radius=18, fill=(236, 239, 235), outline=(211, 216, 211), width=2)
-        note_lines = _board_note_lines(note)
-        note_h = 90 if note_lines else 44
-        image_box = (cell_w - 32, cell_h - note_h - 32)
+    margin, gap = 24, 16
+    canvas = Image.new("RGB", (width, height), (255, 255, 255))
+    layout = _calculate_grid_layout(count, width, height, margin=margin, gap=gap)
+
+    for (ref, _note), (x, y, cell_w, cell_h) in zip(entries, layout):
         source_path = library.assets.path(ref["asset"])
         with Image.open(source_path) as source:
             image = ImageOps.exif_transpose(source).convert("RGB")
-            fitted = ImageOps.contain(image, image_box, method=Image.Resampling.LANCZOS)
+            fitted = ImageOps.contain(image, (cell_w, cell_h), method=Image.Resampling.LANCZOS)
         px = x + (cell_w - fitted.width) // 2
-        py = y + 16 + max(0, (cell_h - note_h - 32 - fitted.height) // 2)
+        py = y + (cell_h - fitted.height) // 2
         canvas.paste(fitted, (px, py))
-        label_y = y + cell_h - note_h + 4
-        draw.text((x + 18, label_y), str(index + (page_number - 1) * 4), font=meta_font, fill=(46, 66, 72))
-        if note_lines:
-            for line_index, line in enumerate(note_lines):
-                draw.text((x + 58, label_y + line_index * 32), line, font=note_font, fill=(46, 66, 72))
 
     canvas.save(path, "PNG", optimize=True)
 
@@ -215,13 +225,14 @@ def build_contact_board(library: Library, project_id: str, request: ContactBoard
 
     out_dir = library.settings.data_dir / "exports"
     out_dir.mkdir(parents=True, exist_ok=True)
-    pages = [entries[i:i + 4] for i in range(0, len(entries), 4)]
-    if len(pages) == 1:
+    if request.single_image or len(entries) <= 4:
         fd, name = tempfile.mkstemp(prefix="contact-board-", suffix=".png", dir=out_dir)
         os.close(fd)
         path = Path(name)
-        _render_contact_page(library, project, pages[0], request.title, 1, 1, path)
+        _render_contact_page(library, project, entries, request.title, 1, 1, path)
+        page_count = 1
     else:
+        pages = [entries[i:i + 4] for i in range(0, len(entries), 4)]
         fd, name = tempfile.mkstemp(prefix="contact-board-", suffix=".zip", dir=out_dir)
         os.close(fd)
         path = Path(name)
@@ -238,11 +249,12 @@ def build_contact_board(library: Library, project_id: str, request: ContactBoard
         finally:
             for page_path in temp_pages:
                 page_path.unlink(missing_ok=True)
+        page_count = len(pages)
 
     with library.db.transaction() as con:
         library.db.event(
             con, project_id, project_id, "contact_board.exported",
-            {"reference_ids": ids, "count": len(ids), "pages": len(pages), "title": request.title},
+            {"reference_ids": ids, "count": len(ids), "pages": page_count, "title": request.title},
         )
     return path
 

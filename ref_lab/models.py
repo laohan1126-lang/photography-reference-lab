@@ -190,6 +190,7 @@ class ContactBoardItem(Strict):
 class ContactBoardInput(Strict):
     title: Short = ""
     items: list[ContactBoardItem] = Field(min_length=1, max_length=24)
+    single_image: bool = False
 
 
 class CandidatePreflightInput(Strict):

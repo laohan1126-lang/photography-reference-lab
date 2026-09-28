@@ -389,8 +389,8 @@ function transferReferencesDialog(items){
 function contactBoardDialog(items){
     const selected=(items||[]).filter(Boolean);
     if(!selected.length){toast('先选择几张参考');return;}
-    const rows=selected.map((item,index)=>`<div class="event-card board-item" data-board-ref="${esc(item.id)}"><div class="compact-row"><strong>${index+1}. ${esc(item.title)}</strong><button type="button" data-move="-1">↑</button><button type="button" data-move="1">↓</button></div><div class="compact-row"><img src="/api/assets/${esc(item.asset_sha)}/thumb" alt="" style="width:72px;height:72px;object-fit:contain"><input data-board-note maxlength="400" placeholder="可选：喜欢这张的动作 / 氛围 / 构图"></div></div>`).join('');
-    const root=modal('导出模特沟通板',`<form id="contact-board-form"><p class="notice">每页最多 4 张，保留完整画面不强裁切。1–4 张直接下载 PNG；超过 4 张自动分页并下载 ZIP。这里不是现场卡，也不会改变筛选状态。</p>${label('沟通板标题（选填）','title',state.project?.character?state.project.character+' · 拍摄参考':'')}<div id="board-items">${rows}</div><div class="form-actions"><button type="submit" class="primary">生成并下载</button></div></form>`);
+    const rows=selected.map((item,index)=>`<div class="event-card board-item" data-board-ref="${esc(item.id)}"><div class="compact-row"><strong>${index+1}. ${esc(item.title)}</strong><button type="button" data-move="-1">↑</button><button type="button" data-move="1">↓</button></div><div class="compact-row"><img src="/api/assets/${esc(item.asset_sha)}/thumb" alt="" style="width:72px;height:72px;object-fit:contain"><input data-board-note maxlength="400" hidden></div></div>`).join('');
+    const root=modal('导出多宫格拼图',`<form id="contact-board-form"><p class="notice">纯净多宫格拼图，保留完整画面不强裁切；每页最多 4 张或合并为整张宫格大图。无多余文字与格式修饰。</p><div id="board-items">${rows}</div><div class="form-actions"><button type="submit" class="primary">生成并下载拼图</button></div></form>`);
     listen(root,'[data-move]','click',(e,n)=>{
         const row=n.closest('[data-board-ref]'), direction=Number(n.dataset.move);
         const sibling=direction<0?row.previousElementSibling:row.nextElementSibling;
@@ -398,10 +398,9 @@ function contactBoardDialog(items){
         if(direction<0)row.parentElement.insertBefore(row,sibling);else row.parentElement.insertBefore(sibling,row);
     });
     formSubmit(root,async(data,form)=>{
-        const ordered=[...form.querySelectorAll('[data-board-ref]')].map(node=>({reference_id:node.dataset.boardRef,note:node.querySelector('[data-board-note]').value}));
-        const suffix=ordered.length<=4?'png':'zip';
-        await download(`/api/projects/${state.project.id}/contact-board`,`${state.project.character}-沟通板.${suffix}`,{title:data.title,items:ordered});
-        closeModal();toast(ordered.length<=4?'沟通板 PNG 已生成':'多页沟通板已生成 ZIP');
+        const ordered=[...form.querySelectorAll('[data-board-ref]')].map(node=>({reference_id:node.dataset.boardRef,note:''}));
+        await download(`/api/projects/${state.project.id}/contact-board`,`${state.project.character}-多宫格拼图.png`,{title:'',items:ordered,single_image:true});
+        closeModal();toast('多宫格拼图已生成');
     });
 }
 
