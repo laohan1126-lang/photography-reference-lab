@@ -304,6 +304,7 @@ class Library:
         with self.db.transaction() as con:
             ref = row_data(con, "refs", ident)
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             check_revision(ref, data.expected_revision)
             if changes:
                 if changes.get("decision") == "reject" and ref["decision"] != "reject":
@@ -359,6 +360,7 @@ class Library:
             if ref["asset_sha"] != review.asset_sha:
                 raise Problem(409, "核验结果对应的不是当前图片")
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             ref.update(review=review.model_dump(), review_actor="human", review_producer="manual",
                        accepted_fingerprint=None)
             record_observation(con, ref)
@@ -370,6 +372,7 @@ class Library:
             ref = row_data(con, "refs", ident)
             check_revision(ref, revision)
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             if ref["decision"] != "keep":
                 raise Problem(409, "请先保留参考，再编写资料卡")
             if not ref["review"] or ref["review"]["kind"] not in {"cosplay_photo", "portrait_photo"}:
@@ -387,6 +390,7 @@ class Library:
             if result.review.asset_sha != ref["asset_sha"]:
                 raise Problem(409, "分析对应的图片版本已改变")
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             if job_id:
                 job = row_data(con, "jobs", job_id)
                 snapshot = job["snapshots"].get(ident)
@@ -414,6 +418,7 @@ class Library:
         with self.db.transaction() as con:
             ref = row_data(con, "refs", ident)
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             check_revision(ref, revision)
             if source is not None:
                 ref["source"] = source.model_dump()
@@ -438,6 +443,7 @@ class Library:
                 raise Problem(409, "本项目已存在相同文件", {"reference_id": duplicate[0]})
             old_sha = ref["asset_sha"]
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             ref.update(asset_sha=sha, decision="pending", rejected_at=None, before_reject=None,
                        preflight=None, preflight_status="unreviewed", preflight_filtered=False, preflight_override=False,
                        review=None, review_actor="", review_producer="", card=None,
@@ -451,6 +457,7 @@ class Library:
             ref = row_data(con, "refs", ident)
             check_revision(ref, data.pop("expected_revision"))
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             ref["reflections"].append({**data, "at": now()})
             self._save(con, ref, project, "reflection.added", data)
             return self._decorate(con, ref, project)
@@ -566,6 +573,7 @@ class Library:
                        "succeeded": set(), "cancelled": set()}
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
+            ensure_active_project(row_data(con, "projects", job["project_id"]))
             check_revision(job, revision)
             if status not in transitions[job["status"]]:
                 raise Problem(409, f"不允许 {job['status']} → {status}")
@@ -627,6 +635,7 @@ class Library:
             previous = ref.get("before_reject") or {"decision": "pending", "lane": ref["lane"]}
             ref.update(decision=previous["decision"], lane=previous["lane"], rejected_at=None, accepted_fingerprint=None)
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
             self._save(con, ref, project, "reference.restored", {"decision": ref["decision"]})
             return self._decorate(con, ref, project)
 
@@ -718,6 +727,7 @@ class Library:
     def start_collection_attempt(self, ident: str, revision: int, attempt_id: str) -> dict:
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
+            ensure_active_project(row_data(con, "projects", job["project_id"]))
             check_revision(job, revision)
             if job["kind"] != "collection" or job["status"] not in {"blocked", "queued", "failed"}:
                 raise Problem(409, "任务不可重复启动；请检查当前状态")
