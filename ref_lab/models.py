@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Any
 from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -160,6 +160,36 @@ class CardInput(Strict):
 
 class RevisionInput(Strict):
     expected_revision: int = Field(ge=1)
+
+
+class ReferenceTransferItem(Strict):
+    reference_id: Short
+    expected_revision: int = Field(ge=1)
+
+
+class ReferenceTransferInput(Strict):
+    items: list[ReferenceTransferItem] = Field(min_length=1, max_length=100)
+    mode: Literal["copy", "move", "remove"]
+    target_project_id: Short = ""
+    target_decision: Literal["pending", "keep", "maybe"] = "pending"
+
+    @model_validator(mode="after")
+    def validate_target(self) -> "ReferenceTransferInput":
+        if self.mode in {"copy", "move"} and not self.target_project_id:
+            raise ValueError("copy/move requires target_project_id")
+        if self.mode == "remove" and self.target_project_id:
+            raise ValueError("remove must not include target_project_id")
+        return self
+
+
+class ContactBoardItem(Strict):
+    reference_id: Short
+    note: Short = ""
+
+
+class ContactBoardInput(Strict):
+    title: Short = ""
+    items: list[ContactBoardItem] = Field(min_length=1, max_length=24)
 
 
 class CandidatePreflightInput(Strict):

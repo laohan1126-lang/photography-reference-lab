@@ -320,3 +320,35 @@ def test_browser_wait_does_not_require_unsafe_eval(component_factory):
     }''')
     wait_until(page, 'window.testWaitReady')
     assert page.evaluate('window.testWaitReady') is True
+
+
+def test_ui_batch_selection_copy_and_contact_board_entry(component_factory, client, library, project):
+    source = add_reference(client, project, 91)
+    target = client.post("/api/projects", json={"character": "转移目标角色"}).json()
+    page = component_factory(f"view=references&project={project['id']}")
+
+    advanced(page, "跨项目复用与模特沟通")
+    page.get_by_role("button", name="加入批量选择", exact=True).click()
+    expect(page.locator("#selection-actions")).to_have_text("已选 1 · 批量/沟通板")
+    assert page.locator(f'#filmstrip [data-ref="{source["id"]}"]').evaluate("n => n.classList.contains('batch-selected')")
+
+    page.locator("#selection-actions").click()
+    page.locator("#selection-transfer").click()
+    page.get_by_label("目标项目", exact=True).select_option(target["id"])
+    page.get_by_label("操作", exact=True).select_option("copy")
+    page.get_by_label("目标项目初始状态", exact=True).select_option("pending")
+    page.get_by_role("button", name="执行", exact=True).click()
+    page.locator("#editor").wait_for(state="hidden")
+    idle(page)
+
+    copied = library.references(target["id"])["items"]
+    assert len(copied) == 1
+    assert copied[0]["asset_sha"] == source["asset_sha"]
+    assert copied[0]["decision"] == "pending"
+    assert copied[0]["review"] is None and copied[0]["card"] is None
+    assert library.reference(source["id"]).get("detached_at") is None
+
+    page.locator("#selection-actions").click()
+    page.locator("#selection-board").click()
+    expect(page.locator("#editor")).to_contain_text("每页最多 4 张")
+    expect(page.locator("[data-board-note]")).to_have_count(1)

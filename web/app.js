@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const lines = text => String(text || '').split('\n').map(x => x.trim()).filter(Boolean);
-const state = { csrf: '', projects: [], archivedProjects: [], project: null, view: 'references', refs: [], activeId: null, total: 0, offset: 0, limit: 60, query: '', decision: '', kind: '', epoch: 0, autoAdvance: true, busy: false, dirty: false, caps: {}, jobId: '', recycled: false, selectLast: false, focusId: null };
+const state = { csrf: '', projects: [], archivedProjects: [], project: null, view: 'references', refs: [], activeId: null, total: 0, offset: 0, limit: 60, query: '', decision: '', kind: '', epoch: 0, autoAdvance: true, busy: false, dirty: false, caps: {}, jobId: '', recycled: false, selectLast: false, focusId: null, selection: [] };
 const decisions = { pending: '未选择', keep: '已保留', maybe: '待定', reject: '已淘汰' };
 const statuses = { candidate: '候选 · 未核验', needs_review: '待逐图核验', needs_card: '待写资料卡', draft: '草稿 · 待确认', ready: '已确认现场卡', rejected: '已淘汰', inspiration: '灵感收藏', missing_asset: '图片缺失', blocked: '等待执行／受阻', running: '处理中', succeeded: '处理完成', failed: '执行失败', cancelled: '已取消', queued: '排队中' };
 const kinds = { unknown: '尚未分类', cosplay_photo: '真人 cosplay', portrait_photo: '普通真人摄影', illustration: '角色插画', equipment: '器材图', location: '场地图', collage: '拼图', generated: 'AI 生成概念' };
@@ -110,13 +110,32 @@ catch {
 
 const projectViews = ['references', 'selected', 'field', 'filtered', 'recycle', 'events'];
 const imageViews = ['references', 'selected', 'field', 'filtered', 'recycle', 'inspiration'];
-const stages = {candidate:'先选出你喜欢的', selected:'角色参考 · 尚未制卡', waiting_analysis:'待 Agent 接手', analyzing:'Agent 分析中', analyzed:'分析完成 · 请看结论', card_draft:'资料卡草稿 · 待你检查', ready:'已确认现场卡', inspiration:'已存入我的审美库', rejected:'已淘汰 · 可以恢复'};
+const stages = {candidate:'先选出你喜欢的', selected:'角色参考 · 尚未制卡', waiting_analysis:'待 Agent 接手', analyzing:'Agent 分析中', analyzed:'分析完成 · 请看结论', card_draft:'资料卡草稿 · 待你检查', ready:'已确认现场卡', inspiration:'已存入我的审美库', rejected:'已淘汰 · 可以恢复', detached:'已移出当前项目 · 可以恢复'};
 function scopeKey() { return projectViews.includes(state.view) ? `${state.view}:${state.project?.id || ''}` : state.view; }
 function rememberNavigation() {
     const q = new URLSearchParams({view:state.view, project:state.project?.id || '', ref:state.activeId || '', offset:state.offset, q:state.query, decision:state.decision, kind:state.kind, job:state.jobId || '', recycled:state.recycled?'1':'0'});
     try { history.replaceState(null, '', '#'+q); } catch { /* Sandboxed component tests need no browser history. */ }
 }
 function resetFilters() { state.offset=0; state.query=''; state.decision=''; state.kind=''; state.jobId=''; state.focusId=null; state.recycled=false; state.activeId=null; state.dirty=false; state.selectLast=false; }
+function selectionHas(id){return state.selection.some(item=>item.id===id);}
+function updateSelectionUI(){
+    const button=$('selection-actions');
+    if(button){button.disabled=!state.selection.length;button.textContent=`已选 ${state.selection.length} · 批量/沟通板`;}
+    const toggle=$('toggle-selection'), ref=current();
+    if(toggle&&ref)toggle.textContent=selectionHas(ref.id)?'移出批量选择':'加入批量选择';
+    const strip=$('filmstrip');
+    if(strip)[...strip.children].forEach(node=>node.classList.toggle('batch-selected',selectionHas(node.dataset.ref)));
+}
+function toggleProjectSelection(ref){
+    if(ref.detached_at||ref.decision==='reject'){toast('已移出或已淘汰的参考请先恢复');return;}
+    const index=state.selection.findIndex(item=>item.id===ref.id);
+    if(index>=0)state.selection.splice(index,1);
+    else{
+        if(state.selection.length>=24){toast('一次最多选择 24 张；沟通板会按每页 4 张分页',true);return;}
+        state.selection.push({id:ref.id,title:ref.title,asset_sha:ref.asset_sha});
+    }
+    updateSelectionUI();
+}
 function safeDiscard() { return !state.busy && (!state.dirty || window.confirm('当前审美反馈尚未保存。仍然离开？')); }
 async function boot() {
     const session = await api('/api/session');
@@ -139,7 +158,9 @@ async function loadProjects(preferredId) {
 }
 async function navigate(view, projectId=null) {
     if (!safeDiscard()) return;
+    const before=state.project?.id;
     if (projectId) state.project=state.projects.find(p=>p.id===projectId)||state.project;
+    if (projectId&&state.project?.id!==before) state.selection=[];
     state.view=view; resetFilters(); renderSidebar(); renderHeader(); await refreshView();
 }
 function renderSidebar() {
@@ -196,7 +217,7 @@ async function loadReferences(fallbackIndex=0) {
         if (state.view==='field') q.set('state','ready');
         if (state.view==='selected') { q.set('decision','keep');q.set('lane','field'); }
         if (state.view==='filtered') q.set('view_filtered','true');
-        if (state.view==='recycle') q.set('decision','reject');
+        if (state.view==='recycle') q.set('view_recycle','true');
     }
     const data=await api(global?`/api/inspirations?${q}`:`/api/projects/${state.project.id}/references?${q}`);
     if (epoch!==state.epoch||scope!==scopeKey()) return;
@@ -214,7 +235,7 @@ function mountReferenceShell() {
     if (view.dataset.shell===key&&$('filmstrip')) return;
     view.dataset.shell=key;
     const global=state.view==='inspiration';
-    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}<span class="spacer"></span><small>${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="image-stage" id="image-stage"><img id="main-image" alt=""><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
+    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}${!global?'<button id="selection-actions" class="quiet">已选 0 · 批量/沟通板</button>':''}<span class="spacer"></span><small>${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="image-stage" id="image-stage"><img id="main-image" alt=""><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
     const change=async(key,element)=>{
         if (state[key]===element.value) return;
         if (!safeDiscard()) { element.value=state[key];return; }
@@ -226,6 +247,8 @@ function mountReferenceShell() {
     $('decision-filter').onchange=e=>change('decision',e.target).catch(showError);
     $('kind-filter').onchange=e=>change('kind',e.target).catch(showError);
     if ($('finish-screening-btn')) $('finish-screening-btn').onclick=()=>finishScreeningSessionModal();
+    if ($('selection-actions')) $('selection-actions').onclick=()=>selectionActionsDialog();
+    updateSelectionUI();
 
     if ($('toggle-recycled')) $('toggle-recycled').onclick=()=>{if(!safeDiscard())return;state.recycled=!state.recycled;state.offset=0;state.activeId=null;loadReferences().catch(showError);};
     // Delegation is installed once. Selection never rebinds 60 thumbnail handlers.
@@ -288,7 +311,7 @@ function renderReferenceView() {
         const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',recycle:'没有已淘汰图片'};
         $('reference-empty').innerHTML=empty(titles[state.view]||'没有匹配的候选','可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。');
     }
-    $('collection-context').textContent=state.jobId?'正在查看一个采集任务的发现结果；不代表已确认图片属于这个角色。':state.view==='filtered'?'这里保留被视觉预检降级的候选。过滤不是 K/I/M/X，也不会删除资产；可以人工恢复后再决定。':state.view==='recycle'?'这里只影响本项目。其他角色引用和全局收藏不会一起删除；清理后的原图需重新导入才能恢复。':'';
+    $('collection-context').textContent=state.jobId?'正在查看一个采集任务的发现结果；不代表已确认图片属于这个角色。':state.view==='filtered'?'这里保留被视觉预检降级的候选。过滤不是 K/I/M/X，也不会删除资产；可以人工恢复后再决定。':state.view==='recycle'?'这里同时包含 X 淘汰和从当前项目移出的引用。两者都只影响本项目；其他项目和全局收藏不会一起删除。':'';
     if($('toggle-recycled'))$('toggle-recycled').textContent=state.recycled?'回到审美库':'已移除收藏';
     $('search-ref').value=state.query;$('decision-filter').value=state.decision;$('kind-filter').value=state.kind;
     reconcileFilmstrip();
@@ -296,6 +319,7 @@ function renderReferenceView() {
     $('previous-page').disabled=state.offset===0;
     $('next-page').disabled=state.offset+state.limit>=state.total;
     if(state.refs.length)renderActiveReference();
+    updateSelectionUI();
 }
 function renderActiveReference() {
     const ref=current();if(!ref)return;
@@ -329,11 +353,64 @@ function pageReferences(delta,last=false) {
 }
 
 
+function selectionActionsDialog(){
+    if(!state.selection.length){toast('先选择几张参考');return;}
+    const root=modal(`已选 ${state.selection.length} 张`,`<p class="form-help">这只是项目内的临时选择篮，不改变 K/I/M/X。可以批量复制/转移，也可以按当前选择顺序导出模特沟通板。</p><div class="guide-section">${state.selection.map((item,index)=>`<p><strong>${index+1}.</strong> ${esc(item.title)}</p>`).join('')}</div><div class="form-actions"><button id="selection-transfer">复制 / 转移到项目</button><button id="selection-board" class="primary">导出沟通板</button><button id="selection-clear" class="quiet">清空选择</button></div>`);
+    $('selection-transfer').onclick=()=>transferReferencesDialog(state.selection);
+    $('selection-board').onclick=()=>contactBoardDialog(state.selection);
+    $('selection-clear').onclick=()=>{state.selection=[];closeModal();updateSelectionUI();};
+}
+async function freshTransferItems(items){
+    const refs=await Promise.all(items.map(item=>api(`/api/references/${item.id}`)));
+    return refs.map(ref=>({reference_id:ref.id,expected_revision:ref.revision}));
+}
+function transferReferencesDialog(items){
+    const selected=(items||[]).filter(Boolean);
+    if(!selected.length){toast('没有可操作的参考');return;}
+    const targets=state.projects.filter(p=>p.id!==state.project?.id);
+    const targetOptions=Object.fromEntries(targets.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')]));
+    const transferForm=targets.length?`<form id="transfer-form"><p class="notice">复制：当前项目保留；转移：目标项目建立/复用引用后，从当前项目移出。目标项目默认“未选择”，不会继承当前角色判断、preflight、资料卡或验收。</p>${select('目标项目','target_project_id',targetOptions,targets[0]?.id||'')}${select('操作','mode',{copy:'复制到目标项目',move:'转移到目标项目'},'copy')}${select('目标项目初始状态','target_decision',{pending:'未选择（推荐）',keep:'K · 本角色参考',maybe:'M · 待定'},'pending')}<div class="form-actions"><button type="submit" class="primary">执行</button></div></form>`:'<p class="notice">还没有其他可用拍摄项目。可以先建立目标项目，或仅从当前项目移出。</p>';
+    const root=modal(`项目复用 · ${selected.length} 张`,`${transferForm}<hr><button id="detach-current" class="danger">仅从当前项目移出</button><p class="form-help">“移出”不是 X 淘汰：图片资产和历史记录保留，可在“已淘汰 / 恢复”里恢复当前项目引用。</p>`);
+    if($('transfer-form'))formSubmit(root,async data=>{
+        const transferItems=await freshTransferItems(selected);
+        const result=await api(`/api/projects/${state.project.id}/references/transfer`,{method:'POST',body:{items:transferItems,mode:data.mode,target_project_id:data.target_project_id,target_decision:data.target_decision}});
+        if(data.mode==='move')state.selection=state.selection.filter(item=>!selected.some(chosen=>chosen.id===item.id));
+        closeModal();await loadReferences();await renderStats();updateSelectionUI();
+        toast(data.mode==='move'?`已转移 ${result.items.length} 张；目标项目未继承角色判断`:`已复制 ${result.items.length} 张；当前项目保持不变`);
+    });
+    $('detach-current').onclick=async()=>{
+        if(!window.confirm(`从当前项目移出这 ${selected.length} 张？图片不会删除，可从项目回收入口恢复。`))return;
+        const transferItems=await freshTransferItems(selected);
+        await api(`/api/projects/${state.project.id}/references/transfer`,{method:'POST',body:{items:transferItems,mode:'remove',target_project_id:'',target_decision:'pending'}});
+        state.selection=state.selection.filter(item=>!selected.some(chosen=>chosen.id===item.id));
+        closeModal();await loadReferences();await renderStats();updateSelectionUI();toast('已从当前项目移出；没有作为 X 学习');
+    };
+}
+function contactBoardDialog(items){
+    const selected=(items||[]).filter(Boolean);
+    if(!selected.length){toast('先选择几张参考');return;}
+    const rows=selected.map((item,index)=>`<div class="event-card board-item" data-board-ref="${esc(item.id)}"><div class="compact-row"><strong>${index+1}. ${esc(item.title)}</strong><button type="button" data-move="-1">↑</button><button type="button" data-move="1">↓</button></div><div class="compact-row"><img src="/api/assets/${esc(item.asset_sha)}/thumb" alt="" style="width:72px;height:72px;object-fit:contain"><input data-board-note maxlength="400" placeholder="可选：喜欢这张的动作 / 氛围 / 构图"></div></div>`).join('');
+    const root=modal('导出模特沟通板',`<form id="contact-board-form"><p class="notice">每页最多 4 张，保留完整画面不强裁切。1–4 张直接下载 PNG；超过 4 张自动分页并下载 ZIP。这里不是现场卡，也不会改变筛选状态。</p>${label('沟通板标题（选填）','title',state.project?.character?state.project.character+' · 拍摄参考':'')}<div id="board-items">${rows}</div><div class="form-actions"><button type="submit" class="primary">生成并下载</button></div></form>`);
+    listen(root,'[data-move]','click',(e,n)=>{
+        const row=n.closest('[data-board-ref]'), direction=Number(n.dataset.move);
+        const sibling=direction<0?row.previousElementSibling:row.nextElementSibling;
+        if(!sibling)return;
+        if(direction<0)row.parentElement.insertBefore(row,sibling);else row.parentElement.insertBefore(sibling,row);
+    });
+    formSubmit(root,async(data,form)=>{
+        const ordered=[...form.querySelectorAll('[data-board-ref]')].map(node=>({reference_id:node.dataset.boardRef,note:node.querySelector('[data-board-note]').value}));
+        const suffix=ordered.length<=4?'png':'zip';
+        await download(`/api/projects/${state.project.id}/contact-board`,`${state.project.character}-沟通板.${suffix}`,{title:data.title,items:ordered});
+        closeModal();toast(ordered.length<=4?'沟通板 PNG 已生成':'多页沟通板已生成 ZIP');
+    });
+}
+
+
 async function archiveProject(project) {
     if(!safeDiscard())return;
     if(!window.confirm(`删除项目“${project.character}”？项目会移到回收区；图片、全局审美收藏、其他项目引用和历史记录不会物理删除。`))return;
     await api(`/api/projects/${project.id}`,{method:'DELETE',body:{expected_revision:project.revision}});
-    state.project=null;resetFilters();await loadProjects();toast('项目已移到回收区，可恢复');
+    state.project=null;state.selection=[];resetFilters();await loadProjects();toast('项目已移到回收区，可恢复');
 }
 function archivedProjectsDialog() {
     const body=state.archivedProjects.length
@@ -414,6 +491,7 @@ function recommendationBadges(ref) {
 
 function renderDetail(ref) {
     const selected=ref.selected_for_project, stage=stages[ref.workflow_stage]||statuses[ref.state];
+    const detached=!!ref.detached_at;
     const recycled=ref.decision==='reject';
     const preflightFiltered=state.view==='filtered'&&ref.preflight_filtered;
     const pf=ref.preflight;
@@ -421,18 +499,22 @@ function renderDetail(ref) {
     const blockers=(ref.blockers||[]).filter(b=>b.code!=='not_accepted');
     $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p>${preflightBadge(ref)}${recommendationBadges(ref)}</div>
     ${pf?`<section class='gate-box'><strong>候选视觉预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p><small>来自 ${esc(pf.producer||'未记录执行器')}；这是 Agent prediction，不是人工确认。</small></section>`:''}
-    ${preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration" class="${ref.decision==='keep'&&ref.lane==='inspiration'?'chosen':''}"><strong>通用灵感</strong><small>I · 收藏到我的审美库</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
-    ${!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
+    ${detached?`<button id="restore-project-use" class="primary">恢复到当前项目</button><p class="muted">这张图只是从当前项目移出，不是 X 淘汰；其他项目和全局收藏不受影响。</p>`:preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration" class="${ref.decision==='keep'&&ref.lane==='inspiration'?'chosen':''}"><strong>通用灵感</strong><small>I · 收藏到我的审美库</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
+    ${!detached&&!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
     ${ref.card?cardMarkup(ref.card,ref.field_ready):ref.review?`<section class="guide-section"><h3>分析结论</h3>${ordered(ref.review.observations)}${ref.review.critical_uncertainties.length?`<p>待确认：${esc(ref.review.critical_uncertainties.join('；'))}</p>`:''}<p>${ref.card?'':'尚未生成资料卡。可保留作审美参考，不强行凑拍摄指令。'}</p></section>`:''}
     <details class="advanced-panel"><summary>审美笔记与借鉴点（选填）</summary><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',ref.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(ref.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form>${!ref.inspiration_id?'<button id="save-global">同时收藏到我的审美库</button>':'<button id="open-global">打开我的审美库</button>'}</details>
+    ${!detached&&!recycled?`<details class="advanced-panel"><summary>跨项目复用与模特沟通</summary><p class="form-help">同一图片文件可以被多个项目引用，不会复制资产。转移只移除当前项目关系，不会把它当成 X。</p><div class="compact-row"><button id="toggle-selection">加入/移出批量选择</button><button id="transfer-reference">复制 / 转移到其他项目</button></div></details>`:""}
     <details class="advanced-panel"><summary>来源、判断修正与手动制卡</summary><p class="form-help">只有需要纠错时才填写。搜索来源不等于角色事实，人工修正不会自动确认现场卡。</p><div class="compact-row"><button id="review-reference">修正图片判断</button><button id="edit-source">来源与标题</button><button id="edit-card">手动编辑资料卡</button><button id="context-reference">发现上下文</button><button id="similar-images">相似图线索</button><button id="replace-image">替换图片</button></div>${blockers.length?`<div class="gate-box"><strong>制卡仍需检查</strong><ul>${blockers.map(b=>`<li>${esc(b.message)}</li>`).join('')}</ul></div>`:''}${ref.legacy_notes?`<details><summary>历史说明（未验证）</summary><pre>${esc(ref.legacy_notes)}</pre></details>`:''}<p class="detail-meta">修订 ${ref.revision} · ${esc(ref.id.slice(0,12))}</p></details>
     ${selected?`<details class="advanced-panel"><summary>拍摄复盘</summary><button id="add-reflection">＋ 记录实拍经验</button>${(ref.reflections||[]).slice(-3).map(x=>`<p>${esc(x.worked||x.failed||x.next_time||'已记录')}</p>`).join('')}</details>`:''}
     ${ref.source.page_url?`<a class="source-link" href="${esc(ref.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:''}`;
     listen('detail-panel','[data-decision]','click',(e,n)=>decide(n.dataset.decision));
+    if($('restore-project-use'))$('restore-project-use').onclick=()=>restoreProjectUse(ref).catch(showError);
     if($('restore-preflight'))$('restore-preflight').onclick=()=>restorePreflight(ref).catch(showError);
     if($('make-transferable'))$('make-transferable').onclick=()=>makeTransferable(ref).catch(showError);
     if($('restore-reference'))$('restore-reference').onclick=()=>restoreReference(ref).catch(showError);
+    if($('toggle-selection'))$('toggle-selection').onclick=()=>toggleProjectSelection(ref);
+    if($('transfer-reference'))$('transfer-reference').onclick=()=>transferReferencesDialog([{id:ref.id,title:ref.title,asset_sha:ref.asset_sha}]);
     if($('make-card'))$('make-card').onclick=()=>{if(!requireSaved())return; (ref.analysis_job?jobHandoff(ref.analysis_job.id):ref.card?Promise.resolve(acceptanceEditor(ref)):newAnalysis([ref.id])).catch(showError);};
     $('preference-form').oninput=()=>{state.dirty=true;$('dirty-indicator').textContent='尚未保存';};
     $('preference-form').onsubmit=e=>{e.preventDefault();savePreference().catch(showError);};
@@ -458,8 +540,9 @@ async function savePreference() {
     finally {state.busy=false;}
 }
 function matchesCurrentView(ref) {
+    if(state.view==='recycle')return ref.decision==='reject'||!!ref.detached_at;
+    if(ref.detached_at)return false;
     if(state.view==='filtered')return !!ref.preflight_filtered;
-    if(state.view==='recycle')return ref.decision==='reject';
     if(ref.decision==='reject'&&state.decision!=='reject')return false;
     if(state.view==='selected')return ref.selected_for_project;
     if(state.view==='field')return ref.field_ready;
@@ -496,6 +579,11 @@ async function decide(choice) {
 async function restoreReference(ref) {
     if(state.busy)return;state.busy=true;
     try{await api(`/api/references/${ref.id}/restore`,{method:'POST',body:{expected_revision:ref.revision}});await loadReferences();await renderStats();toast('已恢复原选择；现场卡确认仍需重新检查');}
+    finally{state.busy=false;}
+}
+async function restoreProjectUse(ref) {
+    if(state.busy)return;state.busy=true;
+    try{await api(`/api/references/${ref.id}/restore-project-use`,{method:"POST",body:{expected_revision:ref.revision}});await loadReferences();await renderStats();toast("已恢复到当前项目；K/I/M/X 没有被自动修改");}
     finally{state.busy=false;}
 }
 async function restorePreflight(ref) {
@@ -553,7 +641,7 @@ async function openProjectReference(projectId,referenceId) {
     if(!safeDiscard())return;
     const ref=await api(`/api/references/${referenceId}`);
     state.project=state.projects.find(p=>p.id===projectId);
-    resetFilters();state.view=ref.preflight_filtered?'filtered':ref.decision==='reject'?'recycle':ref.selected_for_project?'selected':'references';
+    resetFilters();state.view=ref.detached_at?'recycle':ref.preflight_filtered?'filtered':ref.decision==='reject'?'recycle':ref.selected_for_project?'selected':'references';
     state.activeId=ref.id;state.focusId=ref.id;await refreshView();
 }
 function useInspirationDialog(item) {

@@ -11,7 +11,7 @@ from .db import Database, encode, now
 from .catalog_data import keep_inspiration, record_discovery, record_observation
 from .models import (CandidateInput, ProjectInput, ReferenceEdit, Source, VisualReview, Card,
                      AnalysisResult, NoteInput, JobInput, InspirationInput, InspirationEdit, CollectionReport,
-                     CandidatePreflight)
+                     CandidatePreflight, ReferenceTransferInput)
 from .storage import AssetStore
 from .policy import (MESSAGES, acceptance_digest, blockers, context_digest, digest, state_for)
 
@@ -151,7 +151,7 @@ class Library:
               payload: object, actor: str = "human") -> dict:
         ref["revision"] += 1
         ref["updated_at"] = now()
-        ref["state"] = state_for(ref, project, self._asset_exists(con, ref))
+        ref["state"] = "detached" if ref.get("detached_at") else state_for(ref, project, self._asset_exists(con, ref))
         con.execute("UPDATE refs SET asset_sha=?,decision=?,state=?,data=? WHERE id=?",
                     (ref["asset_sha"], ref["decision"], ref["state"], encode(ref), ref["id"]))
         self.db.event(con, ref["project_id"], ref["id"], action, payload, actor)
@@ -162,11 +162,12 @@ class Library:
         exists = self._asset_exists(con, ref)
         result = dict(ref)
         result["asset"] = row_data(con, "assets", ref["asset_sha"]) if ref["asset_sha"] else None
-        result["state"] = state_for(ref, project, exists)
+        detached = bool(ref.get("detached_at"))
+        result["state"] = "detached" if detached else state_for(ref, project, exists)
         result["blockers"] = [{"code": x, "message": MESSAGES[x]} for x in blockers(ref, project, exists)]
-        result["field_ready"] = not result["blockers"]
+        result["field_ready"] = not result["blockers"] and not detached
         result["file_available"] = exists
-        result["selected_for_project"] = ref["decision"] == "keep" and ref["lane"] == "field"
+        result["selected_for_project"] = not detached and ref["decision"] == "keep" and ref["lane"] == "field"
         saved = con.execute("SELECT id FROM inspirations WHERE asset_sha=? AND active=1", (ref["asset_sha"],)).fetchone()
         result["inspiration_id"] = saved[0] if saved else None
         result["workflow_stage"] = self._workflow_stage(con, ref, project, result)
@@ -184,6 +185,7 @@ class Library:
                "decision": decision, "lane": "field", "preference": "", "borrow": [], "allow_cross_domain": False,
                "discovery_intent": data.discovery_intent, "discovery_reason": data.discovery_reason,
                "preflight": None, "preflight_status": "unreviewed", "preflight_filtered": False, "preflight_override": False,
+               "detached_at": None, "detached_to_project_id": None, "detached_reason": "",
                "review": None, "review_actor": "", "review_producer": "", "card": None, "card_context": "",
                "card_producer": "", "accepted_fingerprint": None, "reflections": [], "revision": 1,
                "created_at": now(), "updated_at": now()}
@@ -272,12 +274,16 @@ class Library:
 
     def references(self, project_id: str, *, limit: int = 60, offset: int = 0, query: str = "",
                    decision: str = "", state: str = "", lane: str = "", kind: str = "",
-                   include_rejected: bool = False, view_filtered: bool = False,
+                   include_rejected: bool = False, view_filtered: bool = False, view_recycle: bool = False,
                    job_id: str = "", focus_id: str = "", preflight_status: str = "") -> dict:
         clauses, args = ["project_id=?"], [project_id]
-        if view_filtered:
+        if view_recycle:
+            clauses.append("(decision='reject' OR json_extract(data,'$.detached_at') IS NOT NULL)")
+        elif view_filtered:
+            clauses.append("json_extract(data,'$.detached_at') IS NULL")
             clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=1")
         else:
+            clauses.append("json_extract(data,'$.detached_at') IS NULL")
             clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=0")
             if not include_rejected and decision != "reject" and state != "rejected":
                 clauses.append("decision<>'reject'")
@@ -313,7 +319,7 @@ class Library:
             count = con.execute(f"SELECT COUNT(*) FROM refs WHERE {where}", args).fetchone()[0]
             rows = con.execute(f"SELECT data FROM refs WHERE {where} ORDER BY rowid LIMIT ? OFFSET ?", (*args, limit, offset))
             items = [self._decorate(con, json.loads(r[0]), project) for r in rows]
-            if not focus_id and not view_filtered:
+            if not focus_id and not view_filtered and not view_recycle:
                 try:
                     from .aesthetic_profile import get_current_profile
                     from .ranking import score_and_rank_candidates
@@ -328,13 +334,15 @@ class Library:
         with self.db.read() as con:
             row_data(con, "projects", project_id)
             result = {"total": 0, "pending": 0, "keep": 0, "maybe": 0, "reject": 0, "ready": 0}
-            for row in con.execute("SELECT decision,COUNT(*) FROM refs WHERE project_id=? GROUP BY decision", (project_id,)):
+            active = "project_id=? AND json_extract(data,'$.detached_at') IS NULL"
+            for row in con.execute(f"SELECT decision,COUNT(*) FROM refs WHERE {active} GROUP BY decision", (project_id,)):
                 result[row[0]] = row[1]
                 result["total"] += row[1]
-            result["ready"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND state='ready' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
-            result["selected"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND decision='keep' AND json_extract(data,'$.lane')='field' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
-            result["filtered"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=1", (project_id,)).fetchone()[0]
-            result["visible"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND decision<>'reject' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["ready"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND state='ready' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["selected"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision='keep' AND json_extract(data,'$.lane')='field' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["filtered"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=1", (project_id,)).fetchone()[0]
+            result["visible"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision<>'reject' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["detached"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND json_extract(data,'$.detached_at') IS NOT NULL", (project_id,)).fetchone()[0]
             return result
 
     def edit_reference(self, ident: str, data: ReferenceEdit) -> dict:
@@ -343,6 +351,8 @@ class Library:
             ref = row_data(con, "refs", ident)
             project = row_data(con, "projects", ref["project_id"])
             ensure_active_project(project)
+            if ref.get("detached_at"):
+                raise Problem(409, "此图片已从当前项目移出；请先恢复项目引用")
             check_revision(ref, data.expected_revision)
             if changes:
                 if changes.get("decision") == "reject" and ref["decision"] != "reject":
@@ -562,8 +572,8 @@ class Library:
                 if not ids: raise Problem(422, "请先选择要分析的已保留参考")
                 for ident in ids:
                     ref = row_data(con, "refs", ident)
-                    if ref["project_id"] != project_id or ref["decision"] != "keep" or not ref["asset_sha"]:
-                        raise Problem(409, "分析任务只能包含本项目已保留且有图片的条目")
+                    if ref["project_id"] != project_id or ref["decision"] != "keep" or not ref["asset_sha"] or ref.get("detached_at"):
+                        raise Problem(409, "分析任务只能包含本项目仍在使用、已保留且有图片的条目")
                     snapshots[ident] = {"revision": ref["revision"], "asset_sha": ref["asset_sha"]}
             elif ids:
                 raise Problem(422, "Collection jobs do not accept reference IDs")
@@ -647,6 +657,7 @@ class Library:
                           "Return null card for irrelevant/uncertain images. Never accept a field card for the user."]}
 
     def _workflow_stage(self, con: sqlite3.Connection, ref: dict, project: dict, result: dict) -> str:
+        if ref.get("detached_at"): return "detached"
         if ref["decision"] == "reject": return "rejected"
         if ref["decision"] != "keep": return "candidate"
         if ref["lane"] == "inspiration": return "inspiration"
@@ -684,7 +695,7 @@ class Library:
         result["state"] = "inspiration" if item["active"] else "rejected"
         result["decision"] = "keep" if item["active"] else "reject"
         result["used_in_projects"] = [dict(r) for r in con.execute(
-            "SELECT r.project_id,r.id AS reference_id,json_extract(p.data,'$.character') AS character FROM refs r JOIN projects p ON p.id=r.project_id WHERE r.asset_sha=? AND r.decision='keep' AND json_extract(r.data,'$.lane')='field'", (item["asset_sha"],))]
+            "SELECT r.project_id,r.id AS reference_id,json_extract(p.data,'$.character') AS character FROM refs r JOIN projects p ON p.id=r.project_id WHERE r.asset_sha=? AND r.decision='keep' AND json_extract(r.data,'$.lane')='field' AND json_extract(r.data,'$.detached_at') IS NULL", (item["asset_sha"],))]
         return result
 
     def inspirations(self, *, limit: int = 60, offset: int = 0, query: str = "", recycled: bool = False) -> dict:
@@ -746,13 +757,121 @@ class Library:
                 raise Problem(409, "请先恢复可用的收藏图片")
             existing = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?", (project_id, item["asset_sha"])).fetchone()
             if existing:
+                ref = row_data(con, "refs", existing[0])
+                if ref.get("detached_at"):
+                    ref.update(detached_at=None, detached_to_project_id=None, detached_reason="", accepted_fingerprint=None)
+                    self._save(con, ref, project, "reference.reattached", {"source": "global_inspiration"}, "human")
                 return {"created": False, "preserved_existing_choice": True,
-                        "reference": self._decorate(con, row_data(con, "refs", existing[0]), project)}
+                        "reference": self._decorate(con, ref, project)}
             source = {**item["source"], "source_confirmed": False, "search_query": "", "search_category": ""}
             data = CandidateInput(asset_sha=item["asset_sha"], title=item["title"], source=Source(**source))
             ref = self._insert_reference(con, project, data, "keep", "human_reuse")
             self.db.event(con, project_id, ref["id"], "project.asset_reused", {"inspiration_id": ident, "asset_sha": item["asset_sha"]})
             return {"created": True, "preserved_existing_choice": False, "reference": self._decorate(con, ref, project)}
+
+    def transfer_references(self, source_project_id: str, request: ReferenceTransferInput) -> dict:
+        with self.db.transaction() as con:
+            source_project = row_data(con, "projects", source_project_id)
+            ensure_active_project(source_project)
+            target_project = None
+            if request.mode in {"copy", "move"}:
+                if request.target_project_id == source_project_id:
+                    raise Problem(422, "目标项目不能与当前项目相同")
+                target_project = row_data(con, "projects", request.target_project_id)
+                ensure_active_project(target_project)
+
+            seen = set()
+            refs: list[tuple[dict, int]] = []
+            for item in request.items:
+                if item.reference_id in seen:
+                    raise Problem(422, "同一张参考不能在一次操作中重复提交")
+                seen.add(item.reference_id)
+                ref = row_data(con, "refs", item.reference_id)
+                if ref["project_id"] != source_project_id:
+                    raise Problem(409, "批量操作包含其他项目的参考")
+                if ref.get("detached_at"):
+                    raise Problem(409, "有参考已经从当前项目移出；请刷新后重试")
+                check_revision(ref, item.expected_revision)
+                if not ref.get("asset_sha"):
+                    raise Problem(409, "没有独立图片资产的历史条目不能跨项目转移")
+                refs.append((ref, item.expected_revision))
+
+            results = []
+            for ref, _revision in refs:
+                target_ref = None
+                created = False
+                preserved = False
+                if target_project is not None:
+                    hit = con.execute(
+                        "SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                        (target_project["id"], ref["asset_sha"]),
+                    ).fetchone()
+                    if hit:
+                        target_ref = row_data(con, "refs", hit[0])
+                        preserved = True
+                        if target_ref.get("detached_at"):
+                            target_ref.update(detached_at=None, detached_to_project_id=None, detached_reason="", accepted_fingerprint=None)
+                            self._save(con, target_ref, target_project, "reference.reattached",
+                                       {"from_project_id": source_project_id, "from_reference_id": ref["id"]}, "human")
+                    else:
+                        source = {**ref["source"], "source_confirmed": False, "search_query": "", "search_category": ""}
+                        candidate = CandidateInput(
+                            asset_sha=ref["asset_sha"],
+                            title=ref["title"],
+                            source=Source(**source),
+                            discovery_intent="unknown",
+                            discovery_reason="用户从另一个项目复制/转移；这是使用关系，不是新的搜索发现。",
+                        )
+                        target_ref = self._insert_reference(
+                            con, target_project, candidate, request.target_decision, "human_transfer"
+                        )
+                        created = True
+                        self.db.event(
+                            con, target_project["id"], target_ref["id"], "project.asset_reused",
+                            {"from_project_id": source_project_id, "from_reference_id": ref["id"],
+                             "asset_sha": ref["asset_sha"], "mode": request.mode},
+                        )
+
+                source_detached = request.mode in {"move", "remove"}
+                if source_detached:
+                    ref.update(
+                        detached_at=now(),
+                        detached_to_project_id=target_project["id"] if target_project else None,
+                        detached_reason="moved" if target_project else "removed",
+                        accepted_fingerprint=None,
+                    )
+                    self._save(
+                        con, ref, source_project, "reference.detached",
+                        {"mode": request.mode, "target_project_id": target_project["id"] if target_project else None},
+                        "human",
+                    )
+
+                results.append({
+                    "source_reference_id": ref["id"],
+                    "target_reference_id": target_ref["id"] if target_ref else None,
+                    "target_created": created,
+                    "preserved_existing_choice": preserved,
+                    "source_detached": source_detached,
+                })
+
+            return {
+                "mode": request.mode,
+                "source_project_id": source_project_id,
+                "target_project_id": target_project["id"] if target_project else None,
+                "items": results,
+            }
+
+    def restore_detached_reference(self, ident: str, revision: int) -> dict:
+        with self.db.transaction() as con:
+            ref = row_data(con, "refs", ident)
+            check_revision(ref, revision)
+            if not ref.get("detached_at"):
+                raise Problem(409, "此参考没有从项目移出")
+            project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
+            ref.update(detached_at=None, detached_to_project_id=None, detached_reason="", accepted_fingerprint=None)
+            self._save(con, ref, project, "reference.reattached", {"source": "project_recycle"}, "human")
+            return self._decorate(con, ref, project)
 
     def asset_context(self, sha: str) -> dict:
         with self.db.read() as con:
@@ -760,7 +879,7 @@ class Library:
             return {"asset": asset,
                     "discoveries": [json.loads(r[0]) for r in con.execute("SELECT data FROM discoveries WHERE asset_sha=? ORDER BY rowid", (sha,))],
                     "observations": [json.loads(r[0]) for r in con.execute("SELECT data FROM asset_observations WHERE asset_sha=? ORDER BY rowid DESC", (sha,))],
-                    "project_uses": [dict(r) for r in con.execute("SELECT id,project_id,decision,json_extract(data,'$.lane') AS lane FROM refs WHERE asset_sha=?", (sha,))]}
+                    "project_uses": [dict(r) for r in con.execute("SELECT id,project_id,decision,json_extract(data,'$.lane') AS lane,json_extract(data,'$.detached_at') AS detached_at FROM refs WHERE asset_sha=?", (sha,))]}
 
     def start_collection_attempt(self, ident: str, revision: int, attempt_id: str) -> dict:
         with self.db.transaction() as con:
@@ -857,7 +976,7 @@ class Library:
                 id_ctx = build_identity_context(project["character"], project.get("work", ""), project.get("costume", ""), project.get("brief", ""))
                 save_identity_context(con, project_id, id_ctx)
 
-            refs_rows = con.execute("SELECT id, asset_sha, data FROM refs WHERE project_id=?", (project_id,)).fetchall()
+            refs_rows = con.execute("SELECT id, asset_sha, data FROM refs WHERE project_id=? AND json_extract(data,'$.detached_at') IS NULL", (project_id,)).fetchall()
             scanned = 0
             filtered = 0
             passed = 0

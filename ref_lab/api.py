@@ -15,13 +15,14 @@ from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import __version__
 from .config import Settings
-from .export import build_job_pack, build_pack
+from .export import build_job_pack, build_pack, build_contact_board
 from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
 from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardInput, JobInput, JobResult,
                      NoteEdit, NoteInput, PackInput, ProjectEdit, ProjectInput, ReferenceEdit, ReflectionInput,
                      RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport,
                      CandidatePreflightInput, PreflightOverrideInput,
-                     IdentityContextInput, ConfirmSummaryInput, RollbackProfileInput, PreflightScanInput)
+                     IdentityContextInput, ConfirmSummaryInput, RollbackProfileInput, PreflightScanInput,
+                     ReferenceTransferInput, ContactBoardInput)
 
 from .security import BodyLimitMiddleware, COOKIE, csrf_for, make_session, valid_session
 from .service import Library, Problem
@@ -167,11 +168,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/projects/{project_id}/references")
     def references(project_id: str, limit: int = Query(60, ge=1, le=200), offset: int = Query(0, ge=0),
                    q: str = Query("", max_length=400), decision: str = "", state: str = "", lane: str = "", kind: str = "",
-                   include_rejected: bool = False, view_filtered: bool = False, job_id: str = "", focus_id: str = "",
-                   preflight_status: str = ""):
+                   include_rejected: bool = False, view_filtered: bool = False, view_recycle: bool = False,
+                   job_id: str = "", focus_id: str = "", preflight_status: str = ""):
         return library.references(project_id, limit=limit, offset=offset, query=q, decision=decision, state=state, lane=lane, kind=kind,
-                                  include_rejected=include_rejected, view_filtered=view_filtered, job_id=job_id, focus_id=focus_id,
-                                  preflight_status=preflight_status)
+                                  include_rejected=include_rejected, view_filtered=view_filtered, view_recycle=view_recycle,
+                                  job_id=job_id, focus_id=focus_id, preflight_status=preflight_status)
 
     @app.get("/api/projects/{project_id}/identity-context")
     def get_identity_context(project_id: str):
@@ -192,6 +193,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/projects/{project_id}/references", status_code=201)
     def candidate(project_id: str, data: CandidateInput): return library.add_candidate(project_id, data, actor="human")
+
+    @app.post("/api/projects/{project_id}/references/transfer")
+    def transfer_references(project_id: str, data: ReferenceTransferInput):
+        return library.transfer_references(project_id, data)
+
+    @app.post("/api/projects/{project_id}/contact-board")
+    def contact_board(project_id: str, data: ContactBoardInput):
+        path = build_contact_board(library, project_id, data)
+        filename = "contact-board.png" if path.suffix.lower() == ".png" else "contact-board-pages.zip"
+        media_type = "image/png" if path.suffix.lower() == ".png" else "application/zip"
+        return FileResponse(path, media_type=media_type, filename=filename,
+                            background=BackgroundTask(path.unlink, missing_ok=True))
 
 
     @app.get("/api/references/{reference_id}")
@@ -247,6 +260,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/references/{reference_id}/restore")
     def restore(reference_id: str, data: RevisionInput):
         return library.restore_reference(reference_id, data.expected_revision)
+
+    @app.post("/api/references/{reference_id}/restore-project-use")
+    def restore_project_use(reference_id: str, data: RevisionInput):
+        return library.restore_detached_reference(reference_id, data.expected_revision)
 
     @app.post("/api/references/{reference_id}/restore-preflight")
     def restore_preflight(reference_id: str, data: RevisionInput):
