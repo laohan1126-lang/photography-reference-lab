@@ -32,7 +32,7 @@ def acquisition_contract(job: dict) -> dict:
             "组合 cosplay / cos / コスプレ / 正片 / 场照 / 摄影 / pose / photography 与动作、情绪、构图要求。",
             "先比较来源和关键词的小样本产出；低产或大量重复就换词／来源，不下载前 N 张凑数。",
             "同套连拍只选有明显不同价值的画面；逐张看图片，记录发现意图和借鉴原因。",
-            "数量是软目标；质量不足减少数量并报告缺口，不把器材、空场地、插画、拼图混入真人姿势。",
+            "数量是软目标；质量不足减少数量并报告缺口。每张候选先做视觉 modality + identity preflight；游戏截图、插画、假人/服装商品、拼图等不能混入默认真人 cosplay 候选。",
         ],
         "safety": [
             "仅使用用户已授权的正常浏览器；验证码／访问控制／付费墙前停止或请求用户处理。",
@@ -61,11 +61,18 @@ def agent_instructions(job: dict) -> str:
 按 acquisition.query_strategy 与 source_options 选择来源、扩展关键词，不机械跑所有网站。
 A exact_character / B transferable_pose / C aesthetic 是发现意图，不能写成已核实图像事实。
 逐张独立查看、下载和去重；追到发布页和作者。搜索页仅写 discovery_url，不能冒充 source.page_url。
-达不到软目标时返回更少的好图和缺口。不下载前 N 张凑数，不以器材／空场地／插画冒充真人姿势。
+达不到软目标时返回更少的好图和缺口。不下载前 N 张凑数。
+
+## 每张候选的视觉预检
+必须实际打开独立图片后填写 preflight；不得依据 query、标题、页面文字或项目名推断图片事实。
+content_type 只可使用 schema 中枚举：真人 cosplay / 真人普通人像、游戏或动画截图、官方/同人插画、服装展示、假人、商品、拼图、场景或 unknown。
+identity_prediction 只表示基于图片的 match / mismatch / uncertain。看不清就 uncertain，不得为凑数强行 match。
+visual_evidence 只写图中可见证据。正确角色插画即使 identity=match，也不能作为默认真人 cosplay 摄影候选通过。
+游戏 UI、插画、假人/服装陈列、商品图、拼图、空场景等保留资产与来源，但由服务端进入“已过滤候选”而不是默认主筛图。
 
 ## 返回
 独立图片与 manifest.json 打成 result.zip，参照 candidate-package.schema.json 与 manifest.example.json。
-manifest 包含 schema_version:2、job_id:"{ident}"、稳定 batch_id、candidates 与 execution_report。
+manifest 包含 schema_version:3、job_id:"{ident}"、稳定 batch_id、candidates（每项含 preflight）与 execution_report。
 报告真实尝试的来源、登录／阻断状态、检索词、保留数量、停止原因和 gaps；未知写 untested。
 没有有效候选可返回空 candidates 和 blocked 报告。source_confirmed 必须 false。
 不能把 KEEP、review、card 或人工确认状态塞进包中。
