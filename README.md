@@ -31,6 +31,10 @@ python -m ref_lab backup --output ../reference-lab-backup.zip
 
 **我的审美库**与项目平级，即使没有任何项目也能上传收藏。可以长期保存动作、表情、构图、光线、色彩、电影画面等，再引用到多个角色。同一个文件按 SHA-256 只存一份。已有项目选择（包括淘汰）不会因再次引用而被静默改变；一个项目淘汰图片不会删除全局收藏或其他项目的使用关系。
 
+**跨项目复用**不搬图片文件，只改变项目使用关系。单张或临时多选后可以“复制到其他项目”或“转移到其他项目”；新目标项目默认是未选择，不继承原项目的角色判断、preflight、资料卡或人工确认。目标项目已经有同一图片时保留它自己的旧选择。转移/“从当前项目移出”也不是 X 淘汰：原项目关系进入可恢复状态，资产、来源、我的审美库和其他项目引用都保留。
+
+**模特沟通板**使用同一个项目内的临时选择篮。按选择顺序可给每张图写一句“想让模特看什么”，每页最多 4 张并用 contain 方式完整放入画面，不强裁切。1–4 张直接下载 PNG；更多图片自动按 4 张一页生成多张 PNG 并打包 ZIP。沟通板只是拍摄前交流材料，不是现场卡，也不会改变 K/I/M/X。
+
 **角色精选 → 制作现场卡**：只给真正想拍的几张制卡。建立任务 → 交给 Agent → 导入分析草稿 → 检查口令、图像判断与来源 → 单独确认。AI 判断错时修正，不需要先手填所有事实。不是所有保留图都适合现场卡；`card:null` 是允许的有效分析结论。图片、来源、选择或要求改变会撤销受影响的确认。
 
 **现场卡**仍是一图一卡：可说出口的引导、静态和情境动作、摄影师动作、安全降级、可见光线证据、布光推测、现有器材方案、PS 路线和必要的背景需求。项目设置中的“离线拍摄包”包含独立图片和完整静态页面；不依赖现场网络。摄影笔记独立保存，也兼容旧项目笔记与 Notion Markdown/CSV ZIP 导入。
@@ -60,7 +64,7 @@ python -m ref_lab import-job --job ANALYSIS_JOB_ID --input analysis.json
 
 ## 淘汰、恢复与磁盘空间
 
-淘汰立即从默认候选流消失；“已淘汰 / 恢复”可以恢复原选择，但不恢复旧现场卡确认。视觉预检过滤与 X 分开，“已过滤候选”可以人工恢复为普通候选。移出审美库也有独立恢复入口。项目设置中的“删除项目”采用可恢复的软删除：项目从正常列表隐藏，但共享图片、全局审美收藏、其他项目引用和历史记录不物理删除；侧栏回收入口可恢复项目。
+淘汰立即从默认候选流消失；“已淘汰 / 移出 / 恢复”同时承担本项目的 X 回收与项目引用恢复：X 会恢复淘汰前选择，而跨项目转移/移出只恢复当前项目关系，两者语义不会混为一谈。视觉预检过滤与 X 分开，“已过滤候选”可以人工恢复为普通候选。移出审美库也有独立恢复入口。项目设置中的“删除项目”采用可恢复的软删除：项目从正常列表隐藏，但共享图片、全局审美收藏、其他项目引用和历史记录不物理删除；侧栏回收入口可恢复项目。
 
 默认**不自动删除文件**。需要释放磁盘时先检查清单，再显式执行：
 
@@ -74,7 +78,7 @@ python -m ref_lab cleanup --days 30 --apply
 ## 回归与维护
 
 ```bash
-python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py
+python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py tests/test_reference_transfer_board.py
 node --check web/app.js
 python -m playwright install chromium
 python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py
