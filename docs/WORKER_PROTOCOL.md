@@ -38,13 +38,13 @@ python -m ref_lab export-job --job JOB_ID --output job.zip
 
 追到原发布页和作者；搜索结果页放 `discovery_url`，不放成 `source.page_url`。下载保存正常页面提供的独立文件，保留接收字节与出处；无法下载时报告缺口，不截图裁切冒充原图，不猜测 CDN 路径。
 
-## 候选包 schema 2
+## 候选包 schema 3
 
 ZIP 根目录 `manifest.json`，图片独立放 `images/`。**使用实际导出包中的 `candidate-package.schema.json`**，下面仅说明结构：
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "job_id": "来自任务的真实 ID",
   "batch_id": "本轮稳定批次 ID",
   "candidates": [{
@@ -62,7 +62,14 @@ ZIP 根目录 `manifest.json`，图片独立放 `images/`。**使用实际导出
     },
     "discovery_url": "https://example.org/search?q=example",
     "discovery_intent": "transferable_pose",
-    "discovery_reason": "说明为什么作为可迁移动作候选；不写成已核实角色"
+    "discovery_reason": "说明为什么作为可迁移动作候选；不写成已核实角色",
+    "preflight": {
+      "content_type": "real_person_cosplay",
+      "identity_prediction": "uncertain",
+      "confidence": "low",
+      "visual_evidence": ["只写实际打开图片后可见的证据"],
+      "reason": "无法从图像可靠确认目标角色时保持 uncertain"
+    }
   }],
   "execution_report": {
     "producer": "执行器名称与轮次",
@@ -75,9 +82,11 @@ ZIP 根目录 `manifest.json`，图片独立放 `images/`。**使用实际导出
 }
 ```
 
+schema 3 的每个 candidate 都必须有 `preflight`。它是 Agent 对实际图片的视觉预检，不是用户确认：搜索词、标题、项目名和页面文字不能作为视觉证据。默认真人 cosplay 流会过滤游戏/动画截图、官方/同人插画、服装/假人/商品展示、拼图和空场景；identity mismatch 也会过滤；unknown/uncertain 不会强行通过。过滤只影响默认候选流，资产仍保留并可人工恢复。
+
 实际返回 `status` 为 completed / blocked / failed；source_checks 状态为 usable / login_required / blocked / unavailable / untested。query_log 每项包含 source、query、kept、stop_reason。全部图片逐项导入校验；有失败时回执会改为 blocked；零有效候选不能把任务标完成。服务器校验的是协议、图片与状态一致性，不会把 Agent 回执当成独立外部验证。
 
-禁止候选条目伪造 KEEP、review、card 或验收字段；包内 source_confirmed 永远清为 false。图片字节哈希去重，import ID 与字节冲突时拒绝静默覆盖。单次上传 64 MiB、单图 20 MiB、解压总量 200 MiB、ZIP 最多 2000 项；候选最多 1000 项。更大批次拆包并保持稳定 ID。旧 schema 1 仍兼容，但不会伪造新任务报告。
+禁止候选条目伪造 KEEP、review、card 或验收字段；包内 source_confirmed 永远清为 false。图片字节哈希去重，import ID 与字节冲突时拒绝静默覆盖。单次上传 64 MiB、单图 20 MiB、解压总量 200 MiB、ZIP 最多 2000 项；候选最多 1000 项。更大批次拆包并保持稳定 ID。旧 schema 1/2 仍兼容，但不会为历史候选伪造视觉 preflight；当前导出任务要求 schema 3。
 
 ```bash
 python -m ref_lab import-job --job JOB_ID --input result.zip
@@ -130,7 +139,7 @@ python -m ref_lab import-job --job JOB_ID --input analysis.json
 
 参数必须含 `{task_file}` 或 `{task_dir}`，以及 `{result_file}`。运行时替换为本轮私有临时目录的绝对路径。请在本机先读取已安装 Agent/BrowserSkill 技能，以实际 CLI 合约编写适配器；本仓库不猜测 Codex/Antigravity 的模型名、权限绕过参数或版本选项。未配置/配置不合法/可执行程序不存在，均返回真实 `blocked`，可继续下载任务包手动执行。
 
-适配器必须读取 `AGENT_TASK.md`、`job.json` 及 schema，自主制定来源和关键词计划，尊重登录/验证码/访问控制，只把本任务的 schema2 `result.zip` 写到指定路径。不要直接访问个人数据库或调用 import-job；导入由网站负责。没有付费模型调用、浏览器自动安装、Cookie 导出或隐藏 API 的授权。
+适配器必须读取 `AGENT_TASK.md`、`job.json` 及 schema，自主制定来源和关键词计划，尊重登录/验证码/访问控制，只把本任务的 schema3 `result.zip` 写到指定路径。不要直接访问个人数据库或调用 import-job；导入由网站负责。没有付费模型调用、浏览器自动安装、Cookie 导出或隐藏 API 的授权。
 
 执行器 `shell=False`，不转发应用 `LAB_ACCESS_TOKEN`，给适配器单独的临时 `LAB_DATA_DIR`。stdout/stderr 丢弃而不是当成结果或审计日志，避免记录令牌/原始模型输出。程序退出码为 0 仍必须有合法 ZIP、正确 job_id 和本包有效候选回执；错包、空包、非零退出均不能用历史累计数量冒充本次完成。非零退出不接受该次输出，须由适配器在可正常交付的部分成功情况下返回退出码 0 + `execution_report.status:blocked`。
 
