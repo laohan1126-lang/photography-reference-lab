@@ -19,7 +19,8 @@ from .export import build_job_pack, build_pack
 from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
 from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardInput, JobInput, JobResult,
                      NoteEdit, NoteInput, PackInput, ProjectEdit, ProjectInput, ReferenceEdit, ReflectionInput,
-                     RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport)
+                     RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport,
+                     CandidatePreflightInput, PreflightOverrideInput)
 from .security import BodyLimitMiddleware, COOKIE, csrf_for, make_session, valid_session
 from .service import Library, Problem
 
@@ -134,10 +135,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/contracts")
     def contracts():
         return {"visual_review": VisualReview.model_json_schema(), "card": Card.model_json_schema(),
-                "analysis_result": AnalysisResult.model_json_schema(), "candidate": CandidateInput.model_json_schema()}
+                "analysis_result": AnalysisResult.model_json_schema(), "candidate": CandidateInput.model_json_schema(),
+                "candidate_preflight": CandidatePreflightInput.model_json_schema()}
 
     @app.get("/api/projects")
-    def projects(): return library.projects()
+    def projects(archived: bool = False): return library.projects(archived=archived)
 
     @app.post("/api/projects", status_code=201)
     def create_project(data: ProjectInput): return library.create_project(data)
@@ -149,13 +151,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def edit_project(project_id: str, data: ProjectEdit):
         return library.edit_project(project_id, ProjectInput(**data.model_dump(exclude={"expected_revision"})), data.expected_revision)
 
+    @app.delete("/api/projects/{project_id}")
+    def archive_project(project_id: str, data: RevisionInput):
+        return library.archive_project(project_id, data.expected_revision)
+
+    @app.post("/api/projects/{project_id}/restore")
+    def restore_project(project_id: str, data: RevisionInput):
+        return library.restore_project(project_id, data.expected_revision)
+
     @app.get("/api/projects/{project_id}/stats")
     def stats(project_id: str): return library.stats(project_id)
 
     @app.get("/api/projects/{project_id}/references")
     def references(project_id: str, limit: int = Query(60, ge=1, le=200), offset: int = Query(0, ge=0),
-                   q: str = Query("", max_length=400), decision: str = "", state: str = "", lane: str = "", kind: str = "", include_rejected: bool = False, job_id: str = "", focus_id: str = ""):
-        return library.references(project_id, limit=limit, offset=offset, query=q, decision=decision, state=state, lane=lane, kind=kind, include_rejected=include_rejected, job_id=job_id, focus_id=focus_id)
+                   q: str = Query("", max_length=400), decision: str = "", state: str = "", lane: str = "", kind: str = "", include_rejected: bool = False, view_filtered: bool = False, job_id: str = "", focus_id: str = ""):
+        return library.references(project_id, limit=limit, offset=offset, query=q, decision=decision, state=state, lane=lane, kind=kind, include_rejected=include_rejected, view_filtered=view_filtered, job_id=job_id, focus_id=focus_id)
 
     @app.post("/api/projects/{project_id}/references", status_code=201)
     def candidate(project_id: str, data: CandidateInput): return library.add_candidate(project_id, data, actor="human")
@@ -165,6 +175,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.patch("/api/references/{reference_id}")
     def edit_reference(reference_id: str, data: ReferenceEdit): return library.edit_reference(reference_id, data)
+
+    @app.post("/api/references/{reference_id}/preflight")
+    def candidate_preflight(reference_id: str, data: CandidatePreflightInput):
+        return library.apply_candidate_preflight(reference_id, data.preflight, data.expected_revision, data.producer)
+
+    @app.post("/api/references/{reference_id}/preflight-override")
+    def candidate_preflight_override(reference_id: str, data: PreflightOverrideInput):
+        return library.override_candidate_preflight(reference_id, data.expected_revision)
 
     @app.post("/api/references/{reference_id}/review")
     def review(reference_id: str, data: ReviewInput):
