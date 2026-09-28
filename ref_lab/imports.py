@@ -52,8 +52,8 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
     if "manifest.json" not in files:
         raise ValueError("Candidate ZIP must have manifest.json at its root")
     manifest = json.loads(files["manifest.json"])
-    if not isinstance(manifest, dict) or manifest.get("schema_version") not in {1, 2} or not isinstance(manifest.get("candidates"), list):
-        raise ValueError("Expected schema_version 1 or 2 and a candidates array")
+    if not isinstance(manifest, dict) or manifest.get("schema_version") not in {1, 2, 3} or not isinstance(manifest.get("candidates"), list):
+        raise ValueError("Expected schema_version 1, 2 or 3 and a candidates array")
     if len(manifest["candidates"]) > 1000:
         raise ValueError("A candidate package may contain at most 1000 entries")
     library.project(project_id)
@@ -67,14 +67,16 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
     if attempt_id and (not job or job.get("active_attempt_id") != attempt_id or job["status"] != "running"):
         raise Problem(409, "采集轮次已过期；不导入图片")
     execution = CollectionReport.model_validate(manifest["execution_report"]) if manifest.get("execution_report") else None
-    if manifest["schema_version"] == 2 and (not job_id or not execution):
-        raise ValueError("schema_version 2 requires job_id and execution_report")
+    if manifest["schema_version"] in {2, 3} and (not job_id or not execution):
+        raise ValueError("schema_version 2/3 requires job_id and execution_report")
     report = {"created": 0, "existing": 0, "missing": 0, "errors": [], "reference_ids": []}
     for index, item in enumerate(manifest["candidates"]):
         try:
             if not isinstance(item, dict): raise ValueError("Candidate must be an object")
-            if manifest["schema_version"] == 2:
+            if manifest["schema_version"] in {2, 3}:
                 item = PackCandidate.model_validate(item).model_dump()
+            if manifest["schema_version"] == 3 and not item.get("preflight"):
+                raise ValueError("schema_version 3 requires visual preflight for every candidate")
             filename = archive_name(item["file"])
             if filename not in files: raise ValueError("Referenced image is missing from archive")
             # A file package cannot claim that the human has already verified the source or image.
@@ -90,7 +92,14 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
             candidate.asset_sha = asset["id"]
             result = library.add_candidate(project_id, candidate, attempt_id=attempt_id)
             report["created" if result["created"] else "existing"] += 1
-            report["reference_ids"].append(result["reference"]["id"])
+            ref = result["reference"]
+            if item.get("preflight"):
+                validated = PackCandidate.model_validate(item).preflight
+                ref = library.apply_candidate_preflight(
+                    ref["id"], validated, ref["revision"],
+                    execution.producer if execution else "legacy-package"
+                )
+            report["reference_ids"].append(ref["id"])
         except (ValueError, KeyError, TypeError, Problem) as exc:
             report["errors"].append({"index": index, "id": item.get("id") if isinstance(item, dict) else None, "error": str(exc)})
     if job_id and execution:
