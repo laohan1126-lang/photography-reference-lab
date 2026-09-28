@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const lines = text => String(text || '').split('\n').map(x => x.trim()).filter(Boolean);
-const state = { csrf: '', projects: [], archivedProjects: [], project: null, view: 'references', refs: [], activeId: null, total: 0, offset: 0, limit: 60, query: '', decision: '', kind: '', epoch: 0, autoAdvance: true, busy: false, dirty: false, caps: {}, jobId: '', recycled: false, selectLast: false, focusId: null };
+const state = { csrf: '', projects: [], archivedProjects: [], project: null, view: 'references', refs: [], activeId: null, total: 0, offset: 0, limit: 60, query: '', decision: '', kind: '', epoch: 0, autoAdvance: true, busy: false, dirty: false, caps: {}, jobId: '', recycled: false, selectLast: false, focusId: null, selection: [] };
 const decisions = { pending: '未选择', keep: '已保留', maybe: '待定', reject: '已淘汰' };
 const statuses = { candidate: '候选 · 未核验', needs_review: '待逐图核验', needs_card: '待写资料卡', draft: '草稿 · 待确认', ready: '已确认现场卡', rejected: '已淘汰', inspiration: '灵感收藏', missing_asset: '图片缺失', blocked: '等待执行／受阻', running: '处理中', succeeded: '处理完成', failed: '执行失败', cancelled: '已取消', queued: '排队中' };
 const kinds = { unknown: '尚未分类', cosplay_photo: '真人 cosplay', portrait_photo: '普通真人摄影', illustration: '角色插画', equipment: '器材图', location: '场地图', collage: '拼图', generated: 'AI 生成概念' };
@@ -110,7 +110,7 @@ catch {
 
 const projectViews = ['references', 'selected', 'field', 'filtered', 'recycle', 'events'];
 const imageViews = ['references', 'selected', 'field', 'filtered', 'recycle', 'inspiration'];
-const stages = {candidate:'先选出你喜欢的', selected:'角色参考 · 尚未制卡', waiting_analysis:'待 Agent 接手', analyzing:'Agent 分析中', analyzed:'分析完成 · 请看结论', card_draft:'资料卡草稿 · 待你检查', ready:'已确认现场卡', inspiration:'已存入我的审美库', rejected:'已淘汰 · 可以恢复'};
+const stages = {candidate:'先选出你喜欢的', selected:'角色参考 · 尚未制卡', waiting_analysis:'待 Agent 接手', analyzing:'Agent 分析中', analyzed:'分析完成 · 请看结论', card_draft:'资料卡草稿 · 待你检查', ready:'已确认现场卡', inspiration:'已存入我的审美库', rejected:'已淘汰 · 可以恢复', detached:'已移出当前项目 · 可以恢复'};
 function scopeKey() { return projectViews.includes(state.view) ? `${state.view}:${state.project?.id || ''}` : state.view; }
 function rememberNavigation() {
     const q = new URLSearchParams({view:state.view, project:state.project?.id || '', ref:state.activeId || '', offset:state.offset, q:state.query, decision:state.decision, kind:state.kind, job:state.jobId || '', recycled:state.recycled?'1':'0'});
@@ -139,7 +139,9 @@ async function loadProjects(preferredId) {
 }
 async function navigate(view, projectId=null) {
     if (!safeDiscard()) return;
+    const before=state.project?.id;
     if (projectId) state.project=state.projects.find(p=>p.id===projectId)||state.project;
+    if (projectId&&state.project?.id!==before) state.selection=[];
     state.view=view; resetFilters(); renderSidebar(); renderHeader(); await refreshView();
 }
 function renderSidebar() {
@@ -196,7 +198,7 @@ async function loadReferences(fallbackIndex=0) {
         if (state.view==='field') q.set('state','ready');
         if (state.view==='selected') { q.set('decision','keep');q.set('lane','field'); }
         if (state.view==='filtered') q.set('view_filtered','true');
-        if (state.view==='recycle') q.set('decision','reject');
+        if (state.view==='recycle') q.set('view_recycle','true');
     }
     const data=await api(global?`/api/inspirations?${q}`:`/api/projects/${state.project.id}/references?${q}`);
     if (epoch!==state.epoch||scope!==scopeKey()) return;
@@ -285,10 +287,10 @@ function renderReferenceView() {
     $('reference-content').hidden=!state.refs.length;
     $('reference-empty').hidden=!!state.refs.length;
     if (!state.refs.length) {
-        const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',recycle:'没有已淘汰图片'};
+        const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',recycle:'没有已淘汰或移出当前项目的图片'};
         $('reference-empty').innerHTML=empty(titles[state.view]||'没有匹配的候选','可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。');
     }
-    $('collection-context').textContent=state.jobId?'正在查看一个采集任务的发现结果；不代表已确认图片属于这个角色。':state.view==='filtered'?'这里保留被视觉预检降级的候选。过滤不是 K/I/M/X，也不会删除资产；可以人工恢复后再决定。':state.view==='recycle'?'这里只影响本项目。其他角色引用和全局收藏不会一起删除；清理后的原图需重新导入才能恢复。':'';
+    $('collection-context').textContent=state.jobId?'正在查看一个采集任务的发现结果；不代表已确认图片属于这个角色。':state.view==='filtered'?'这里保留被视觉预检降级的候选。过滤不是 K/I/M/X，也不会删除资产；可以人工恢复后再决定。':state.view==='recycle'?'这里同时包含 X 淘汰和从当前项目移出的引用。两者都只影响本项目；其他项目和全局收藏不会一起删除。':'';
     if($('toggle-recycled'))$('toggle-recycled').textContent=state.recycled?'回到审美库':'已移除收藏';
     $('search-ref').value=state.query;$('decision-filter').value=state.decision;$('kind-filter').value=state.kind;
     reconcileFilmstrip();
