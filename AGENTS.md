@@ -30,6 +30,8 @@ Default regression: `python -m pytest -q tests/test_library.py tests/test_import
 - Global inspiration has no project parent; changing one project selection must not remove other uses. Preserve keyed filmstrip nodes during curation.
 - BrowserSkill + local Codex / Antigravity task packages are the default; no standalone paid API requirement. Report waiting/blocked honestly.
 - Cleanup is explicit, delayed and reference-aware. Do not run destructive tests against the owner’s normal data.
+- Cross-project copy/move changes Reference use relationships, never Asset bytes. A new target relation must not inherit another project’s identity/preflight/review/card/acceptance; an existing target choice must not be overwritten.
+- Detaching a Reference from one project is not X/reject and must remain recoverable. Contact-board export is read-only communication output, not a new decision state or field-card acceptance.
 
 ## Collector checkpoint boundary (2026-09-28)
 Read `docs/tasks/2026-09-28-collector-checkpoint.md`. The optional command adapter is a tested internal transport, not a verified vendor/BrowserSkill connection or complete candidate pipeline. Keep live HTTP/platform blocks visible. Do not label missing identity/quality/session/profile work complete. Run the new collector and UI regressions too; never revive the silent headless fallback.
