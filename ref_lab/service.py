@@ -10,7 +10,8 @@ from .config import Settings
 from .db import Database, encode, now
 from .catalog_data import keep_inspiration, record_discovery, record_observation
 from .models import (CandidateInput, ProjectInput, ReferenceEdit, Source, VisualReview, Card,
-                     AnalysisResult, NoteInput, JobInput, InspirationInput, InspirationEdit, CollectionReport)
+                     AnalysisResult, NoteInput, JobInput, InspirationInput, InspirationEdit, CollectionReport,
+                     CandidatePreflight)
 from .storage import AssetStore
 from .policy import (MESSAGES, acceptance_digest, blockers, context_digest, digest, state_for)
 
@@ -39,6 +40,28 @@ def check_revision(record: dict, expected: int) -> None:
         raise Problem(409, "内容已被其他窗口或 Agent 修改，请刷新后重试", {"current_revision": record["revision"]})
 
 
+def ensure_active_project(project: dict) -> None:
+    if project.get("archived_at"):
+        raise Problem(409, "项目已删除到回收区；请先恢复项目再继续修改")
+
+
+_REAL_PERSON_MODALITIES = {"real_person_cosplay", "real_person_portrait"}
+_FILTERED_MODALITIES = {
+    "game_screenshot", "anime_screenshot", "official_illustration", "fan_art",
+    "costume_display", "mannequin", "product", "collage", "scenery",
+}
+
+
+def candidate_preflight_status(preflight: CandidatePreflight) -> str:
+    if preflight.content_type in _FILTERED_MODALITIES or preflight.identity_prediction == "mismatch":
+        return "filtered"
+    if preflight.content_type == "unknown" or preflight.identity_prediction == "uncertain":
+        return "uncertain"
+    if preflight.content_type in _REAL_PERSON_MODALITIES and preflight.identity_prediction == "match":
+        return "passed"
+    return "uncertain"
+
+
 class Library:
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -46,7 +69,7 @@ class Library:
         self.assets = AssetStore(settings)
 
     def create_project(self, data: ProjectInput, *, ident: str | None = None) -> dict:
-        project = {**data.model_dump(), "id": ident or fresh_id(), "revision": 1, "created_at": now(), "updated_at": now()}
+        project = {**data.model_dump(), "id": ident or fresh_id(), "revision": 1, "archived_at": None, "created_at": now(), "updated_at": now()}
         with self.db.transaction() as con:
             if con.execute("SELECT 1 FROM projects WHERE id=?", (project["id"],)).fetchone():
                 return row_data(con, "projects", project["id"])
@@ -58,13 +81,15 @@ class Library:
         with self.db.read() as con:
             return row_data(con, "projects", ident)
 
-    def projects(self) -> list[dict]:
+    def projects(self, *, archived: bool = False) -> list[dict]:
         with self.db.read() as con:
-            return [json.loads(r["data"]) for r in con.execute("SELECT data FROM projects ORDER BY rowid DESC")]
+            items = [json.loads(r["data"]) for r in con.execute("SELECT data FROM projects ORDER BY rowid DESC")]
+            return [item for item in items if bool(item.get("archived_at")) is archived]
 
     def edit_project(self, ident: str, data: ProjectInput, revision: int) -> dict:
         with self.db.transaction() as con:
             project = row_data(con, "projects", ident)
+            ensure_active_project(project)
             check_revision(project, revision)
             before = context_digest(project)
             project.update(data.model_dump())
@@ -76,6 +101,28 @@ class Library:
                     ref["accepted_fingerprint"] = None
                     self._save(con, ref, project, "context.invalidated", {"project_revision": project["revision"]})
             self.db.event(con, ident, ident, "project.updated", data.model_dump())
+            return project
+
+    def archive_project(self, ident: str, revision: int) -> dict:
+        with self.db.transaction() as con:
+            project = row_data(con, "projects", ident)
+            check_revision(project, revision)
+            if project.get("archived_at"):
+                raise Problem(409, "项目已经在回收区")
+            project.update(archived_at=now(), revision=revision + 1, updated_at=now())
+            con.execute("UPDATE projects SET data=? WHERE id=?", (encode(project), ident))
+            self.db.event(con, ident, ident, "project.archived", {"archived_at": project["archived_at"]})
+            return project
+
+    def restore_project(self, ident: str, revision: int) -> dict:
+        with self.db.transaction() as con:
+            project = row_data(con, "projects", ident)
+            check_revision(project, revision)
+            if not project.get("archived_at"):
+                raise Problem(409, "项目不在回收区")
+            project.update(archived_at=None, revision=revision + 1, updated_at=now())
+            con.execute("UPDATE projects SET data=? WHERE id=?", (encode(project), ident))
+            self.db.event(con, ident, ident, "project.restored", {})
             return project
 
     def ingest_asset(self, content: bytes, filename: str = "") -> dict:
@@ -135,6 +182,8 @@ class Library:
                "title": data.title or data.source.title or "未命名参考", "source": data.source.model_dump(),
                "discovered_sources": [data.source.model_dump()], "legacy_notes": data.legacy_notes,
                "decision": decision, "lane": "field", "preference": "", "borrow": [], "allow_cross_domain": False,
+               "discovery_intent": data.discovery_intent, "discovery_reason": data.discovery_reason,
+               "preflight": None, "preflight_status": "unreviewed", "preflight_filtered": False, "preflight_override": False,
                "review": None, "review_actor": "", "review_producer": "", "card": None, "card_context": "",
                "card_producer": "", "accepted_fingerprint": None, "reflections": [], "revision": 1,
                "created_at": now(), "updated_at": now()}
@@ -149,6 +198,7 @@ class Library:
     def add_candidate(self, project_id: str, data: CandidateInput, *, decision: str = "pending", actor: str = "import", record_context: bool = True, attempt_id: str = "") -> dict:
         with self.db.transaction() as con:
             project = row_data(con, "projects", project_id)
+            ensure_active_project(project)
             if data.asset_sha:
                 asset = row_data(con, "assets", data.asset_sha)
                 if asset.get("storage_status") in {"purged", "purge_failed"}:
@@ -197,10 +247,15 @@ class Library:
 
     def references(self, project_id: str, *, limit: int = 60, offset: int = 0, query: str = "",
                    decision: str = "", state: str = "", lane: str = "", kind: str = "",
-                   include_rejected: bool = False, job_id: str = "", focus_id: str = "") -> dict:
+                   include_rejected: bool = False, view_filtered: bool = False,
+                   job_id: str = "", focus_id: str = "") -> dict:
         clauses, args = ["project_id=?"], [project_id]
-        if not include_rejected and decision != "reject" and state != "rejected":
-            clauses.append("decision<>'reject'")
+        if view_filtered:
+            clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=1")
+        else:
+            clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=0")
+            if not include_rejected and decision != "reject" and state != "rejected":
+                clauses.append("decision<>'reject'")
         if job_id:
             job = self.job(job_id)
             if job["project_id"] != project_id or job["kind"] != "collection":
@@ -238,9 +293,10 @@ class Library:
             for row in con.execute("SELECT decision,COUNT(*) FROM refs WHERE project_id=? GROUP BY decision", (project_id,)):
                 result[row[0]] = row[1]
                 result["total"] += row[1]
-            result["ready"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND state='ready'", (project_id,)).fetchone()[0]
-            result["selected"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND decision='keep' AND json_extract(data,'$.lane')='field'", (project_id,)).fetchone()[0]
-            result["visible"] = result["total"] - result["reject"]
+            result["ready"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND state='ready' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["selected"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND decision='keep' AND json_extract(data,'$.lane')='field' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["filtered"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=1", (project_id,)).fetchone()[0]
+            result["visible"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND decision<>'reject' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
             return result
 
     def edit_reference(self, ident: str, data: ReferenceEdit) -> dict:
@@ -264,6 +320,36 @@ class Library:
                                                preference=ref["preference"], borrow=ref["borrow"], origin_ref=ref)
                     self.db.event(con, None, item["id"], "inspiration.saved", {"reference_id": ident})
                 self._save(con, ref, project, "reference.updated", changes)
+            return self._decorate(con, ref, project)
+
+    def apply_candidate_preflight(self, ident: str, preflight: CandidatePreflight, revision: int, producer: str) -> dict:
+        with self.db.transaction() as con:
+            ref = row_data(con, "refs", ident)
+            check_revision(ref, revision)
+            if not ref.get("asset_sha"):
+                raise Problem(409, "候选没有可核验的独立图片")
+            project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
+            status = candidate_preflight_status(preflight)
+            payload = {**preflight.model_dump(), "asset_sha": ref["asset_sha"], "producer": producer, "created_at": now()}
+            ref.update(preflight=payload, preflight_status=status, preflight_filtered=status == "filtered",
+                       preflight_override=False, accepted_fingerprint=None)
+            self._save(con, ref, project, "candidate.preflight_saved",
+                       {"status": status, "producer": producer, "content_type": preflight.content_type,
+                        "identity_prediction": preflight.identity_prediction}, "agent")
+            return self._decorate(con, ref, project)
+
+    def override_candidate_preflight(self, ident: str, revision: int) -> dict:
+        with self.db.transaction() as con:
+            ref = row_data(con, "refs", ident)
+            check_revision(ref, revision)
+            if not ref.get("preflight_filtered"):
+                raise Problem(409, "此候选当前没有被预检过滤")
+            project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
+            ref.update(preflight_filtered=False, preflight_override=True, accepted_fingerprint=None)
+            self._save(con, ref, project, "candidate.preflight_overridden",
+                       {"preflight_status": ref.get("preflight_status")}, "human")
             return self._decorate(con, ref, project)
 
     def review_reference(self, ident: str, review: VisualReview, revision: int) -> dict:
@@ -352,7 +438,9 @@ class Library:
                 raise Problem(409, "本项目已存在相同文件", {"reference_id": duplicate[0]})
             old_sha = ref["asset_sha"]
             project = row_data(con, "projects", ref["project_id"])
-            ref.update(asset_sha=sha, decision="pending", rejected_at=None, before_reject=None, review=None, review_actor="", review_producer="", card=None,
+            ref.update(asset_sha=sha, decision="pending", rejected_at=None, before_reject=None,
+                       preflight=None, preflight_status="unreviewed", preflight_filtered=False, preflight_override=False,
+                       review=None, review_actor="", review_producer="", card=None,
                        card_context="", card_producer="", accepted_fingerprint=None)
             ref["source"]["source_confirmed"] = False
             self._save(con, ref, project, "asset.replaced", {"before": old_sha, "after": sha})
@@ -422,6 +510,7 @@ class Library:
     def create_job(self, project_id: str, request: JobInput) -> dict:
         with self.db.transaction() as con:
             project = row_data(con, "projects", project_id)
+            ensure_active_project(project)
             ids = list(dict.fromkeys(request.reference_ids))
             snapshots = {}
             if request.kind == "analysis":
@@ -605,6 +694,7 @@ class Library:
             item = row_data(con, "inspirations", ident)
             check_revision(item, revision)
             project = row_data(con, "projects", project_id)
+            ensure_active_project(project)
             if not item["active"] or not self._asset_exists(con, item):
                 raise Problem(409, "请先恢复可用的收藏图片")
             existing = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?", (project_id, item["asset_sha"])).fetchone()
