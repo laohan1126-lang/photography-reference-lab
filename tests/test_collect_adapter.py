@@ -1,34 +1,149 @@
 from __future__ import annotations
 
+import io
 import json
-import os
 from pathlib import Path
 import sys
 import zipfile
 
-import pytest
+from PIL import Image
 
 from ref_lab.agent_collection import run_collection_attempt
 from ref_lab.models import JobInput
+from ref_lab.preflight import detect_modality, evaluate_identity
+from ref_lab.identity import build_identity_context
 from conftest import image_bytes
+from tools.collect_adapter import (
+    build_policy,
+    build_queries,
+    compute_dhash,
+    hamming_distance,
+    result_metadata_allowed,
+    validate_downloaded_image,
+)
 
 
-def test_collect_adapter_with_synthetic_fetch(library, project, monkeypatch, tmp_path):
+def test_request_notes_change_queries_and_add_negative_filters():
+    job = {
+        "queries": ["王昭君 cosplay 摄影", "王昭君 长夜焕生 cosplay 摄影"],
+        "notes": "只找该皮肤的COS正片；不要游戏截图，不要插画",
+        "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"},
+    }
+    policy = build_policy(job)
+    queries = build_queries(job)
+    assert policy["require_cosplay"] is True
+    assert policy["require_costume"] is True
+    assert all("长夜焕生" in q for q in queries)
+    assert all("-游戏截图" in q and "-插画" in q and "-皮肤特效" in q for q in queries)
+    assert any("只找该皮肤的COS正片" in q for q in queries)
+
+
+def test_search_query_cos_does_not_make_game_result_eligible():
+    policy = build_policy({
+        "notes": "只找该皮肤的COS正片",
+        "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"},
+    })
+    game = {
+        "t": "王者荣耀王昭君FMVP皮肤长夜焕生特效设计介绍",
+        "desc": "新皮肤技能特效展示与游戏画面",
+        "purl": "https://example.com/game/skin-demo",
+    }
+    allowed, reason = result_metadata_allowed(game, policy)
+    assert allowed is False
+    assert reason.startswith("negative_type:")
+
+    # The query itself intentionally contains cosplay; it is not passed to the
+    # result classifier and therefore cannot rescue unrelated metadata.
+    valid = {
+        "t": "王昭君 长夜焕生 COS 正片返图",
+        "desc": "coser 棚拍摄影",
+        "purl": "https://example.com/cosplay/post-1",
+    }
+    assert result_metadata_allowed(valid, policy)[0] is True
+
+
+def test_specific_skin_and_cosplay_are_hard_requirements():
+    policy = build_policy({
+        "notes": "仅找该皮肤COS正片",
+        "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"},
+    })
+    wrong_skin = {
+        "t": "王昭君 凤凰于飞 cosplay 正片",
+        "desc": "王昭君 coser 摄影",
+        "purl": "https://example.com/cosplay/phoenix",
+    }
+    assert result_metadata_allowed(wrong_skin, policy) == (False, "missing_costume")
+
+    no_cosplay = {
+        "t": "王昭君 长夜焕生 皮肤资料",
+        "desc": "角色资料",
+        "purl": "https://example.com/wiki",
+    }
+    allowed, reason = result_metadata_allowed(no_cosplay, policy)
+    assert allowed is False
+    assert reason in {"missing_cosplay_evidence"} or reason.startswith("negative_type:")
+
+
+def test_download_validation_and_within_run_perceptual_hash():
+    first = image_bytes(seed=17, size=(800, 1200))
+    second = image_bytes(seed=17, size=(800, 1200))
+    policy = {"portrait_only": False}
+    ok1, ext1, dh1 = validate_downloaded_image(first, policy)
+    ok2, ext2, dh2 = validate_downloaded_image(second, policy)
+    assert ok1 and ok2 and ext1 == ext2 == "png"
+    assert dh1 == dh2
+    assert hamming_distance(dh1, dh2) == 0
+
+    with Image.open(io.BytesIO(first)) as image:
+        assert compute_dhash(image) == dh1
+
+
+def test_deterministic_preflight_does_not_promote_query_metadata_to_visual_pass():
+    image = Image.open(io.BytesIO(image_bytes(seed=22, size=(800, 1200))))
+    metadata = {
+        "title": "王昭君 长夜焕生 cosplay 摄影",
+        "source": {
+            "page_url": "https://example.com/post",
+            "search_query": "王昭君 长夜焕生 cos 正片",
+            "search_category": "",
+        },
+    }
+    modality, evidence = detect_modality(image, metadata)
+    assert modality == "unknown"
+    assert any("不能据此宣称真人实拍" in x for x in evidence)
+
+    context = build_identity_context("王昭君", "王者荣耀", "长夜焕生")
+    identity = evaluate_identity(first := image_bytes(seed=22, size=(800, 1200)), metadata, context)
+    assert identity["prediction"] == "uncertain"
+    assert "metadata" in identity["reason"] or "标题/检索上下文" in identity["reason"]
+
+
+def test_game_effect_metadata_is_filtered_even_when_query_is_cosplay():
+    image = Image.open(io.BytesIO(image_bytes(seed=23, size=(1200, 700))))
+    metadata = {
+        "title": "王昭君FMVP皮肤长夜焕生特效设计介绍",
+        "source": {
+            "page_url": "https://example.com/game",
+            "search_query": "王昭君 长夜焕生 cos 正片",
+            "search_category": "",
+        },
+    }
+    modality, _ = detect_modality(image, metadata)
+    assert modality == "game_screenshot"
+
+
+def test_collect_adapter_transport_uses_schema2_without_fake_preflight(library, project, monkeypatch, tmp_path):
     job = library.create_job(project["id"], JobInput(
         kind="collection",
-        notes="测试适配器流程",
-        target_count=2
+        notes="只找该皮肤的COS正片",
+        target_count=2,
     ))
-
-    # Mock fetch_bing_candidates inside tools.collect_adapter so test runs offline and deterministically
     adapter_script = Path(__file__).resolve().parent.parent / "tools" / "collect_adapter.py"
     assert adapter_script.is_file()
 
-    # Wrap collect_adapter with a test monkeypatch script
     wrapper = tmp_path / "mock_adapter.py"
-    img1 = image_bytes(seed=1, size=(400, 400))
-    img2 = image_bytes(seed=2, size=(450, 450))
-
+    img1 = image_bytes(seed=1, size=(800, 1200))
+    img2 = image_bytes(seed=2, size=(900, 1200))
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
     (cache_dir / "img1.png").write_bytes(img1)
@@ -40,72 +155,31 @@ def test_collect_adapter_with_synthetic_fetch(library, project, monkeypatch, tmp
     elif repo_root.startswith("C:"):
         repo_root = "/mnt/c" + repo_root[2:]
 
-    wrapper.write_text(f"""import sys
+    wrapper.write_text(f"""import json, sys, zipfile
 from pathlib import Path
-sys.path.insert(0, "{repo_root}")
-import tools.collect_adapter as ca
-
-def mock_fetch(queries, target_count, character, costume):
-    cand1_img = Path(r"{cache_dir / 'img1.png'}").read_bytes()
-    cand2_img = Path(r"{cache_dir / 'img2.png'}").read_bytes()
-    candidates = [
-        {{
-            "id": "cand-001",
-            "file": "images/img1.png",
-            "title": f"{{character}} {{costume}} 模拟测试 1",
-            "source": {{
-                "page_url": "https://example.com/p1",
-                "image_url": "https://example.com/img1.png",
-                "author": "tester",
-                "title": "测试图1",
-                "search_query": "mock query",
-                "rights": "unknown",
-                "source_confirmed": False
-            }},
-            "discovery_intent": "exact_character",
-            "discovery_reason": "模拟检索发现",
-            "discovery_url": "https://example.com/search",
-            "notes": "测试说明",
-            "preflight": {{
-                "content_type": "real_person_cosplay",
-                "identity_prediction": "match",
-                "confidence": "high",
-                "visual_evidence": ["测试实拍", "特征匹配"],
-                "reason": "合成测试"
-            }}
-        }},
-        {{
-            "id": "cand-002",
-            "file": "images/img2.png",
-            "title": f"{{character}} {{costume}} 模拟测试 2",
-            "source": {{
-                "page_url": "https://example.com/p2",
-                "image_url": "https://example.com/img2.png",
-                "author": "tester",
-                "title": "测试图2",
-                "search_query": "mock query 2",
-                "rights": "unknown",
-                "source_confirmed": False
-            }},
-            "discovery_intent": "exact_character",
-            "discovery_reason": "模拟检索发现 2",
-            "discovery_url": "https://example.com/search",
-            "notes": "测试说明 2",
-            "preflight": {{
-                "content_type": "real_person_portrait",
-                "identity_prediction": "uncertain",
-                "confidence": "medium",
-                "visual_evidence": ["人像摄影"],
-                "reason": "合成人像"
-            }}
-        }}
-    ]
-    images = {{"img1.png": cand1_img, "img2.png": cand2_img}}
-    query_log = [{{"query": "mock query", "source": "mock", "kept": 2, "stop_reason": "done"}}]
-    return candidates, images, query_log
-
-ca.fetch_bing_candidates = mock_fetch
-ca.main()
+task_dir = Path(sys.argv[1]).parent
+job = json.loads((task_dir / 'job.json').read_text(encoding='utf-8'))['job']
+manifest = {{
+  'schema_version': 2,
+  'job_id': job['id'],
+  'batch_id': 'strict-search-test',
+  'candidates': [
+    {{'id':'one','file':'images/img1.png','title':'王昭君 长夜焕生 COS 正片',
+      'source':{{'page_url':'https://example.com/1','image_url':'https://example.com/i1','search_query':'strict','rights':'unknown','source_confirmed':False}},
+      'discovery_intent':'exact_character','discovery_reason':'strict search only','discovery_url':'https://example.com/search','notes':''}},
+    {{'id':'two','file':'images/img2.png','title':'王昭君 长夜焕生 COS 返图',
+      'source':{{'page_url':'https://example.com/2','image_url':'https://example.com/i2','search_query':'strict','rights':'unknown','source_confirmed':False}},
+      'discovery_intent':'exact_character','discovery_reason':'strict search only','discovery_url':'https://example.com/search','notes':''}}
+  ],
+  'execution_report': {{
+    'producer':'local_collection_adapter_search_only','status':'completed',
+    'summary':'strict search; no visual model','source_checks':[],'query_log':[],'gaps':[]
+  }}
+}}
+with zipfile.ZipFile(sys.argv[2], 'w') as z:
+    z.writestr('manifest.json', json.dumps(manifest, ensure_ascii=False))
+    z.writestr('images/img1.png', Path(r'{cache_dir / "img1.png"}').read_bytes())
+    z.writestr('images/img2.png', Path(r'{cache_dir / "img2.png"}').read_bytes())
 """, encoding="utf-8")
 
     monkeypatch.setenv("LAB_COLLECTION_COMMAND", json.dumps([
@@ -116,9 +190,8 @@ ca.main()
     result = run_collection_attempt(library, job["id"])
     assert result["status"] == "succeeded"
     assert len(result["imported_ids"]) == 2
-
-    # Check imported references
-    ref1 = library.reference(result["imported_ids"][0])
-    assert ref1["title"]
-    assert ref1["preflight"] is not None
-    assert ref1["preflight"]["content_type"] in {"real_person_cosplay", "real_person_portrait"}
+    for ident in result["imported_ids"]:
+        ref = library.reference(ident)
+        assert ref["preflight"] is None
+        assert ref["preflight_status"] == "unreviewed"
+        assert ref["decision"] == "pending"
