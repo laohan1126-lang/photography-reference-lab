@@ -162,6 +162,11 @@ class RevisionInput(Strict):
     expected_revision: int = Field(ge=1)
 
 
+class ArchiveInspirationInput(RevisionInput):
+    preference: Text | None = None
+    borrow: list[Short] | None = Field(default=None, max_length=20)
+
+
 class ReferenceTransferItem(Strict):
     reference_id: Short
     expected_revision: int = Field(ge=1)

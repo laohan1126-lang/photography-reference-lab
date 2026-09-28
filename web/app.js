@@ -498,7 +498,7 @@ function renderDetail(ref) {
     const blockers=(ref.blockers||[]).filter(b=>b.code!=='not_accepted');
     $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p>${preflightBadge(ref)}${recommendationBadges(ref)}</div>
     ${pf?`<section class='gate-box'><strong>候选视觉预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p><small>来自 ${esc(pf.producer||'未记录执行器')}；这是 Agent prediction，不是人工确认。</small></section>`:''}
-    ${detached?`<button id="restore-project-use" class="primary">恢复到当前项目</button><p class="muted">这张图只是从当前项目移出，不是 X 淘汰；其他项目和全局收藏不受影响。</p>`:preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration" class="${ref.decision==='keep'&&ref.lane==='inspiration'?'chosen':''}"><strong>通用灵感</strong><small>I · 收藏到我的审美库</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
+    ${detached?`<button id="restore-project-use" class="primary">恢复到当前项目</button><p class="muted">这张图只是从当前项目移出，不是 X 淘汰；其他项目和全局收藏不受影响。</p>`:preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration"><strong>通用灵感</strong><small>I · 归档审美库并移出项目</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
     ${!detached&&!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
     ${ref.card?cardMarkup(ref.card,ref.field_ready):ref.review?`<section class="guide-section"><h3>分析结论</h3>${ordered(ref.review.observations)}${ref.review.critical_uncertainties.length?`<p>待确认：${esc(ref.review.critical_uncertainties.join('；'))}</p>`:''}<p>${ref.card?'':'尚未生成资料卡。可保留作审美参考，不强行凑拍摄指令。'}</p></section>`:''}
@@ -545,17 +545,23 @@ function matchesCurrentView(ref) {
     if(ref.decision==='reject'&&state.decision!=='reject')return false;
     if(state.view==='selected')return ref.selected_for_project;
     if(state.view==='field')return ref.field_ready;
+    if(state.decision==='keep')return ref.decision==='keep'&&ref.lane==='field';
     return !state.decision||ref.decision===state.decision;
 }
 async function decide(choice) {
     const ref=current();if(!ref||state.busy||state.view==='inspiration')return;
     const index=state.refs.findIndex(x=>x.id===ref.id), hasNextPage=state.offset+state.limit<state.total;
-    const decision=choice==='inspiration'?'keep':choice;
-    const body={expected_revision:ref.revision,decision,...(state.dirty?preferenceValues():{})};
-    if(choice==='inspiration'||choice==='keep')body.lane=choice==='inspiration'?'inspiration':'field';
     state.busy=true;
     try {
-        const updated=await api(`/api/references/${ref.id}`,{method:'PATCH',body});
+        let updated;
+        if(choice==='inspiration'){
+            const body={expected_revision:ref.revision,...(state.dirty?preferenceValues():{})};
+            updated=await api(`/api/references/${ref.id}/archive-inspiration`,{method:'POST',body});
+        }else{
+            const body={expected_revision:ref.revision,decision:choice,...(state.dirty?preferenceValues():{})};
+            if(choice==='keep')body.lane='field';
+            updated=await api(`/api/references/${ref.id}`,{method:'PATCH',body});
+        }
         const next=state.autoAdvance?state.refs[index+1]?.id:ref.id;
         const removed=!matchesCurrentView(updated);
         state.refs=state.refs.map(r=>r.id===ref.id?updated:r).filter(matchesCurrentView);
@@ -572,7 +578,7 @@ async function decide(choice) {
             renderReferenceView(); // Reconcile membership without remounting the strip.
         }
         await loadReferences(removed?index:0);await renderStats();
-        toast(choice==='inspiration'?'已存入我的审美库':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?'已选为角色参考；尚未制卡':'已标为待定');
+        toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?'已选为角色参考；尚未制卡':'已标为待定');
     } finally {state.busy=false;}
 }
 async function restoreReference(ref) {

@@ -377,6 +377,8 @@ class Library:
             if value:
                 clauses.append(f"{column}=?")
                 args.append(value)
+                if column == "decision" and value == "keep" and not lane:
+                    clauses.append("COALESCE(json_extract(data,'$.lane'),'field')='field'")
         if lane:
             clauses.append("json_extract(data,'$.lane')=?")
             args.append(lane)
@@ -806,6 +808,34 @@ class Library:
                                              preference=ref["preference"], borrow=ref["borrow"], origin_ref=ref)
             self.db.event(con, None, item["id"], "inspiration.saved", {"reference_id": ident})
             return {"created": created, "item": self._decorate_inspiration(con, item)}
+
+    def archive_reference_to_inspiration(self, ident: str, revision: int, *,
+                                         preference: str | None = None, borrow: list[str] | None = None) -> dict:
+        with self.db.transaction() as con:
+            ref = row_data(con, "refs", ident)
+            project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
+            if ref.get("detached_at"):
+                raise Problem(409, "此图片已从当前项目移出；请先恢复项目引用")
+            check_revision(ref, revision)
+            if preference is not None:
+                ref["preference"] = preference
+            if borrow is not None:
+                ref["borrow"] = borrow
+            ref["lane"] = "inspiration"
+            if ref["decision"] == "keep":
+                ref["decision"] = "pending"
+            item, created = keep_inspiration(con, asset_sha=ref["asset_sha"], title=ref["title"], source=ref["source"],
+                                             preference=ref["preference"], borrow=ref["borrow"], origin_ref=ref)
+            self.db.event(con, None, item["id"], "inspiration.saved", {"reference_id": ident, "created": created})
+            ref.update(
+                detached_at=now(),
+                detached_to_project_id=None,
+                detached_reason="archived_to_inspiration",
+                accepted_fingerprint=None,
+            )
+            self._save(con, ref, project, "reference.archived_to_inspiration", {"inspiration_id": item["id"]}, "human")
+            return self._decorate(con, ref, project)
 
     def edit_inspiration(self, ident: str, data: InspirationEdit) -> dict:
         with self.db.transaction() as con:

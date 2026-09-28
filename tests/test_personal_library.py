@@ -333,3 +333,45 @@ def test_cli_exports_and_imports_without_provider(client, project, library, tmp_
     result = tmp_path / "result.zip"; result.write_bytes(candidate_zip(job))
     assert main(["import-job", "--job", job["id"], "--input", str(result)]) == 0
     assert library.job(job["id"])["status"] == "succeeded"
+
+
+def test_archive_reference_to_inspiration_detaches_from_project_and_saves_aesthetic_library(client, project, library):
+    ref = add_reference(client, project, 0)
+    # 1. Archive to inspiration directly
+    r = client.post(f"/api/references/{ref['id']}/archive-inspiration", json={
+        "expected_revision": ref["revision"],
+        "preference": "哥特风暗黑新娘",
+        "borrow": ["色彩", "动作"]
+    })
+    assert r.status_code == 200, r.text
+    archived = r.json()
+    assert archived["lane"] == "inspiration"
+    assert archived["decision"] != "keep"
+    assert archived["state"] == "detached"
+    assert archived["detached_at"] is not None
+
+    # 2. Verify it is saved into Global Aesthetic Library (inspirations)
+    insp_list = client.get("/api/inspirations").json()
+    assert insp_list["total"] == 1
+    assert insp_list["items"][0]["preference"] == "哥特风暗黑新娘"
+    assert insp_list["items"][0]["asset_sha"] == ref["asset_sha"]
+
+    # 3. Verify it does NOT occupy a slot in the project ("别占位")
+    refs_active = client.get(f"/api/projects/{project['id']}/references").json()
+    assert refs_active["total"] == 0
+
+    # 4. Verify it is NOT returned when filtering by "已保留" (decision=keep)
+    refs_keep = client.get(f"/api/projects/{project['id']}/references?decision=keep").json()
+    assert refs_keep["total"] == 0
+
+    # 5. Verify it appears in recycle / detached view
+    refs_recycle = client.get(f"/api/projects/{project['id']}/references?view_recycle=true").json()
+    assert refs_recycle["total"] == 1
+    assert refs_recycle["items"][0]["id"] == ref["id"]
+
+    # 6. Verify it can be restored to the project if desired
+    restored = client.post(f"/api/references/{ref['id']}/restore-project-use", json={
+        "expected_revision": archived["revision"]
+    }).json()
+    assert restored["detached_at"] is None
+    assert client.get(f"/api/projects/{project['id']}/references").json()["total"] == 1

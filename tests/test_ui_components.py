@@ -205,14 +205,14 @@ def exercise_stable_strip(page, library, project, auto):
     page.locator('#previous-image').click()
     assert page.evaluate("document.querySelector('#filmstrip [aria-current=true]').dataset.ref")==target
     assert page.evaluate('originalStrip.scrollLeft')==before
-    for key in ['k','m','i']:
+    for key in ['k','m']:
         chosen=page.evaluate("document.querySelector('#filmstrip [aria-current=true]').dataset.ref")
         # Focus a non-input before pressing shortcuts; no hidden bypass or forced click.
         page.locator('#filmstrip [aria-current=true]').focus()
         page.keyboard.press(key)
         idle(page)
-        saved=library.reference(chosen)
-        assert saved['decision']==({'k':'keep','m':'maybe','i':'keep'}[key])
+        saved = library.reference(chosen)
+        assert saved['decision'] == ({'k':'keep','m':'maybe'}[key])
         assert page.evaluate("originalStrip===document.querySelector('#filmstrip')")
         assert page.evaluate('originalStrip.scrollLeft')>1500
     rejected=page.evaluate("document.querySelector('#filmstrip [aria-current=true]').dataset.ref")

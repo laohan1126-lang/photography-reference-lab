@@ -22,7 +22,7 @@ from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardI
                      RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport,
                      CandidatePreflightInput, PreflightOverrideInput,
                      IdentityContextInput, ConfirmSummaryInput, RollbackProfileInput, PreflightScanInput,
-                     ReferenceTransferInput, ContactBoardInput)
+                     ReferenceTransferInput, ContactBoardInput, ArchiveInspirationInput)
 
 from .security import BodyLimitMiddleware, COOKIE, csrf_for, make_session, valid_session
 from .service import Library, Problem
@@ -277,6 +277,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/references/{reference_id}/inspiration")
     def save_inspiration(reference_id: str, data: RevisionInput):
         return library.save_reference_inspiration(reference_id, data.expected_revision)
+
+    @app.post("/api/references/{reference_id}/archive-inspiration")
+    def archive_inspiration(reference_id: str, data: ArchiveInspirationInput):
+        return library.archive_reference_to_inspiration(
+            reference_id, data.expected_revision, preference=data.preference, borrow=data.borrow
+        )
 
     @app.get("/api/inspirations")
     def inspirations(limit: int = Query(60, ge=1, le=200), offset: int = Query(0, ge=0),
