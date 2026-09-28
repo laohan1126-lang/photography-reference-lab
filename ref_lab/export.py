@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import zipfile
 from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from .db import encode, now
-from .models import AnalysisResult, PackInput, CandidatePackage, AnalysisPackage
+from .models import AnalysisResult, PackInput, CandidatePackage, AnalysisPackage, ContactBoardInput
 from .policy import digest
 from .service import Library, Problem
 
@@ -70,7 +72,6 @@ def build_pack(library: Library, project_id: str, request: PackInput) -> Path:
     out_dir = library.settings.data_dir / "exports"
     out_dir.mkdir(parents=True, exist_ok=True)
     fd, name = tempfile.mkstemp(prefix="shooting-pack-", suffix=".zip", dir=out_dir)
-    import os
     os.close(fd)
     path = Path(name)
     try:
@@ -97,12 +98,145 @@ def build_pack(library: Library, project_id: str, request: PackInput) -> Path:
         raise
 
 
+def _board_font(size: int):
+    candidates = [
+        "C:/Windows/Fonts/msyh.ttc",
+        "C:/Windows/Fonts/simhei.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ]
+    for candidate in candidates:
+        try:
+            if Path(candidate).is_file():
+                return ImageFont.truetype(candidate, size=size)
+        except OSError:
+            pass
+    return ImageFont.load_default()
+
+
+def _board_note_lines(text: str, limit: int = 28, lines: int = 2) -> list[str]:
+    compact = " ".join((text or "").split())
+    if not compact:
+        return []
+    chunks = [compact[i:i + limit] for i in range(0, len(compact), limit)]
+    if len(chunks) > lines:
+        chunks = chunks[:lines]
+        chunks[-1] = chunks[-1][:-1] + "…" if chunks[-1] else "…"
+    return chunks
+
+
+def _render_contact_page(library: Library, project: dict, entries: list[tuple[dict, str]],
+                         title: str, page_number: int, page_count: int, path: Path) -> None:
+    width, height = 1800, 1400
+    margin, gap, header_h = 70, 34, 120
+    canvas = Image.new("RGB", (width, height), (248, 248, 245))
+    draw = ImageDraw.Draw(canvas)
+    title_font = _board_font(44)
+    meta_font = _board_font(25)
+    note_font = _board_font(27)
+    heading = title.strip() or f"{project['character']} · 拍摄参考"
+    draw.text((margin, 34), heading, font=title_font, fill=(22, 38, 45))
+    meta = f"{project.get('work') or ''} {project.get('costume') or ''}".strip()
+    if meta:
+        draw.text((margin, 88), meta, font=meta_font, fill=(91, 105, 110))
+    draw.text((width - margin - 150, 52), f"{page_number}/{page_count}", font=meta_font, fill=(91, 105, 110))
+
+    count = len(entries)
+    body_top = header_h + 20
+    body_h = height - body_top - margin
+    if count == 1:
+        layout = [(margin, body_top, width - 2 * margin, body_h)]
+    elif count == 2:
+        cell_w = (width - 2 * margin - gap) // 2
+        layout = [(margin, body_top, cell_w, body_h), (margin + cell_w + gap, body_top, cell_w, body_h)]
+    else:
+        cell_w = (width - 2 * margin - gap) // 2
+        cell_h = (body_h - gap) // 2
+        layout = [
+            (margin, body_top, cell_w, cell_h),
+            (margin + cell_w + gap, body_top, cell_w, cell_h),
+            (margin, body_top + cell_h + gap, cell_w, cell_h),
+            (margin + cell_w + gap, body_top + cell_h + gap, cell_w, cell_h),
+        ]
+
+    for index, ((ref, note), (x, y, cell_w, cell_h)) in enumerate(zip(entries, layout), start=1):
+        draw.rounded_rectangle((x, y, x + cell_w, y + cell_h), radius=18, fill=(236, 239, 235), outline=(211, 216, 211), width=2)
+        note_lines = _board_note_lines(note)
+        note_h = 90 if note_lines else 44
+        image_box = (cell_w - 32, cell_h - note_h - 32)
+        source_path = library.assets.path(ref["asset"])
+        with Image.open(source_path) as source:
+            image = ImageOps.exif_transpose(source).convert("RGB")
+            fitted = ImageOps.contain(image, image_box, method=Image.Resampling.LANCZOS)
+        px = x + (cell_w - fitted.width) // 2
+        py = y + 16 + max(0, (cell_h - note_h - 32 - fitted.height) // 2)
+        canvas.paste(fitted, (px, py))
+        label_y = y + cell_h - note_h + 4
+        draw.text((x + 18, label_y), str(index + (page_number - 1) * 4), font=meta_font, fill=(46, 66, 72))
+        if note_lines:
+            for line_index, line in enumerate(note_lines):
+                draw.text((x + 58, label_y + line_index * 32), line, font=note_font, fill=(46, 66, 72))
+
+    canvas.save(path, "PNG", optimize=True)
+
+
+def build_contact_board(library: Library, project_id: str, request: ContactBoardInput) -> Path:
+    project = library.project(project_id)
+    if project.get("archived_at"):
+        raise Problem(409, "项目已删除到回收区；请先恢复项目")
+    ids = [item.reference_id for item in request.items]
+    if len(ids) != len(set(ids)):
+        raise Problem(422, "沟通板不能重复选择同一张参考")
+    entries: list[tuple[dict, str]] = []
+    for item in request.items:
+        ref = library.reference(item.reference_id)
+        if ref["project_id"] != project_id:
+            raise Problem(409, "沟通板只能使用当前项目的参考")
+        if ref.get("detached_at") or ref["decision"] == "reject":
+            raise Problem(409, "已移出或已淘汰的参考不能直接加入沟通板；请先恢复")
+        if not ref["asset"] or not library.assets.verify(ref["asset"]):
+            raise Problem(409, "沟通板包含缺失或损坏的图片")
+        entries.append((ref, item.note))
+
+    out_dir = library.settings.data_dir / "exports"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    pages = [entries[i:i + 4] for i in range(0, len(entries), 4)]
+    if len(pages) == 1:
+        fd, name = tempfile.mkstemp(prefix="contact-board-", suffix=".png", dir=out_dir)
+        os.close(fd)
+        path = Path(name)
+        _render_contact_page(library, project, pages[0], request.title, 1, 1, path)
+    else:
+        fd, name = tempfile.mkstemp(prefix="contact-board-", suffix=".zip", dir=out_dir)
+        os.close(fd)
+        path = Path(name)
+        temp_pages: list[Path] = []
+        try:
+            with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+                for page_number, page_entries in enumerate(pages, start=1):
+                    fd_page, page_name = tempfile.mkstemp(prefix="contact-board-page-", suffix=".png", dir=out_dir)
+                    os.close(fd_page)
+                    page_path = Path(page_name)
+                    temp_pages.append(page_path)
+                    _render_contact_page(library, project, page_entries, request.title, page_number, len(pages), page_path)
+                    archive.write(page_path, f"contact-board-{page_number:02d}.png")
+        finally:
+            for page_path in temp_pages:
+                page_path.unlink(missing_ok=True)
+
+    with library.db.transaction() as con:
+        library.db.event(
+            con, project_id, project_id, "contact_board.exported",
+            {"reference_ids": ids, "count": len(ids), "pages": len(pages), "title": request.title},
+        )
+    return path
+
+
 def build_job_pack(library: Library, job_id: str) -> Path:
     bundle = library.job_bundle(job_id)
     out_dir = library.settings.data_dir / "exports"
     out_dir.mkdir(parents=True, exist_ok=True)
     fd, name = tempfile.mkstemp(prefix="job-bundle-", suffix=".zip", dir=out_dir)
-    import os
     os.close(fd)
     path = Path(name)
     try:
