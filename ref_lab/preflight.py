@@ -40,8 +40,8 @@ def detect_modality(image: Image.Image, metadata: dict[str, Any]) -> tuple[str, 
     if title.startswith("BTS_") or any(k in combined for k in ["bts", "器材", "机位", "布光图", "灯位", "镜头", "相机", "柔光"]):
         return "equipment", ["画面为布光环境/摄影器材或花絮，非可执行人像摆姿主图"]
 
-    if title.startswith("PROP_") or any(k in combined for k in ["道具", "法杖制作", "假发造型", "定做", "武器道具", "假发"]):
-        return "product", ["画面为独立道具/假发展示或制作过程，非真人动作参考"]
+    if title.startswith("PROP_") or any(k in combined for k in ["道具", "法杖制作", "假发造型", "定做", "武器道具", "假发", "商品图", "商品展示", "cos服", "cos服装"]):
+        return "product", ["来源上下文明示独立道具/假发/商品或服装销售展示，非真人动作参考"]
 
     if title.startswith("OFFICIAL_"):
         parts = title.split("_")
@@ -53,9 +53,9 @@ def detect_modality(image: Image.Image, metadata: dict[str, Any]) -> tuple[str, 
     if any(k in combined for k in ["截图", "游戏截图", "游戏画面", "screenshot", "游戏cg", "皮肤特效", "特效设计", "技能特效", "皮肤展示", "建模", "3d模型", "3d model", "render"]):
         return "game_screenshot", ["来源标题/页面上下文明示游戏画面、特效展示或3D渲染；不能当真人摄影"]
 
-    if any(k in combined for k in ["插画", "同人画", "立绘", "原画", "手绘", "illustration", "fanart", "pixiv", "厚涂"]):
-        mod = "official_illustration" if any(k in combined for k in ["官方", "立绘", "原画"]) else "fan_art"
-        return mod, ["数字数位板插画笔触与线条特征", "非真人人像摄影"]
+    if any(k in combined for k in ["插画", "同人画", "立绘", "原画", "手绘", "壁纸", "海报", "concept art", "illustration", "fanart", "fan art", "wallpaper", "pixiv", "厚涂"]):
+        mod = "official_illustration" if any(k in combined for k in ["官方", "立绘", "原画", "海报", "concept art"]) else "fan_art"
+        return mod, ["来源标题/页面上下文明示插画、立绘、海报或壁纸；不能当真人摄影"]
 
     if any(k in combined for k in ["人台", "假人", "服装展示", "平铺图", "样衣", "mannequin"]):
         return "costume_display", ["人台/服装展示或平铺，缺乏真人动态与骨骼走势"]
