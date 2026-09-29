@@ -18,15 +18,33 @@ if (-not (Test-Path $resolved)) {
 }
 
 $db = Join-Path $resolved "library.sqlite3"
-if (-not (Test-Path $db) -and -not $InitializeEmpty) {
-    throw "No library.sqlite3 found in $resolved. Refusing to configure an accidental empty library."
+if (-not (Test-Path $db)) {
+    if (-not $InitializeEmpty) {
+        throw "No library.sqlite3 found in $resolved. Refusing to configure an accidental empty library."
+    }
+
+    $python = Get-ReferenceLabPython
+    Assert-ReferenceLabPythonMatchesRepo -Python $python
+    $oldDataDir = $env:LAB_DATA_DIR
+    try {
+        $env:LAB_DATA_DIR = $resolved
+        & $python -m ref_lab doctor | Out-Host
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $db)) {
+            throw "Intentional empty-library initialization did not create a healthy database."
+        }
+    } finally {
+        if ($null -eq $oldDataDir) {
+            Remove-Item Env:LAB_DATA_DIR -ErrorAction SilentlyContinue
+        } else {
+            $env:LAB_DATA_DIR = $oldDataDir
+        }
+    }
 }
 
 New-Item -ItemType Directory -Path $script:LocalStateDir -Force | Out-Null
 $config = [ordered]@{
     data_dir = $resolved
     port = $Port
-    allow_empty = [bool]$InitializeEmpty
 }
 $config | ConvertTo-Json | Set-Content -LiteralPath $script:WindowsRuntimeConfigPath -Encoding UTF8
 
@@ -36,9 +54,8 @@ Write-Host "  Data dir  : $resolved"
 Write-Host "  Port      : $Port"
 Write-Host "  Config    : $script:WindowsRuntimeConfigPath"
 if ($InitializeEmpty) {
-    Write-Host "  Mode      : intentional empty library initialization" -ForegroundColor Yellow
-} else {
-    Write-Host "  Database  : existing library.sqlite3 required and found" -ForegroundColor Green
+    Write-Host "  Mode      : intentional empty library initialized now" -ForegroundColor Yellow
 }
+Write-Host "  Database  : library.sqlite3 present" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next: .\start.bat"
