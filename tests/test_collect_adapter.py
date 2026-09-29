@@ -39,6 +39,10 @@ def test_request_notes_change_queries_and_add_negative_filters():
     assert all("-游戏截图" in q and "-插画" in q and "-皮肤特效" in q for q in queries)
     assert any("只找该皮肤的COS正片" in q for q in queries)
 
+    browser_queries = build_queries(job, for_browser=True)
+    assert all("-" not in q for q in browser_queries)
+    assert any("王昭君 长夜焕生" in q for q in browser_queries)
+
 
 def test_search_query_cos_does_not_make_game_result_eligible():
     policy = build_policy({

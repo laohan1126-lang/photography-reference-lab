@@ -8,13 +8,18 @@ returns Schema 2 packages without preflight fields.
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import html
 import io
 import json
+import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 import sys
+import time
 from urllib.parse import quote
 from uuid import uuid4
 import zipfile
@@ -119,7 +124,7 @@ def _negative_suffix() -> str:
     return " ".join(f"-{term}" for term in NEGATIVE_QUERY_TERMS)
 
 
-def build_queries(job: dict) -> list[str]:
+def build_queries(job: dict, for_browser: bool = False) -> list[str]:
     policy = build_policy(job)
     character, costume, work = policy["character"], policy["costume"], policy["work"]
     core = " ".join(x for x in (work, character, costume) if x).strip()
@@ -130,6 +135,7 @@ def build_queries(job: dict) -> list[str]:
             f"{core} cosplay 正片",
             f"{core} coser 摄影",
             f"{core} cos 返图",
+            f"{core} cos 场照",
         ])
     for fragment in policy["positive_note_fragments"]:
         if core and fragment not in core:
@@ -145,6 +151,14 @@ def build_queries(job: dict) -> list[str]:
         if policy["require_costume"] and costume and costume.lower() not in q.lower():
             continue
         generated.append(q)
+
+    if for_browser:
+        result: list[str] = []
+        for query in generated:
+            q_clean = query.strip()
+            if q_clean and q_clean not in result:
+                result.append(q_clean)
+        return result
 
     suffix = _negative_suffix() if policy["require_cosplay"] else ""
     result: list[str] = []
@@ -179,7 +193,7 @@ def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
 
 def compute_dhash(image: Image.Image, hash_size: int = 8) -> str:
     gray = ImageOps.exif_transpose(image).convert("L").resize((hash_size + 1, hash_size), Image.Resampling.LANCZOS)
-    pixels = list(gray.getdata())
+    pixels = list(gray.get_flattened_data() if hasattr(gray, "get_flattened_data") else gray.getdata())
     value = 0
     for y in range(hash_size):
         for x in range(hash_size):
@@ -330,13 +344,407 @@ def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -
     return candidates, images, query_log
 
 
+def find_bsk_bin() -> str | None:
+    bin_path = shutil.which("bsk") or shutil.which("bsk.exe")
+    if bin_path:
+        return bin_path
+    win_default = r"C:\Users\Dell\.local\bin\bsk.exe"
+    if os.name == "nt" and os.path.isfile(win_default):
+        return win_default
+    wsl_default = "/mnt/c/Users/Dell/.local/bin/bsk.exe"
+    if os.path.isfile(wsl_default):
+        return wsl_default
+    home_bin = os.path.expanduser("~/.local/bin/bsk")
+    if os.path.isfile(home_bin):
+        return home_bin
+    return None
+
+
+def get_connected_browser_id(bsk_bin: str) -> str | None:
+    env = {**os.environ, "BSK_AUTO_START": "0"}
+    try:
+        p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", env=env, timeout=5)
+        browsers = json.loads(p.stdout)
+        if browsers:
+            for b in browsers:
+                if b.get("browser_name") == "edge":
+                    return b["instance_id"]
+            return browsers[0]["instance_id"]
+    except Exception:
+        pass
+
+    powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell")
+    if powershell_bin:
+        cmd = [powershell_bin, "-Command", "Start-Process msedge.exe extension://emacgiaaaiojkkpkddmmdfhmokgmnikg/popup.html"]
+        try:
+            subprocess.run(cmd, capture_output=True, timeout=5)
+            for _ in range(5):
+                time.sleep(1)
+                p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True,
+                                   encoding="utf-8", errors="replace", env=env, timeout=5)
+                browsers = json.loads(p.stdout)
+                if browsers:
+                    for b in browsers:
+                        if b.get("browser_name") == "edge":
+                            return b["instance_id"]
+                    return browsers[0]["instance_id"]
+        except Exception:
+            pass
+    return None
+
+
+def fetch_bsk_candidates(
+    bsk_bin: str, browser_id: str, job: dict, target_count: int, policy: dict
+) -> tuple[list[dict], dict[str, bytes], list[dict]]:
+    env = {**os.environ, "BSK_AUTO_START": "0"}
+    try:
+        start_p = subprocess.run([bsk_bin, "session", "start", "--browser", browser_id, "--json"],
+                                 capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10)
+        sess_data = json.loads(start_p.stdout)
+        session_id = sess_data.get("session_id")
+    except Exception as exc:
+        sys.stderr.write(f"Failed to start BrowserSkill session: {exc}\n")
+        return [], {}, []
+
+    if not session_id:
+        return [], {}, []
+
+    seen_shas: set[str] = set()
+    seen_dhashes: list[str] = []
+    seen_urls: set[str] = set()
+    candidates: list[dict] = []
+    images: dict[str, bytes] = {}
+    query_log: list[dict] = []
+
+    browser_queries = build_queries(job, for_browser=True)
+
+    try:
+        # Phase 1: 优先小红书 (Xiaohongshu)
+        for query in browser_queries:
+            if len(candidates) >= target_count:
+                break
+            kept = 0
+            rejected_metadata = 0
+            rejected_image = 0
+            rejected_duplicate = 0
+
+            xhs_url = f"https://www.xiaohongshu.com/search_result?keyword={quote(query)}"
+            subprocess.run(
+                [bsk_bin, "navigate", xhs_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
+            )
+            time.sleep(3.5)
+
+            extract_js = """(() => {
+                const cards = [];
+                const items = document.querySelectorAll('section, div.note-item, div.search-card');
+                for (const item of items) {
+                    const img = item.querySelector('img');
+                    const link = item.querySelector('a[href*="/search_result/"], a[href*="/explore/"]');
+                    const titleEl = item.querySelector('.title, .desc, a.title span, span.title') || item.querySelector('a:not(.user) span');
+                    const authorEl = item.querySelector('.author, .name, .user-name, a.user span');
+                    if (img && (img.currentSrc || img.src)) {
+                        const src = img.currentSrc || img.src;
+                        if (src.includes('xhscdn.com') && !src.includes('avatar') && img.naturalWidth >= 180) {
+                            cards.push({
+                                title: titleEl?.innerText?.trim() || img.alt?.trim() || '',
+                                author: authorEl?.innerText?.trim() || '',
+                                desc: titleEl?.innerText?.trim() || img.alt?.trim() || '',
+                                purl: link?.href || location.href,
+                                image_url: src,
+                                width: img.naturalWidth,
+                                height: img.naturalHeight
+                            });
+                        }
+                    }
+                }
+                return cards;
+            })()"""
+
+            eval_p = subprocess.run(
+                [bsk_bin, "evaluate", "--session", session_id, "--json", extract_js],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10
+            )
+            try:
+                raw_eval = json.loads(eval_p.stdout)
+                cards = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
+            except Exception:
+                cards = []
+
+            for card in cards:
+                if len(candidates) >= target_count:
+                    break
+                allowed, reason = result_metadata_allowed({
+                    "t": card["title"],
+                    "desc": card["desc"],
+                    "purl": card["purl"]
+                }, policy)
+                if not allowed:
+                    rejected_metadata += 1
+                    continue
+
+                img_url = card.get("image_url", "").strip()
+                if not img_url or img_url in seen_urls:
+                    rejected_duplicate += 1
+                    continue
+                seen_urls.add(img_url)
+
+                fetch_js = f"""(async () => {{
+                    try {{
+                        const resp = await fetch({json.dumps(img_url)});
+                        if (!resp.ok) return null;
+                        const blob = await resp.blob();
+                        const reader = new FileReader();
+                        return await new Promise((resolve) => {{
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.readAsDataURL(blob);
+                        }});
+                    }} catch (e) {{
+                        return null;
+                    }}
+                }})()"""
+                fetch_p = subprocess.run(
+                    [bsk_bin, "evaluate", "--session", session_id, "--json", fetch_js],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=12
+                )
+                try:
+                    fetch_val = json.loads(fetch_p.stdout).get("value")
+                except Exception:
+                    fetch_val = None
+
+                if not fetch_val or "," not in fetch_val:
+                    rejected_image += 1
+                    continue
+
+                try:
+                    img_bytes = base64.b64decode(fetch_val.split(",", 1)[1])
+                except Exception:
+                    rejected_image += 1
+                    continue
+
+                valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
+                if not valid:
+                    rejected_image += 1
+                    continue
+
+                sha = hashlib.sha256(img_bytes).hexdigest()
+                if sha in seen_shas or any(hamming_distance(dhash, old) <= 3 for old in seen_dhashes):
+                    rejected_duplicate += 1
+                    continue
+
+                seen_shas.add(sha)
+                seen_dhashes.append(dhash)
+                filename = f"{sha[:16]}.{ext}"
+                images[filename] = img_bytes
+                title = str(card.get("title") or f"{policy['character']} 小红书参考")[:350]
+                desc = str(card.get("desc") or "")[:800]
+                candidates.append({
+                    "id": f"cand-{len(candidates) + 1:03d}",
+                    "file": f"images/{filename}",
+                    "title": title,
+                    "source": {
+                        "page_url": str(card.get("purl") or xhs_url)[:2000],
+                        "image_url": img_url[:2000],
+                        "author": str(card.get("author") or "")[:200],
+                        "title": title,
+                        "search_query": query[:350],
+                        "rights": "unknown",
+                        "source_confirmed": False,
+                        "obtained_as": "platform_variant",
+                    },
+                    "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
+                    "discovery_reason": f"通过 BrowserSkill 检索「{query}」在小红书发现",
+                    "discovery_url": xhs_url[:2000],
+                    "notes": desc,
+                })
+                kept += 1
+
+            query_log.append({
+                "query": query,
+                "source": "xiaohongshu",
+                "kept": kept,
+                "stop_reason": (
+                    f"kept={kept}; metadata_filtered={rejected_metadata}; "
+                    f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
+                ),
+            })
+
+        # Phase 2: 其次 Pinterest (若数量不足且未达标)
+        if len(candidates) < target_count:
+            for query in browser_queries:
+                if len(candidates) >= target_count:
+                    break
+                kept = 0
+                rejected_metadata = 0
+                rejected_image = 0
+                rejected_duplicate = 0
+
+                pin_url = f"https://www.pinterest.com/search/pins/?q={quote(query)}"
+                subprocess.run(
+                    [bsk_bin, "navigate", pin_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
+                )
+                time.sleep(3.0)
+
+                pin_js = """(() => {
+                    const pins = [];
+                    const imgs = Array.from(document.querySelectorAll("img")).filter(img => {
+                        return (img.src.includes("pinimg.com") || (img.currentSrc && img.currentSrc.includes("pinimg.com")))
+                            && img.naturalWidth >= 200 && img.naturalHeight >= 200;
+                    });
+                    for (const img of imgs) {
+                        const link = img.closest('a');
+                        pins.push({
+                            title: img.alt || '',
+                            desc: img.alt || '',
+                            purl: link?.href || location.href,
+                            image_url: img.currentSrc || img.src,
+                            width: img.naturalWidth,
+                            height: img.naturalHeight
+                        });
+                    }
+                    return pins;
+                })()"""
+
+                eval_p = subprocess.run(
+                    [bsk_bin, "evaluate", "--session", session_id, "--json", pin_js],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10
+                )
+                try:
+                    raw_eval = json.loads(eval_p.stdout)
+                    pins = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
+                except Exception:
+                    pins = []
+
+                for pin in pins:
+                    if len(candidates) >= target_count:
+                        break
+                    allowed, reason = result_metadata_allowed({
+                        "t": pin["title"],
+                        "desc": pin["desc"],
+                        "purl": pin["purl"]
+                    }, policy)
+                    if not allowed:
+                        rejected_metadata += 1
+                        continue
+
+                    img_url = pin.get("image_url", "").strip()
+                    if not img_url or img_url in seen_urls:
+                        rejected_duplicate += 1
+                        continue
+                    seen_urls.add(img_url)
+
+                    try:
+                        resp = httpx.get(img_url, timeout=8.0)
+                        if resp.status_code == 200 and len(resp.content) > 10_000:
+                            img_bytes = resp.content
+                        else:
+                            rejected_image += 1
+                            continue
+                    except Exception:
+                        rejected_image += 1
+                        continue
+
+                    valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
+                    if not valid:
+                        rejected_image += 1
+                        continue
+
+                    sha = hashlib.sha256(img_bytes).hexdigest()
+                    if sha in seen_shas or any(hamming_distance(dhash, old) <= 3 for old in seen_dhashes):
+                        rejected_duplicate += 1
+                        continue
+
+                    seen_shas.add(sha)
+                    seen_dhashes.append(dhash)
+                    filename = f"{sha[:16]}.{ext}"
+                    images[filename] = img_bytes
+                    title = str(pin.get("title") or f"{policy['character']} Pinterest 参考")[:350]
+                    desc = str(pin.get("desc") or "")[:800]
+                    candidates.append({
+                        "id": f"cand-{len(candidates) + 1:03d}",
+                        "file": f"images/{filename}",
+                        "title": title,
+                        "source": {
+                            "page_url": str(pin.get("purl") or pin_url)[:2000],
+                            "image_url": img_url[:2000],
+                            "author": "",
+                            "title": title,
+                            "search_query": query[:350],
+                            "rights": "unknown",
+                            "source_confirmed": False,
+                            "obtained_as": "platform_variant",
+                        },
+                        "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
+                        "discovery_reason": f"通过 BrowserSkill 检索「{query}」在 Pinterest 发现",
+                        "discovery_url": pin_url[:2000],
+                        "notes": desc,
+                    })
+                    kept += 1
+
+                query_log.append({
+                    "query": query,
+                    "source": "pinterest",
+                    "kept": kept,
+                    "stop_reason": (
+                        f"kept={kept}; metadata_filtered={rejected_metadata}; "
+                        f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
+                    ),
+                })
+    finally:
+        subprocess.run([bsk_bin, "session", "stop", session_id],
+                       capture_output=True, text=True, env=env, timeout=5)
+
+    return candidates, images, query_log
+
+
 def main() -> None:
     task_path, result_file = parse_arguments()
     job, _ = load_job_info(task_path)
     policy = build_policy(job)
     target_count = min(int(job.get("target_count") or 30), 40)
-    queries = build_queries(job)
-    candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
+
+    candidates: list[dict] = []
+    images: dict[str, bytes] = {}
+    query_log: list[dict] = []
+    source_checks: list[dict] = []
+    producer = "local_collection_adapter_search_only"
+
+    # 1. 优先尝试本地已连接的 BrowserSkill Edge 实例 (小红书 + Pinterest)
+    bsk_bin = find_bsk_bin()
+    browser_id = get_connected_browser_id(bsk_bin) if bsk_bin else None
+    if bsk_bin and browser_id:
+        producer = "local_browserskill_adapter"
+        candidates, images, query_log = fetch_bsk_candidates(
+            bsk_bin, browser_id, job, target_count, policy
+        )
+        source_checks.append({
+            "source": "xiaohongshu",
+            "status": "usable" if any(q.get("source") == "xiaohongshu" and q.get("kept", 0) > 0 for q in query_log) else "untested",
+            "detail": "优先通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
+        })
+        source_checks.append({
+            "source": "pinterest",
+            "status": "usable" if any(q.get("source") == "pinterest" and q.get("kept", 0) > 0 for q in query_log) else "untested",
+            "detail": "在小红书后通过 BrowserSkill 访问 Pinterest 补充参考。",
+        })
+
+    # 2. 仅在未连接/未安装 BrowserSkill 时，降级走备用 Bing
+    if not query_log and not (bsk_bin and browser_id):
+        queries = build_queries(job, for_browser=False)
+        candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
+        source_checks.append({
+            "source": "bing_images_photo_filter",
+            "status": "usable" if candidates else "untested",
+            "detail": "未检测到已连接的 BrowserSkill Edge 实例；使用 Photo + Large 搜索引擎检索。",
+        })
+
+    summary_text = (
+        f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
+        if candidates else
+        "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。"
+    )
 
     manifest = {
         # Search-only adapter: no fake visual preflight.
@@ -345,20 +753,12 @@ def main() -> None:
         "batch_id": uuid4().hex[:16],
         "candidates": candidates,
         "execution_report": {
-            "producer": "local_collection_adapter_search_only",
+            "producer": producer,
             "status": "completed" if candidates else "blocked",
-            "summary": (
-                f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
-                if candidates else
-                "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。"
-            ),
-            "source_checks": [{
-                "source": "bing_images_photo_filter",
-                "status": "usable" if candidates else "untested",
-                "detail": "使用 Photo + Large 搜索过滤，并在导入前执行角色/皮肤/COS元数据硬约束。",
-            }],
+            "summary": summary_text,
+            "source_checks": source_checks,
             "query_log": query_log,
-            "gaps": [] if candidates else ["没有足够满足用户硬要求的候选；请调整搜索词或改用 BrowserSkill 人工/Agent 搜索。"],
+            "gaps": [] if candidates else ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"],
         },
     }
 
