@@ -402,24 +402,31 @@ def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -
 
 
 def bsk_candidates() -> list[str]:
-    """Every BrowserSkill binary worth probing, most specific first.
+    """Every BrowserSkill binary worth probing, without username-specific paths.
 
-    Existing on disk proves nothing.  A WSL-side ``bsk`` with no running daemon
-    cannot see the Windows browser session, and preferring whichever binary
-    ``which`` happened to return used to select exactly that dead one.
+    Windows is the primary runtime, so PATH and the current user's ~/.local/bin
+    are preferred.  WSL/Linux remains a compatibility path and may probe a
+    Windows user's mounted bsk.exe, but availability is still proven later by
+    `browsers --json`, never by file existence alone.
     """
     found: list[str] = []
+
     def add(path: str | None) -> None:
         if path and path not in found and os.path.isfile(path):
             found.append(path)
+
     for name in ("bsk", "bsk.exe"):
         add(shutil.which(name))
-    # The Windows install is the one whose daemon owns the browser extension,
-    # and it stays callable from WSL, so probe it even when a native bsk exists.
-    add("/mnt/c/Users/Dell/.local/bin/bsk.exe")
-    if os.name == "nt":
-        add(r"C:\Users\Dell\.local\bin\bsk.exe")
-    add(os.path.expanduser("~/.local/bin/bsk"))
+
+    home = Path.home()
+    add(str(home / ".local" / "bin" / ("bsk.exe" if os.name == "nt" else "bsk")))
+
+    if os.name != "nt":
+        windows_users = Path("/mnt/c/Users")
+        if windows_users.is_dir():
+            for candidate in sorted(windows_users.glob("*/.local/bin/bsk.exe")):
+                add(str(candidate))
+
     return found
 
 
