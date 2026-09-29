@@ -36,3 +36,46 @@ This task is a narrow convergence pass, not a new feature expansion.
 
 ## Verification boundary
 Synthetic/unit/CI tests can verify routing, persistence, and deterministic rules. They cannot prove that real-world search results are aesthetically useful or visually correct. Final acceptance requires the owner to inspect a real local run.
+
+## Outcome / implementation receipt
+
+Code-verified checkpoint: `9f7a8ab59e0d0eb47114c5724e03e5c7ea890bd9`.
+
+### Changes made
+- Social search-card membership no longer bypasses character/costume/cosplay metadata requirements.
+- Ambiguous Xiaohongshu cards return `needs_detail_evidence`; the BrowserSkill path may inspect an actual `/explore/` note page, merge its visible body/tags, and re-evaluate. Search-result pages are explicitly refused as detail evidence so aggregate page text cannot validate an unrelated card.
+- A voice-line title remains recoverable when note detail supplies the requested evidence.
+- Costume brand names are not blanket negative markers. Explicit help/dressmaking/commerce/tutorial intent remains rejectable.
+- Deterministic preflight no longer asserts real-person modality from internal-looking title prefixes or known fashion URLs alone.
+- Project-scoped preflight lookup no longer falls back across projects and now orders by SQLite insertion chronology (`rowid`) instead of random preflight UUID text.
+- Xiaohongshu query logs now expose `detail_checked` for local verification.
+
+### CI feedback incorporated
+An intermediate run exposed two regressions rather than being accepted as “close enough”:
+1. A valid card with the exact requested costume plus explicit cosplay/photo evidence but no character literal was over-rejected. Discovery admission now accepts that combination while preflight still remains visually unverified.
+2. The isolation regression initially used a non-existent synthetic asset SHA and hit the foreign-key constraint. The test now creates a real persisted test asset before inserting preflight rows.
+
+Both were corrected before the final code checkpoint.
+
+### VERIFIED — automated scope
+GitHub Actions run `36534160875` on code checkpoint `9f7a8ab59e0d0eb47114c5724e03e5c7ea890bd9`:
+- Core / Python 3.11: **153 passed, 1 warning**, 27.19 s. Node syntax check and Python compile step also succeeded.
+- Core / Python 3.13: **153 passed, 1 warning**, 25.42 s. Node syntax check and Python compile step also succeeded.
+- Browser / Python 3.12 + Chromium: **23 passed, 1 warning**, 123.69 s.
+- All three jobs concluded `success`.
+
+These results verify deterministic rules, persistence semantics and the existing synthetic browser regression suite. They do not verify live Xiaohongshu DOM/selectors, session state, external ranking, image identity, or aesthetic usefulness.
+
+### UNVERIFIED — required local acceptance
+The local Agent should pull this task branch into an isolated worktree and run one real BrowserSkill collection using the owner’s normal environment. Preserve evidence for:
+- the exact “求助：三分妄想家的王昭君长夜焕生c服裙边怎么整理” class being excluded;
+- the “长风万里，生生不息” class remaining recoverable when its detail page really contains the requested tags/body;
+- legitimate cosplay not being rejected merely because a costume brand is mentioned;
+- imported candidates staying `unreviewed/uncertain` unless real visual evidence exists;
+- query logs including `detail_checked`, imported IDs and actual source URLs.
+
+The owner remains the final judge of whether the resulting photographs are actually useful references.
+
+## Handoff
+Draft PR: #3, head `codex/preflight-trust-isolation-20260929`, base `codex/reference-library-rebuild`. Do not merge before local BrowserSkill and owner acceptance.
+
