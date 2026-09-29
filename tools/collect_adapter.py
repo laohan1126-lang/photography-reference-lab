@@ -455,7 +455,9 @@ def fetch_xhs_detail_metadata(
     distinguish a voice-line-titled cosplay post whose hashtags/body carry the
     requested identity from an unrelated/help card returned by search ranking.
     """
-    if "xiaohongshu.com" not in (page_url or ""):
+    if "xiaohongshu.com/explore/" not in (page_url or ""):
+        # Never inspect the search-result page as if it were one note: its
+        # aggregate text/tags could incorrectly validate an unrelated card.
         return {}
     try:
         subprocess.run(
@@ -540,7 +542,7 @@ def fetch_bsk_candidates(
                 const items = document.querySelectorAll('section, div.note-item, div.search-card');
                 for (const item of items) {
                     const img = item.querySelector('img');
-                    const link = item.querySelector('a[href*="/search_result/"], a[href*="/explore/"]');
+                    const link = item.querySelector('a[href*="/explore/"]') || item.querySelector('a[href*="/search_result/"]');
                     const titleEl = item.querySelector('.title, .desc, a.title span, span.title') || item.querySelector('a:not(.user) span');
                     const authorEl = item.querySelector('.author, .name, .user-name, a.user span');
                     if (img && (img.currentSrc || img.src)) {
@@ -700,6 +702,7 @@ def fetch_bsk_candidates(
                 "kept": kept,
                 "stop_reason": (
                     f"kept={kept}; metadata_filtered={rejected_metadata}; "
+                    f"detail_checked={detail_checks}; "
                     f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
                 ),
             })
