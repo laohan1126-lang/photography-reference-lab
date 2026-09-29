@@ -30,7 +30,8 @@ from PIL import Image, ImageOps
 
 POSITIVE_COSPLAY_MARKERS = (
     "cosplay", "coser", " cos ", "cos正片", "cos 正片", "正片", "场照",
-    "返图", "出镜", "写真", "棚拍", "摄影", "漫展",
+    "返图", "出镜", "写真", "棚拍", "摄影", "漫展", "自拍", "出片", "拍了",
+    "📷", "动作参考", "妆面", "毛娘", "试衣", "后期", "成片", "出cos",
 )
 NEGATIVE_TYPE_MARKERS = (
     "游戏截图", "游戏画面", "游戏cg", "游戏 cg", "皮肤特效", "特效设计", "技能特效",
@@ -169,26 +170,52 @@ def build_queries(job: dict, for_browser: bool = False) -> list[str]:
     return result
 
 
+def _character_aliases(name: str) -> list[str]:
+    name = _normal(name)
+    if not name:
+        return []
+    aliases = [name]
+    if len(name) == 3:
+        aliases.append(name[1:])  # 王昭君 -> 昭君
+    elif "·" in name:
+        aliases.extend(p for p in name.split("·") if p)
+    return aliases
+
+
 def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
     title = _normal(str(record.get("t") or ""))
     desc = _normal(str(record.get("desc") or ""))
+    author = _normal(str(record.get("author") or ""))
+    full_text = _normal(str(record.get("full_text") or ""))
     page = _normal(str(record.get("purl") or ""))
-    combined = f" {title} {desc} {page} "
+    combined = f" {title} {desc} {author} {full_text} {page} "
 
     for marker in NEGATIVE_TYPE_MARKERS:
         if marker.lower() in combined:
             return False, f"negative_type:{marker}"
 
-    if policy["require_cosplay"] and not any(marker in combined for marker in POSITIVE_COSPLAY_MARKERS):
+    char_aliases = _character_aliases(policy["character"])
+    has_character = any(a in combined for a in char_aliases) if char_aliases else True
+    costume = _normal(policy["costume"])
+    has_costume = (costume in combined) if costume else True
+    has_cosplay = any(marker in combined for marker in POSITIVE_COSPLAY_MARKERS)
+
+    # 针对小红书/Pinterest等带博主或平台特征的真人摄影分享：
+    # 当明确匹配了指定皮肤名（如“长夜焕生”），且带有角色名/简称或摄影/coser博主信息，且零负向词时，
+    # 允许作为候选收录，避免博主发真人图因未在标题机械写上“cos”而被误杀。
+    is_social = bool(author or "xiaohongshu" in page or "pinterest" in page or "xhs" in page)
+    if is_social and has_costume and (has_character or has_cosplay):
+        return True, "accepted_metadata"
+
+    if policy["require_cosplay"] and not has_cosplay:
         return False, "missing_cosplay_evidence"
 
-    character = _normal(policy["character"])
-    costume = _normal(policy["costume"])
-    if policy["require_character"] and character and character not in combined:
+    if policy["require_character"] and not has_character:
         return False, "missing_character"
-    if policy["require_costume"] and costume and costume not in combined:
+    if policy["require_costume"] and not has_costume:
         return False, "missing_costume"
     return True, "accepted_metadata"
+
 
 
 def compute_dhash(image: Image.Image, hash_size: int = 8) -> str:
@@ -450,6 +477,7 @@ def fetch_bsk_candidates(
                             cards.push({
                                 title: titleEl?.innerText?.trim() || img.alt?.trim() || '',
                                 author: authorEl?.innerText?.trim() || '',
+                                full_text: item.innerText?.trim() || '',
                                 desc: titleEl?.innerText?.trim() || img.alt?.trim() || '',
                                 purl: link?.href || location.href,
                                 image_url: src,
@@ -478,6 +506,8 @@ def fetch_bsk_candidates(
                 allowed, reason = result_metadata_allowed({
                     "t": card["title"],
                     "desc": card["desc"],
+                    "author": card.get("author", ""),
+                    "full_text": card.get("full_text", ""),
                     "purl": card["purl"]
                 }, policy)
                 if not allowed:

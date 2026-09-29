@@ -90,6 +90,38 @@ def test_specific_skin_and_cosplay_are_hard_requirements():
     assert reason in {"missing_cosplay_evidence"} or reason.startswith("negative_type:")
 
 
+def test_social_platform_cosplay_matching():
+    policy = build_policy({
+        "notes": "只找同皮肤cos正片",
+        "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"},
+    })
+    # Social card with character alias and author
+    card1 = {
+        "t": "长夜焕生•昭君",
+        "author": "📷刘肉丸丸",
+        "purl": "https://www.xiaohongshu.com/explore/sample1",
+    }
+    assert result_metadata_allowed(card1, policy)[0] is True
+
+    # Social card with costume and cosplay author
+    card2 = {
+        "t": "宁波还能拍到这么好看的长夜焕生！",
+        "author": "像素猫cos自拍摄影",
+        "purl": "https://www.xiaohongshu.com/explore/sample2",
+    }
+    assert result_metadata_allowed(card2, policy)[0] is True
+
+    # Social card with negative marker still rejected
+    card3 = {
+        "t": "长夜焕生昭君游戏截图特效展示",
+        "author": "游戏攻略菌",
+        "purl": "https://www.xiaohongshu.com/explore/sample3",
+    }
+    allowed, reason = result_metadata_allowed(card3, policy)
+    assert allowed is False
+    assert reason.startswith("negative_type:")
+
+
 def test_download_validation_and_within_run_perceptual_hash():
     first = image_bytes(seed=17, size=(800, 1200))
     second = image_bytes(seed=17, size=(800, 1200))
