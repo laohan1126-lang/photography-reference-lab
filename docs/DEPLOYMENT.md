@@ -2,6 +2,24 @@
 
 ## 本地优先
 
+### Windows 主运行环境
+
+日常桌面使用以 Windows 为主：仓库内 `start.bat` / `scripts/launch.ps1` 启动当前 checkout 的 Windows `.venv\Scripts\python.exe`，并把同一 checkout 的 `tools\collect_adapter.py` 注入 `LAB_COLLECTION_COMMAND`。Edge 与 BrowserSkill 也运行在 Windows，从而避免 WSL Python 再跨边界调用 Windows 浏览器。
+
+Windows 启动器不会自动创建新的资料库。已有资料必须先恢复到一个 Windows 本地目录，再通过 `scripts/configure-windows-runtime.ps1` 写入 gitignored 的 `.local/windows-runtime.json`。运行时 PID/log 也只写入 `.local/runtime/`，不提交 Git。
+
+从历史 WSL 环境迁移时按以下顺序执行：
+
+1. 停止旧 WSL 服务，确认不再有进程写入旧 SQLite。
+2. 在旧环境执行完整 `python -m ref_lab backup --output ...zip`。
+3. 将备份恢复到一个新的 Windows 数据目录；不要让两个运行环境共用同一个 SQLite/WAL 目录。
+4. 用 `configure-windows-runtime.ps1 -DataDir <目录>` 配置 Windows。
+5. 运行 Windows `.venv\Scripts\python.exe -m ref_lab doctor`（带相同 `LAB_DATA_DIR`）并确认通过。
+6. 用 `start.bat` 启动，再做 BrowserSkill 真实 Golden Path 和人工图片验收。
+7. Windows 验收通过后才退役旧 WSL 正式数据目录；保留备份。
+
+WSL/Linux 仍是兼容与开发路径，但必须使用独立数据目录。禁止 Windows 与 WSL 轮流打开同一个活动 SQLite 库。
+
 默认 `127.0.0.1:8765`。第一次运行会在 `.local/access-token` 生成随机口令，读取命令是 `python -m ref_lab token`。不要把终端输出截图公开，不要将口令贴到仓库、Notion 或任务包。
 
 `LAB_DATA_DIR` 应指向持久化目录；只存于浏览器或容器临时层是不可靠的。`LAB_PUBLIC_ORIGIN` 必须与访问地址的协议、主机和端口一致；换端口同时更新它，不能含子路径、用户名、查询参数。单所有者工作台不支持多人账号隔离。
