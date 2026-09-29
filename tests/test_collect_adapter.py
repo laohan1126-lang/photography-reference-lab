@@ -16,6 +16,7 @@ from ref_lab.db import encode
 from ref_lab.identity import build_identity_context
 from conftest import image_bytes, add_reference
 from tools.collect_adapter import (
+    _is_note_url,
     build_policy,
     build_queries,
     compute_dhash,
@@ -111,13 +112,52 @@ def test_social_platform_cosplay_matching():
     }
     assert result_metadata_allowed(card2, policy)[0] is True
 
-    # Social card where coser titled note with in-game voice line (no character/costume literal text in title)
+    # A voice-line title is not accepted merely because it appeared in the
+    # requested Xiaohongshu search.  It must be resolved from visible detail
+    # metadata/tags before becoming eligible.
     card_voiceline = {
         "t": "长风万里，生生不息",
         "author": "小兔子落落",
         "purl": "https://www.xiaohongshu.com/explore/sample_voiceline",
     }
-    assert result_metadata_allowed(card_voiceline, policy)[0] is True
+    allowed, reason = result_metadata_allowed(card_voiceline, policy)
+    assert allowed is False
+    assert reason.startswith("needs_detail_evidence:")
+
+    resolved_voiceline = {
+        **card_voiceline,
+        "full_text": "#王者荣耀 #王昭君长夜焕生 #cos正片 长风万里，生生不息",
+    }
+    assert result_metadata_allowed(resolved_voiceline, policy)[0] is True
+
+    # Costume brand names are not intrinsically noise.  A clearly labelled
+    # cosplay/photo post must remain eligible even if the costume maker is named.
+    branded_cosplay = {
+        "t": "三分妄想 王昭君长夜焕生 COS 正片返图",
+        "author": "小兔子落落",
+        "purl": "https://www.xiaohongshu.com/explore/sample_brand",
+    }
+    assert result_metadata_allowed(branded_cosplay, policy)[0] is True
+
+    # The real regression: a costume-help/text post is not a photography
+    # reference even though it names the exact character/skin and a known brand.
+    help_post = {
+        "t": "求助：三分妄想家的王昭君长夜焕生c服裙边怎么整理",
+        "author": "路人甲",
+        "purl": "https://www.xiaohongshu.com/explore/sample_help",
+    }
+    allowed, reason = result_metadata_allowed(help_post, policy)
+    assert allowed is False
+    assert reason.startswith("negative_type:")
+
+    unrelated_social = {
+        "t": "今天随手记",
+        "author": "路人乙",
+        "purl": "https://www.xiaohongshu.com/explore/sample_unrelated",
+    }
+    allowed, reason = result_metadata_allowed(unrelated_social, policy)
+    assert allowed is False
+    assert reason.startswith("needs_detail_evidence:")
 
     # Social card with skirt/corset negative marker rejected
     card_skirt = {
@@ -308,3 +348,203 @@ def test_target_query_cannot_mask_explicit_confusion_character():
     result = evaluate_identity(image_bytes(seed=88, size=(800, 1200)), metadata, context)
     assert result["prediction"] == "mismatch"
     assert "小乔" in result["reason"]
+
+
+def test_xhs_note_url_recognises_both_link_forms_but_not_the_search_page():
+    """Live failure (2026-09-29): the search page links every note twice.
+
+    The tokenless `/explore/<id>` anchor is what the collector used to pick, and
+    opening it renders Xiaohongshu's 404 "当前笔记暂时无法浏览", so every
+    voice-line-titled cosplay card came back with empty detail evidence and was
+    dropped.  Detail evidence must accept the token-bearing link form too,
+    while still refusing the aggregate keyword search page.
+    """
+    assert _is_note_url("https://www.xiaohongshu.com/explore/6a8937bb000000003a02d574")
+    assert _is_note_url(
+        "https://www.xiaohongshu.com/search_result/6a8937bb000000003a02d574"
+        "?xsec_token=ABwwTLyycSTrO5-0kSYw3X4oaRf-UJeyYe_YiiZthglYw=&xsec_source=pc_feed"
+    )
+    # The aggregate search page must never validate an individual card.
+    assert not _is_note_url(
+        "https://www.xiaohongshu.com/search_result?keyword=%E7%8E%8B%E6%98%AD%E5%90%9B&type=51"
+    )
+    assert not _is_note_url("https://www.pinterest.com/search/pins/?q=wzj")
+    assert not _is_note_url("")
+
+
+def test_xhs_extract_js_prefers_the_token_bearing_note_link():
+    """The card extractor must prefer the xsec_token anchor it previously skipped."""
+    import re
+    source = (Path(__file__).resolve().parent.parent / "tools" / "collect_adapter.py").read_text(encoding="utf-8")
+    match = re.search(r"const link = item\.querySelector\((.*?)\);", source, re.S)
+    assert match, "extract_js link selection not found"
+    selectors = match.group(1)
+    assert 'a[href*="xsec_token"]' in selectors
+    assert selectors.index('xsec_token') < selectors.index('/explore/')
+
+
+def _fake_run(responses):
+    """subprocess.run stub keyed by the bsk binary being invoked."""
+    def run(cmd, *args, **kwargs):
+        binary = cmd[0]
+        if binary not in responses:
+            raise FileNotFoundError(binary)
+        reply = responses[binary]
+        if isinstance(reply, Exception):
+            raise reply
+        return type("R", (), {"stdout": json.dumps(reply, ensure_ascii=False), "returncode": 0})()
+    return run
+
+
+def test_browserskill_selection_prefers_a_binary_that_reaches_the_browser(monkeypatch, tmp_path):
+    """Live failure (2026-09-29): `which("bsk")` found a WSL bsk with no daemon.
+
+    That binary exists and reports its version fine, but it cannot see the
+    Windows browser, so selecting it dropped the whole run into a silent Bing
+    fallback.  The binary that actually reaches Edge must win.
+    """
+    import tools.collect_adapter as ca
+
+    dead = str(tmp_path / "bsk")
+    live = str(tmp_path / "bsk.exe")
+    # Presence is all isfile can tell us, so both files must really exist.
+    for path in (dead, live):
+        Path(path).write_text("", encoding="utf-8")
+
+    monkeypatch.setattr(ca.shutil, "which", lambda n: {"bsk": dead, "bsk.exe": live}.get(n))
+    monkeypatch.setattr(ca.os.path, "isfile", lambda p: p in {dead, live})
+    monkeypatch.setattr(ca.subprocess, "run", _fake_run({
+        dead: [],                                                   # present, no browser
+        live: [{"instance_id": "9d3f232a", "browser_name": "edge"}],
+    }))
+
+    assert ca.select_browserskill({}) == (live, "9d3f232a")
+
+
+def test_browserskill_selection_keeps_probing_after_an_unusable_candidate(monkeypatch, tmp_path):
+    import tools.collect_adapter as ca
+
+    dead = "/wsl/bin/bsk"
+    broken = "/wsl/bin/bsk-crash"
+    live = "/mnt/c/Users/Dell/.local/bin/bsk.exe"
+    monkeypatch.setattr(ca, "bsk_candidates", lambda: [dead, broken, live])
+    monkeypatch.setattr(ca.subprocess, "run", _fake_run({
+        dead: [],
+        broken: OSError("daemon IPC unavailable"),
+        live: [{"instance_id": "edge-1", "browser_name": "edge"}],
+    }))
+
+    assert ca.select_browserskill({}) == (live, "edge-1")
+
+
+def test_browserskill_selection_returns_nothing_when_every_candidate_is_unusable(monkeypatch):
+    import tools.collect_adapter as ca
+
+    only = ["/wsl/bin/bsk"]
+    monkeypatch.setattr(ca, "bsk_candidates", lambda: only)
+    monkeypatch.setattr(ca.subprocess, "run", _fake_run({"/wsl/bin/bsk": []}))
+
+    assert ca.select_browserskill({}) == (None, None)
+
+
+def test_no_usable_browserskill_must_not_silently_use_bing(tmp_path):
+    """No live browser and no --allow-bing-fallback => blocked, zero candidates."""
+    import tools.collect_adapter as ca
+    import zipfile
+
+    dead = "/wsl/bin/bsk"
+    task_dir = tmp_path / "task"
+    task_dir.mkdir()
+    (task_dir / "job.json").write_text(json.dumps({
+        "job": {"id": "job-1", "target_count": 2,
+                "notes": "只找王昭君长夜焕生这个皮肤的真人COS正片",
+                "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"}},
+    }, ensure_ascii=False), encoding="utf-8")
+    result_file = tmp_path / "result.zip"
+
+    def _no_browser(_env, *_a, **_k):
+        return None, None
+    ca.select_browserskill = _no_browser
+    ca.nudge_extension = lambda *_a, **_k: (None, None)
+    ca.bsk_candidates = lambda: [dead]
+    called = []
+    ca.fetch_bing_candidates = lambda *a, **k: called.append(True) or ([], {}, [])
+
+    sys.argv = ["collect_adapter.py", str(task_dir / "job.json"), str(result_file)]
+    ca.main()
+
+    assert called == [], "Bing must not be used without an explicit opt-in"
+    with zipfile.ZipFile(result_file) as archive:
+        manifest = json.loads(archive.read("manifest.json"))
+    report = manifest["execution_report"]
+    assert report["status"] == "blocked"
+    assert manifest["candidates"] == []
+    assert "BrowserSkill" in report["summary"]
+    assert any("BrowserSkill" in gap for gap in report["gaps"])
+
+
+def test_bing_fallback_requires_explicit_opt_in(tmp_path):
+    import tools.collect_adapter as ca
+    import zipfile
+
+    task_dir = tmp_path / "task"
+    task_dir.mkdir()
+    (task_dir / "job.json").write_text(json.dumps({
+        "job": {"id": "job-2", "target_count": 1, "notes": "cos 正片",
+                "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"}},
+    }, ensure_ascii=False), encoding="utf-8")
+    result_file = tmp_path / "result.zip"
+
+    ca.select_browserskill = lambda *_a, **_k: (None, None)
+    ca.nudge_extension = lambda *_a, **_k: (None, None)
+    ca.bsk_candidates = lambda: []
+    seen = []
+    ca.fetch_bing_candidates = lambda *a, **k: seen.append(True) or ([], {}, [])
+
+    sys.argv = ["collect_adapter.py", str(task_dir / "job.json"), str(result_file),
+                "--allow-bing-fallback"]
+    ca.main()
+
+    assert seen == [True], "explicit opt-in must still allow the Bing path"
+    with zipfile.ZipFile(result_file) as archive:
+        report = json.loads(archive.read("manifest.json"))["execution_report"]
+    assert any("Bing" in str(check.get("detail", "")) for check in report["source_checks"])
+
+
+def test_wait_for_cards_keeps_polling_until_cards_appear(monkeypatch):
+    """Live failure: a 3.5s sleep sampled the page before its lazy images loaded.
+
+    The first sample looked like "no results" and every query returned nothing.
+    The collector must keep polling and take the best sample it saw.
+    """
+    import tools.collect_adapter as ca
+
+    samples = iter([[], [], [{"t": "a"}, {"t": "b"}], [{"t": "a"}, {"t": "b"}]])
+
+    monkeypatch.setattr(ca.subprocess, "run",
+                        lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
+    monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
+
+    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == [{"t": "a"}, {"t": "b"}]
+
+
+def test_wait_for_cards_returns_best_sample_not_the_last(monkeypatch):
+    import tools.collect_adapter as ca
+
+    samples = iter([[{"t": "a"}, {"t": "b"}, {"t": "c"}], [{"t": "a"}]])
+    monkeypatch.setattr(ca.subprocess, "run",
+                        lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
+    monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
+
+    assert len(ca.wait_for_cards("bsk", "s", "js", {}, attempts=4, delay=0)) == 3
+
+
+def test_wait_for_cards_survives_unparsable_evaluate(monkeypatch):
+    import tools.collect_adapter as ca
+
+    samples = iter(["not json", "still not json", json.dumps([{"t": "a"}]), json.dumps([{"t": "a"}])])
+    monkeypatch.setattr(ca.subprocess, "run",
+                        lambda *a, **k: type("R", (), {"stdout": next(samples)})())
+    monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
+
+    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == [{"t": "a"}]

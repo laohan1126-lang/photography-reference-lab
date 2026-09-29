@@ -225,3 +225,15 @@ def test_invalid_timeout_blocks_before_spawning(library, project, monkeypatch, t
     monkeypatch.setenv('LAB_COLLECTION_TIMEOUT_SECONDS', value)
     result = run_collection_attempt(library, job['id'])
     assert result['status'] == 'blocked' and receipt(library, job)['code'] == 'invalid_timeout'
+
+
+def test_default_collection_timeout_survives_a_real_browserskill_pass():
+    """A live BrowserSkill run needs >600s; the default must not kill it mid-flight."""
+    from ref_lab.agent_collection import timeout_seconds
+
+    previous = os.environ.pop("LAB_COLLECTION_TIMEOUT_SECONDS", None)
+    try:
+        assert timeout_seconds() >= 1800
+    finally:
+        if previous is not None:
+            os.environ["LAB_COLLECTION_TIMEOUT_SECONDS"] = previous

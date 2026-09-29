@@ -63,18 +63,22 @@ def detect_modality(image: Image.Image, metadata: dict[str, Any]) -> tuple[str, 
     if any(k in combined for k in ["空镜", "纯景", "纯场景", "scenery"]):
         return "scenery", ["场景环境空镜，无可见人物主体"]
 
-    if "irisvanherpen" in source_url or "haute-couture" in source_url or "sensory-seas" in source_url:
-        return "real_person_portrait", ["时装秀场高定模特实拍摄影", "具备光学人像镜头与真实景深"]
-
     if detect_collage(image):
         return "collage", ["检测为多图拼图/九宫格，非独立摄影参考"]
 
-    # Only trusted internal prefixes can assert a real-person modality here.
-    # Ordinary title/page metadata such as "cos/正片/摄影" is not visual proof.
-    if title.startswith("COS_") or title.startswith("LIVE_") or title.startswith("SEL_"):
-        return "real_person_cosplay", ["内部已标注的真人参考条目；仍需项目级身份核验"]
-    if any(k in combined for k in ["cos", "cosplay", "场照", "正片", "摄影", "出镜"]):
-        return "unknown", ["来源元数据提示 cosplay/摄影，但当前确定性预检没有视觉分类器，不能据此宣称真人实拍"]
+    # Title prefixes, URLs and search metadata are discovery/context evidence only.
+    # They may justify a conservative rejection when they explicitly describe a
+    # non-reference item, but they must never assert that pixels are a real person.
+    if any(k in combined for k in [
+        "求助", "怎么整理", "如何整理", "难打理", "整理教程", "穿戴教程",
+        "制作教程", "改造教程", "收纳教程", "裙边怎么", "裙撑怎么",
+    ]):
+        return "product", ["来源上下文明示服装求助/整理/教程内容，非人物摄影参考主图"]
+
+    if title.startswith(("COS_", "LIVE_", "SEL_")) or any(
+        k in combined for k in ["cos", "cosplay", "场照", "正片", "摄影", "出镜"]
+    ):
+        return "unknown", ["标题/来源元数据提示真人摄影意图，但当前确定性预检没有视觉分类器，不能据此宣称真人实拍"]
 
     return "unknown", ["没有足够的图像级证据判定真人/插画/游戏模态，诚实保留 unknown"]
 
@@ -526,15 +530,22 @@ def save_preflight(con: sqlite3.Connection, preflight: dict[str, Any]) -> dict[s
 
 
 def get_preflight(con: sqlite3.Connection, asset_sha: str, project_id: str | None = None) -> dict[str, Any] | None:
-    if project_id:
+    """Return the most recently inserted preflight, respecting project scope strictly.
+
+    Preflight IDs contain random UUID fragments and are not chronological.  A
+    project-scoped lookup must also never fall back to another project's result:
+    the same immutable asset may be referenced by multiple projects with
+    different identity contexts.
+    """
+    if project_id is not None:
         row = con.execute(
-            "SELECT data FROM preflights WHERE asset_sha=? AND project_id=? ORDER BY id DESC LIMIT 1",
+            "SELECT data FROM preflights WHERE asset_sha=? AND project_id=? ORDER BY rowid DESC LIMIT 1",
             (asset_sha, project_id),
         ).fetchone()
-        if row:
-            return json.loads(row[0])
+        return json.loads(row[0]) if row else None
+
     row = con.execute(
-        "SELECT data FROM preflights WHERE asset_sha=? ORDER BY id DESC LIMIT 1",
+        "SELECT data FROM preflights WHERE asset_sha=? ORDER BY rowid DESC LIMIT 1",
         (asset_sha,),
     ).fetchone()
     return json.loads(row[0]) if row else None
@@ -543,12 +554,12 @@ def get_preflight(con: sqlite3.Connection, asset_sha: str, project_id: str | Non
 def list_preflights(con: sqlite3.Connection, project_id: str, status: str | None = None) -> list[dict[str, Any]]:
     if status:
         rows = con.execute(
-            "SELECT data FROM preflights WHERE project_id=? AND status=? ORDER BY id DESC",
+            "SELECT data FROM preflights WHERE project_id=? AND status=? ORDER BY rowid DESC",
             (project_id, status),
         ).fetchall()
     else:
         rows = con.execute(
-            "SELECT data FROM preflights WHERE project_id=? ORDER BY id DESC",
+            "SELECT data FROM preflights WHERE project_id=? ORDER BY rowid DESC",
             (project_id,),
         ).fetchall()
     return [json.loads(r[0]) for r in rows]

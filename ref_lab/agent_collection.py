@@ -55,7 +55,10 @@ def configured_command() -> list[str]:
 
 def timeout_seconds() -> float:
     try:
-        seconds = float(os.environ.get("LAB_COLLECTION_TIMEOUT_SECONDS", "600"))
+        # A real BrowserSkill pass drives a live browser: 8+ queries, lazy page
+        # loads and per-card detail pages routinely run past ten minutes, and a
+        # 600s default killed the adapter mid-run every time.
+        seconds = float(os.environ.get("LAB_COLLECTION_TIMEOUT_SECONDS", "1800"))
         if not math.isfinite(seconds) or not 0.1 <= seconds <= 3600:
             raise ValueError
         return seconds

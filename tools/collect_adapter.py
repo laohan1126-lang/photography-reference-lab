@@ -40,8 +40,9 @@ NEGATIVE_TYPE_MARKERS = (
     "3d model", "3d模型", "建模", "模型展示", "皮肤展示", "角色展示",
     "商品图", "商品展示", "服装展示", "人台", "假人", "mannequin",
     "cos服", "c服", "出服", "求服", "转单", "闲鱼", "出租", "出物",
-    "裙撑", "裙摆", "做裙", "做衣服", "打版", "材料", "剪裁", "缝纫", "代工", "假发",
-    "喵屋", "三分妄想", "悠窝窝", "江南喵次", "漫美", "初兽猫",
+    "裙撑", "做裙", "做衣服", "打版", "材料", "剪裁", "缝纫", "代工", "假发",
+    "求助", "怎么整理", "如何整理", "难打理", "整理教程", "穿戴教程",
+    "制作教程", "改造教程", "收纳教程", "怎么穿", "怎么做",
     "哪家好", "避雷", "测评", "店铺", "手办", "雕像", "粘土",
     "大家都在搜", "连招", "出装", "铭文", "上分", "对局",
 )
@@ -52,12 +53,17 @@ NEGATIVE_QUERY_TERMS = (
 NEGATION_WORDS = ("不要", "不需要", "排除", "禁止", "别找", "不要找")
 
 
-def parse_arguments() -> tuple[Path, Path]:
+def parse_arguments() -> tuple[Path, Path, bool]:
     parser = argparse.ArgumentParser(description="Photography Reference Lab strict local collector")
     parser.add_argument("positional_args", nargs="*", help="Positional task_file and result_file")
     parser.add_argument("--task-file", dest="task_file", help="Path to task file or AGENT_TASK.md")
     parser.add_argument("--task-dir", dest="task_dir", help="Path to unpacked task directory")
     parser.add_argument("--result-file", dest="result_file", help="Path to output result.zip")
+    parser.add_argument(
+        "--allow-bing-fallback", action="store_true",
+        help="Only then may the collector use Bing images when no BrowserSkill "
+             "browser is reachable.  Without this the run fails loudly instead.",
+    )
     args = parser.parse_args()
 
     task_file = args.task_file or args.task_dir
@@ -69,7 +75,7 @@ def parse_arguments() -> tuple[Path, Path]:
     if not task_file or not result_file:
         sys.stderr.write("Error: task_file and result_file must be specified.\n")
         sys.exit(1)
-    return Path(task_file), Path(result_file)
+    return Path(task_file), Path(result_file), args.allow_bing_fallback
 
 
 def load_job_info(task_path: Path) -> tuple[dict, Path]:
@@ -188,6 +194,13 @@ def _character_aliases(name: str) -> list[str]:
 
 
 def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
+    """Conservatively classify discovery metadata before downloading a candidate.
+
+    Search-page membership is only discovery context.  Social cards that omit
+    the requested character/costume/cosplay evidence are not accepted blindly;
+    Xiaohongshu callers may resolve them by opening the visible detail page and
+    re-running this function with the detail text/tags.
+    """
     title = _normal(str(record.get("t") or ""))
     desc = _normal(str(record.get("desc") or ""))
     author = _normal(str(record.get("author") or ""))
@@ -205,18 +218,28 @@ def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
     has_costume = (costume in combined) if costume else True
     has_cosplay = any(marker in combined for marker in POSITIVE_COSPLAY_MARKERS)
 
-    # 针对小红书/Pinterest等专属社交检索页面：
-    # 页面是由 BrowserSkill 导航到包含「角色+皮肤+cosplay+正片」的专属查询 URL 召回的，
-    # 平台推荐与检索系统已经根据笔记正文和多重标签完成了角色与正片匹配。
-    # 在该平台生态中，coser 习惯用角色台词/诗句做标题（例如《长风万里，生生不息》、《凝结须臾，向永恒抵近！》），
-    # 只要该卡片没有命中任何负向词（非游戏截图、非立绘、非人台、非售卖、非教程），就作为有效候选收录。
-    is_social = bool(author or "xiaohongshu" in page or "pinterest" in page or "xhs" in page)
+    is_social = any(host in page for host in ("xiaohongshu.com", "pinterest.com", "xhslink.com"))
     if is_social:
-        return True, "accepted_social_search"
+        missing: list[str] = []
+        if policy["require_cosplay"] and not has_cosplay:
+            missing.append("cosplay")
+        if policy["require_character"] and not has_character:
+            # A literal match on the specifically requested costume plus an
+            # explicit cosplay/photo signal is enough for discovery admission.
+            # This is not a visual identity PASS; preflight remains uncertain.
+            has_specific_costume_signal = (
+                policy["require_costume"] and has_costume and has_cosplay
+            )
+            if not has_specific_costume_signal:
+                missing.append("character")
+        if policy["require_costume"] and not has_costume:
+            missing.append("costume")
+        if missing:
+            return False, "needs_detail_evidence:" + ",".join(missing)
+        return True, "accepted_social_metadata"
 
     if policy["require_cosplay"] and not has_cosplay:
         return False, "missing_cosplay_evidence"
-
     if policy["require_character"] and not has_character:
         return False, "missing_character"
     if policy["require_costume"] and not has_costume:
@@ -378,54 +401,183 @@ def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -
     return candidates, images, query_log
 
 
-def find_bsk_bin() -> str | None:
-    bin_path = shutil.which("bsk") or shutil.which("bsk.exe")
-    if bin_path:
-        return bin_path
-    win_default = r"C:\Users\Dell\.local\bin\bsk.exe"
-    if os.name == "nt" and os.path.isfile(win_default):
-        return win_default
-    wsl_default = "/mnt/c/Users/Dell/.local/bin/bsk.exe"
-    if os.path.isfile(wsl_default):
-        return wsl_default
-    home_bin = os.path.expanduser("~/.local/bin/bsk")
-    if os.path.isfile(home_bin):
-        return home_bin
-    return None
+def bsk_candidates() -> list[str]:
+    """Every BrowserSkill binary worth probing, most specific first.
+
+    Existing on disk proves nothing.  A WSL-side ``bsk`` with no running daemon
+    cannot see the Windows browser session, and preferring whichever binary
+    ``which`` happened to return used to select exactly that dead one.
+    """
+    found: list[str] = []
+    def add(path: str | None) -> None:
+        if path and path not in found and os.path.isfile(path):
+            found.append(path)
+    for name in ("bsk", "bsk.exe"):
+        add(shutil.which(name))
+    # The Windows install is the one whose daemon owns the browser extension,
+    # and it stays callable from WSL, so probe it even when a native bsk exists.
+    add("/mnt/c/Users/Dell/.local/bin/bsk.exe")
+    if os.name == "nt":
+        add(r"C:\Users\Dell\.local\bin\bsk.exe")
+    add(os.path.expanduser("~/.local/bin/bsk"))
+    return found
 
 
-def get_connected_browser_id(bsk_bin: str) -> str | None:
-    env = {**os.environ, "BSK_AUTO_START": "0"}
+def probe_bsk_browsers(bsk_bin: str, env: dict[str, str], timeout: int = 8) -> list[dict]:
+    """Browsers this specific binary can actually see right now."""
     try:
-        p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", env=env, timeout=5)
-        browsers = json.loads(p.stdout)
-        if browsers:
-            for b in browsers:
-                if b.get("browser_name") == "edge":
-                    return b["instance_id"]
-            return browsers[0]["instance_id"]
+        completed = subprocess.run(
+            [bsk_bin, "browsers", "--json"], capture_output=True, text=True,
+            encoding="utf-8", errors="replace", env=env, timeout=timeout,
+        )
+        browsers = json.loads(completed.stdout)
+        return browsers if isinstance(browsers, list) else []
+    except Exception:
+        return []
+
+
+def _pick_browser(browsers: list[dict]) -> str | None:
+    for browser in browsers:
+        if browser.get("browser_name") == "edge":
+            return browser.get("instance_id")
+    return browsers[0].get("instance_id") if browsers else None
+
+
+def select_browserskill(env: dict[str, str] | None = None) -> tuple[str | None, str | None]:
+    """Return the first (binary, browser id) pair that reaches a live browser.
+
+    Existence is not availability: every candidate is probed until one actually
+    reports a connected browser.  Returns (None, None) when none can, so the
+    caller can report the real reason instead of quietly searching elsewhere.
+    """
+    env = env or {**os.environ, "BSK_AUTO_START": "0"}
+    for candidate in bsk_candidates():
+        browser_id = _pick_browser(probe_bsk_browsers(candidate, env))
+        if browser_id:
+            return candidate, browser_id
+    return None, None
+
+
+def nudge_extension(env: dict[str, str], candidates: list[str]) -> tuple[str | None, str | None]:
+    """Last resort: open the extension page once, then re-probe candidates."""
+    powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell")
+    if not powershell_bin:
+        return None, None
+    try:
+        subprocess.run(
+            [powershell_bin, "-Command",
+             "Start-Process msedge.exe extension://emacgiaaaiojkkpkddmmdfhmokgmnikg/popup.html"],
+            capture_output=True, timeout=5,
+        )
+        for _ in range(5):
+            time.sleep(1)
+            for candidate in candidates:
+                browser_id = _pick_browser(probe_bsk_browsers(candidate, env))
+                if browser_id:
+                    return candidate, browser_id
     except Exception:
         pass
+    return None, None
 
-    powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell")
-    if powershell_bin:
-        cmd = [powershell_bin, "-Command", "Start-Process msedge.exe extension://emacgiaaaiojkkpkddmmdfhmokgmnikg/popup.html"]
+
+# A note page carries a note id; the keyword search page does not.  Real
+# Xiaohongshu note links are also only readable while their xsec_token is
+# present, so accept either link form but never the aggregate search page.
+_XHS_NOTE_URL = re.compile(r"xiaohongshu\.com/(?:explore|search_result)/[0-9a-f]{16,32}(?:[/?#]|$)")
+
+
+def _is_note_url(page_url: str) -> bool:
+    return bool(_XHS_NOTE_URL.search(page_url or ""))
+
+
+def wait_for_cards(
+    bsk_bin: str, session_id: str, extract_js: str, env: dict[str, str],
+    attempts: int = 5, delay: float = 2.0, settle: int = 1,
+) -> list[dict]:
+    """Poll the search page until its lazily-loaded cover images actually appear.
+
+    A fixed sleep is a race: Xiaohongshu renders result cards over time, and a
+    page sampled too early yields almost nothing, which looks identical to
+    "no matches" and silently produced empty batches.  Stop once the card
+    count stops growing, so a healthy page is not taxed the full budget.
+    """
+    best: list[dict] = []
+    stable = 0
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(delay)
+        completed = subprocess.run(
+            [bsk_bin, "evaluate", "--session", session_id, "--json", extract_js],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=env, timeout=15,
+        )
         try:
-            subprocess.run(cmd, capture_output=True, timeout=5)
-            for _ in range(5):
-                time.sleep(1)
-                p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True,
-                                   encoding="utf-8", errors="replace", env=env, timeout=5)
-                browsers = json.loads(p.stdout)
-                if browsers:
-                    for b in browsers:
-                        if b.get("browser_name") == "edge":
-                            return b["instance_id"]
-                    return browsers[0]["instance_id"]
+            raw = json.loads(completed.stdout)
         except Exception:
-            pass
-    return None
+            raw = None
+        cards = raw.get("value", []) if isinstance(raw, dict) else (raw if isinstance(raw, list) else [])
+        if not isinstance(cards, list):
+            cards = []
+        if len(cards) > len(best):
+            best = cards
+            stable = 0
+        elif best:
+            # Still nothing new, but only give up once cards have appeared:
+            # an empty first sample usually just means the page is still
+            # rendering, not that there were no results.
+            stable += 1
+            if stable >= settle:
+                break
+    return best
+
+
+def fetch_xhs_detail_metadata(
+    bsk_bin: str, session_id: str, page_url: str, env: dict[str, str]
+) -> dict:
+    """Read visible Xiaohongshu detail metadata for an ambiguous search card.
+
+    This is still metadata evidence, not a visual review.  It exists only to
+    distinguish a voice-line-titled cosplay post whose hashtags/body carry the
+    requested identity from an unrelated/help card returned by search ranking.
+    """
+    if not _is_note_url(page_url):
+        # Never inspect the search-result page as if it were one note: its
+        # aggregate text/tags could incorrectly validate an unrelated card.
+        return {}
+    try:
+        subprocess.run(
+            [bsk_bin, "navigate", page_url, "--session", session_id,
+             "--wait-until", "domcontentloaded", "--timeout", "25s"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=env, timeout=30,
+        )
+        time.sleep(2.0)
+        js = """(() => {
+            const title = document.querySelector('#detail-title, .title')?.innerText?.trim() || '';
+            const desc = document.querySelector('#detail-desc, .desc, .content')?.innerText?.trim() || '';
+            const tags = Array.from(document.querySelectorAll('a[href*="/search_result/"]'))
+                .map(a => a.innerText?.trim() || '')
+                .filter(Boolean);
+            const root = document.querySelector('.note-container, [role="dialog"], .note-scroller');
+            const body = root?.innerText?.trim() || '';
+            return {
+                title,
+                desc,
+                tags,
+                body: body.slice(0, 2400),
+                purl: location.href
+            };
+        })()"""
+        p = subprocess.run(
+            [bsk_bin, "evaluate", "--session", session_id, "--json", js],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=env, timeout=10,
+        )
+        payload = json.loads(p.stdout)
+        value = payload.get("value", {}) if isinstance(payload, dict) else {}
+        return value if isinstance(value, dict) else {}
+    except Exception:
+        return {}
 
 
 def fetch_bsk_candidates(
@@ -475,7 +627,9 @@ def fetch_bsk_candidates(
                 const items = document.querySelectorAll('section, div.note-item, div.search-card');
                 for (const item of items) {
                     const img = item.querySelector('img');
-                    const link = item.querySelector('a[href*="/search_result/"], a[href*="/explore/"]');
+                    const link = item.querySelector('a[href*="xsec_token"]')
+                        || item.querySelector('a[href*="/explore/"]')
+                        || item.querySelector('a[href*="/search_result/"]');
                     const titleEl = item.querySelector('.title, .desc, a.title span, span.title') || item.querySelector('a:not(.user) span');
                     const authorEl = item.querySelector('.author, .name, .user-name, a.user span');
                     if (img && (img.currentSrc || img.src)) {
@@ -497,26 +651,50 @@ def fetch_bsk_candidates(
                 return cards;
             })()"""
 
-            eval_p = subprocess.run(
-                [bsk_bin, "evaluate", "--session", session_id, "--json", extract_js],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10
-            )
-            try:
-                raw_eval = json.loads(eval_p.stdout)
-                cards = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
-            except Exception:
-                cards = []
+            cards = wait_for_cards(bsk_bin, session_id, extract_js, env)
 
+            detail_checks = 0
+            max_detail_checks = max(8, min(24, target_count * 3))
             for card in cards:
                 if len(candidates) >= target_count:
                     break
-                allowed, reason = result_metadata_allowed({
+                record = {
                     "t": card["title"],
                     "desc": card["desc"],
                     "author": card.get("author", ""),
                     "full_text": card.get("full_text", ""),
-                    "purl": card["purl"]
-                }, policy)
+                    "purl": card["purl"],
+                }
+                allowed, reason = result_metadata_allowed(record, policy)
+
+                # A voice-line/poetic title may omit the character and cosplay
+                # words on the search card.  Resolve only those ambiguous XHS
+                # cards by opening the visible detail page and using its body /
+                # hashtags; never accept merely because search returned it.
+                if (
+                    not allowed
+                    and reason.startswith("needs_detail_evidence:")
+                    and detail_checks < max_detail_checks
+                ):
+                    detail_checks += 1
+                    detail = fetch_xhs_detail_metadata(
+                        bsk_bin, session_id, str(card.get("purl") or ""), env
+                    )
+                    if detail:
+                        detail_text = " ".join([
+                            str(detail.get("desc") or ""),
+                            " ".join(str(x) for x in (detail.get("tags") or [])),
+                            str(detail.get("body") or ""),
+                        ])
+                        record = {
+                            **record,
+                            "t": str(detail.get("title") or record["t"]),
+                            "desc": str(detail.get("desc") or record["desc"]),
+                            "full_text": f"{record['full_text']} {detail_text}",
+                            "purl": str(detail.get("purl") or record["purl"]),
+                        }
+                        allowed, reason = result_metadata_allowed(record, policy)
+
                 if not allowed:
                     rejected_metadata += 1
                     continue
@@ -603,6 +781,7 @@ def fetch_bsk_candidates(
                 "kept": kept,
                 "stop_reason": (
                     f"kept={kept}; metadata_filtered={rejected_metadata}; "
+                    f"detail_checked={detail_checks}; "
                     f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
                 ),
             })
@@ -644,15 +823,7 @@ def fetch_bsk_candidates(
                     return pins;
                 })()"""
 
-                eval_p = subprocess.run(
-                    [bsk_bin, "evaluate", "--session", session_id, "--json", pin_js],
-                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10
-                )
-                try:
-                    raw_eval = json.loads(eval_p.stdout)
-                    pins = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
-                except Exception:
-                    pins = []
+                pins = wait_for_cards(bsk_bin, session_id, pin_js, env)
 
                 for pin in pins:
                     if len(candidates) >= target_count:
@@ -737,7 +908,7 @@ def fetch_bsk_candidates(
 
 
 def main() -> None:
-    task_path, result_file = parse_arguments()
+    task_path, result_file, allow_bing_fallback = parse_arguments()
     job, _ = load_job_info(task_path)
     policy = build_policy(job)
     target_count = min(int(job.get("target_count") or 30), 40)
@@ -748,9 +919,11 @@ def main() -> None:
     source_checks: list[dict] = []
     producer = "local_collection_adapter_search_only"
 
-    # 1. 优先尝试本地已连接的 BrowserSkill Edge 实例 (小红书 + Pinterest)
-    bsk_bin = find_bsk_bin()
-    browser_id = get_connected_browser_id(bsk_bin) if bsk_bin else None
+    # 1. 使用真正连得上浏览器的 BrowserSkill (小红书 + Pinterest)
+    env = {**os.environ, "BSK_AUTO_START": "0"}
+    bsk_bin, browser_id = select_browserskill(env)
+    if not bsk_bin:
+        bsk_bin, browser_id = nudge_extension(env, bsk_candidates())
     if bsk_bin and browser_id:
         producer = "local_browserskill_adapter"
         candidates, images, query_log = fetch_bsk_candidates(
@@ -759,7 +932,7 @@ def main() -> None:
         source_checks.append({
             "source": "xiaohongshu",
             "status": "usable" if any(q.get("source") == "xiaohongshu" and q.get("kept", 0) > 0 for q in query_log) else "untested",
-            "detail": "优先通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
+            "detail": "通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
         })
         source_checks.append({
             "source": "pinterest",
@@ -767,20 +940,42 @@ def main() -> None:
             "detail": "在小红书后通过 BrowserSkill 访问 Pinterest 补充参考。",
         })
 
-    # 2. 仅在未连接/未安装 BrowserSkill 时，降级走备用 Bing
-    if not query_log and not (bsk_bin and browser_id):
-        queries = build_queries(job, for_browser=False)
-        candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
+    # 2. 没有可用浏览器时不得静默改用 Bing：本任务要求小红书真人 COS 正片，
+    #    Bing 结果不是同一个来源，悄悄替换会让受阻看起来像搜到了。
+    browserskill_missing = ""
+    if not (bsk_bin and browser_id):
+        browserskill_missing = (
+            "BrowserSkill 没有可用的浏览器：已探测 " + (
+                "、".join(bsk_candidates()) or "（未找到任何 bsk 可执行文件）"
+            ) + "，但没有一个能连上已装扩展的浏览器。"
+            "请启动带 BrowserSkill 扩展的 Edge 并确认 bsk doctor 全部 ok；"
+            "只有明确接受 Bing 备用检索时才使用 --allow-bing-fallback。"
+        )
         source_checks.append({
-            "source": "bing_images_photo_filter",
-            "status": "usable" if candidates else "untested",
-            "detail": "未检测到已连接的 BrowserSkill Edge 实例；使用 Photo + Large 搜索引擎检索。",
+            "source": "browserskill",
+            "status": "blocked",
+            "detail": browserskill_missing,
         })
+        if not allow_bing_fallback:
+            sys.stderr.write(browserskill_missing + "\n")
+        else:
+            queries = build_queries(job, for_browser=False)
+            candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
+            source_checks.append({
+                "source": "bing_images_photo_filter",
+                "status": "usable" if candidates else "untested",
+                "detail": "调用方显式允许 Bing 备用检索；这不是小红书来源。",
+            })
 
     summary_text = (
         f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
         if candidates else
-        "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。"
+        (browserskill_missing if browserskill_missing
+         else "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。")
+    )
+    gaps = (
+        [browserskill_missing] if browserskill_missing
+        else ([] if candidates else ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"])
     )
 
     manifest = {
@@ -795,7 +990,7 @@ def main() -> None:
             "summary": summary_text,
             "source_checks": source_checks,
             "query_log": query_log,
-            "gaps": [] if candidates else ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"],
+            "gaps": gaps,
         },
     }
 
