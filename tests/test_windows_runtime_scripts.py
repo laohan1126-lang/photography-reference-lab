@@ -28,6 +28,13 @@ def test_windows_installer_refuses_to_overwrite_a_foreign_venv():
     assert "runtime-common.ps1" in install
 
 
+def test_windows_doctor_uses_the_same_configured_data_dir():
+    doctor = read("scripts/doctor-windows-runtime.ps1")
+    assert "Get-ReferenceLabRuntimeConfig -RequireLibrary" in doctor
+    assert "$env:LAB_DATA_DIR = $config.DataDir" in doctor
+    assert "Assert-ReferenceLabPythonMatchesRepo" in doctor
+
+
 def test_windows_runtime_requires_explicit_data_configuration():
     common = read("scripts/runtime-common.ps1")
     configure = read("scripts/configure-windows-runtime.ps1")
