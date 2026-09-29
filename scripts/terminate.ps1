@@ -17,23 +17,23 @@ if (-not (Test-Path $pidFile)) {
 
 try {
     $record = Get-Content -LiteralPath $pidFile -Raw -Encoding UTF8 | ConvertFrom-Json
-    $pid = [int]$record.pid
+    $serverPid = [int]$record.pid
 } catch {
     Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
     throw "Runtime PID record was invalid and has been removed."
 }
 
-$process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+$process = Get-Process -Id $serverPid -ErrorAction SilentlyContinue
 if ($process) {
-    Write-Host "[*] Stopping Windows reference-lab process tree (PID $pid)..." -ForegroundColor Yellow
-    & taskkill.exe /PID $pid /T /F *> $null
+    Write-Host "[*] Stopping Windows reference-lab process tree (PID $serverPid)..." -ForegroundColor Yellow
+    & taskkill.exe /PID $serverPid /T /F *> $null
     Start-Sleep -Milliseconds 500
-    if (Get-Process -Id $pid -ErrorAction SilentlyContinue) {
-        throw "Windows reference-lab process $pid is still running."
+    if (Get-Process -Id $serverPid -ErrorAction SilentlyContinue) {
+        throw "Windows reference-lab process $serverPid is still running."
     }
     Write-Host "[OK] Windows reference-lab service stopped." -ForegroundColor Green
 } else {
-    Write-Host "[*] PID $pid was already gone; removing stale runtime record." -ForegroundColor Yellow
+    Write-Host "[*] PID $serverPid was already gone; removing stale runtime record." -ForegroundColor Yellow
 }
 
 Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
