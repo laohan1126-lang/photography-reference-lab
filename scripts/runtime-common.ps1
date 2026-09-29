@@ -17,7 +17,6 @@ function Get-ReferenceLabRuntimeConfig {
     param([switch]$RequireLibrary)
 
     $port = 18765
-    $allowEmpty = $false
     $dataDirValue = $env:LAB_DATA_DIR
 
     if (Test-Path $script:WindowsRuntimeConfigPath) {
@@ -27,9 +26,6 @@ function Get-ReferenceLabRuntimeConfig {
         }
         if (-not $env:LAB_PORT -and $stored.port) {
             $port = [int]$stored.port
-        }
-        if ($stored.allow_empty -eq $true) {
-            $allowEmpty = $true
         }
     }
 
@@ -66,16 +62,12 @@ For a deliberate brand-new empty library, add -InitializeEmpty.
 
     $dataDir = Resolve-ReferenceLabPath $dataDirValue
     if (-not (Test-Path $dataDir)) {
-        if ($allowEmpty) {
-            New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
-        } else {
-            throw "Configured LAB_DATA_DIR does not exist: $dataDir"
-        }
+        throw "Configured LAB_DATA_DIR does not exist: $dataDir"
     }
 
     $database = Join-Path $dataDir "library.sqlite3"
-    if ($RequireLibrary -and -not (Test-Path $database) -and -not $allowEmpty) {
-        throw "Configured LAB_DATA_DIR has no library.sqlite3: $dataDir. Restore the library first or reconfigure with -InitializeEmpty for an intentional new library."
+    if ($RequireLibrary -and -not (Test-Path $database)) {
+        throw "Configured LAB_DATA_DIR has no library.sqlite3: $dataDir. Restore the library first or explicitly initialize it with configure-windows-runtime.ps1 -InitializeEmpty."
     }
 
     return [pscustomobject]@{
@@ -85,7 +77,6 @@ For a deliberate brand-new empty library, add -InitializeEmpty.
         Url = "http://127.0.0.1:$port"
         RuntimeDir = $script:RuntimeDir
         ConfigPath = $script:WindowsRuntimeConfigPath
-        AllowEmpty = $allowEmpty
     }
 }
 
