@@ -40,6 +40,7 @@ jobs:
           $files = @(
             "scripts/runtime-common.ps1",
             "scripts/configure-windows-runtime.ps1",
+            "scripts/doctor-windows-runtime.ps1",
             "scripts/launch.ps1",
             "scripts/terminate.ps1",
             "install.ps1"
@@ -62,6 +63,7 @@ jobs:
         run: |
           .\install.ps1
           & .\scripts\configure-windows-runtime.ps1 -DataDir ".local\ci-windows-data" -Port 18765 -InitializeEmpty
+          & .\scripts\doctor-windows-runtime.ps1
           try {
             & .\scripts\launch.ps1 -NoOpen -NoWait
             $health = Invoke-RestMethod -Uri "http://127.0.0.1:18765/health" -TimeoutSec 5
