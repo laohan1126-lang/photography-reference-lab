@@ -18,6 +18,7 @@
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\configure-windows-runtime.ps1 -DataDir "D:\path\to\reference-lab-data"
+powershell -ExecutionPolicy Bypass -File scripts\doctor-windows-runtime.ps1
 .\start.bat
 ```
 
