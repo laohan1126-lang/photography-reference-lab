@@ -1,0 +1,290 @@
+"""Portable offline shooting packs and analysis bundles. No network assets or hidden publication."""
+from __future__ import annotations
+
+import json
+import os
+import tempfile
+import zipfile
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+from .db import encode, now
+from .models import AnalysisResult, PackInput, CandidatePackage, AnalysisPackage, ContactBoardInput
+from .policy import digest
+from .service import Library, Problem
+
+
+OFFLINE_HTML = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>离线拍摄包 · 参考实验室</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111921;color:#edf2f3;font:16px/1.6 system-ui,sans-serif}
+header{padding:16px 24px;position:sticky;top:0;background:#17242e;z-index:2;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+button,select{font:inherit;background:#e0bb8c;color:#18212a;border:0;border-radius:7px;padding:8px 14px;cursor:pointer}
+main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,1fr);gap:24px;padding:24px;max-width:1400px;margin:auto}
+#photo{width:100%;height:78vh;object-fit:contain;background:#080e12}section{background:#1a2833;padding:20px;border-radius:12px;margin-bottom:14px}
+h1{font-size:19px;margin:0 auto 0 0}h2{margin:0 0 10px;font-size:19px}h3{font-size:16px;color:#e0bb8c;margin:14px 0 4px}
+p{white-space:pre-wrap;margin:6px 0}small{color:#9caeba}a{color:#e0bb8c}#empty{padding:30px}
+@media(max-width:750px){main{display:block;padding:12px}#photo{height:55vh}header{padding:10px}}
+</style></head><body><header><h1 id="title"></h1><small id="mode"></small><button id="prev">上一张</button>
+<select id="picker" aria-label="选择参考"></select><button id="next">下一张</button></header><main><div><a id="original"><img id="photo" alt="独立参考图"></a><p id="caption"></p></div><div id="guide"></div></main>
+<script id="data" type="application/json">__DATA__</script><script>
+'use strict';const pack=JSON.parse(document.getElementById('data').textContent),refs=pack.references;let index=0;
+const el=id=>document.getElementById(id);el('title').textContent=pack.project.character+' · 离线拍摄包';
+el('mode').textContent=(pack.mode==='field'?'已确认现场卡':'灵感参考 · 非现场指令')+' / '+pack.created_at.slice(0,10);
+refs.forEach((r,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+' · '+r.title;el('picker').append(o)});
+function section(title,items){const s=document.createElement('section'),h=document.createElement('h2');h.textContent=title;s.append(h);
+for(const [label,text]of items){if(!text||Array.isArray(text)&&!text.length)continue;const t=document.createElement('h3'),p=document.createElement('p');t.textContent=label;p.textContent=Array.isArray(text)?text.map((x,i)=>(i+1)+'. '+x).join('\n'):text;s.append(t,p)}el('guide').append(s)}
+function render(){if(!refs.length){el('guide').textContent='此包没有参考。';return}const r=refs[index];el('picker').value=index;
+el('photo').src=r.offline_preview;el('original').href=r.offline_original;el('caption').textContent=r.title+' · '+r.asset.width+' × '+r.asset.height+' · 作者：'+(r.source.author||'未记录');el('guide').replaceChildren();
+if(pack.mode==='field'&&r.card){const c=r.card;section('现场口令',[['直接说',c.pose.verbal_cues],['摄影师动作',c.pose.photographer_steps],['安全与降级',c.pose.safety+'\n'+c.pose.fallback]]);
+section('学习与准备',[['静态摆姿',c.pose.static_steps],['动作引导',c.pose.action_directing],['图中光线证据',c.lighting.visible_evidence],['布光推测（不是原作者布光事实）',c.lighting.interpretation],['现有器材方案',c.lighting.available_gear_plan]]);
+section('后期路线：'+c.retouch.route,[['步骤',c.retouch.steps],['拍摄准备',c.retouch.capture_preparation],['AI背景说明',c.retouch.background_prompt]])}
+else section('灵感收藏',[['喜欢与借鉴',r.preference],['借鉴维度',r.borrow],['状态','未作为现场卡发布；请勿把历史说明当成已验证事实。']]);
+section('来源与追溯',[['发布页',r.source.page_url],['说明',r.source.rights_note],['文件 SHA-256',r.asset_sha]])}
+el('prev').onclick=()=>{index=(index-1+refs.length)%refs.length;render()};el('next').onclick=()=>{index=(index+1)%refs.length;render()};el('picker').onchange=e=>{index=+e.target.value;render()};
+document.onkeydown=e=>{if(e.target.tagName==='SELECT')return;if(e.key==='ArrowLeft')el('prev').click();if(e.key==='ArrowRight')el('next').click()};render();
+</script></body></html>"""
+
+
+def build_pack(library: Library, project_id: str, request: PackInput) -> Path:
+    project = library.project(project_id)
+    ids = list(dict.fromkeys(request.reference_ids))
+    if not ids:
+        with library.db.read() as con:
+            rows = con.execute("SELECT id FROM refs WHERE project_id=? AND decision='keep' ORDER BY rowid", (project_id,))
+            candidates = [library.reference(row[0]) for row in rows]
+        ids = [r["id"] for r in candidates if r["field_ready"]] if request.mode == "field" else [r["id"] for r in candidates if r["lane"] == "inspiration"]
+    if not ids: raise Problem(409, "没有符合条件的条目可导出")
+    if len(ids) > 200: raise Problem(422, "单个离线包最多 200 张；请拆成多个拍摄包")
+    refs, failures = [], []
+    for ident in ids:
+        ref = library.reference(ident)
+        if ref["project_id"] != project_id: raise Problem(404, "Reference does not belong to project")
+        if ref.get("detached_at"):
+            failures.append({"id": ident, "reason": "detached_from_project"})
+        elif request.mode == "field" and not ref["field_ready"]:
+            failures.append({"id": ident, "blockers": ref["blockers"]})
+        elif request.mode == "inspiration" and ref["decision"] != "keep":
+            failures.append({"id": ident, "reason": "not_selected"})
+        elif not ref["asset"] or not library.assets.verify(ref["asset"]):
+            failures.append({"id": ident, "reason": "image_integrity_failed"})
+        refs.append(ref)
+    if failures: raise Problem(409, "导出被阻止；不会默默跳过失效条目", failures)
+    if sum(r["asset"]["bytes"] for r in refs) > 500 * 1024 * 1024:
+        raise Problem(422, "原图总量超过 500 MiB，请拆包")
+    out_dir = library.settings.data_dir / "exports"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix="shooting-pack-", suffix=".zip", dir=out_dir)
+    os.close(fd)
+    path = Path(name)
+    try:
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+            included = set()
+            for ref in refs:
+                ref["offline_preview"] = f"images/{ref['asset_sha']}-preview.jpg"
+                ref["offline_original"] = f"images/{ref['asset_sha']}.{ref['asset']['ext']}"
+                for variant, target in (("preview", ref["offline_preview"]), ("original", ref["offline_original"])):
+                    if target not in included:
+                        archive.write(library.assets.path(ref["asset"], variant), target)
+                        included.add(target)
+            snapshot = {"schema_version": 1, "created_at": now(), "project": project, "mode": request.mode, "references": refs}
+            snapshot["snapshot_sha256"] = digest(snapshot)
+            data = encode(snapshot).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+            archive.writestr("index.html", OFFLINE_HTML.replace("__DATA__", data))
+            archive.writestr("manifest.json", encode(snapshot))
+            archive.writestr("README.txt", "解压后双击 index.html。图片与说明已包含在包内，不依赖网络。此包包含私人参考与可能带EXIF的来源文件，请勿自动公开转发。离线包是快照，不回写数据库；撤回服务器资料卡不会撤回已下载文件。\n")
+        with library.db.transaction() as con:
+            library.db.event(con, project_id, project_id, "pack.exported", {"mode": request.mode, "count": len(refs), "snapshot": snapshot["snapshot_sha256"]})
+        return path
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+
+
+def _board_font(size: int):
+    candidates = [
+        "C:/Windows/Fonts/msyh.ttc",
+        "/mnt/c/Windows/Fonts/msyh.ttc",
+        "C:/Windows/Fonts/simhei.ttf",
+        "/mnt/c/Windows/Fonts/simhei.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+        "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ]
+    for candidate in candidates:
+        try:
+            if Path(candidate).is_file():
+                return ImageFont.truetype(candidate, size=size)
+        except OSError:
+            pass
+    return ImageFont.load_default()
+
+
+def _board_note_lines(text: str, limit: int = 28, lines: int = 2) -> list[str]:
+    compact = " ".join((text or "").split())
+    if not compact:
+        return []
+    chunks = [compact[i:i + limit] for i in range(0, len(compact), limit)]
+    if len(chunks) > lines:
+        chunks = chunks[:lines]
+        chunks[-1] = chunks[-1][:-1] + "…" if chunks[-1] else "…"
+    return chunks
+
+
+def _calculate_grid_layout(count: int, width: int, height: int, margin: int = 24, gap: int = 16) -> list[tuple[int, int, int, int]]:
+    W = width - 2 * margin
+    H = height - 2 * margin
+    if count == 1:
+        return [(margin, margin, W, H)]
+    if count == 2:
+        cell_w = (W - gap) // 2
+        return [(margin, margin, cell_w, H), (margin + cell_w + gap, margin, cell_w, H)]
+    if count == 3:
+        cell_w = (W - gap) // 2
+        cell_h = (H - gap) // 2
+        center_x = margin + (W - cell_w) // 2
+        return [
+            (margin, margin, cell_w, cell_h),
+            (margin + cell_w + gap, margin, cell_w, cell_h),
+            (center_x, margin + cell_h + gap, cell_w, cell_h),
+        ]
+    if count == 4:
+        cell_w = (W - gap) // 2
+        cell_h = (H - gap) // 2
+        return [
+            (margin, margin, cell_w, cell_h),
+            (margin + cell_w + gap, margin, cell_w, cell_h),
+            (margin, margin + cell_h + gap, cell_w, cell_h),
+            (margin + cell_w + gap, margin + cell_h + gap, cell_w, cell_h),
+        ]
+    if count <= 6:
+        cols, rows = 3, 2
+    elif count <= 9:
+        cols, rows = 3, 3
+    elif count <= 12:
+        cols, rows = 4, 3
+    elif count <= 16:
+        cols, rows = 4, 4
+    else:
+        cols = 5
+        rows = (count + cols - 1) // cols
+
+    cell_w = (W - (cols - 1) * gap) // cols
+    cell_h = (H - (rows - 1) * gap) // rows
+    layout = []
+    for i in range(count):
+        r = i // cols
+        c = i % cols
+        x = margin + c * (cell_w + gap)
+        y = margin + r * (cell_h + gap)
+        layout.append((x, y, cell_w, cell_h))
+    return layout
+
+
+def _render_contact_page(library: Library, project: dict, entries: list[tuple[dict, str]],
+                         title: str, page_number: int, page_count: int, path: Path) -> None:
+    count = len(entries)
+    if count in (7, 8, 9):
+        width, height = 1800, 1800
+    else:
+        width, height = 1800, 1400
+
+    margin, gap = 24, 16
+    canvas = Image.new("RGB", (width, height), (255, 255, 255))
+    layout = _calculate_grid_layout(count, width, height, margin=margin, gap=gap)
+
+    for (ref, _note), (x, y, cell_w, cell_h) in zip(entries, layout):
+        source_path = library.assets.path(ref["asset"])
+        with Image.open(source_path) as source:
+            image = ImageOps.exif_transpose(source).convert("RGB")
+            fitted = ImageOps.contain(image, (cell_w, cell_h), method=Image.Resampling.LANCZOS)
+        px = x + (cell_w - fitted.width) // 2
+        py = y + (cell_h - fitted.height) // 2
+        canvas.paste(fitted, (px, py))
+
+    canvas.save(path, "PNG", optimize=True)
+
+
+def build_contact_board(library: Library, project_id: str, request: ContactBoardInput) -> Path:
+    project = library.project(project_id)
+    if project.get("archived_at"):
+        raise Problem(409, "项目已删除到回收区；请先恢复项目")
+    ids = [item.reference_id for item in request.items]
+    if len(ids) != len(set(ids)):
+        raise Problem(422, "沟通板不能重复选择同一张参考")
+    entries: list[tuple[dict, str]] = []
+    for item in request.items:
+        ref = library.reference(item.reference_id)
+        if ref["project_id"] != project_id:
+            raise Problem(409, "沟通板只能使用当前项目的参考")
+        if ref.get("detached_at") or ref["decision"] == "reject":
+            raise Problem(409, "已移出或已淘汰的参考不能直接加入沟通板；请先恢复")
+        if not ref["asset"] or not library.assets.verify(ref["asset"]):
+            raise Problem(409, "沟通板包含缺失或损坏的图片")
+        entries.append((ref, item.note))
+
+    out_dir = library.settings.data_dir / "exports"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if request.single_image or len(entries) <= 4:
+        fd, name = tempfile.mkstemp(prefix="contact-board-", suffix=".png", dir=out_dir)
+        os.close(fd)
+        path = Path(name)
+        _render_contact_page(library, project, entries, request.title, 1, 1, path)
+        page_count = 1
+    else:
+        pages = [entries[i:i + 4] for i in range(0, len(entries), 4)]
+        fd, name = tempfile.mkstemp(prefix="contact-board-", suffix=".zip", dir=out_dir)
+        os.close(fd)
+        path = Path(name)
+        temp_pages: list[Path] = []
+        try:
+            with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+                for page_number, page_entries in enumerate(pages, start=1):
+                    fd_page, page_name = tempfile.mkstemp(prefix="contact-board-page-", suffix=".png", dir=out_dir)
+                    os.close(fd_page)
+                    page_path = Path(page_name)
+                    temp_pages.append(page_path)
+                    _render_contact_page(library, project, page_entries, request.title, page_number, len(pages), page_path)
+                    archive.write(page_path, f"contact-board-{page_number:02d}.png")
+        finally:
+            for page_path in temp_pages:
+                page_path.unlink(missing_ok=True)
+        page_count = len(pages)
+
+    with library.db.transaction() as con:
+        library.db.event(
+            con, project_id, project_id, "contact_board.exported",
+            {"reference_ids": ids, "count": len(ids), "pages": page_count, "title": request.title},
+        )
+    return path
+
+
+def build_job_pack(library: Library, job_id: str) -> Path:
+    bundle = library.job_bundle(job_id)
+    out_dir = library.settings.data_dir / "exports"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix="job-bundle-", suffix=".zip", dir=out_dir)
+    os.close(fd)
+    path = Path(name)
+    try:
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+            for ref in bundle["references"]:
+                if not ref["asset"] or not library.assets.verify(ref["asset"]):
+                    raise Problem(409, "任务图片缺失或已损坏")
+                target = f"images/{ref['asset_sha']}.{ref['asset']['ext']}"
+                archive.write(library.assets.path(ref["asset"]), target)
+                ref["bundle_image"] = target
+            archive.writestr("job.json", encode(bundle))
+            archive.writestr("AGENT_TASK.md", bundle["agent_instructions"])
+            archive.writestr("candidate-package.schema.json", encode(CandidatePackage.model_json_schema()))
+            archive.writestr("analysis-package.schema.json", encode(AnalysisPackage.model_json_schema()))
+            archive.writestr("manifest.example.json", encode({"schema_version": 3, "job_id": job_id,
+                "batch_id": "replace-with-stable-batch-id", "candidates": [],
+                "execution_report": {"producer": "replace-with-real-agent", "status": "blocked",
+                    "summary": "模板未执行，不能当成成功回执", "source_checks": [], "query_log": [], "gaps": ["尚未执行"]}}))
+            archive.writestr("analysis-result.schema.json", encode(AnalysisResult.model_json_schema()))
+            archive.writestr("README.txt", "阅读 job.json；采集任务必须逐张打开独立候选并按 candidate-package.schema.json 返回视觉 modality + identity preflight，不能凭标题/检索词判角色。分析任务逐张打开 images/ 中原图。字段不全或状态过期会被拒绝；所有 K/I/M/X 与现场卡仍需用户确认。\n")
+        return path
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
