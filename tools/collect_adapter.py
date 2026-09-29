@@ -40,8 +40,9 @@ NEGATIVE_TYPE_MARKERS = (
     "3d model", "3d模型", "建模", "模型展示", "皮肤展示", "角色展示",
     "商品图", "商品展示", "服装展示", "人台", "假人", "mannequin",
     "cos服", "c服", "出服", "求服", "转单", "闲鱼", "出租", "出物",
-    "裙撑", "裙摆", "做裙", "做衣服", "打版", "材料", "剪裁", "缝纫", "代工", "假发",
-    "喵屋", "三分妄想", "悠窝窝", "江南喵次", "漫美", "初兽猫",
+    "裙撑", "做裙", "做衣服", "打版", "材料", "剪裁", "缝纫", "代工", "假发",
+    "求助", "怎么整理", "如何整理", "难打理", "整理教程", "穿戴教程",
+    "制作教程", "改造教程", "收纳教程", "怎么穿", "怎么做",
     "哪家好", "避雷", "测评", "店铺", "手办", "雕像", "粘土",
     "大家都在搜", "连招", "出装", "铭文", "上分", "对局",
 )
@@ -188,6 +189,13 @@ def _character_aliases(name: str) -> list[str]:
 
 
 def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
+    """Conservatively classify discovery metadata before downloading a candidate.
+
+    Search-page membership is only discovery context.  Social cards that omit
+    the requested character/costume/cosplay evidence are not accepted blindly;
+    Xiaohongshu callers may resolve them by opening the visible detail page and
+    re-running this function with the detail text/tags.
+    """
     title = _normal(str(record.get("t") or ""))
     desc = _normal(str(record.get("desc") or ""))
     author = _normal(str(record.get("author") or ""))
@@ -205,18 +213,21 @@ def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
     has_costume = (costume in combined) if costume else True
     has_cosplay = any(marker in combined for marker in POSITIVE_COSPLAY_MARKERS)
 
-    # 针对小红书/Pinterest等专属社交检索页面：
-    # 页面是由 BrowserSkill 导航到包含「角色+皮肤+cosplay+正片」的专属查询 URL 召回的，
-    # 平台推荐与检索系统已经根据笔记正文和多重标签完成了角色与正片匹配。
-    # 在该平台生态中，coser 习惯用角色台词/诗句做标题（例如《长风万里，生生不息》、《凝结须臾，向永恒抵近！》），
-    # 只要该卡片没有命中任何负向词（非游戏截图、非立绘、非人台、非售卖、非教程），就作为有效候选收录。
-    is_social = bool(author or "xiaohongshu" in page or "pinterest" in page or "xhs" in page)
+    is_social = any(host in page for host in ("xiaohongshu.com", "pinterest.com", "xhslink.com"))
     if is_social:
-        return True, "accepted_social_search"
+        missing: list[str] = []
+        if policy["require_cosplay"] and not has_cosplay:
+            missing.append("cosplay")
+        if policy["require_character"] and not has_character:
+            missing.append("character")
+        if policy["require_costume"] and not has_costume:
+            missing.append("costume")
+        if missing:
+            return False, "needs_detail_evidence:" + ",".join(missing)
+        return True, "accepted_social_metadata"
 
     if policy["require_cosplay"] and not has_cosplay:
         return False, "missing_cosplay_evidence"
-
     if policy["require_character"] and not has_character:
         return False, "missing_character"
     if policy["require_costume"] and not has_costume:
@@ -428,6 +439,53 @@ def get_connected_browser_id(bsk_bin: str) -> str | None:
     return None
 
 
+def fetch_xhs_detail_metadata(
+    bsk_bin: str, session_id: str, page_url: str, env: dict[str, str]
+) -> dict:
+    """Read visible Xiaohongshu detail metadata for an ambiguous search card.
+
+    This is still metadata evidence, not a visual review.  It exists only to
+    distinguish a voice-line-titled cosplay post whose hashtags/body carry the
+    requested identity from an unrelated/help card returned by search ranking.
+    """
+    if "xiaohongshu.com" not in (page_url or ""):
+        return {}
+    try:
+        subprocess.run(
+            [bsk_bin, "navigate", page_url, "--session", session_id,
+             "--wait-until", "domcontentloaded", "--timeout", "25s"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=env, timeout=30,
+        )
+        time.sleep(2.0)
+        js = """(() => {
+            const title = document.querySelector('#detail-title, .title')?.innerText?.trim() || '';
+            const desc = document.querySelector('#detail-desc, .desc, .content')?.innerText?.trim() || '';
+            const tags = Array.from(document.querySelectorAll('a[href*="/search_result/"]'))
+                .map(a => a.innerText?.trim() || '')
+                .filter(Boolean);
+            const root = document.querySelector('.note-container, [role="dialog"], .note-scroller');
+            const body = root?.innerText?.trim() || '';
+            return {
+                title,
+                desc,
+                tags,
+                body: body.slice(0, 2400),
+                purl: location.href
+            };
+        })()"""
+        p = subprocess.run(
+            [bsk_bin, "evaluate", "--session", session_id, "--json", js],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=env, timeout=10,
+        )
+        payload = json.loads(p.stdout)
+        value = payload.get("value", {}) if isinstance(payload, dict) else {}
+        return value if isinstance(value, dict) else {}
+    except Exception:
+        return {}
+
+
 def fetch_bsk_candidates(
     bsk_bin: str, browser_id: str, job: dict, target_count: int, policy: dict
 ) -> tuple[list[dict], dict[str, bytes], list[dict]]:
@@ -507,16 +565,48 @@ def fetch_bsk_candidates(
             except Exception:
                 cards = []
 
+            detail_checks = 0
+            max_detail_checks = max(8, min(24, target_count * 3))
             for card in cards:
                 if len(candidates) >= target_count:
                     break
-                allowed, reason = result_metadata_allowed({
+                record = {
                     "t": card["title"],
                     "desc": card["desc"],
                     "author": card.get("author", ""),
                     "full_text": card.get("full_text", ""),
-                    "purl": card["purl"]
-                }, policy)
+                    "purl": card["purl"],
+                }
+                allowed, reason = result_metadata_allowed(record, policy)
+
+                # A voice-line/poetic title may omit the character and cosplay
+                # words on the search card.  Resolve only those ambiguous XHS
+                # cards by opening the visible detail page and using its body /
+                # hashtags; never accept merely because search returned it.
+                if (
+                    not allowed
+                    and reason.startswith("needs_detail_evidence:")
+                    and detail_checks < max_detail_checks
+                ):
+                    detail_checks += 1
+                    detail = fetch_xhs_detail_metadata(
+                        bsk_bin, session_id, str(card.get("purl") or ""), env
+                    )
+                    if detail:
+                        detail_text = " ".join([
+                            str(detail.get("desc") or ""),
+                            " ".join(str(x) for x in (detail.get("tags") or [])),
+                            str(detail.get("body") or ""),
+                        ])
+                        record = {
+                            **record,
+                            "t": str(detail.get("title") or record["t"]),
+                            "desc": str(detail.get("desc") or record["desc"]),
+                            "full_text": f"{record['full_text']} {detail_text}",
+                            "purl": str(detail.get("purl") or record["purl"]),
+                        }
+                        allowed, reason = result_metadata_allowed(record, policy)
+
                 if not allowed:
                     rejected_metadata += 1
                     continue
