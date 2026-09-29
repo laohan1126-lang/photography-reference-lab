@@ -18,7 +18,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 import pytest
 
-from conftest import image_bytes, TOKEN
+from conftest import image_bytes, TOKEN, add_reference
 from ref_lab.identity import (
     build_identity_context,
     get_identity_context,
@@ -576,10 +576,11 @@ def test_costume_help_metadata_is_filtered_as_non_reference():
     assert "服装求助" in result["status_reason"]
 
 
-def test_project_scoped_preflight_lookup_is_strict_and_chronological(app, project):
+def test_project_scoped_preflight_lookup_is_strict_and_chronological(app, client, project):
     library = app.state.library
     other = library.create_project(ProjectInput(character="隔离测试角色B", work="测试作品"))
-    asset_sha = "b" * 64
+    existing_ref = add_reference(client, project, seed=91)
+    asset_sha = existing_ref["asset_sha"]
 
     def pf(ident: str, project_id: str, status: str) -> dict:
         return {
