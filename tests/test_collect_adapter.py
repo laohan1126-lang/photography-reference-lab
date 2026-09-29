@@ -16,6 +16,7 @@ from ref_lab.db import encode
 from ref_lab.identity import build_identity_context
 from conftest import image_bytes, add_reference
 from tools.collect_adapter import (
+    _is_note_url,
     build_policy,
     build_queries,
     compute_dhash,
@@ -347,3 +348,36 @@ def test_target_query_cannot_mask_explicit_confusion_character():
     result = evaluate_identity(image_bytes(seed=88, size=(800, 1200)), metadata, context)
     assert result["prediction"] == "mismatch"
     assert "小乔" in result["reason"]
+
+
+def test_xhs_note_url_recognises_both_link_forms_but_not_the_search_page():
+    """Live failure (2026-09-29): the search page links every note twice.
+
+    The tokenless `/explore/<id>` anchor is what the collector used to pick, and
+    opening it renders Xiaohongshu's 404 "当前笔记暂时无法浏览", so every
+    voice-line-titled cosplay card came back with empty detail evidence and was
+    dropped.  Detail evidence must accept the token-bearing link form too,
+    while still refusing the aggregate keyword search page.
+    """
+    assert _is_note_url("https://www.xiaohongshu.com/explore/6a8937bb000000003a02d574")
+    assert _is_note_url(
+        "https://www.xiaohongshu.com/search_result/6a8937bb000000003a02d574"
+        "?xsec_token=ABwwTLyycSTrO5-0kSYw3X4oaRf-UJeyYe_YiiZthglYw=&xsec_source=pc_feed"
+    )
+    # The aggregate search page must never validate an individual card.
+    assert not _is_note_url(
+        "https://www.xiaohongshu.com/search_result?keyword=%E7%8E%8B%E6%98%AD%E5%90%9B&type=51"
+    )
+    assert not _is_note_url("https://www.pinterest.com/search/pins/?q=wzj")
+    assert not _is_note_url("")
+
+
+def test_xhs_extract_js_prefers_the_token_bearing_note_link():
+    """The card extractor must prefer the xsec_token anchor it previously skipped."""
+    import re
+    source = (Path(__file__).resolve().parent.parent / "tools" / "collect_adapter.py").read_text(encoding="utf-8")
+    match = re.search(r"const link = item\.querySelector\((.*?)\);", source, re.S)
+    assert match, "extract_js link selection not found"
+    selectors = match.group(1)
+    assert 'a[href*="xsec_token"]' in selectors
+    assert selectors.index('xsec_token') < selectors.index('/explore/')

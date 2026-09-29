@@ -446,6 +446,16 @@ def get_connected_browser_id(bsk_bin: str) -> str | None:
     return None
 
 
+# A note page carries a note id; the keyword search page does not.  Real
+# Xiaohongshu note links are also only readable while their xsec_token is
+# present, so accept either link form but never the aggregate search page.
+_XHS_NOTE_URL = re.compile(r"xiaohongshu\.com/(?:explore|search_result)/[0-9a-f]{16,32}(?:[/?#]|$)")
+
+
+def _is_note_url(page_url: str) -> bool:
+    return bool(_XHS_NOTE_URL.search(page_url or ""))
+
+
 def fetch_xhs_detail_metadata(
     bsk_bin: str, session_id: str, page_url: str, env: dict[str, str]
 ) -> dict:
@@ -455,7 +465,7 @@ def fetch_xhs_detail_metadata(
     distinguish a voice-line-titled cosplay post whose hashtags/body carry the
     requested identity from an unrelated/help card returned by search ranking.
     """
-    if "xiaohongshu.com/explore/" not in (page_url or ""):
+    if not _is_note_url(page_url):
         # Never inspect the search-result page as if it were one note: its
         # aggregate text/tags could incorrectly validate an unrelated card.
         return {}
@@ -542,7 +552,9 @@ def fetch_bsk_candidates(
                 const items = document.querySelectorAll('section, div.note-item, div.search-card');
                 for (const item of items) {
                     const img = item.querySelector('img');
-                    const link = item.querySelector('a[href*="/explore/"]') || item.querySelector('a[href*="/search_result/"]');
+                    const link = item.querySelector('a[href*="xsec_token"]')
+                        || item.querySelector('a[href*="/explore/"]')
+                        || item.querySelector('a[href*="/search_result/"]');
                     const titleEl = item.querySelector('.title, .desc, a.title span, span.title') || item.querySelector('a:not(.user) span');
                     const authorEl = item.querySelector('.author, .name, .user-name, a.user span');
                     if (img && (img.currentSrc || img.src)) {
