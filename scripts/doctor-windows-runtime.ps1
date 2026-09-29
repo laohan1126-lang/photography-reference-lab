@@ -10,11 +10,11 @@ Assert-ReferenceLabPythonMatchesRepo -Python $python
 $oldDataDir = $env:LAB_DATA_DIR
 try {
     $env:LAB_DATA_DIR = $config.DataDir
-    $args = @("-m", "ref_lab", "doctor")
+    $doctorArgs = @("-m", "ref_lab", "doctor")
     if ($RepairDerived) {
-        $args += "--repair-derived"
+        $doctorArgs += "--repair-derived"
     }
-    & $python @args
+    & $python @doctorArgs
     if ($LASTEXITCODE -ne 0) {
         throw "Reference-lab doctor reported a failure for $($config.DataDir)."
     }
