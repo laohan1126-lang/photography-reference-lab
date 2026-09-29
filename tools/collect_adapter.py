@@ -38,7 +38,12 @@ NEGATIVE_TYPE_MARKERS = (
     "官方立绘", "立绘", "插画", "同人图", "同人画", "原画", "壁纸", "海报",
     "concept art", "illustration", "fanart", "fan art", "wallpaper", "render",
     "3d model", "3d模型", "建模", "模型展示", "皮肤展示", "角色展示",
-    "商品图", "商品展示", "服装展示", "人台", "假人", "mannequin", "cos服",
+    "商品图", "商品展示", "服装展示", "人台", "假人", "mannequin",
+    "cos服", "c服", "出服", "求服", "转单", "闲鱼", "出租", "出物",
+    "裙撑", "裙摆", "做裙", "做衣服", "打版", "材料", "剪裁", "缝纫", "代工", "假发",
+    "喵屋", "三分妄想", "悠窝窝", "江南喵次", "漫美", "初兽猫",
+    "哪家好", "避雷", "测评", "店铺", "手办", "雕像", "粘土",
+    "大家都在搜", "连招", "出装", "铭文", "上分", "对局",
 )
 NEGATIVE_QUERY_TERMS = (
     "游戏截图", "游戏画面", "皮肤特效", "特效设计", "插画", "立绘", "原画",
@@ -200,12 +205,14 @@ def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
     has_costume = (costume in combined) if costume else True
     has_cosplay = any(marker in combined for marker in POSITIVE_COSPLAY_MARKERS)
 
-    # 针对小红书/Pinterest等带博主或平台特征的真人摄影分享：
-    # 当明确匹配了指定皮肤名（如“长夜焕生”），且带有角色名/简称或摄影/coser博主信息，且零负向词时，
-    # 允许作为候选收录，避免博主发真人图因未在标题机械写上“cos”而被误杀。
+    # 针对小红书/Pinterest等专属社交检索页面：
+    # 页面是由 BrowserSkill 导航到包含「角色+皮肤+cosplay+正片」的专属查询 URL 召回的，
+    # 平台推荐与检索系统已经根据笔记正文和多重标签完成了角色与正片匹配。
+    # 在该平台生态中，coser 习惯用角色台词/诗句做标题（例如《长风万里，生生不息》、《凝结须臾，向永恒抵近！》），
+    # 只要该卡片没有命中任何负向词（非游戏截图、非立绘、非人台、非售卖、非教程），就作为有效候选收录。
     is_social = bool(author or "xiaohongshu" in page or "pinterest" in page or "xhs" in page)
-    if is_social and has_costume and (has_character or has_cosplay):
-        return True, "accepted_metadata"
+    if is_social:
+        return True, "accepted_social_search"
 
     if policy["require_cosplay"] and not has_cosplay:
         return False, "missing_cosplay_evidence"

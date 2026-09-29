@@ -111,6 +111,34 @@ def test_social_platform_cosplay_matching():
     }
     assert result_metadata_allowed(card2, policy)[0] is True
 
+    # Social card where coser titled note with in-game voice line (no character/costume literal text in title)
+    card_voiceline = {
+        "t": "长风万里，生生不息",
+        "author": "小兔子落落",
+        "purl": "https://www.xiaohongshu.com/explore/sample_voiceline",
+    }
+    assert result_metadata_allowed(card_voiceline, policy)[0] is True
+
+    # Social card with skirt/corset negative marker rejected
+    card_skirt = {
+        "t": "喵怎么会做裙撑不要命啦",
+        "author": "小兔子落落",
+        "purl": "https://www.xiaohongshu.com/explore/sample_skirt",
+    }
+    allowed, reason = result_metadata_allowed(card_skirt, policy)
+    assert allowed is False
+    assert reason.startswith("negative_type:")
+
+    # Social card with shop review negative marker rejected
+    card_shop = {
+        "t": "女神们长夜焕生哪家好",
+        "author": "路人甲",
+        "purl": "https://www.xiaohongshu.com/explore/sample_shop",
+    }
+    allowed, reason = result_metadata_allowed(card_shop, policy)
+    assert allowed is False
+    assert reason.startswith("negative_type:")
+
     # Social card with negative marker still rejected
     card3 = {
         "t": "长夜焕生昭君游戏截图特效展示",
