@@ -57,10 +57,22 @@ Write-Host ""
 $record = Get-ManagedServerRecord
 $managedProcess = $null
 if ($record -and $record.pid) {
+    $recordMatches = (
+        ([System.IO.Path]::GetFullPath([string]$record.repo_root) -eq $config.RepoRoot) -and
+        ([System.IO.Path]::GetFullPath([string]$record.data_dir) -eq $config.DataDir) -and
+        ([int]$record.port -eq $config.Port) -and
+        ([System.IO.Path]::GetFullPath([string]$record.python) -eq $python)
+    )
+    if (-not $recordMatches) {
+        throw "Runtime PID record belongs to a different checkout/data configuration. Refusing to reuse it; inspect $pidFile."
+    }
+
     $managedProcess = Get-Process -Id ([int]$record.pid) -ErrorAction SilentlyContinue
     if (-not $managedProcess) {
         Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
         $record = $null
+    } elseif ($managedProcess.Path -and ([System.IO.Path]::GetFullPath($managedProcess.Path) -ne $python)) {
+        throw "PID $($record.pid) was reused by a different executable. Refusing to treat it as the reference-lab server."
     }
 }
 
