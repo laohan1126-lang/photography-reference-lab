@@ -14,7 +14,7 @@ Windows 启动器不会自动创建新的资料库。已有资料必须先恢复
 2. 在旧环境执行完整 `python -m ref_lab backup --output ...zip`。
 3. 将备份恢复到一个新的 Windows 数据目录；不要让两个运行环境共用同一个 SQLite/WAL 目录。
 4. 用 `configure-windows-runtime.ps1 -DataDir <目录>` 配置 Windows。
-5. 运行 Windows `.venv\Scripts\python.exe -m ref_lab doctor`（带相同 `LAB_DATA_DIR`）并确认通过。
+5. 运行 `scripts/doctor-windows-runtime.ps1`，确认它对刚配置的同一 Windows 数据目录检查通过。
 6. 用 `start.bat` 启动，再做 BrowserSkill 真实 Golden Path 和人工图片验收。
 7. Windows 验收通过后才退役旧 WSL 正式数据目录；保留备份。
 
