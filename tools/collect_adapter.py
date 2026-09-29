@@ -53,12 +53,17 @@ NEGATIVE_QUERY_TERMS = (
 NEGATION_WORDS = ("不要", "不需要", "排除", "禁止", "别找", "不要找")
 
 
-def parse_arguments() -> tuple[Path, Path]:
+def parse_arguments() -> tuple[Path, Path, bool]:
     parser = argparse.ArgumentParser(description="Photography Reference Lab strict local collector")
     parser.add_argument("positional_args", nargs="*", help="Positional task_file and result_file")
     parser.add_argument("--task-file", dest="task_file", help="Path to task file or AGENT_TASK.md")
     parser.add_argument("--task-dir", dest="task_dir", help="Path to unpacked task directory")
     parser.add_argument("--result-file", dest="result_file", help="Path to output result.zip")
+    parser.add_argument(
+        "--allow-bing-fallback", action="store_true",
+        help="Only then may the collector use Bing images when no BrowserSkill "
+             "browser is reachable.  Without this the run fails loudly instead.",
+    )
     args = parser.parse_args()
 
     task_file = args.task_file or args.task_dir
@@ -70,7 +75,7 @@ def parse_arguments() -> tuple[Path, Path]:
     if not task_file or not result_file:
         sys.stderr.write("Error: task_file and result_file must be specified.\n")
         sys.exit(1)
-    return Path(task_file), Path(result_file)
+    return Path(task_file), Path(result_file), args.allow_bing_fallback
 
 
 def load_job_info(task_path: Path) -> tuple[dict, Path]:
@@ -396,54 +401,83 @@ def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -
     return candidates, images, query_log
 
 
-def find_bsk_bin() -> str | None:
-    bin_path = shutil.which("bsk") or shutil.which("bsk.exe")
-    if bin_path:
-        return bin_path
-    win_default = r"C:\Users\Dell\.local\bin\bsk.exe"
-    if os.name == "nt" and os.path.isfile(win_default):
-        return win_default
-    wsl_default = "/mnt/c/Users/Dell/.local/bin/bsk.exe"
-    if os.path.isfile(wsl_default):
-        return wsl_default
-    home_bin = os.path.expanduser("~/.local/bin/bsk")
-    if os.path.isfile(home_bin):
-        return home_bin
-    return None
+def bsk_candidates() -> list[str]:
+    """Every BrowserSkill binary worth probing, most specific first.
+
+    Existing on disk proves nothing.  A WSL-side ``bsk`` with no running daemon
+    cannot see the Windows browser session, and preferring whichever binary
+    ``which`` happened to return used to select exactly that dead one.
+    """
+    found: list[str] = []
+    def add(path: str | None) -> None:
+        if path and path not in found and os.path.isfile(path):
+            found.append(path)
+    for name in ("bsk", "bsk.exe"):
+        add(shutil.which(name))
+    # The Windows install is the one whose daemon owns the browser extension,
+    # and it stays callable from WSL, so probe it even when a native bsk exists.
+    add("/mnt/c/Users/Dell/.local/bin/bsk.exe")
+    if os.name == "nt":
+        add(r"C:\Users\Dell\.local\bin\bsk.exe")
+    add(os.path.expanduser("~/.local/bin/bsk"))
+    return found
 
 
-def get_connected_browser_id(bsk_bin: str) -> str | None:
-    env = {**os.environ, "BSK_AUTO_START": "0"}
+def probe_bsk_browsers(bsk_bin: str, env: dict[str, str], timeout: int = 8) -> list[dict]:
+    """Browsers this specific binary can actually see right now."""
     try:
-        p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", env=env, timeout=5)
-        browsers = json.loads(p.stdout)
-        if browsers:
-            for b in browsers:
-                if b.get("browser_name") == "edge":
-                    return b["instance_id"]
-            return browsers[0]["instance_id"]
+        completed = subprocess.run(
+            [bsk_bin, "browsers", "--json"], capture_output=True, text=True,
+            encoding="utf-8", errors="replace", env=env, timeout=timeout,
+        )
+        browsers = json.loads(completed.stdout)
+        return browsers if isinstance(browsers, list) else []
+    except Exception:
+        return []
+
+
+def _pick_browser(browsers: list[dict]) -> str | None:
+    for browser in browsers:
+        if browser.get("browser_name") == "edge":
+            return browser.get("instance_id")
+    return browsers[0].get("instance_id") if browsers else None
+
+
+def select_browserskill(env: dict[str, str] | None = None) -> tuple[str | None, str | None]:
+    """Return the first (binary, browser id) pair that reaches a live browser.
+
+    Existence is not availability: every candidate is probed until one actually
+    reports a connected browser.  Returns (None, None) when none can, so the
+    caller can report the real reason instead of quietly searching elsewhere.
+    """
+    env = env or {**os.environ, "BSK_AUTO_START": "0"}
+    for candidate in bsk_candidates():
+        browser_id = _pick_browser(probe_bsk_browsers(candidate, env))
+        if browser_id:
+            return candidate, browser_id
+    return None, None
+
+
+def nudge_extension(env: dict[str, str], candidates: list[str]) -> tuple[str | None, str | None]:
+    """Last resort: open the extension page once, then re-probe candidates."""
+    powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell")
+    if not powershell_bin:
+        return None, None
+    try:
+        subprocess.run(
+            [powershell_bin, "-Command",
+             "Start-Process msedge.exe extension://emacgiaaaiojkkpkddmmdfhmokgmnikg/popup.html"],
+            capture_output=True, timeout=5,
+        )
+        for _ in range(5):
+            time.sleep(1)
+            for candidate in candidates:
+                browser_id = _pick_browser(probe_bsk_browsers(candidate, env))
+                if browser_id:
+                    return candidate, browser_id
     except Exception:
         pass
-
-    powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell")
-    if powershell_bin:
-        cmd = [powershell_bin, "-Command", "Start-Process msedge.exe extension://emacgiaaaiojkkpkddmmdfhmokgmnikg/popup.html"]
-        try:
-            subprocess.run(cmd, capture_output=True, timeout=5)
-            for _ in range(5):
-                time.sleep(1)
-                p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True,
-                                   encoding="utf-8", errors="replace", env=env, timeout=5)
-                browsers = json.loads(p.stdout)
-                if browsers:
-                    for b in browsers:
-                        if b.get("browser_name") == "edge":
-                            return b["instance_id"]
-                    return browsers[0]["instance_id"]
-        except Exception:
-            pass
-    return None
+    return None, None
 
 
 # A note page carries a note id; the keyword search page does not.  Real
@@ -849,7 +883,7 @@ def fetch_bsk_candidates(
 
 
 def main() -> None:
-    task_path, result_file = parse_arguments()
+    task_path, result_file, allow_bing_fallback = parse_arguments()
     job, _ = load_job_info(task_path)
     policy = build_policy(job)
     target_count = min(int(job.get("target_count") or 30), 40)
@@ -860,9 +894,11 @@ def main() -> None:
     source_checks: list[dict] = []
     producer = "local_collection_adapter_search_only"
 
-    # 1. 优先尝试本地已连接的 BrowserSkill Edge 实例 (小红书 + Pinterest)
-    bsk_bin = find_bsk_bin()
-    browser_id = get_connected_browser_id(bsk_bin) if bsk_bin else None
+    # 1. 使用真正连得上浏览器的 BrowserSkill (小红书 + Pinterest)
+    env = {**os.environ, "BSK_AUTO_START": "0"}
+    bsk_bin, browser_id = select_browserskill(env)
+    if not bsk_bin:
+        bsk_bin, browser_id = nudge_extension(env, bsk_candidates())
     if bsk_bin and browser_id:
         producer = "local_browserskill_adapter"
         candidates, images, query_log = fetch_bsk_candidates(
@@ -871,7 +907,7 @@ def main() -> None:
         source_checks.append({
             "source": "xiaohongshu",
             "status": "usable" if any(q.get("source") == "xiaohongshu" and q.get("kept", 0) > 0 for q in query_log) else "untested",
-            "detail": "优先通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
+            "detail": "通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
         })
         source_checks.append({
             "source": "pinterest",
@@ -879,20 +915,42 @@ def main() -> None:
             "detail": "在小红书后通过 BrowserSkill 访问 Pinterest 补充参考。",
         })
 
-    # 2. 仅在未连接/未安装 BrowserSkill 时，降级走备用 Bing
-    if not query_log and not (bsk_bin and browser_id):
-        queries = build_queries(job, for_browser=False)
-        candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
+    # 2. 没有可用浏览器时不得静默改用 Bing：本任务要求小红书真人 COS 正片，
+    #    Bing 结果不是同一个来源，悄悄替换会让受阻看起来像搜到了。
+    browserskill_missing = ""
+    if not (bsk_bin and browser_id):
+        browserskill_missing = (
+            "BrowserSkill 没有可用的浏览器：已探测 " + (
+                "、".join(bsk_candidates()) or "（未找到任何 bsk 可执行文件）"
+            ) + "，但没有一个能连上已装扩展的浏览器。"
+            "请启动带 BrowserSkill 扩展的 Edge 并确认 bsk doctor 全部 ok；"
+            "只有明确接受 Bing 备用检索时才使用 --allow-bing-fallback。"
+        )
         source_checks.append({
-            "source": "bing_images_photo_filter",
-            "status": "usable" if candidates else "untested",
-            "detail": "未检测到已连接的 BrowserSkill Edge 实例；使用 Photo + Large 搜索引擎检索。",
+            "source": "browserskill",
+            "status": "blocked",
+            "detail": browserskill_missing,
         })
+        if not allow_bing_fallback:
+            sys.stderr.write(browserskill_missing + "\n")
+        else:
+            queries = build_queries(job, for_browser=False)
+            candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
+            source_checks.append({
+                "source": "bing_images_photo_filter",
+                "status": "usable" if candidates else "untested",
+                "detail": "调用方显式允许 Bing 备用检索；这不是小红书来源。",
+            })
 
     summary_text = (
         f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
         if candidates else
-        "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。"
+        (browserskill_missing if browserskill_missing
+         else "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。")
+    )
+    gaps = (
+        [browserskill_missing] if browserskill_missing
+        else ([] if candidates else ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"])
     )
 
     manifest = {
@@ -907,7 +965,7 @@ def main() -> None:
             "summary": summary_text,
             "source_checks": source_checks,
             "query_log": query_log,
-            "gaps": [] if candidates else ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"],
+            "gaps": gaps,
         },
     }
 

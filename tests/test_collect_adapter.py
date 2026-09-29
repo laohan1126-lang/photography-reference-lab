@@ -381,3 +381,131 @@ def test_xhs_extract_js_prefers_the_token_bearing_note_link():
     selectors = match.group(1)
     assert 'a[href*="xsec_token"]' in selectors
     assert selectors.index('xsec_token') < selectors.index('/explore/')
+
+
+def _fake_run(responses):
+    """subprocess.run stub keyed by the bsk binary being invoked."""
+    def run(cmd, *args, **kwargs):
+        binary = cmd[0]
+        if binary not in responses:
+            raise FileNotFoundError(binary)
+        reply = responses[binary]
+        if isinstance(reply, Exception):
+            raise reply
+        return type("R", (), {"stdout": json.dumps(reply, ensure_ascii=False), "returncode": 0})()
+    return run
+
+
+def test_browserskill_selection_prefers_a_binary_that_reaches_the_browser(monkeypatch, tmp_path):
+    """Live failure (2026-09-29): `which("bsk")` found a WSL bsk with no daemon.
+
+    That binary exists and reports its version fine, but it cannot see the
+    Windows browser, so selecting it dropped the whole run into a silent Bing
+    fallback.  The binary that actually reaches Edge must win.
+    """
+    import tools.collect_adapter as ca
+
+    dead = str(tmp_path / "bsk")
+    live = str(tmp_path / "bsk.exe")
+    # Presence is all isfile can tell us, so both files must really exist.
+    for path in (dead, live):
+        Path(path).write_text("", encoding="utf-8")
+
+    monkeypatch.setattr(ca.shutil, "which", lambda n: {"bsk": dead, "bsk.exe": live}.get(n))
+    monkeypatch.setattr(ca.os.path, "isfile", lambda p: p in {dead, live})
+    monkeypatch.setattr(ca.subprocess, "run", _fake_run({
+        dead: [],                                                   # present, no browser
+        live: [{"instance_id": "9d3f232a", "browser_name": "edge"}],
+    }))
+
+    assert ca.select_browserskill({}) == (live, "9d3f232a")
+
+
+def test_browserskill_selection_keeps_probing_after_an_unusable_candidate(monkeypatch, tmp_path):
+    import tools.collect_adapter as ca
+
+    dead = "/wsl/bin/bsk"
+    broken = "/wsl/bin/bsk-crash"
+    live = "/mnt/c/Users/Dell/.local/bin/bsk.exe"
+    monkeypatch.setattr(ca, "bsk_candidates", lambda: [dead, broken, live])
+    monkeypatch.setattr(ca.subprocess, "run", _fake_run({
+        dead: [],
+        broken: OSError("daemon IPC unavailable"),
+        live: [{"instance_id": "edge-1", "browser_name": "edge"}],
+    }))
+
+    assert ca.select_browserskill({}) == (live, "edge-1")
+
+
+def test_browserskill_selection_returns_nothing_when_every_candidate_is_unusable(monkeypatch):
+    import tools.collect_adapter as ca
+
+    only = ["/wsl/bin/bsk"]
+    monkeypatch.setattr(ca, "bsk_candidates", lambda: only)
+    monkeypatch.setattr(ca.subprocess, "run", _fake_run({"/wsl/bin/bsk": []}))
+
+    assert ca.select_browserskill({}) == (None, None)
+
+
+def test_no_usable_browserskill_must_not_silently_use_bing(tmp_path):
+    """No live browser and no --allow-bing-fallback => blocked, zero candidates."""
+    import tools.collect_adapter as ca
+    import zipfile
+
+    dead = "/wsl/bin/bsk"
+    task_dir = tmp_path / "task"
+    task_dir.mkdir()
+    (task_dir / "job.json").write_text(json.dumps({
+        "job": {"id": "job-1", "target_count": 2,
+                "notes": "只找王昭君长夜焕生这个皮肤的真人COS正片",
+                "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"}},
+    }, ensure_ascii=False), encoding="utf-8")
+    result_file = tmp_path / "result.zip"
+
+    def _no_browser(_env, *_a, **_k):
+        return None, None
+    ca.select_browserskill = _no_browser
+    ca.nudge_extension = lambda *_a, **_k: (None, None)
+    ca.bsk_candidates = lambda: [dead]
+    called = []
+    ca.fetch_bing_candidates = lambda *a, **k: called.append(True) or ([], {}, [])
+
+    sys.argv = ["collect_adapter.py", str(task_dir / "job.json"), str(result_file)]
+    ca.main()
+
+    assert called == [], "Bing must not be used without an explicit opt-in"
+    with zipfile.ZipFile(result_file) as archive:
+        manifest = json.loads(archive.read("manifest.json"))
+    report = manifest["execution_report"]
+    assert report["status"] == "blocked"
+    assert manifest["candidates"] == []
+    assert "BrowserSkill" in report["summary"]
+    assert any("BrowserSkill" in gap for gap in report["gaps"])
+
+
+def test_bing_fallback_requires_explicit_opt_in(tmp_path):
+    import tools.collect_adapter as ca
+    import zipfile
+
+    task_dir = tmp_path / "task"
+    task_dir.mkdir()
+    (task_dir / "job.json").write_text(json.dumps({
+        "job": {"id": "job-2", "target_count": 1, "notes": "cos 正片",
+                "project_snapshot": {"character": "王昭君", "work": "王者荣耀", "costume": "长夜焕生"}},
+    }, ensure_ascii=False), encoding="utf-8")
+    result_file = tmp_path / "result.zip"
+
+    ca.select_browserskill = lambda *_a, **_k: (None, None)
+    ca.nudge_extension = lambda *_a, **_k: (None, None)
+    ca.bsk_candidates = lambda: []
+    seen = []
+    ca.fetch_bing_candidates = lambda *a, **k: seen.append(True) or ([], {}, [])
+
+    sys.argv = ["collect_adapter.py", str(task_dir / "job.json"), str(result_file),
+                "--allow-bing-fallback"]
+    ca.main()
+
+    assert seen == [True], "explicit opt-in must still allow the Bing path"
+    with zipfile.ZipFile(result_file) as archive:
+        report = json.loads(archive.read("manifest.json"))["execution_report"]
+    assert any("Bing" in str(check.get("detail", "")) for check in report["source_checks"])
