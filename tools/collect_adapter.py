@@ -490,6 +490,47 @@ def _is_note_url(page_url: str) -> bool:
     return bool(_XHS_NOTE_URL.search(page_url or ""))
 
 
+def wait_for_cards(
+    bsk_bin: str, session_id: str, extract_js: str, env: dict[str, str],
+    attempts: int = 5, delay: float = 2.0, settle: int = 1,
+) -> list[dict]:
+    """Poll the search page until its lazily-loaded cover images actually appear.
+
+    A fixed sleep is a race: Xiaohongshu renders result cards over time, and a
+    page sampled too early yields almost nothing, which looks identical to
+    "no matches" and silently produced empty batches.  Stop once the card
+    count stops growing, so a healthy page is not taxed the full budget.
+    """
+    best: list[dict] = []
+    stable = 0
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(delay)
+        completed = subprocess.run(
+            [bsk_bin, "evaluate", "--session", session_id, "--json", extract_js],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=env, timeout=15,
+        )
+        try:
+            raw = json.loads(completed.stdout)
+        except Exception:
+            raw = None
+        cards = raw.get("value", []) if isinstance(raw, dict) else (raw if isinstance(raw, list) else [])
+        if not isinstance(cards, list):
+            cards = []
+        if len(cards) > len(best):
+            best = cards
+            stable = 0
+        elif best:
+            # Still nothing new, but only give up once cards have appeared:
+            # an empty first sample usually just means the page is still
+            # rendering, not that there were no results.
+            stable += 1
+            if stable >= settle:
+                break
+    return best
+
+
 def fetch_xhs_detail_metadata(
     bsk_bin: str, session_id: str, page_url: str, env: dict[str, str]
 ) -> dict:
@@ -610,15 +651,7 @@ def fetch_bsk_candidates(
                 return cards;
             })()"""
 
-            eval_p = subprocess.run(
-                [bsk_bin, "evaluate", "--session", session_id, "--json", extract_js],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10
-            )
-            try:
-                raw_eval = json.loads(eval_p.stdout)
-                cards = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
-            except Exception:
-                cards = []
+            cards = wait_for_cards(bsk_bin, session_id, extract_js, env)
 
             detail_checks = 0
             max_detail_checks = max(8, min(24, target_count * 3))
@@ -790,15 +823,7 @@ def fetch_bsk_candidates(
                     return pins;
                 })()"""
 
-                eval_p = subprocess.run(
-                    [bsk_bin, "evaluate", "--session", session_id, "--json", pin_js],
-                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10
-                )
-                try:
-                    raw_eval = json.loads(eval_p.stdout)
-                    pins = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
-                except Exception:
-                    pins = []
+                pins = wait_for_cards(bsk_bin, session_id, pin_js, env)
 
                 for pin in pins:
                     if len(candidates) >= target_count:

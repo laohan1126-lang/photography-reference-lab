@@ -509,3 +509,42 @@ def test_bing_fallback_requires_explicit_opt_in(tmp_path):
     with zipfile.ZipFile(result_file) as archive:
         report = json.loads(archive.read("manifest.json"))["execution_report"]
     assert any("Bing" in str(check.get("detail", "")) for check in report["source_checks"])
+
+
+def test_wait_for_cards_keeps_polling_until_cards_appear(monkeypatch):
+    """Live failure: a 3.5s sleep sampled the page before its lazy images loaded.
+
+    The first sample looked like "no results" and every query returned nothing.
+    The collector must keep polling and take the best sample it saw.
+    """
+    import tools.collect_adapter as ca
+
+    samples = iter([[], [], [{"t": "a"}, {"t": "b"}], [{"t": "a"}, {"t": "b"}]])
+
+    monkeypatch.setattr(ca.subprocess, "run",
+                        lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
+    monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
+
+    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == [{"t": "a"}, {"t": "b"}]
+
+
+def test_wait_for_cards_returns_best_sample_not_the_last(monkeypatch):
+    import tools.collect_adapter as ca
+
+    samples = iter([[{"t": "a"}, {"t": "b"}, {"t": "c"}], [{"t": "a"}]])
+    monkeypatch.setattr(ca.subprocess, "run",
+                        lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
+    monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
+
+    assert len(ca.wait_for_cards("bsk", "s", "js", {}, attempts=4, delay=0)) == 3
+
+
+def test_wait_for_cards_survives_unparsable_evaluate(monkeypatch):
+    import tools.collect_adapter as ca
+
+    samples = iter(["not json", "still not json", json.dumps([{"t": "a"}]), json.dumps([{"t": "a"}])])
+    monkeypatch.setattr(ca.subprocess, "run",
+                        lambda *a, **k: type("R", (), {"stdout": next(samples)})())
+    monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
+
+    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == [{"t": "a"}]
