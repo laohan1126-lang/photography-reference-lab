@@ -29,10 +29,14 @@ from ref_lab.preflight import (
     compute_dhash,
     hamming_distance,
     detect_collage,
+    detect_modality,
     measure_sharpness,
     evaluate_quality,
     evaluate_identity,
     run_candidate_preflight,
+    save_preflight,
+    get_preflight,
+    list_preflights,
 )
 from ref_lab.aesthetic_profile import (
     build_default_profile,
@@ -530,3 +534,82 @@ def test_api_candidate_preflight_and_filtered_restoration(client):
     r_filt_rejected = client.get(f"/api/projects/{project_id}/references?view_filtered=true")
     assert r_filt_rejected.status_code == 200
     assert any(item["id"] == col_ref_id for item in r_filt_rejected.json()["items"])
+
+# ==============================================================================
+# 9. Preflight trust boundary & project isolation regressions
+# ==============================================================================
+
+def test_metadata_prefix_or_known_url_never_asserts_real_person_modality():
+    image = Image.open(io.BytesIO(make_test_image(size=(800, 1200))))
+    metadata = {
+        "title": "COS_王昭君 长夜焕生 正片",
+        "source": {
+            "page_url": "https://example.com/haute-couture/sensory-seas",
+            "search_category": "cosplay_photo",
+        },
+    }
+    modality, evidence = detect_modality(image, metadata)
+    assert modality == "unknown"
+    assert any("不能据此宣称真人实拍" in item for item in evidence)
+
+
+def test_costume_help_metadata_is_filtered_as_non_reference():
+    payload = make_test_image(size=(800, 1200))
+    metadata = {
+        "title": "求助：三分妄想家的王昭君长夜焕生c服裙边怎么整理",
+        "source": {
+            "page_url": "https://www.xiaohongshu.com/explore/help-post",
+            "search_category": "",
+        },
+    }
+    context = build_identity_context("王昭君", "王者荣耀", "长夜焕生")
+    result = run_candidate_preflight(
+        payload,
+        metadata=metadata,
+        context=context,
+        asset_sha="a" * 64,
+        project_id="project-a",
+        reference_id="ref-a",
+    )
+    assert result["content_type"] == "product"
+    assert result["status"] == "filtered"
+    assert "服装求助" in result["status_reason"]
+
+
+def test_project_scoped_preflight_lookup_is_strict_and_chronological(app, project):
+    library = app.state.library
+    other = library.create_project(ProjectInput(character="隔离测试角色B", work="测试作品"))
+    asset_sha = "b" * 64
+
+    def pf(ident: str, project_id: str, status: str) -> dict:
+        return {
+            "id": ident,
+            "asset_sha": asset_sha,
+            "project_id": project_id,
+            "reference_id": None,
+            "status": status,
+            "created_at": ident,
+        }
+
+    with library.db.transaction() as con:
+        # Random-looking IDs deliberately contradict insertion chronology:
+        # lexical ORDER BY id DESC would incorrectly keep pf_zzzz_old.
+        save_preflight(con, pf("pf_zzzz_old", project["id"], "uncertain"))
+        save_preflight(con, pf("pf_aaaa_new", project["id"], "filtered"))
+        save_preflight(con, pf("pf_mmmm_other", other["id"], "passed"))
+
+        scoped = get_preflight(con, asset_sha, project["id"])
+        assert scoped is not None
+        assert scoped["id"] == "pf_aaaa_new"
+
+        # A project with no record must not inherit another project's preflight.
+        assert get_preflight(con, asset_sha, "missing-project") is None
+
+        # Unscoped lookup is allowed to return the newest record globally.
+        unscoped = get_preflight(con, asset_sha)
+        assert unscoped is not None
+        assert unscoped["id"] == "pf_mmmm_other"
+
+        listed = list_preflights(con, project["id"])
+        assert [item["id"] for item in listed[:2]] == ["pf_aaaa_new", "pf_zzzz_old"]
+
