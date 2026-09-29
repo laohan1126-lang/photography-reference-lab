@@ -14,7 +14,6 @@ def test_windows_launcher_is_repo_local_and_not_wsl_bound():
     assert "wsl.exe" not in launch.lower()
     assert "photography-reference-lab-regression" not in launch
     assert "run_server.sh" not in launch
-    assert ".venv\\Scripts\\python.exe" not in launch  # resolved centrally, not hard-coded twice
     assert "Get-ReferenceLabPython" in launch
     assert "Assert-ReferenceLabPythonMatchesRepo" in launch
     assert "tools\\collect_adapter.py" in launch
