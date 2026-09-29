@@ -76,6 +76,84 @@ The local Agent should pull this task branch into an isolated worktree and run o
 
 The owner remains the final judge of whether the resulting photographs are actually useful references.
 
+## Local acceptance run (2026-09-29) — four further defects found and fixed
+
+The owner's live environment (BrowserSkill daemon + Edge 154.0.0.0, extension
+0.3.1, logged-in Xiaohongshu) exposed three defects that the synthetic suite
+and the CI checkpoint could not see, plus the original one. All four are fixed
+on this branch; the owner's normal data directory was never modified beyond
+additive test projects.
+
+### `aa27497` — the detail-evidence path never worked at all
+The search page links each note twice. The extractor preferred the tokenless
+`/explore/<id>` anchor, which renders Xiaohongshu's 404 “当前笔记暂时无法浏览”
+(error_code 300031) instead of the note, so every detail fetch returned empty
+and every voice-line-titled cosplay card was dropped. Measured: 2 cards at
+3.5 s, 22 cards at 9.5 s after the same navigation.
+
+Fixed by preferring the `xsec_token` anchor, and by letting the detail guard
+accept either note link form while still refusing the aggregate keyword search
+page. Live result: 4 → 11 candidates; 长风万里，生生不息 and 愿得昭君王，携手共长生
+are recovered from their visible detail body/tags.
+
+### `fc1a3ef` — the deployed setup was silently searching Bing
+`shutil.which("bsk")` resolved to a WSL-native `bsk` whose daemon home is
+`/home/dell/.bsk`, with no daemon and no extension connected. `browser_id` was
+therefore `None` and `main()` degraded to Bing, so the owner was reviewing Bing
+results while believing they were Xiaohongshu. Existence was treated as
+availability.
+
+Fixed: enumerate real candidates, probe each with `browsers --json`, keep the
+first that actually reports a connected browser, and continue past dead or
+crashing binaries. When none can, the run reports a blocked manifest and Bing
+requires an explicit `--allow-bing-fallback`. This restores the “never revive
+the silent headless fallback” invariant.
+
+### `34f2655` — a fixed sleep sampled the page before it loaded
+A first live E2E selected BrowserSkill correctly but returned zero candidates
+across all 16 queries (`metadata_filtered=0`: nothing was even read). A fixed
+`sleep(3.5)` beat the lazy rendering. Replaced with a bounded poll that keeps
+the best sample and only gives up early once cards have actually appeared, so
+an empty first sample still gets its retries. Applied to both platforms.
+
+### `53e4687` — the default timeout killed real runs
+A real pass took 601 s and was killed by the 600 s default with
+“本地 Agent 执行超时”. Default is now 1800 s; `LAB_COLLECTION_TIMEOUT_SECONDS`
+still overrides.
+
+### End-to-end evidence (VERIFIED)
+Run through the owner's own `start.bat` → `launch.ps1` → WSL `run_server.sh`
+entry, on `http://127.0.0.1:18765`, via the same HTTP API the UI uses:
+
+- `LAB_DATA_DIR` unchanged: `/home/dell/projects/photography-reference-lab-regression/.local/regression-real-fixed` (222M), read from the live process environment.
+- `producer: local_browserskill_adapter`; selected `/mnt/c/Users/Dell/.local/bin/bsk.exe`; browser id `9d3f232a`.
+- No Bing source check present.
+- Job `2d826239fa9544edbb62b9708d2d027b`, 608 s, 8 candidates imported, `detail_checked` 14–19 per query.
+- Recovered voice-line titles: 长风万里，生生不息, 聆听 深眠的潮音, 「长夜焕生」, 捞捞这个王昭君呀吼.
+- Junk still rejected: 求助/c服/做裙/裙撑/建模/店铺, including 喵屋/三分妄想 shop comparisons newly caught via detail text.
+- All imported candidates `preflight=null`, `preflight_status=unreviewed`, `decision=pending`.
+
+Tests: 46 passed across the adapter and collection-runner files; full CI core
+set 158 passed with the same 4 pre-existing Windows-only failures that the
+base branch `c3b65d7` produces in this environment (path-separator and
+SQLite `WinError 32` behaviour).
+
+### Known limitations (owner decides)
+- A mannequin/服装展示 shot (“杭州cos馆长夜焕生到啦”) passes the text filter because
+  人台/假人 exist only in the image, not in the post text. Reachable only through
+  manual rejection; no new blacklist was added by design.
+- A 后期服务 advertisement (“素材会 可做天幕 cos后期”) likewise passes on text alone.
+- Whether a candidate is genuinely 王昭君·长夜焕生, and whether the cover is a
+  usable single pose frame rather than a multi-panel collage, remains the
+  owner's per-image judgement. The collector never claims otherwise.
+
+### Temporary state to undo after merge
+`run_server.sh` was repointed at the acceptance worktree to exercise the fix
+(backup `run_server.sh.bak.20260929-164701`). Once this branch is merged the
+adapter path must be restored to
+`/mnt/d/AI PROJECTS/photography-reference-lab/tools/collect_adapter.py` so a
+normal start does not depend on a worktree.
+
 ## Handoff
 Draft PR: #3, head `codex/preflight-trust-isolation-20260929`, base `codex/reference-library-rebuild`. Do not merge before local BrowserSkill and owner acceptance.
 
