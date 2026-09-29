@@ -111,13 +111,52 @@ def test_social_platform_cosplay_matching():
     }
     assert result_metadata_allowed(card2, policy)[0] is True
 
-    # Social card where coser titled note with in-game voice line (no character/costume literal text in title)
+    # A voice-line title is not accepted merely because it appeared in the
+    # requested Xiaohongshu search.  It must be resolved from visible detail
+    # metadata/tags before becoming eligible.
     card_voiceline = {
         "t": "长风万里，生生不息",
         "author": "小兔子落落",
         "purl": "https://www.xiaohongshu.com/explore/sample_voiceline",
     }
-    assert result_metadata_allowed(card_voiceline, policy)[0] is True
+    allowed, reason = result_metadata_allowed(card_voiceline, policy)
+    assert allowed is False
+    assert reason.startswith("needs_detail_evidence:")
+
+    resolved_voiceline = {
+        **card_voiceline,
+        "full_text": "#王者荣耀 #王昭君长夜焕生 #cos正片 长风万里，生生不息",
+    }
+    assert result_metadata_allowed(resolved_voiceline, policy)[0] is True
+
+    # Costume brand names are not intrinsically noise.  A clearly labelled
+    # cosplay/photo post must remain eligible even if the costume maker is named.
+    branded_cosplay = {
+        "t": "三分妄想 王昭君长夜焕生 COS 正片返图",
+        "author": "小兔子落落",
+        "purl": "https://www.xiaohongshu.com/explore/sample_brand",
+    }
+    assert result_metadata_allowed(branded_cosplay, policy)[0] is True
+
+    # The real regression: a costume-help/text post is not a photography
+    # reference even though it names the exact character/skin and a known brand.
+    help_post = {
+        "t": "求助：三分妄想家的王昭君长夜焕生c服裙边怎么整理",
+        "author": "路人甲",
+        "purl": "https://www.xiaohongshu.com/explore/sample_help",
+    }
+    allowed, reason = result_metadata_allowed(help_post, policy)
+    assert allowed is False
+    assert reason.startswith("negative_type:")
+
+    unrelated_social = {
+        "t": "今天随手记",
+        "author": "路人乙",
+        "purl": "https://www.xiaohongshu.com/explore/sample_unrelated",
+    }
+    allowed, reason = result_metadata_allowed(unrelated_social, policy)
+    assert allowed is False
+    assert reason.startswith("needs_detail_evidence:")
 
     # Social card with skirt/corset negative marker rejected
     card_skirt = {
