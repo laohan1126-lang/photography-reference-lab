@@ -21,6 +21,13 @@ def test_windows_launcher_is_repo_local_and_not_wsl_bound():
     assert "Split-brain" in read("scripts/runtime-common.ps1")
 
 
+def test_windows_installer_refuses_to_overwrite_a_foreign_venv():
+    install = read("install.ps1")
+    assert "not a Windows virtual environment" in install
+    assert "Assert-ReferenceLabPythonMatchesRepo" in install
+    assert "runtime-common.ps1" in install
+
+
 def test_windows_runtime_requires_explicit_data_configuration():
     common = read("scripts/runtime-common.ps1")
     configure = read("scripts/configure-windows-runtime.ps1")
