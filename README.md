@@ -4,18 +4,49 @@
 
 ## 启动与升级（Python 3.11+）
 
+### Windows：日常主运行环境
+
+当前推荐的日常路径是 **Windows Python + Windows BrowserSkill + Edge**。不要再让正式启动依赖仓库外的 WSL regression 目录或临时 worktree。
+
+首次安装：
+
+```powershell
+.\install.ps1
+```
+
+已有资料库时，先把完整备份恢复到一个 **Windows 本地目录**，再显式配置：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\configure-windows-runtime.ps1 -DataDir "D:\path\to\reference-lab-data"
+powershell -ExecutionPolicy Bypass -File scripts\doctor-windows-runtime.ps1
+.\start.bat
+```
+
+启动器会使用当前仓库自己的 `.venv\Scripts\python.exe` 和同一 checkout 下的 `tools\collect_adapter.py`，并拒绝连接一个不受本启动器管理的旧 WSL 服务。若没有配置数据目录，也没有已存在的本地数据库，会直接报错，**不会偷偷新建一个空库**。
+
+只有明确要建立全新空库时才执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\configure-windows-runtime.ps1 -DataDir ".local" -InitializeEmpty
+```
+
+默认本地端口为 `18765`；可在 gitignored 的 `.local/windows-runtime.json` 中配置，或用环境变量覆盖。停止服务使用 `stop.bat`，它只终止本启动器记录的 Windows 进程树，不会全局杀 Python/WSL。
+
+### WSL / Linux：兼容与开发路径
+
+应用代码仍保持跨平台，可在独立环境中：
+
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\Activate.ps1
-# macOS / Linux: source .venv/bin/activate
+source .venv/bin/activate
 python -m pip install -e ".[test]"
-# 首次导入仓库历史素材；可重复执行，不重置原选择：
-python -m ref_lab migrate-legacy
 python -m ref_lab doctor
 python -m ref_lab serve
 ```
 
-打开 `http://127.0.0.1:8765`，另一个终端执行 `python -m ref_lab token` 取得本机口令。默认数据目录 `.local/`；Windows 可先运行 `./install.ps1`。已有数据库直接启动会迁移；**沿用原来的 `LAB_DATA_DIR`，不要误建一个空库**。
+WSL/Linux 兼容环境必须使用**自己的数据目录**。不要让 Windows 与 WSL 轮流打开同一个正在使用的 SQLite/WAL 目录。需要迁移时使用完整 backup/restore，而不是跨运行环境共用数据库。
+
+首次导入仓库历史素材仍可显式运行 `python -m ref_lab migrate-legacy`。已有数据库启动时会按版本迁移；**沿用正确的 `LAB_DATA_DIR`，不要误建空库**。
 
 v0.3 的数据库版本为 2。升级版本 1 前，自动通过 SQLite backup API 生成同数据目录下的 `library-before-v2-*.sqlite3`，然后事务迁移。图片原字节、旧选择、反馈、卡片和版本号保留；这份自动备份只有数据库，完整备份仍需：
 
@@ -43,7 +74,7 @@ python -m ref_lab backup --output ../reference-lab-backup.zip
 
 点“找一批参考”，保存完整角色、作品、版本、项目要求、器材和本轮自由要求，再下载任务包或复制执行提示词。**默认不会自动唤醒本机 Agent，也不会把等待状态写成已搜完**。可选的 `LAB_COLLECTION_COMMAND` 适配器仅在明确配置、点击启动后运行；没有适配器就保留任务包 / CLI 交接，不偷偷换抓图方式。
 
-本地采集有两种能力边界，必须区分。BrowserSkill / 真实视觉 Agent 可以逐张看图并返回 schema 3 preflight；而当前 `tools/collect_adapter.py` 只是严格搜索适配器，没有视觉模型，因此只返回 schema 2 候选包，绝不伪造“真人实拍 / identity match”。它会把项目角色、皮肤/版本和本轮自由要求当作硬搜索上下文，使用 Bing Photo + Large 过滤，并在导入前排除游戏截图/特效展示、插画/立绘/壁纸、CG/建模、商品/人台/服装展示等强负向结果；要求特定皮肤时宁可少图也不拿弱结果补 target_count。搜索 query、标题和项目名仍只是 discovery context，不能升级成视觉事实。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
+本地采集有两种能力边界，必须区分。BrowserSkill / 真实视觉 Agent 可以逐张看图并返回 schema 3 preflight；而当前 `tools/collect_adapter.py` 只是严格搜索适配器，没有视觉模型，因此只返回 schema 2 候选包，绝不伪造“真人实拍 / identity match”。日常主路径通过 Windows BrowserSkill 驱动已登录 Edge，优先小红书、再 Pinterest；只有调用方明确传入 `--allow-bing-fallback` 时才允许 Bing 备用检索，绝不静默换来源。适配器会把角色、皮肤/版本和本轮自由要求当作发现约束，并对明确的游戏/插画/商品/求助/教程等文本噪声做确定性过滤；看图才能判断的人台、广告、错角色或构图价值仍交给人工最终审核。搜索 query、标题、URL 和平台召回都只是 discovery context，不能升级成视觉事实。A 角色精准 / B 可迁移动作 / C 审美拓展是**发现意图**，不是图片事实。详见 [执行器协议](docs/WORKER_PROTOCOL.md) 与 [来源评估](docs/SOURCE_ASSESSMENT.md)。
 
 同一数据目录下也可以直接交接：
 

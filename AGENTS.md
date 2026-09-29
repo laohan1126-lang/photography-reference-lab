@@ -35,3 +35,12 @@ Default regression: `python -m pytest -q tests/test_library.py tests/test_import
 
 ## Collector checkpoint boundary (2026-09-28)
 Read `docs/tasks/2026-09-28-collector-checkpoint.md`. The optional command adapter is a tested internal transport, not a verified vendor/BrowserSkill connection or complete candidate pipeline. Keep live HTTP/platform blocks visible. Do not label missing identity/quality/session/profile work complete. Run the new collector and UI regressions too; never revive the silent headless fallback.
+
+## Runtime ownership boundary (2026-09-29)
+- Windows is the owner's primary daily runtime: repo-local Windows Python/FastAPI + repo-local collection adapter + Windows BrowserSkill/Edge.
+- WSL/Linux remains supported for development, CI and compatibility only. Do not make the normal launcher depend on a regression checkout, temporary worktree or untracked `run_server.sh`.
+- Server code and `tools/collect_adapter.py` must come from the same checkout/revision. Refuse split-brain deployments rather than silently mixing paths.
+- Windows and WSL must not alternately open the same active SQLite/WAL directory. Move a real library between runtimes only through a stopped-service backup/restore and `doctor` verification.
+- BrowserSkill availability means a probed binary can actually report a connected browser; executable presence alone is insufficient. Bing fallback remains explicit opt-in only.
+- Do not delete or overwrite the old WSL data during Windows migration. Keep the backup and old directory until the Windows Golden Path and owner image review pass.
+

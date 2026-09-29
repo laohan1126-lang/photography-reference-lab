@@ -21,9 +21,58 @@ jobs:
         with:
           node-version: '22'
       - run: python -m pip install -e '.[test]'
-      - run: python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_modality_archive.py tests/test_reference_transfer_board.py tests/test_collect_adapter.py tests/test_collection_runner.py tests/test_candidate_pipeline.py tests/test_collection_dispatch.py
+      - run: python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_modality_archive.py tests/test_reference_transfer_board.py tests/test_collect_adapter.py tests/test_collection_runner.py tests/test_candidate_pipeline.py tests/test_collection_dispatch.py tests/test_windows_runtime_scripts.py
       - run: node --check web/app.js
       - run: python -m compileall -q ref_lab tools
+  windows-runtime:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e ".[test]"
+      - run: python -m pytest -q tests/test_windows_runtime_scripts.py tests/test_collect_adapter.py tests/test_collection_runner.py
+      - name: Parse PowerShell runtime scripts
+        shell: pwsh
+        run: |
+          $files = @(
+            "scripts/runtime-common.ps1",
+            "scripts/configure-windows-runtime.ps1",
+            "scripts/doctor-windows-runtime.ps1",
+            "scripts/launch.ps1",
+            "scripts/terminate.ps1",
+            "install.ps1"
+          )
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $file),
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "${file}: $($_.Message)" }
+              exit 1
+            }
+          }
+      - name: Smoke-test Windows primary launcher
+        shell: pwsh
+        run: |
+          .\install.ps1
+          & .\scripts\configure-windows-runtime.ps1 -DataDir ".local\ci-windows-data" -Port 18765 -InitializeEmpty
+          & .\scripts\doctor-windows-runtime.ps1
+          try {
+            & .\scripts\launch.ps1 -NoOpen -NoWait
+            $health = Invoke-RestMethod -Uri "http://127.0.0.1:18765/health" -TimeoutSec 5
+            if ($health.status -ne "ok") {
+              throw "Windows launcher health check did not return ok."
+            }
+          } finally {
+            & .\scripts\terminate.ps1 -NoWait
+          }
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 15
