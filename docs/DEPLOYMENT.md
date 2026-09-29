@@ -20,7 +20,7 @@ Windows 启动器不会自动创建新的资料库。已有资料必须先恢复
 
 WSL/Linux 仍是兼容与开发路径，但必须使用独立数据目录。禁止 Windows 与 WSL 轮流打开同一个活动 SQLite 库。
 
-默认 `127.0.0.1:8765`。第一次运行会在 `.local/access-token` 生成随机口令，读取命令是 `python -m ref_lab token`。不要把终端输出截图公开，不要将口令贴到仓库、Notion 或任务包。
+直接运行 `python -m ref_lab serve` 时默认是 `127.0.0.1:8765`；Windows 日常启动器默认使用 `127.0.0.1:18765`，两者都只监听回环地址。第一次运行会在所选 `LAB_DATA_DIR/access-token` 生成随机口令，读取命令是 `python -m ref_lab token`。不要把终端输出截图公开，不要将口令贴到仓库、Notion 或任务包。
 
 `LAB_DATA_DIR` 应指向持久化目录；只存于浏览器或容器临时层是不可靠的。`LAB_PUBLIC_ORIGIN` 必须与访问地址的协议、主机和端口一致；换端口同时更新它，不能含子路径、用户名、查询参数。单所有者工作台不支持多人账号隔离。
 
