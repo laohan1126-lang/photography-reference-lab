@@ -102,3 +102,32 @@ The target branch was re-read at `2b1e843...`, and comparison confirmed the test
 ## Project Status
 **CONVERGING — B. 收敛 / 打磨，尚未基本成熟。**
 已有功能足够进入真实使用验收；现在不值得继续扩大排序/偏好系统、替换架构、美化界面或机械增加测试数量。下一轮 Pro 长任务只在出现可复现的跨 UI/worker/持久化故障、数据完整性风险、普通 Agent 无法定位的筛选失效，或用户明确提出新的高价值需求时投入。两项验收收敛后暂停无目的 polishing，按实际使用问题再开任务。
+
+---
+
+## 2026-09-29 收敛与验收记录 (Execution Receipt)
+
+### 1. 真实受约束搜索验收 (VERIFIED)
+- 本机环境：WSL Ubuntu-26.04，Python 3.14 venv。
+- 启动配置：`LAB_COLLECTION_COMMAND` 明确配置指向 `tools/collect_adapter.py`，经由 `/api/capabilities` 确认 `collection_adapter_configured: True`。
+- 测试输入：项目 `legacy-changye-huansheng`，要求：“只找王昭君长夜焕生这个皮肤的真人 COS 正片；不要游戏截图、皮肤特效、官方插画、立绘、CG、壁纸、商品图、人台服装展示”。
+- 执行任务：Job ID `bd9bd219507848c7b8836390a0d4dfb2`，调用 `/api/jobs/{id}/run-antigravity`。
+- 实际观察结果：
+  - 适配器针对用户指令提取 7 组带负向词的搜索 queries（`-游戏截图 -插画 -立绘 -壁纸...`）。
+  - 在 Bing 扫描到 119 条元数据记录，全部被负向词规则严格过滤（识别为非真人 COS / 游戏特效 / 插画）。
+  - 执行器诚实返回 `status: blocked`，`summary: "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。"`，导入 0 张伪造图片。
+  - 未发生任何通过假成功、插画冒充或绕过逻辑的情况。
+
+### 2. 两个“通用灵感”入口收敛 (VERIFIED)
+- 问题根因：普通快捷键 `I` / 按钮（`/api/references/{id}/archive-inspiration`）会调用 `keep_inspiration` 保存到全局 `inspirations` 表，并写入 `detached_at` 将其移出项目活跃队列（不占位）；而预检拦截候选上的“降级为通用灵感”（`/api/references/{id}/make-transferable`）此前仅修改了 `lane="inspiration"`，未调用 `keep_inspiration()`，未设置 `detached_at`，导致依然滞留在项目候选流中。
+- 修复与收敛：
+  - `ref_lab/service.py:make_transferable_candidate()`：调用 `keep_inspiration()` 保存到全局审美库；写入 `detached_at=now()`、`detached_reason="archived_to_inspiration"`；重置 `decision="pending"`（若原为 keep）；移出当前项目活跃列表与过滤流；支持在 `view_recycle`（回收站）查看与恢复。
+  - `web/app.js:makeTransferable()`：传递当前项目索引以便平滑重新对齐视图，通知文案统一为“已降级归档至审美库，不占用角色参考位”。
+  - 核心回归测试扩展：
+    - `tests/test_personal_library.py` 新增 `test_make_transferable_candidate_archives_to_inspiration_and_detaches_from_project`。
+    - `tests/test_candidate_pipeline.py` 增强 `make-transferable` 后全局灵感库存在性、主流/过滤流移除及回收站可见性的断言。
+- 运行验证：
+  - 核心回归：149 passed（原 148 + 新增 1），耗时 25.55s。
+  - 浏览器/UI 组件回归：23 passed（11 + 5 + 5 + 2），耗时 ~120s。
+  - 语法/编译：`node --check web/app.js` 及 `python -m compileall ref_lab tools` 均通过。
+

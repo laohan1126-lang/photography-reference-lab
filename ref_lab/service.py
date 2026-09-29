@@ -1148,17 +1148,28 @@ class Library:
     def make_transferable_candidate(self, ident: str, revision: int) -> dict:
         with self.db.transaction() as con:
             ref = row_data(con, "refs", ident)
-            check_revision(ref, revision)
             project = row_data(con, "projects", ref["project_id"])
+            ensure_active_project(project)
+            if ref.get("detached_at"):
+                raise Problem(409, "此图片已从当前项目移出；请先恢复项目引用")
+            check_revision(ref, revision)
             ref["preflight_filtered"] = False
             ref["preflight_override"] = True
             ref["preflight_status"] = "transferable"
             ref["allow_cross_domain"] = True
             ref["lane"] = "inspiration"
-            ref["revision"] += 1
-            ref["updated_at"] = now()
-            con.execute("UPDATE refs SET data=? WHERE id=?", (encode(ref), ident))
-            self.db.event(con, project["id"], ident, "reference.made_transferable", {"revision": ref["revision"]})
+            if ref["decision"] == "keep":
+                ref["decision"] = "pending"
+            item, created = keep_inspiration(con, asset_sha=ref["asset_sha"], title=ref["title"], source=ref["source"],
+                                             preference=ref["preference"], borrow=ref["borrow"], origin_ref=ref)
+            self.db.event(con, None, item["id"], "inspiration.saved", {"reference_id": ident, "created": created})
+            ref.update(
+                detached_at=now(),
+                detached_to_project_id=None,
+                detached_reason="archived_to_inspiration",
+                accepted_fingerprint=None,
+            )
+            self._save(con, ref, project, "reference.made_transferable", {"inspiration_id": item["id"]}, "human")
             return self._decorate(con, ref, project)
 
     def current_screening_session(self, project_id: str) -> dict:

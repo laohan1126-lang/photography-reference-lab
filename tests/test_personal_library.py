@@ -375,3 +375,58 @@ def test_archive_reference_to_inspiration_detaches_from_project_and_saves_aesthe
     }).json()
     assert restored["detached_at"] is None
     assert client.get(f"/api/projects/{project['id']}/references").json()["total"] == 1
+
+
+def test_make_transferable_candidate_archives_to_inspiration_and_detaches_from_project(client, project, library):
+    ref = add_reference(client, project, 0)
+    # Simulate candidate preflight filtered
+    with library.db.transaction() as con:
+        row = con.execute("SELECT data FROM refs WHERE id=?", (ref["id"],)).fetchone()
+        r = json.loads(row[0])
+        r["preflight_filtered"] = True
+        r["preflight_status"] = "filtered"
+        con.execute("UPDATE refs SET data=? WHERE id=?", (encode(r), ref["id"]))
+
+    # Verify it appears in filtered view
+    r_filt = client.get(f"/api/projects/{project['id']}/references?view_filtered=true").json()
+    assert any(item["id"] == ref["id"] for item in r_filt["items"])
+
+    # 1. Downgrade to transferable inspiration via make-transferable
+    cur_ref = client.get(f"/api/references/{ref['id']}").json()
+    r = client.post(f"/api/references/{ref['id']}/make-transferable", json={
+        "expected_revision": cur_ref["revision"],
+    })
+    assert r.status_code == 200, r.text
+    trans = r.json()
+    assert trans["lane"] == "inspiration"
+    assert trans["preflight_filtered"] is False
+    assert trans["preflight_status"] == "transferable"
+    assert trans["allow_cross_domain"] is True
+    assert trans["state"] == "detached"
+    assert trans["detached_at"] is not None
+    assert trans["detached_reason"] == "archived_to_inspiration"
+
+    # 2. Verify it is saved into Global Aesthetic Library (inspirations)
+    insp_list = client.get("/api/inspirations").json()
+    assert any(item["asset_sha"] == ref["asset_sha"] for item in insp_list["items"])
+
+    # 3. Verify it does NOT occupy a slot in the project ("别占位")
+    refs_active = client.get(f"/api/projects/{project['id']}/references").json()
+    assert not any(item["id"] == ref["id"] for item in refs_active["items"])
+
+    # 4. Verify it is NOT in filtered view anymore
+    refs_filt_after = client.get(f"/api/projects/{project['id']}/references?view_filtered=true").json()
+    assert not any(item["id"] == ref["id"] for item in refs_filt_after["items"])
+
+    # 5. Verify it appears in recycle / detached view
+    refs_recycle = client.get(f"/api/projects/{project['id']}/references?view_recycle=true").json()
+    assert any(item["id"] == ref["id"] for item in refs_recycle["items"])
+
+    # 6. Verify it can be restored to the project if desired
+    restored = client.post(f"/api/references/{ref['id']}/restore-project-use", json={
+        "expected_revision": trans["revision"]
+    }).json()
+    assert restored["detached_at"] is None
+    assert restored["lane"] == "inspiration"
+    assert any(item["id"] == ref["id"] for item in client.get(f"/api/projects/{project['id']}/references").json()["items"])
+

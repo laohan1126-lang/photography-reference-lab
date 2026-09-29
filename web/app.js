@@ -598,7 +598,13 @@ async function restorePreflight(ref) {
 }
 async function makeTransferable(ref) {
     if(state.busy)return;state.busy=true;
-    try{await api(`/api/references/${ref.id}/make-transferable`,{method:'POST',body:{expected_revision:ref.revision}});await loadReferences();await renderStats();toast('已降级为通用灵感并解除过滤');}
+    try{
+        const index=state.refs.findIndex(x=>x.id===ref.id);
+        await api(`/api/references/${ref.id}/make-transferable`,{method:'POST',body:{expected_revision:ref.revision}});
+        await loadReferences(index);
+        await renderStats();
+        toast('已降级归档至审美库，不占用角色参考位');
+    }
     finally{state.busy=false;}
 }
 

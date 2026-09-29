@@ -478,13 +478,32 @@ def test_api_candidate_preflight_and_filtered_restoration(client):
     r_list2 = client.get(f"/api/projects/{project_id}/references")
     assert len(r_list2.json()["items"]) == 2
 
-    # 6. Make Akane transferable inspiration
+    # 6. Make Akane transferable inspiration (archives to aesthetic library, detaches from project queue)
     r_trans = client.post(f"/api/references/{ak_ref['id']}/make-transferable", json={"expected_revision": ak_ref["revision"]})
     assert r_trans.status_code == 200
     transferable = r_trans.json()
     assert transferable["preflight_filtered"] is False
     assert transferable["lane"] == "inspiration"
     assert transferable["allow_cross_domain"] is True
+    assert transferable["detached_at"] is not None
+    assert transferable["detached_reason"] == "archived_to_inspiration"
+
+    # Verify global aesthetic inspirations contains this asset
+    r_insp = client.get("/api/inspirations")
+    assert r_insp.status_code == 200
+    assert any(item["asset_sha"] == akane_sha for item in r_insp.json()["items"])
+
+    # Verify detached candidate is removed from normal project references and filtered stream
+    r_norm_after = client.get(f"/api/projects/{project_id}/references")
+    assert not any(item["id"] == ak_ref["id"] for item in r_norm_after.json()["items"])
+    r_filt_after = client.get(f"/api/projects/{project_id}/references?view_filtered=true")
+    assert not any(item["id"] == ak_ref["id"] for item in r_filt_after.json()["items"])
+
+    # Verify it is visible in recycle view and does not occupy active project slots
+    r_recyc = client.get(f"/api/projects/{project_id}/references?view_recycle=true")
+    assert any(item["id"] == ak_ref["id"] for item in r_recyc.json()["items"])
+    r_stats = client.get(f"/api/projects/{project_id}/stats")
+    assert r_stats.json()["detached"] >= 1
 
     # 7. Check Aesthetic Profile & History via API
     r_profile = client.get("/api/profile")
