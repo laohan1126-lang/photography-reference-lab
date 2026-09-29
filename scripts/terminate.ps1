@@ -25,6 +25,15 @@ try {
 
 $process = Get-Process -Id $serverPid -ErrorAction SilentlyContinue
 if ($process) {
+    $expectedRepo = [System.IO.Path]::GetFullPath([string]$record.repo_root)
+    $expectedPython = [System.IO.Path]::GetFullPath([string]$record.python)
+    if ($expectedRepo -ne $script:RepoRoot) {
+        throw "PID record belongs to another checkout ($expectedRepo). Refusing to kill PID $serverPid."
+    }
+    if ($process.Path -and ([System.IO.Path]::GetFullPath($process.Path) -ne $expectedPython)) {
+        throw "PID $serverPid is now owned by a different executable. Refusing to kill it; remove the stale runtime record only after inspection."
+    }
+
     Write-Host "[*] Stopping Windows reference-lab process tree (PID $serverPid)..." -ForegroundColor Yellow
     & taskkill.exe /PID $serverPid /T /F *> $null
     Start-Sleep -Milliseconds 500
