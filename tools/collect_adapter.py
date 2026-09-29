@@ -219,7 +219,14 @@ def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
         if policy["require_cosplay"] and not has_cosplay:
             missing.append("cosplay")
         if policy["require_character"] and not has_character:
-            missing.append("character")
+            # A literal match on the specifically requested costume plus an
+            # explicit cosplay/photo signal is enough for discovery admission.
+            # This is not a visual identity PASS; preflight remains uncertain.
+            has_specific_costume_signal = (
+                policy["require_costume"] and has_costume and has_cosplay
+            )
+            if not has_specific_costume_signal:
+                missing.append("character")
         if policy["require_costume"] and not has_costume:
             missing.append("costume")
         if missing:
