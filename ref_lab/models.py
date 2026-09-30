@@ -89,6 +89,8 @@ class ReferenceEdit(Strict):
     borrow: list[Short] | None = Field(default=None, max_length=20)
     allow_cross_domain: bool | None = None
     source: Source | None = None
+    rejection_reason: Short | None = None
+    is_aesthetic_negative: bool | None = None
 
 
 class VisualReview(Strict):

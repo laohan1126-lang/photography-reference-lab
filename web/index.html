@@ -40,9 +40,34 @@
         <button data-view="references" class="active">挑参考</button><button data-view="selected">角色精选</button><button data-view="field">现场卡</button><button data-view="filtered">已过滤候选</button><button data-view="recycle">已淘汰 / 恢复</button>
       </nav>
       <div id="view"></div>
-      <footer class="workspace-footer"><span>先选择，再分析。未知不等于通过。</span><span id="version">v0.2</span></footer>
+      <footer class="workspace-footer">
+        <span>先选择，再分析。未知不等于通过。</span>
+        <button id="optimize-skill-btn" class="optimize-skill-btn" title="整理人工淘汰理由；不会同步 Skill">查看人工淘汰理由</button>
+        <span id="version">v0.2</span>
+      </footer>
     </main>
   </div>
+  <dialog id="reject-dialog" class="reject-dialog">
+    <div class="reject-card">
+      <h3>标记淘汰 · 记录原因（可选）</h3>
+      <p class="muted" style="margin:0;font-size:12px;">直接按 <strong>Enter</strong> 快速淘汰（无需填写）；理由保留为你的判断，不自动同步 Skill 或推导摄影事实。</p>
+      <div class="quick-tags">
+        <button type="button" class="quick-tag" data-tag="背景杂乱/路人多">📷 背景杂乱</button>
+        <button type="button" class="quick-tag" data-tag="打光过曝/面部油光">💡 打光过曝</button>
+        <button type="button" class="quick-tag" data-tag="动作僵硬/无张力">🧍 动作僵硬</button>
+        <button type="button" class="quick-tag" data-tag="C服买家秀/非成片">👗 买家秀/非成片</button>
+        <button type="button" class="quick-tag" data-tag="AI假图/非真人">🤖 AI假图/非真人</button>
+        <button type="button" class="quick-tag" data-tag="无全身姿态参考">👤 缺乏姿态参考</button>
+      </div>
+      <input id="reject-reason-input" type="text" placeholder="输入排除原因（选填，如：角度重复、过曝）..." autocomplete="off">
+      <label class="check"><input type="checkbox" id="reject-aesthetic">这次是审美不喜欢（明确记录为负反馈；质量或错角色不勾选）</label>
+      <div class="button-row" style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+        <button id="reject-skip-btn" class="quiet">直接淘汰 (Enter)</button>
+        <button id="reject-confirm-btn" class="danger">记录理由并淘汰</button>
+        <button id="reject-cancel-btn" class="quiet" style="margin-left:auto;">取消 (Esc)</button>
+      </div>
+    </div>
+  </dialog>
   <dialog id="editor" class="editor-dialog"><div class="dialog-header"><h2 id="editor-title"></h2><button id="editor-close" class="icon-button" aria-label="关闭对话框">×</button></div><div id="editor-content"></div></dialog>
   <dialog id="lightbox" class="lightbox"><div class="lightbox-bar"><span id="lightbox-title"></span><button id="lightbox-zoom">切换原尺寸</button><button id="lightbox-close">关闭</button></div><div class="lightbox-image"><img id="lightbox-image" alt="独立来源图片"></div></dialog>
   <div id="toast" class="toast" role="status" hidden></div>

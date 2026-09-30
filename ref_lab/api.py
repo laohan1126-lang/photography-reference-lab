@@ -5,6 +5,7 @@ import hmac
 import json
 import os
 import time
+from pathlib import Path
 from collections import defaultdict, deque
 from urllib.parse import urlsplit
 from fastapi import FastAPI, File, Form, Query, Request, UploadFile
@@ -32,12 +33,17 @@ class Login(Strict):
     token: str
 
 
+class MaintenanceInput(Strict):
+    enabled: bool
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     library = Library(settings)
     app = FastAPI(title="Photography Reference Lab", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.library = library
     app.state.settings = settings
+    maintenance_file = settings.data_dir / "maintenance"
     origin = settings.public_origin.rstrip("/")
     origin_url = urlsplit(origin)
     allowed_hosts = [origin_url.hostname]
@@ -79,6 +85,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if request.method not in {"GET", "HEAD", "OPTIONS"} and not bearer_ok:
                 if not hmac.compare_digest(request.headers.get("x-lab-csrf", ""), csrf_for(settings.token, session)):
                     return JSONResponse({"message": "CSRF check failed; refresh and retry"}, 403)
+            if (maintenance_file.exists() and path != "/api/maintenance"
+                    and (request.method not in {"GET", "HEAD", "OPTIONS"}
+                         or path.endswith("/screening-sessions/current") or path == "/api/profile")):
+                return JSONResponse({"message": "资料库正在受控维护，暂时只读；请稍后重试。"}, 503)
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
@@ -93,6 +103,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/health")
     def health():
         return {"status": "ok", "version": __version__}
+
+    @app.get("/api/runtime")
+    def runtime_info():
+        # Read the connection, not merely the launcher configuration.
+        with library.db.read() as con:
+            database = next(r[2] for r in con.execute("PRAGMA database_list") if r[1] == "main")
+            return {"pid": os.getpid(), "source": str(Path(__file__).resolve()),
+                    "database": database, "data_dir": str(settings.data_dir.resolve()),
+                    "schema": con.execute("PRAGMA user_version").fetchone()[0],
+                    "maintenance": maintenance_file.exists(),
+                    "foreign_key_errors": len(con.execute("PRAGMA foreign_key_check").fetchall()),
+                    "counts": {t: con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+                               for t in ("projects", "assets", "refs", "inspirations", "events")}}
+
+    @app.post("/api/maintenance")
+    def maintenance(data: MaintenanceInput):
+        # Persist across restart and directory copying; this fences new HTTP writes.
+        # Existing workers/CLI must still be drained before a stopped-service snapshot.
+        if data.enabled:
+            maintenance_file.write_text("Controlled adoption: HTTP writes paused.\n", encoding="utf-8")
+        else:
+            maintenance_file.unlink(missing_ok=True)
+        return {"maintenance": maintenance_file.exists()}
 
     @app.get("/api/session")
     def session_info(request: Request):
@@ -411,6 +444,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/profile/rollback")
     def rollback_profile(data: RollbackProfileInput):
         return library.rollback_profile(data.target_version)
+
+    @app.post("/api/skills/curator/refine")
+    def refine_curator_skill():
+        return library.refine_curator_skill()
 
 
     @app.post("/api/projects/{project_id}/pack")

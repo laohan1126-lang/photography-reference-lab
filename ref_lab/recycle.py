@@ -23,6 +23,12 @@ def cleanup(library: Library, *, days: int = 30, apply: bool = False) -> dict:
         notes = [json.loads(r[0]) for r in con.execute("SELECT data FROM notes")]
         jobs = [json.loads(r[0]) for r in con.execute("SELECT data FROM jobs WHERE kind='analysis' AND status IN ('blocked','queued','running','failed')")]
         active = {r[0] for r in con.execute("SELECT asset_sha FROM inspirations WHERE active=1")}
+        # Confirmed examples must remain viewable even after rejection or profile rollback.
+        profiles = [json.loads(r[0]) for r in con.execute("SELECT data FROM aesthetic_profile_history")]
+        profiles += [json.loads(r[0]) for r in con.execute("SELECT data FROM aesthetic_profiles")]
+        feedback_assets = {item.get("asset_sha") for profile in profiles
+                           for key in ("positive_exemplars", "explicit_aesthetic_negatives", "project_use_exemplars")
+                           for item in profile.get(key, [])}
         by_asset: dict[str, list[dict]] = {}
         for ref in refs:
             by_asset.setdefault(ref.get("asset_sha"), []).append(ref)
@@ -38,7 +44,7 @@ def cleanup(library: Library, *, days: int = 30, apply: bool = False) -> dict:
                 safe = safe and all(datetime.fromisoformat(t) < cutoff for t in timestamps)
             except (ValueError, TypeError):
                 safe = False
-            safe = safe and sha not in active
+            safe = safe and sha not in active and sha not in feedback_assets
             safe = safe and not any(sha in n.get("body", "") or sha in n.get("image_assets", []) for n in notes)
             safe = safe and not any(sha == s.get("asset_sha") for j in jobs for s in j.get("snapshots", {}).values())
             if not safe:

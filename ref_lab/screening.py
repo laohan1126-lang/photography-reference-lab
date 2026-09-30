@@ -55,19 +55,32 @@ def record_session_action(
     asset_sha: str,
     decision: str,
     lane: str = "field",
-    preference: str = "",
+    preference: str | None = None,
     borrow: list[str] | None = None,
     is_aesthetic_negative: bool = False,
     reject_reason: str = "",
     preflight: dict[str, Any] | None = None,
+    reference_revision: int | None = None,
+    project_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     row = con.execute("SELECT data FROM screening_sessions WHERE id=?", (session_id,)).fetchone()
     if not row:
         raise ValueError(f"Screening session {session_id} not found")
     data = json.loads(row[0])
 
+    if data["status"] != "active":
+        raise ValueError("Screening session is no longer active")
+    previous = next((a for a in reversed(data["actions"]) if a.get("reference_id") == reference_id
+                     and a.get("asset_sha") == asset_sha and a.get("origin") == "human_curation"), {})
+    # Carry forward only explicit human notes from this session, never legacy annotations.
+    if preference is None:
+        preference = previous.get("preference", "")
+    if borrow is None:
+        borrow = previous.get("borrow", [])
     # Record action
     action_record = {
+        "origin": "human_curation",
+        "reference_revision": reference_revision, "project_context": project_context,
         "reference_id": reference_id,
         "asset_sha": asset_sha,
         "decision": decision,
@@ -104,11 +117,22 @@ def finish_screening_session(con: sqlite3.Connection, session_id: str) -> dict[s
         raise ValueError(f"Screening session {session_id} not found")
     data = json.loads(row[0])
 
-    data["finished_at"] = now()
+    if data["status"] not in {"active", "reviewing_summary"}:
+        raise ValueError("Completed session cannot be finished again")
+    # Preserve raw clicks; summarize the last choice per reference/image, not repeated clicks.
+    items = list({(a.get("reference_id"), a.get("asset_sha")): a for a in data.get("actions", [])}.values())
+    stats = {"viewed": len(items), "keep": 0, "inspiration": 0, "maybe": 0, "reject": 0}
+    for item in items:
+        key = "inspiration" if item["decision"] == "keep" and item.get("lane") == "inspiration" else item["decision"]
+        if key in stats:
+            stats[key] += 1
+    data["stats"] = stats
+    data["finished_at"] = data.get("finished_at") or now()
     data["status"] = "reviewing_summary"
 
     # Derive hypotheses from this session's actions
-    hypotheses = derive_session_hypotheses(data, data.get("actions", []))
+    hypotheses = derive_session_hypotheses(data, items) if data.get("evidence_boundary_version") != 1 else data["derived_hypotheses"]
+    data["evidence_boundary_version"] = 1
     data["derived_hypotheses"] = hypotheses
 
     con.execute(
@@ -126,7 +150,7 @@ def finish_screening_session(con: sqlite3.Connection, session_id: str) -> dict[s
         "stats": data["stats"],
         "hypotheses": hypotheses,
         "current_profile_version": profile["version"],
-        "exemplar_candidates_count": len([a for a in data.get("actions", []) if a.get("decision") == "keep"]),
+        "exemplar_candidates_count": len([a for a in items if a.get("decision") == "keep"]),
     }
     return summary
 
@@ -142,18 +166,39 @@ def confirm_session_summary(
         raise ValueError(f"Screening session {session_id} not found")
     data = json.loads(row[0])
 
+    if data["status"].startswith("completed_"):
+        if data.get("accepted_hypotheses") != accepted_hypotheses or data.get("apply_to_profile") != apply_to_profile:
+            raise ValueError("Completed summary cannot be overwritten")
+        return {"session_id": session_id, "status": data["status"], "accepted_hypotheses": accepted_hypotheses,
+                "apply_to_profile": apply_to_profile, "profile_version": data["result_profile_version"],
+                "profile": None, "idempotent": True}
+    if data["status"] != "reviewing_summary":
+        raise ValueError("Finish the session before confirming")
+    if data.get("evidence_boundary_version") != 1:
+        raise ValueError("Historical summary must be reviewed again before confirmation")
+    allowed = {h["text"] for h in data.get("derived_hypotheses", [])}
+    if len(accepted_hypotheses) != len(set(accepted_hypotheses)) or not set(accepted_hypotheses) <= allowed:
+        raise ValueError("Only this session's displayed summaries can be confirmed")
+    items = list({(a.get("reference_id"), a.get("asset_sha")): a for a in data.get("actions", [])}.values())
     data["accepted_hypotheses"] = accepted_hypotheses
     data["apply_to_profile"] = apply_to_profile
 
+    selected_categories = {h["category"] for h in data["derived_hypotheses"] if h["text"] in accepted_hypotheses}
+    def selected_item(item):
+        if item.get("decision") == "keep":
+            category = "inspiration_signal" if item.get("lane") == "inspiration" else "keep_reference"
+        else:
+            category = "aesthetic_negative" if item.get("decision") == "reject" and item.get("is_aesthetic_negative") else None
+        return item.get("origin") == "human_curation" and category in selected_categories
     new_profile = None
     if apply_to_profile and accepted_hypotheses:
         new_profile = update_profile_from_session(
             con,
             session_id=session_id,
             accepted_hypotheses=accepted_hypotheses,
-            exemplar_items=data.get("actions", []),
+            exemplar_items=[i for i in items if selected_item(i)],
         )
-        data["status"] = "completed_learned"
+        data["status"] = "completed_feedback_saved"
         data["result_profile_version"] = new_profile["version"]
     else:
         data["status"] = "completed_skipped_learning"

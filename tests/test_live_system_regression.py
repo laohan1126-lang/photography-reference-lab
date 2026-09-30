@@ -121,7 +121,10 @@ def real_curation_journey(page,library):
     ref=library.references(second['id'])['items'][0]
     assert ref['asset_sha']==library.reference(selected)['asset_sha']
     assert ref['review'] is None and ref['card'] is None and not ref['field_ready']
-    page.locator('[data-decision=reject]').click();wait_until(page, '!state.busy')
+    page.locator('[data-decision=reject]').click()
+    expect(page.locator('#reject-dialog')).to_be_visible()
+    expect(page.locator('#reject-reason-input')).to_be_focused()
+    page.keyboard.press('Enter');wait_until(page, '!state.busy')
     assert library.references(second['id'])['total']==0
     assert library.inspirations()['total']==1
     page.get_by_role('button',name='已淘汰 / 恢复',exact=True).click()

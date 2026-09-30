@@ -138,86 +138,18 @@ def derive_session_hypotheses(
 
     Never manufacture positive prose when evidence is absent.
     """
-    hypotheses: list[dict[str, Any]] = []
-
-    # Count signals
-    i_items = [it for it in items if it.get("decision") == "keep" and it.get("lane") == "inspiration"]
-    k_items = [it for it in items if it.get("decision") == "keep" and it.get("lane") != "inspiration"]
-    x_items = [it for it in items if it.get("decision") == "reject"]
-
-    # 1. Global Inspiration analysis (Strongest aesthetic signal)
-    if i_items:
-        tags = set()
-        for item in i_items:
-            for b in item.get("borrow", []):
-                tags.add(b)
-        tag_str = "、".join(tags) if tags else "综合光影动作"
-        hypotheses.append({
-            "id": f"hyp_{uuid4().hex[:8]}",
-            "category": "inspiration_signal",
-            "text": f"本轮共收藏 {len(i_items)} 张通用灵感（强正反馈），主要聚焦：{tag_str}",
-            "evidence_count": len(i_items),
-            "confidence": "high",
-            "dimension": "lighting",
-            "suggested_weight_delta": 0.15,
-        })
-
-    # 2. Project reference keep analysis
-    if len(k_items) >= 2:
-        hypotheses.append({
-            "id": f"hyp_{uuid4().hex[:8]}",
-            "category": "keep_reference",
-            "text": f"保留了 {len(k_items)} 张本角色参考，对实拍可执行摆姿有较好接纳度",
-            "evidence_count": len(k_items),
-            "confidence": "medium",
-            "dimension": "angles",
-            "suggested_weight_delta": 0.08,
-        })
-
-    # 3. Reject analysis: distinguish aesthetic rejection from quality/identity rejection
-    aesthetic_rejects = []
-    quality_rejects = []
-    for it in x_items:
-        pf = it.get("preflight", {})
-        if pf.get("status") == "filtered":
-            quality_rejects.append(it)
-        else:
-            aesthetic_rejects.append(it)
-
-    if aesthetic_rejects:
-        hypotheses.append({
-            "id": f"hyp_{uuid4().hex[:8]}",
-            "category": "aesthetic_negative",
-            "text": f"在及格候选中淘汰了 {len(aesthetic_rejects)} 张，表明对特定构图或现场表现有明确审美排除",
-            "evidence_count": len(aesthetic_rejects),
-            "confidence": "medium",
-            "dimension": "environment",
-            "suggested_weight_delta": -0.1,
-        })
-
-    if quality_rejects:
-        hypotheses.append({
-            "id": f"hyp_{uuid4().hex[:8]}",
-            "category": "preflight_rejection",
-            "text": f"淘汰了 {len(quality_rejects)} 张因预检存疑/杂乱的图（已作为质量/身份隔离，不污染审美偏好）",
-            "evidence_count": len(quality_rejects),
-            "confidence": "high",
-            "dimension": "quality",
-            "suggested_weight_delta": 0.0,
-        })
-
-    # 4. Uncertainty note if total actions are few
-    if len(items) < 5:
-        hypotheses.append({
-            "id": f"hyp_{uuid4().hex[:8]}",
-            "category": "uncertainty",
-            "text": "本轮筛选样本量较少（不足5张），偏好调整幅度建议保守",
-            "evidence_count": len(items),
-            "confidence": "low",
-            "dimension": "uncertainty",
-            "suggested_weight_delta": 0.0,
-        })
-
+    items = [i for i in items if i.get("origin") == "human_curation"]
+    hypotheses = []
+    groups = [("inspiration_signal", [i for i in items if i.get("decision") == "keep" and i.get("lane") == "inspiration"], "你收藏了通用灵感；这不自动表明喜欢某种光线或机位"),
+              ("keep_reference", [i for i in items if i.get("decision") == "keep" and i.get("lane") != "inspiration"], "你保留了项目参考；项目用途不等于长期审美偏好"),
+              ("aesthetic_negative", [i for i in items if i.get("decision") == "reject" and i.get("is_aesthetic_negative") is True], "你明确标记了审美不喜欢；保留理由与图片供以后复核")]
+    for category, cases, text in groups:
+        if cases:
+            hypotheses.append({"id": f"hyp_{uuid4().hex[:8]}", "category": category,
+                               "text": text, "evidence_count": len(cases), "confidence": "high",
+                               "rationale": "仅汇总人工选择，不推导摄影属性或自动调整权重",
+                               "evidence": [{k: i.get(k) for k in ("reference_id", "asset_sha", "preference", "borrow", "reject_reason")} for i in cases],
+                               "suggested_weight_delta": 0.0})
     return hypotheses
 
 
@@ -234,22 +166,11 @@ def update_profile_from_session(
     # Deep copy dimensions
     dims = json.loads(json.dumps(current.get("dimensions", DEFAULT_DIMENSIONS)))
 
-    # Apply bounded adjustment (max delta 0.2) based on confirmed hypotheses
-    for hyp in accepted_hypotheses:
-        if "灵感" in hyp or "光影" in hyp or "轮廓光" in hyp:
-            dims["lighting"]["rim_light"] = min(1.0, dims["lighting"].get("rim_light", 0.5) + 0.1)
-            dims["composition"]["dynamic_diagonal"] = min(1.0, dims["composition"].get("dynamic_diagonal", 0.5) + 0.08)
-        if "低机位" in hyp or "低角度" in hyp or "摆姿" in hyp:
-            dims["angles"]["low_angle"] = min(1.0, dims["angles"].get("low_angle", 0.5) + 0.1)
-            dims["framing"]["full_body"] = min(1.0, dims["framing"].get("full_body", 0.5) + 0.08)
-        if "杂乱" in hyp or "排除" in hyp:
-            dims["environment"]["crowded_scene"] = max(0.0, dims["environment"].get("crowded_scene", 0.3) - 0.1)
-        if "影棚" in hyp or "背景" in hyp:
-            dims["environment"]["studio_clean"] = min(1.0, dims["environment"].get("studio_clean", 0.5) + 0.1)
-
+    # Confirmed text is retained verbatim. Keywords cannot justify numeric weights.
     # Collect exemplars
     positives = list(current.get("positive_exemplars", []))
     negatives = list(current.get("explicit_aesthetic_negatives", []))
+    project_uses = list(current.get("project_use_exemplars", []))
 
     for it in exemplar_items:
         sha = it.get("asset_sha")
@@ -257,20 +178,24 @@ def update_profile_from_session(
             continue
         dec = it.get("decision")
         lane = it.get("lane")
-        if dec == "keep":
+        if dec == "keep" and lane != "inspiration":
+            project_uses.append({"asset_sha": sha, "session_id": session_id,
+                                 "reference_id": it.get("reference_id"), "project_context": it.get("project_context"),
+                                 "preference": it.get("preference", ""), "origin": "human_project_use"})
+        elif dec == "keep" and lane == "inspiration":
             if not any(p["asset_sha"] == sha for p in positives):
                 positives.append({
                     "asset_sha": sha,
                     "source_type": "inspiration" if lane == "inspiration" else "keep",
                     "preference": it.get("preference", ""),
-                    "added_at": now(),
+                    "session_id": session_id, "origin": "human_curation", "added_at": now(),
                 })
         elif dec == "reject" and it.get("is_aesthetic_negative"):
             if not any(n["asset_sha"] == sha for n in negatives):
                 negatives.append({
                     "asset_sha": sha,
                     "reason": it.get("reject_reason", "审美淘汰"),
-                    "added_at": now(),
+                    "session_id": session_id, "origin": "human_curation", "added_at": now(),
                 })
 
     all_accepted = list(current.get("accepted_hypotheses", []))
@@ -286,6 +211,7 @@ def update_profile_from_session(
         "version": new_version,
         "updated_at": now(),
         "dimensions": dims,
+        "project_use_exemplars": project_uses,
         "positive_exemplars": positives[-50:],  # keep last 50 exemplars
         "explicit_aesthetic_negatives": negatives[-30:],  # keep last 30 negatives
         "accepted_hypotheses": all_accepted,

@@ -180,7 +180,7 @@ function renderHeader() {
         $('export-pack').onclick=()=>packDialog(); $('show-events').onclick=()=>navigate('events');
         $('archive-project').onclick=()=>archiveProject(p).catch(showError);
     } else {
-        const titles={inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','长期审美倾向模型与版本演进；AI 基于筛选行为形成可复核假说，经你确认后沉淀，可随时回滚。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
+        const titles={inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','保留人工选择、审美笔记与确认总结；默认和历史权重不是已验证的个人偏好。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
         const t=titles[state.view]||titles.inspiration;
         $('project-header').innerHTML=`<div><span class="eyebrow">${t[0]}</span><h1>${t[1]}</h1><p>${t[2]}</p></div>${state.view==='inspiration'?'<div class="header-actions"><button id="add-inspiration" class="primary">＋ 收藏独立图片</button></div>':''}`;
         if ($('add-inspiration')) $('add-inspiration').onclick=()=>importDialog();
@@ -462,8 +462,8 @@ function preflightBadge(ref) {
     const status = ref.preflight_status || ref.preflight?.status;
     if (!status) return '';
     const badges = {
-        passed: '<span class="badge badge-success">身份匹配</span>',
-        uncertain: '<span class="badge badge-warning">身份存疑</span>',
+        passed: '<span class="badge badge-success">预检推断匹配</span>',
+        uncertain: '<span class="badge badge-warning">预检身份存疑</span>',
         transferable: '<span class="badge badge-info">可迁移动作</span>',
         filtered: '<span class="badge badge-danger">已过滤</span>',
         restored: '<span class="badge badge-info">人工恢复</span>'
@@ -476,16 +476,18 @@ function preflightBadge(ref) {
 function recommendationBadges(ref) {
     const rec = ref.recommendation;
     if (!rec) return '';
-    const tags = [];
-    if (rec.identity_status && rec.identity_status !== 'passed' && rec.identity_status !== 'restored') {
-        tags.push(`<span class="tag tag-dim">${esc(rec.identity_status)}</span>`);
-    }
-    (rec.photographic_points || []).forEach(p => tags.push(`<span class="tag tag-photo">📷 ${esc(p)}</span>`));
-    (rec.preference_points || []).forEach(p => tags.push(`<span class="tag tag-pref">★ ${esc(p)}</span>`));
-    if (rec.exploration_reason) {
-        tags.push(`<span class="tag tag-explore">✦ ${esc(rec.exploration_reason)}</span>`);
-    }
-    return tags.length ? `<div class="recommendation-tags">${tags.join(' ')}</div>` : '';
+    const e = rec.evidence || {}, observation = e.visual_observations || {}, pf = e.preflight || {};
+    const labels = {unreviewed:'尚未逐图核验',human_visual_review:'人工图像判断',ai_visual_inference:'AI 图像推断，待核对',unknown_producer:'来源未核实的历史判断',local_heuristic:'本地规则预检，待核对',agent_prediction:'Agent 预检推断，待核对'};
+    const list = items => (items || []).map(x => `<li>${esc(x)}</li>`).join('');
+    return `<div class="recommendation-tags">${(rec.photographic_points || []).map(x => `<span class="tag tag-dim">${esc(x)}</span>`).join('')}</div>
+        <details class="evidence-origin"><summary>判断来自哪里</summary>
+        <p>来源标题与搜索词只用于发现，不是图片事实：${esc(e.discovery_context?.title || '')} · ${esc(e.discovery_context?.search_query || '')}</p>
+        <p>${esc(labels[observation.origin] || '尚无逐图观察')} · ${esc(observation.producer || '')}</p>
+        <ul>${list(observation.items)}</ul>
+        <p>${esc(labels[pf.origin] || '预检未知')} · ${esc(pf.producer || '')}</p><ul>${list(pf.items)}</ul>
+        <p>拍摄方案 / 布光解释（${esc(e.shooting_plan?.producer || '尚无方案')}）：${esc(e.shooting_plan?.interpretation || '')}。这是方案或推断，不是原片光位事实；${e.shooting_plan?.current_context ? '项目条件对应当前版本' : '当前项目条件尚未核验'}。</p>
+        <p>你的选择与审美笔记属于个人判断（${e.human_feedback?.preference_origin === 'human_curation' ? '本应用人工填写' : '历史来源未核实'}）：${esc(e.human_feedback?.preference || '')}。K 表示项目用途，X 不自动表示审美不喜欢。</p>
+        <p>${esc((rec.unknowns || []).join('；'))}</p></details>`;
 }
 
 function renderDetail(ref) {
@@ -507,7 +509,7 @@ function renderDetail(ref) {
     <details class="advanced-panel"><summary>来源、判断修正与手动制卡</summary><p class="form-help">只有需要纠错时才填写。搜索来源不等于角色事实，人工修正不会自动确认现场卡。</p><div class="compact-row"><button id="review-reference">修正图片判断</button><button id="edit-source">来源与标题</button><button id="edit-card">手动编辑资料卡</button><button id="context-reference">发现上下文</button><button id="similar-images">相似图线索</button><button id="replace-image">替换图片</button></div>${blockers.length?`<div class="gate-box"><strong>制卡仍需检查</strong><ul>${blockers.map(b=>`<li>${esc(b.message)}</li>`).join('')}</ul></div>`:''}${ref.legacy_notes?`<details><summary>历史说明（未验证）</summary><pre>${esc(ref.legacy_notes)}</pre></details>`:''}<p class="detail-meta">修订 ${ref.revision} · ${esc(ref.id.slice(0,12))}</p></details>
     ${selected?`<details class="advanced-panel"><summary>拍摄复盘</summary><button id="add-reflection">＋ 记录实拍经验</button>${(ref.reflections||[]).slice(-3).map(x=>`<p>${esc(x.worked||x.failed||x.next_time||'已记录')}</p>`).join('')}</details>`:''}
     ${ref.source.page_url?`<a class="source-link" href="${esc(ref.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:''}`;
-    listen('detail-panel','[data-decision]','click',(e,n)=>decide(n.dataset.decision));
+    listen('detail-panel','[data-decision]','click',(e,n)=>triggerDecision(n.dataset.decision, e.shiftKey));
     if($('restore-project-use'))$('restore-project-use').onclick=()=>restoreProjectUse(ref).catch(showError);
     if($('restore-preflight'))$('restore-preflight').onclick=()=>restorePreflight(ref).catch(showError);
     if($('make-transferable'))$('make-transferable').onclick=()=>makeTransferable(ref).catch(showError);
@@ -548,7 +550,7 @@ function matchesCurrentView(ref) {
     if(state.decision==='keep')return ref.decision==='keep'&&ref.lane==='field';
     return !state.decision||ref.decision===state.decision;
 }
-async function decide(choice) {
+async function decide(choice, rejectionReason = null, aestheticNegative = false) {
     const ref=current();if(!ref||state.busy||state.view==='inspiration')return;
     const index=state.refs.findIndex(x=>x.id===ref.id), hasNextPage=state.offset+state.limit<state.total;
     state.busy=true;
@@ -560,6 +562,7 @@ async function decide(choice) {
         }else{
             const body={expected_revision:ref.revision,decision:choice,...(state.dirty?preferenceValues():{})};
             if(choice==='keep')body.lane='field';
+            if(choice==='reject'){body.rejection_reason=rejectionReason || '';body.is_aesthetic_negative=aestheticNegative;}
             updated=await api(`/api/references/${ref.id}`,{method:'PATCH',body});
         }
         const next=state.autoAdvance?state.refs[index+1]?.id:ref.id;
@@ -581,6 +584,113 @@ async function decide(choice) {
         toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?'已选为角色参考；尚未制卡':'已标为待定');
     } finally {state.busy=false;}
 }
+
+function triggerDecision(choice, skipPrompt = false) {
+    if (choice === 'reject' && !skipPrompt) {
+        showRejectReasonDialog((reason, aesthetic) => decide('reject', reason, aesthetic).catch(showError));
+    } else {
+        decide(choice).catch(showError);
+    }
+}
+
+function showRejectReasonDialog(onConfirm) {
+    const dlg = $('reject-dialog');
+    if (!dlg) {
+        onConfirm('');
+        return;
+    }
+    const input = $('reject-reason-input');
+    input.value = '';
+    $('reject-aesthetic').checked = false;
+    dlg.querySelectorAll('.quick-tag').forEach(t => t.classList.remove('active'));
+
+    const cleanup = () => {
+        try { dlg.close(); } catch(e){}
+        $('reject-skip-btn').onclick = null;
+        $('reject-confirm-btn').onclick = null;
+        $('reject-cancel-btn').onclick = null;
+        input.onkeydown = null;
+    };
+
+    $('reject-skip-btn').onclick = () => {
+        cleanup();
+        onConfirm('');
+    };
+
+    $('reject-confirm-btn').onclick = () => {
+        const val = input.value.trim();
+        cleanup();
+        onConfirm(val, $('reject-aesthetic').checked);
+    };
+
+    $('reject-cancel-btn').onclick = () => {
+        cleanup();
+    };
+
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const val = input.value.trim();
+            cleanup();
+            onConfirm(val, $('reject-aesthetic').checked);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cleanup();
+        }
+    };
+
+    dlg.querySelectorAll('.quick-tag').forEach(tagBtn => {
+        tagBtn.onclick = () => {
+            const tag = tagBtn.dataset.tag;
+            if (input.value) {
+                if (!input.value.includes(tag)) input.value += '，' + tag;
+            } else {
+                input.value = tag;
+            }
+            tagBtn.classList.add('active');
+            input.focus();
+        };
+    });
+
+    dlg.showModal();
+    input.focus();
+}
+
+async function optimizeSkillFromRejectionReasons() {
+    try {
+        state.busy = true;
+        toast('正在整理人工淘汰理由...');
+        const res = await api('/api/skills/curator/refine', { method: 'POST' });
+
+        const content = `
+            <div class="optimize-summary-card">
+                <span class="eyebrow">REJECTION NOTES · 人工淘汰理由</span>
+                <h3>${esc(res.summary)}</h3>
+                <p class="muted">按关键词分组 ${res.total_reasons_collected} 条人工淘汰理由。分组不是视觉分析；未更新 Skill 或长期偏好：</p>
+                <div class="rules-categories">
+                    ${(res.categories || []).map(cat => `
+                        <div class="rule-cat-block">
+                            <h4>🏷️ ${esc(cat.category)} <small>(${cat.count}条案例)</small></h4>
+                            <ul>
+                                ${cat.core_principles.map(p => `<li>${esc(p)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="dialog-actions" style="margin-top:16px;">
+                    <button id="close-opt-dialog" class="primary">关闭理由汇总</button>
+                </div>
+            </div>
+        `;
+        modal('人工淘汰理由汇总', content);
+        if ($('close-opt-dialog')) $('close-opt-dialog').onclick = closeModal;
+    } catch (err) {
+        showError('整理淘汰理由失败: ' + (err.message || err));
+    } finally {
+        state.busy = false;
+    }
+}
+
 async function restoreReference(ref) {
     if(state.busy)return;state.busy=true;
     try{await api(`/api/references/${ref.id}/restore`,{method:'POST',body:{expected_revision:ref.revision}});await loadReferences();await renderStats();toast('已恢复原选择；现场卡确认仍需重新检查');}
@@ -628,7 +738,6 @@ async function contextDialog(ref) {
 
 
 function renderInspirationDetail(item) {
-    $('detail-panel').innerHTML=`<span class="eyebrow">INSPIRATION · INDEPENDENT ASSET</span><h2>${esc(item.title)}</h2><p class="curation-hint">这是独立收藏，不归属于任何角色。动作、表情、光影或电影画面都可以先留下来。</p><div class="compact-row">${item.active?`<button id="use-inspiration" class="primary" ${!item.file_available?'disabled':''}>引用到拍摄项目</button><button id="remove-inspiration" class="quiet">移出审美库</button>`:'<button id="restore-inspiration" class="primary">恢复收藏</button>'}</div><section class="guide-section"><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',item.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(item.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form></section><section class="guide-section"><h3>已被这些项目选作参考</h3>${item.used_in_projects.map(p=>`<button data-use-project="${esc(p.project_id)}" data-reference="${esc(p.reference_id)}">${esc(p.character)}</button>`).join('')||'<p>还没有角色引用它，也可以一直独立收藏。</p>'}</section><details class="advanced-panel"><summary>来源与收藏上下文</summary>${item.source.page_url?`<a href="${esc(item.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:'<p>未记录原发布页</p>'}<button id="inspiration-source">修改标题与来源</button><button id="context-reference">发现上下文</button>${item.context_notes.map(n=>`<p>${esc(state.projects.find(p=>p.id===n.project_id)?.character||'历史项目')}：${esc(n.preference)} ${esc(n.borrow.join('、'))}</p>`).join('')}</details>`;
     $('preference-form').oninput=()=>{state.dirty=true;$('dirty-indicator').textContent='尚未保存';};
     $('preference-form').onsubmit=e=>{e.preventDefault();savePreference().catch(showError);};
     if($('use-inspiration'))$('use-inspiration').onclick=()=>{if(requireSaved())useInspirationDialog(item);};
@@ -777,11 +886,11 @@ async function finishScreeningSessionModal() {
         const hypotheses = summary.hypotheses || [];
         const content = `
         <div class="session-summary-dialog">
-            <p class="form-help">筛选已完成。系统为你统计了本轮选择，并基于你的实际动作生成了可解释的审美偏好假说。你拥有完全的裁决权。</p>
+            <p class="form-help">已汇总本轮记录的最终选择。保留与淘汰不自动推导光线、机位或长期偏好；确认后保存可追溯的反馈与总结。</p>
             <div class="stats-grid" style="display:flex;gap:12px;margin:12px 0;">
                 <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
                     <div style="font-size:20px;font-weight:bold;">${stats.viewed || 0}</div>
-                    <small>已浏览</small>
+                    <small>有选择记录的图片</small>
                 </div>
                 <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
                     <div style="font-size:20px;font-weight:bold;color:var(--accent);">${stats.keep || 0}</div>
@@ -802,10 +911,10 @@ async function finishScreeningSessionModal() {
             </div>
 
             <form id="session-confirm-form">
-                <h3 style="margin-top:16px;">本轮沉淀假说（勾选你认可的推论）</h3>
+                <h3 style="margin-top:16px;">本轮选择总结（勾选你愿意保存的记录）</h3>
                 ${hypotheses.length ? hypotheses.map(h => `
                     <label class="check" style="margin-bottom:8px;align-items:flex-start;">
-                        <input type="checkbox" name="hypothesis" value="${esc(h.text)}" checked>
+                        <input type="checkbox" name="hypothesis" value="${esc(h.text)}">
                         <span>
                             <strong>${esc(h.text)}</strong><br>
                             <small class="muted">依据: ${esc(h.rationale)} · 置信度: ${esc(h.confidence)}</small>
@@ -815,11 +924,11 @@ async function finishScreeningSessionModal() {
 
                 <div style="margin:16px 0;padding:12px;background:#f9f9f9;border-radius:8px;border:1px solid var(--line);">
                     <label class="check">
-                        <input type="radio" name="apply_choice" value="true" checked>
-                        <span><strong>更新我的长期审美画像</strong>（版本将从 v${summary.current_profile_version} 推进）</span>
+                        <input type="radio" name="apply_choice" value="true">
+                        <span><strong>保存到长期反馈记录</strong>（保留总结与样本，不自动改数值权重）</span>
                     </label>
                     <label class="check" style="margin-top:6px;">
-                        <input type="radio" name="apply_choice" value="false">
+                        <input type="radio" name="apply_choice" value="false" checked>
                         <span><strong>这轮不学习</strong>（仅记录筛选完成，不影响全局画像与后续推荐权重）</span>
                     </label>
                 </div>
@@ -834,7 +943,7 @@ async function finishScreeningSessionModal() {
             e.preventDefault();
             const checkedHypotheses = [...root.querySelectorAll('input[name=hypothesis]:checked')].map(input => input.value);
             const applyChoice = root.querySelector('input[name=apply_choice]:checked').value === 'true';
-            await api(`/api/screening-sessions/${currentSess.id}/confirm`, {
+            const result = await api(`/api/screening-sessions/${currentSess.id}/confirm`, {
                 method: 'POST',
                 body: {
                     accepted_hypotheses: checkedHypotheses,
@@ -842,7 +951,7 @@ async function finishScreeningSessionModal() {
                 }
             });
             closeModal();
-            toast(applyChoice ? '本轮总结已确认，审美画像已更新' : '本轮筛选已完成（未更新画像）');
+            toast(result.status === 'completed_feedback_saved' ? '本轮总结与反馈已保存；权重未自动调整' : '本轮筛选已完成（未更新画像）');
             await loadReferences();
             await renderStats();
         };
@@ -889,8 +998,8 @@ async function renderProfile() {
     }).join('');
 
     const hypothesesHtml = (profile.accepted_hypotheses || []).map(h => `
-        <li style="margin-bottom:6px;">${esc(h)}</li>
-    `).join('') || '<p class="muted">尚未确认任何偏好假说。多挑几轮参考后将自动生成并提示。</p>';
+        <li style="margin-bottom:6px;">${esc(typeof h === 'string' ? h : h.text)}</li>
+    `).join('') || '<p class="muted">尚未确认选择总结。结束筛选后可以选择保存；不会自动推导偏好。</p>';
 
     const historyHtml = (history || []).map(h => `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);">
@@ -908,12 +1017,13 @@ async function renderProfile() {
     <div class="profile-view-layout" style="display:flex;gap:20px;padding:10px 0;">
         <div style="flex:1.2;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                <h3 style="margin:0;">偏好维度权重 (当前版本 v${profile.version})</h3>
-                <small class="muted">样本数: ${profile.positive_exemplars?.length || 0} 正样本 / ${profile.explicit_aesthetic_negatives?.length || 0} 负样本</small>
+                <h3 style="margin:0;">默认 / 历史维度权重 (版本 v${profile.version})</h3>
+                <small class="muted">样本数: ${profile.positive_exemplars?.length || 0} 历史/兴趣收藏 / ${profile.explicit_aesthetic_negatives?.length || 0} 明确负反馈</small>
             </div>
+            <p class="form-help">这些数值为默认或历史启发式权重，尚未验证为你的偏好，当前不用于个性化排序。新总结仅保留反馈，不按关键词改权重。</p>
             ${dimensionRows}
             <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px;">
-                <h4 style="margin:0 0 8px 0;">已采纳的审美偏好假说</h4>
+                <h4 style="margin:0 0 8px 0;">已确认的选择总结</h4>
                 <ul style="margin:0;padding-left:18px;">${hypothesesHtml}</ul>
             </div>
         </div>
@@ -945,6 +1055,7 @@ $('login-form').addEventListener('submit',async e=>{
     catch(error){$('login-error').textContent=error.message;}finally{button.disabled=false;}
 });
 $('new-project').onclick=()=>projectEditor();
+if ($('optimize-skill-btn')) $('optimize-skill-btn').onclick = optimizeSkillFromRejectionReasons;
 $('lock-library').onclick=async()=>{if(!safeDiscard())return;try{await api('/api/session',{method:'DELETE'});lockScreen();}catch(error){showError(error);}};
 listen(document,'[data-view]','click',(e,n)=>navigate(n.dataset.view));
 $('editor-close').onclick=manualCloseModal;
@@ -954,12 +1065,12 @@ $('lightbox-close').onclick=()=>$('lightbox').close();
 $('lightbox-zoom').onclick=()=>$('lightbox').classList.toggle('actual');
 window.addEventListener('beforeunload',event=>{if(state.dirty||modalDirty){event.preventDefault();event.returnValue='';}});
 document.addEventListener('keydown',event=>{
-    if($('editor').open||$('lightbox').open||$('application').hidden||state.busy||event.isComposing||event.ctrlKey||event.metaKey||event.altKey)return;
+    if($('editor').open||$('lightbox').open||$('reject-dialog')?.open||$('application').hidden||state.busy||event.isComposing||event.ctrlKey||event.metaKey||event.altKey)return;
     if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)||document.activeElement?.isContentEditable)return;
     if(!imageViews.includes(state.view))return;
     const key=event.key.toLowerCase();
     if(['k','i','m','x'].includes(key)&&state.view!=='inspiration'&&state.view!=='recycle'){
-        event.preventDefault();if(!event.repeat)decide({k:'keep',i:'inspiration',m:'maybe',x:'reject'}[key]).catch(showError);
+        event.preventDefault();if(!event.repeat)triggerDecision({k:'keep',i:'inspiration',m:'maybe',x:'reject'}[key], event.shiftKey);
     }else if(event.key==='ArrowRight'){event.preventDefault();moveImage(1);}
     else if(event.key==='ArrowLeft'){event.preventDefault();moveImage(-1);}
 });

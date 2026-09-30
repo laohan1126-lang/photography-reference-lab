@@ -248,7 +248,9 @@ class Library:
         saved = con.execute("SELECT id FROM inspirations WHERE asset_sha=? AND active=1", (ref["asset_sha"],)).fetchone()
         result["inspiration_id"] = saved[0] if saved else None
         result["workflow_stage"] = self._workflow_stage(con, ref, project, result)
-        return result
+        result["card_current_context"] = bool(ref.get("card") and ref.get("card_context") == context_digest(project))
+        from .ranking import score_and_rank_candidates
+        return score_and_rank_candidates([result])[0]
 
     def reference(self, ident: str) -> dict:
         with self.db.read() as con:
@@ -398,14 +400,6 @@ class Library:
             count = con.execute(f"SELECT COUNT(*) FROM refs WHERE {where}", args).fetchone()[0]
             rows = con.execute(f"SELECT data FROM refs WHERE {where} ORDER BY rowid LIMIT ? OFFSET ?", (*args, limit, offset))
             items = [self._decorate(con, json.loads(r[0]), project) for r in rows]
-            if not focus_id and not view_filtered and not view_recycle:
-                try:
-                    from .aesthetic_profile import get_current_profile
-                    from .ranking import score_and_rank_candidates
-                    profile = get_current_profile(con)
-                    items = score_and_rank_candidates(items, profile)
-                except Exception:
-                    pass
             return {"items": items, "total": count, "offset": offset, "limit": limit}
 
 
@@ -439,6 +433,20 @@ class Library:
                     ref["rejected_at"] = now()
                 elif changes.get("decision") and changes["decision"] != "reject":
                     ref["rejected_at"] = None
+                    ref["rejection_reason"] = None
+                if changes.get("decision") and changes["decision"] != "reject":
+                    ref["is_aesthetic_negative"] = False
+                elif changes.get("decision") == "reject":
+                    ref["is_aesthetic_negative"] = changes.get("is_aesthetic_negative", False)
+                if changes.get("is_aesthetic_negative") and changes.get("decision", ref["decision"]) != "reject":
+                    raise Problem(422, "审美负反馈只适用于明确淘汰的图片")
+                for field in ("decision", "preference", "borrow"):
+                    if field in changes:
+                        ref[field + "_origin"] = "human_curation"
+                if "is_aesthetic_negative" in changes:
+                    ref["aesthetic_negative_origin"] = "human_curation"
+                if "rejection_reason" in changes:
+                    ref["rejection_feedback_origin"] = "human"
                 ref.update(changes)
                 ref["accepted_fingerprint"] = None
                 # Only an explicit human choice saves a global membership. Merely
@@ -448,7 +456,20 @@ class Library:
                                                preference=ref["preference"], borrow=ref["borrow"], origin_ref=ref)
                     self.db.event(con, None, item["id"], "inspiration.saved", {"reference_id": ident})
                 self._save(con, ref, project, "reference.updated", changes)
+                if any(k in changes for k in ("decision", "lane", "preference", "borrow", "rejection_reason", "is_aesthetic_negative")):
+                    self._record_feedback(con, ref, changes)
             return self._decorate(con, ref, project)
+
+    def _record_feedback(self, con: sqlite3.Connection, ref: dict, changes: dict, *, inspiration: bool = False) -> None:
+        from .screening import get_or_create_active_session, record_session_action
+        session = get_or_create_active_session(con, ref["project_id"])
+        record_session_action(con, session["id"], ref["id"], ref.get("asset_sha"),
+                              "keep" if inspiration else ref["decision"],
+                              "inspiration" if inspiration else ref["lane"],
+                              preference=changes.get("preference"), borrow=changes.get("borrow"),
+                              is_aesthetic_negative=bool(ref.get("is_aesthetic_negative") and ref.get("aesthetic_negative_origin") == "human_curation"),
+                              reject_reason=ref.get("rejection_reason") or "",
+                              reference_revision=ref["revision"], project_context=row_data(con, "projects", ref["project_id"]))
 
     def apply_candidate_preflight(self, ident: str, preflight: CandidatePreflight, revision: int, producer: str) -> dict:
         with self.db.transaction() as con:
@@ -761,10 +782,12 @@ class Library:
             if ref["asset_sha"] and row_data(con, "assets", ref["asset_sha"]).get("storage_status") in {"purged", "purge_failed"}:
                 raise Problem(409, "图片字节已被清理；请重新导入相同图片后再恢复")
             previous = ref.get("before_reject") or {"decision": "pending", "lane": ref["lane"]}
-            ref.update(decision=previous["decision"], lane=previous["lane"], rejected_at=None, accepted_fingerprint=None)
+            ref.update(decision=previous["decision"], lane=previous["lane"], rejected_at=None, accepted_fingerprint=None,
+                       is_aesthetic_negative=False, rejection_reason=None, decision_origin="human_curation")
             project = row_data(con, "projects", ref["project_id"])
             ensure_active_project(project)
             self._save(con, ref, project, "reference.restored", {"decision": ref["decision"]})
+            self._record_feedback(con, ref, {"decision": ref["decision"]})
             return self._decorate(con, ref, project)
 
     def _decorate_inspiration(self, con: sqlite3.Connection, item: dict) -> dict:
@@ -822,6 +845,11 @@ class Library:
                 ref["preference"] = preference
             if borrow is not None:
                 ref["borrow"] = borrow
+            ref["decision_origin"] = "human_inspiration_archive"
+            if preference is not None:
+                ref["preference_origin"] = "human_curation"
+            if borrow is not None:
+                ref["borrow_origin"] = "human_curation"
             ref["lane"] = "inspiration"
             if ref["decision"] == "keep":
                 ref["decision"] = "pending"
@@ -835,6 +863,7 @@ class Library:
                 accepted_fingerprint=None,
             )
             self._save(con, ref, project, "reference.archived_to_inspiration", {"inspiration_id": item["id"]}, "human")
+            self._record_feedback(con, ref, {"preference": preference, "borrow": borrow}, inspiration=True)
             return self._decorate(con, ref, project)
 
     def edit_inspiration(self, ident: str, data: InspirationEdit) -> dict:
@@ -1175,6 +1204,7 @@ class Library:
     def current_screening_session(self, project_id: str) -> dict:
         from .screening import get_or_create_active_session
         with self.db.transaction() as con:
+            ensure_active_project(row_data(con, "projects", project_id))
             return get_or_create_active_session(con, project_id)
 
     def screening_sessions(self, project_id: str) -> list[dict]:
@@ -1193,7 +1223,8 @@ class Library:
         from .screening import confirm_session_summary
         with self.db.transaction() as con:
             res = confirm_session_summary(con, session_id, accepted_hypotheses, apply_to_profile)
-            self.db.event(con, None, session_id, "screening_summary.confirmed", res)
+            if not res.get("idempotent"):
+                self.db.event(con, None, session_id, "screening_summary.confirmed", res)
             return res
 
     def aesthetic_profile(self) -> dict:
@@ -1212,3 +1243,68 @@ class Library:
             res = rollback_profile(con, target_version)
             self.db.event(con, None, "current", "aesthetic_profile.rolled_back", {"target_version": target_version, "new_version": res["version"]})
             return res
+
+    def refine_curator_skill(self) -> dict:
+        """Extract explicit negative rules from recent rejection reasons and user feedback,
+        digesting them into actionable aesthetic principles for the curator skill.
+        """
+        rejection_cases = []
+        with self.db.read() as con:
+            rows = con.execute("SELECT data FROM refs WHERE decision='reject'").fetchall()
+            for r in rows:
+                d = json.loads(r[0])
+                reason = (d.get("rejection_reason") or "").strip()
+                human_reason = d.get("rejection_feedback_origin") == "human" or bool(con.execute(
+                    "SELECT 1 FROM events WHERE entity_id=? AND actor='human' AND action='reference.updated' AND json_extract(data,'$.rejection_reason')=? LIMIT 1",
+                    (d["id"], reason)).fetchone())
+                if reason and human_reason:
+                    rejection_cases.append({
+                        "reference_id": d["id"], "project_id": d["project_id"],
+                        "origin": "human_rejection_reason", "learning_eligible": bool(d.get("is_aesthetic_negative")),
+                        "title": d.get("title", ""),
+                        "reason": reason,
+                        "asset_sha": d.get("asset_sha", ""),
+                        "rejected_at": d.get("rejected_at", ""),
+                    })
+
+        # Cluster and synthesize
+        categories = {
+            "打光与影调": [],
+            "动态与姿势": [],
+            "背景与杂乱": [],
+            "商业与买家秀": [],
+            "非真人与AI": [],
+            "其他排他理由": []
+        }
+        for item in rejection_cases:
+            r = item["reason"]
+            if any(k in r for k in ["光", "曝", "惨白", "暗", "影", "油"]):
+                categories["打光与影调"].append(item)
+            elif any(k in r for k in ["姿", "动", "僵", "表情", "大头", "呆"]):
+                categories["动态与姿势"].append(item)
+            elif any(k in r for k in ["背", "杂", "乱", "路人", "景"]):
+                categories["背景与杂乱"].append(item)
+            elif any(k in r for k in ["买家秀", "服", "商", "闲鱼", "出物", "测评", "版型"]):
+                categories["商业与买家秀"].append(item)
+            elif any(k in r for k in ["ai", "AI", "模型", "立绘", "cg", "CG", "假人", "3d"]):
+                categories["非真人与AI"].append(item)
+            else:
+                categories["其他排他理由"].append(item)
+
+        synthesized_rules = []
+        for cat, items in categories.items():
+            if items:
+                reasons_sample = list(dict.fromkeys([it["reason"] for it in items]))[:5]
+                synthesized_rules.append({
+                    "category": cat,
+                    "count": len(items),
+                    "core_principles": reasons_sample, "cases": items
+                })
+
+        return {
+            "status": "ok",
+            "total_reasons_collected": len(rejection_cases),
+            "categories": synthesized_rules,
+            "skill_synced": False, "profile_updated": False, "origin": "human_rejection_reason",
+            "summary": f"按关键词整理 {len(rejection_cases)} 条人工淘汰理由；未更新 Skill 或审美画像",
+        }

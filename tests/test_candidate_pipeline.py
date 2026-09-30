@@ -258,7 +258,7 @@ def test_explainable_ranking_and_exploration_interleaving():
         assert "total_score" in rec
         assert "photographic_points" in rec
         assert "preference_points" in rec
-        assert rec["relevance_score"] >= 0.0
+        assert rec["relevance_score"] is None
 
     # Verify exploration slot interleaving (every 4th item has exploration tag or bonus)
     fourth_item = ranked[3]
@@ -338,12 +338,13 @@ def test_screening_session_and_grounded_hypotheses(app):
         # Check grounded hypotheses
         hypotheses = summary["hypotheses"]
         assert len(hypotheses) > 0
-        assert any("轮廓光" in h["text"] or "视角" in h["text"] for h in hypotheses)
+        assert any(h["category"] == "inspiration_signal" for h in hypotheses)
+        assert len(next(h for h in hypotheses if h["category"] == "aesthetic_negative")["evidence"]) == 1
 
         # Confirm summary and update profile
         accepted = [hypotheses[0]["text"]]
         result = confirm_session_summary(con, session["id"], accepted_hypotheses=accepted, apply_to_profile=True)
-        assert result["status"] == "completed_learned"
+        assert result["status"] == "completed_feedback_saved"
         assert result["profile_version"] >= 2
 
         # Check that profile now includes the accepted hypothesis
@@ -372,7 +373,8 @@ def test_aesthetic_profile_versioning_and_rollback(app):
             exemplar_items=[{"decision": "keep", "borrow": ["低角度", "轮廓光"]}],
         )
         assert v2["version"] == 2
-        assert v2["dimensions"]["lighting"]["rim_light"] > v1["dimensions"]["lighting"]["rim_light"]
+        assert v2["dimensions"] == v1["dimensions"]
+        assert v2["accepted_hypotheses"][0]["text"] == "偏好低角度构图与强轮廓光"
 
         # Simulate update from session 2
         v3 = update_profile_from_session(

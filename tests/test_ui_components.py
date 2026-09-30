@@ -216,7 +216,10 @@ def exercise_stable_strip(page, library, project, auto):
         assert page.evaluate("originalStrip===document.querySelector('#filmstrip')")
         assert page.evaluate('originalStrip.scrollLeft')>1500
     rejected=page.evaluate("document.querySelector('#filmstrip [aria-current=true]').dataset.ref")
-    page.keyboard.press('x');idle(page)
+    page.keyboard.press('x')
+    expect(page.locator('#reject-dialog')).to_be_visible()
+    expect(page.locator('#reject-reason-input')).to_be_focused()
+    page.keyboard.press('Enter');idle(page)
     expect(page.locator(f'#filmstrip [data-ref="{rejected}"]')).to_have_count(0)
     assert library.reference(rejected)['decision']=='reject'
     assert page.evaluate("originalStrip===document.querySelector('#filmstrip')")
@@ -352,3 +355,49 @@ def test_ui_batch_selection_copy_and_contact_board_entry(component_factory, clie
     page.locator("#selection-board").click()
     expect(page.locator("#editor")).to_contain_text("每页最多 4 张")
     expect(page.locator("[data-board-note]")).to_have_count(1)
+
+
+def test_evidence_and_explicit_feedback_ui(component_factory, client, library, project):
+    ref = add_reference(client, project, 200, title='轮廓光 低机位 动态')
+    if ref.get('preflight_filtered'):
+        client.post('/api/references/'+ref['id']+'/restore-preflight', json={'expected_revision':ref['revision']})
+    page = component_factory()
+    page.locator(f'#filmstrip [data-ref="{ref["id"]}"]').click()
+    expect(page.locator('.tag-photo')).to_have_count(0)
+    page.locator('.evidence-origin summary').click()
+    expect(page.locator('.evidence-origin')).to_contain_text('来源标题与搜索词只用于发现')
+    page.locator('#filmstrip [aria-current=true]').focus()
+    page.keyboard.press('x')
+    expect(page.locator('#reject-dialog')).to_be_visible()
+    page.locator('#reject-reason-input').fill('我不喜欢这样的影调')
+    page.locator('#reject-aesthetic').check()
+    page.locator('#reject-confirm-btn').click()
+    idle(page)
+    saved = library.reference(ref['id'])
+    assert saved['is_aesthetic_negative'] is True
+    session = library.current_screening_session(project['id'])
+    assert session['actions'][-1]['asset_sha'] == ref['asset_sha']
+    page.locator('#optimize-skill-btn').click()
+    expect(page.locator('#editor-title')).to_have_text('人工淘汰理由汇总')
+    expect(page.locator('#editor-content')).to_contain_text('未更新 Skill')
+    page.locator('#close-opt-dialog').click()
+    expect(page.locator('#editor')).not_to_be_visible()
+
+
+def test_finish_session_persists_only_explicitly_confirmed_feedback(component_factory,client,library,project):
+    ref=add_reference(client,project,200)
+    page=component_factory()
+    page.locator('#filmstrip [aria-current=true]').focus();page.keyboard.press('k');idle(page)
+    before=library.aesthetic_profile()
+    page.locator('#finish-screening-btn').click()
+    expect(page.locator('#session-confirm-form')).to_be_visible()
+    expect(page.locator('input[name=hypothesis]')).not_to_be_checked()
+    expect(page.locator('input[name=apply_choice][value=false]')).to_be_checked()
+    page.locator('input[name=hypothesis]').check()
+    page.locator('input[name=apply_choice][value=true]').check()
+    page.locator('#session-confirm-form button').click()
+    expect(page.locator('#editor')).not_to_be_visible()
+    profile=library.aesthetic_profile()
+    assert profile['dimensions']==before['dimensions']
+    assert profile['project_use_exemplars'][0]['asset_sha']==ref['asset_sha']
+    assert profile['positive_exemplars']==[]
