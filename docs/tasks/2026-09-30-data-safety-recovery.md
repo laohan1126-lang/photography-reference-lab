@@ -80,3 +80,10 @@ Next: (1) controlled adoption of repaired full backup after stopping the daily s
 ### Git handoff
 
 Task branch: codex/data-safety-recovery-20260930. Preserve pre-existing edits and untracked experiments. Stage only this task's normalized patch against the pre-edit snapshot plus its new/rewritten files; no mass newline normalization and no unrelated staging. Checkpoint commit and exact validation scope appended below after reviewed closeout.
+
+### Reviewed checkpoint receipt
+
+- Code checkpoint: `5297599ec40a6c4b3b41e74250964cc0b6b6beb9`, 9 files, 334 insertions / 7 deletions. No unrelated changes or newline normalization were staged. Existing personal-library rejection/refine test additions are preserved in the working tree and excluded from this commit.
+- Exported the exact committed tree to `.local/data-safety-20260930/checkpoint`; native Windows interpreter explicitly asserted `ref_lab.__file__` belongs to that snapshot. Ran `pytest.main(["-q", "tests/test_data_safety.py", "tests/test_imports_jobs.py", "tests/test_personal_library.py"])`: **39 passed**, 1 deprecation warning. The working checkout had 40 because it also contains the owner's uncommitted additional test. This proves the checkpoint does not depend on those uncommitted additions.
+- Exact reproduction from a clean checkout, Windows: `.venv\Scripts\python.exe -X utf8 -m pytest -q tests/test_data_safety.py tests/test_imports_jobs.py tests/test_personal_library.py`.
+- No push, remote CI or deployment claimed. Working tree still contains the pre-existing owner/Agent work and CRLF changes; staged index was reviewed empty after code commit. Recovery artifacts are private under `.local/data-safety-20260930`, including raw before snapshot, recovered library, full ZIP, restored library, exact validation JSON, runnable validation scripts, and actual screenshot.
