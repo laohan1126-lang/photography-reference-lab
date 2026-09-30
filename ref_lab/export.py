@@ -35,7 +35,7 @@ function section(title,items){const s=document.createElement('section'),h=docume
 for(const [label,text]of items){if(!text||Array.isArray(text)&&!text.length)continue;const t=document.createElement('h3'),p=document.createElement('p');t.textContent=label;p.textContent=Array.isArray(text)?text.map((x,i)=>(i+1)+'. '+x).join('\n'):text;s.append(t,p)}el('guide').append(s)}
 function render(){if(!refs.length){el('guide').textContent='此包没有参考。';return}const r=refs[index];el('picker').value=index;
 el('photo').src=r.offline_preview;el('original').href=r.offline_original;el('caption').textContent=r.title+' · '+r.asset.width+' × '+r.asset.height+' · 作者：'+(r.source.author||'未记录');el('guide').replaceChildren();
-if(pack.mode==='field'&&r.card){const c=r.card;section('现场口令',[['直接说',c.pose.verbal_cues],['摄影师动作',c.pose.photographer_steps],['安全与降级',c.pose.safety+'\n'+c.pose.fallback]]);
+if(pack.mode==='field'&&r.card){const c=r.card;if(r.review?.critical_uncertainties?.length)section('仍需注意的疑点',[['拍摄前核对',r.review.critical_uncertainties]]);section('现场口令',[['直接说',c.pose.verbal_cues],['摄影师动作',c.pose.photographer_steps],['安全与降级',c.pose.safety+'\n'+c.pose.fallback]]);
 section('学习与准备',[['静态摆姿',c.pose.static_steps],['动作引导',c.pose.action_directing],['图中光线证据',c.lighting.visible_evidence],['布光推测（不是原作者布光事实）',c.lighting.interpretation],['现有器材方案',c.lighting.available_gear_plan]]);
 section('后期路线：'+c.retouch.route,[['步骤',c.retouch.steps],['拍摄准备',c.retouch.capture_preparation],['AI背景说明',c.retouch.background_prompt]])}
 else section('灵感收藏',[['喜欢与借鉴',r.preference],['借鉴维度',r.borrow],['状态','未作为现场卡发布；请勿把历史说明当成已验证事实。']]);

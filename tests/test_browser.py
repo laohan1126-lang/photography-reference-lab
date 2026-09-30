@@ -125,9 +125,10 @@ def test_browser_agent_result_accept_and_offline_pack(live_site,browser_page,tmp
         assert hashlib.sha256(archive.read(ref['bundle_image'])).hexdigest()==ref['asset_sha']
     assert library.stats(project['id'])['ready']==0
     card=card_data();card['retouch']['route']='cleanup';card['retouch']['steps']=['只清理合成测试背景，不重绘人物。']
+    uncertainty='落脚点被遮挡；实际拍摄前先核对站位。'
     result={'schema_version':1,'job_id':job['id'],'items':[{'reference_id':ref['id'],
         'expected_revision':ref['revision'],'producer':'synthetic-browser-test-NOT-vision',
-        'result':{'review':review_data(ref['asset_sha']),'card':card}}]}
+        'result':{'review':review_data(ref['asset_sha'],critical_uncertainties=[uncertainty]),'card':card}}]}
     page.locator('#import-task-result').click()
     page.locator('#import-files').set_input_files({'name':'analysis.json','mimeType':'application/json','buffer':json.dumps(result).encode()})
     page.get_by_role('button',name='开始导入',exact=True).click()
@@ -140,6 +141,7 @@ def test_browser_agent_result_accept_and_offline_pack(live_site,browser_page,tmp
     page.locator('#accept-card').click()
     page.locator('#editor').wait_for(state='hidden')
     expect(page.locator('.next-step')).to_contain_text('这张卡已由你确认')
+    expect(page.get_by_label('仍需注意的疑点',exact=True)).to_contain_text(uncertainty)
     assert library.stats(project['id'])['ready']==1
     page.locator('.project-tools summary').click()
     page.get_by_role('button',name='离线拍摄包',exact=True).click()
@@ -158,6 +160,7 @@ def test_browser_agent_result_accept_and_offline_pack(live_site,browser_page,tmp
     guide=page.locator('#guide').text_content()
     assert '身体先朝那边' in guide and '现有器材方案' in guide
     assert '后期路线：cleanup' in guide and '只清理合成测试背景' in guide
+    assert uncertainty in guide and '仍需注意的疑点' in guide
     artifact(page,'offline-synthetic-field-card.png')
     page.context.set_offline(False)
     page.goto(url)
