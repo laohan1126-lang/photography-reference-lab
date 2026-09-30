@@ -17,7 +17,10 @@ from conftest import add_reference, card_data, image_bytes, ready_reference, rev
 def archive_bytes(files: dict[str, bytes | str]) -> bytes:
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
-        for name, data in files.items(): archive.writestr(name, data)
+        for name, data in files.items():
+            entry = zipfile.ZipInfo(name)
+            entry.filename = name
+            archive.writestr(entry, data)
     return out.getvalue()
 
 

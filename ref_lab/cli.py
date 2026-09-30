@@ -9,6 +9,7 @@ import sqlite3
 import sys
 import tempfile
 import zipfile
+from contextlib import closing
 from pathlib import Path
 from .config import ROOT, Settings
 from .db import encode
@@ -62,9 +63,9 @@ def backup(library: Library, output: Path) -> dict:
     with library.db.transaction():
         with tempfile.TemporaryDirectory() as temp:
             snapshot = Path(temp) / "library.sqlite3"
-            with library.db.read() as source, sqlite3.connect(snapshot) as destination:
+            with library.db.read() as source, closing(sqlite3.connect(snapshot)) as destination:
                 source.backup(destination)
-            with sqlite3.connect(snapshot) as con:
+            with closing(sqlite3.connect(snapshot)) as con:
                 assets = [json.loads(row[0]) for row in con.execute("SELECT data FROM assets")]
             try:
                 with zipfile.ZipFile(output, "x", zipfile.ZIP_DEFLATED) as archive:

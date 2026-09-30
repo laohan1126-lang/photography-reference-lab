@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import json
 import sqlite3
+from contextlib import closing
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -294,7 +295,7 @@ def test_true_v1_migration_preserves_choices_acceptance_and_aggregates_inspirati
     # Build the actual old schema, not a v2 database with a forged version number.
     old_path = library.settings.data_dir / "v1-fixture.sqlite3"
     old_tables = ("projects", "assets", "refs", "aliases", "jobs", "notes", "events")
-    with sqlite3.connect(old_path) as old, library.db.read() as source:
+    with closing(sqlite3.connect(old_path)) as old, old, library.db.read() as source:
         old.executescript(SCHEMA)
         for table in old_tables:
             rows = source.execute(f"SELECT * FROM {table}").fetchall()

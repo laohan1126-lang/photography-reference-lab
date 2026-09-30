@@ -34,7 +34,7 @@ def read_archive(content: bytes) -> dict[str, bytes]:
                 raise ValueError("Archive exceeds file-count or expanded-size limit")
             files = {}
             for entry in members:
-                name = archive_name(entry.filename)
+                name = archive_name(entry.orig_filename)
                 if stat.S_ISLNK(entry.external_attr >> 16) or entry.flag_bits & 1:
                     raise ValueError("Symlink and encrypted archives are not supported")
                 if entry.is_dir(): continue
