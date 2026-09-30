@@ -13,6 +13,7 @@ from pathlib import Path
 import shutil
 import signal
 import subprocess
+import sys
 import tempfile
 import time
 from uuid import uuid4
@@ -66,14 +67,19 @@ def timeout_seconds() -> float:
         raise AttemptStop("invalid_timeout", "采集超时设置须为 0.1 到 3600 之间的有限秒数。") from None
 
 
-def stop_process_tree(process: subprocess.Popen) -> None:
+def stop_process_tree(process: subprocess.Popen, *, windows_job_owned: bool = False) -> None:
     """Terminate only this attempt's process group, never the owner's browser."""
     if os.name == "nt":
         if process.poll() is None:
-            result = subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
-            if result.returncode and process.poll() is None:
-                raise AttemptStop("cleanup_failed", "Windows 子进程树清理失败，请检查本地进程；未宣称本轮成功。", "failed")
+            if windows_job_owned:
+                # Kill the actual supervisor by its held process handle. Its job
+                # handle closes in the kernel; no slow/PID-based taskkill launch.
+                process.terminate()
+            else:
+                result = subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
+                if result.returncode and process.poll() is None:
+                    raise AttemptStop("cleanup_failed", "Windows 子进程树清理失败，请检查本地进程；未宣称本轮成功。", "failed")
     else:
         try:
             # A child may remain in the group after the parent exits.
@@ -91,6 +97,10 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
     # A wrapper must return an artifact, not import into the real personal DB.
     env["LAB_DATA_DIR"] = str(directory / "adapter-scratch")
     options = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt" else {"start_new_session": True}
+    if os.name == "nt":
+        # Venv python.exe can be a redirector parent. The stdlib-only supervisor
+        # must be the process whose handle we hold; the adapter keeps its venv.
+        command = [sys._base_executable, str(Path(__file__).with_name("windows_adapter_runner.py")), *command]
     process = subprocess.Popen(command, cwd=directory, env=env, stdin=subprocess.DEVNULL,
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False, **options)
     try:
@@ -104,7 +114,7 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
             time.sleep(min(0.05, max(0, deadline - time.monotonic())))
         return process.returncode
     finally:
-        stop_process_tree(process)
+        stop_process_tree(process, windows_job_owned=os.name == "nt")
 
 
 def run_collection_attempt(library: Library, job_id: str) -> dict:

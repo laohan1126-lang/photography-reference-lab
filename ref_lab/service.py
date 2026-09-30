@@ -238,6 +238,16 @@ class Library:
         project = project or row_data(con, "projects", ref["project_id"])
         exists = self._asset_exists(con, ref)
         result = dict(ref)
+        # Old local gates mixed titles/color thresholds with visual assertions.
+        # Keep raw history on disk; read projections never advertise it as vision.
+        pf = result.get("preflight") or {}
+        if pf.get("producer") in {"vision-preflight-gate", "local_collection_adapter"} and pf.get("evidence_boundary_version") != 2:
+            result["preflight"] = {**pf, "content_type": "unknown", "identity_prediction": "uncertain",
+                                   "confidence": "low", "visual_evidence": [], "status": "uncertain",
+                                   "reason": "历史本地规则混用了来源文本；原记录保留，视觉结论未核验",
+                                   "status_reason": "历史预检未核验", "evidence_origin": "legacy_unverified"}
+            result["preflight_status"] = "uncertain"
+            result["preflight_reason"] = result["preflight"]["reason"]
         result["asset"] = row_data(con, "assets", ref["asset_sha"]) if ref["asset_sha"] else None
         detached = bool(ref.get("detached_at"))
         result["state"] = "detached" if detached else state_for(ref, project, exists)
@@ -443,6 +453,8 @@ class Library:
                 for field in ("decision", "preference", "borrow"):
                     if field in changes:
                         ref[field + "_origin"] = "human_curation"
+                if "decision" in changes:
+                    ref["decision_asset_sha"] = ref.get("asset_sha")
                 if "is_aesthetic_negative" in changes:
                     ref["aesthetic_negative_origin"] = "human_curation"
                 if "rejection_reason" in changes:
@@ -463,13 +475,19 @@ class Library:
     def _record_feedback(self, con: sqlite3.Connection, ref: dict, changes: dict, *, inspiration: bool = False) -> None:
         from .screening import get_or_create_active_session, record_session_action
         session = get_or_create_active_session(con, ref["project_id"])
+        membership = con.execute("SELECT data FROM inspirations WHERE asset_sha=? AND active=1", (ref.get("asset_sha"),)).fetchone() if inspiration or ref.get("lane") == "inspiration" else None
+        membership = json.loads(membership[0]) if membership else None
         record_session_action(con, session["id"], ref["id"], ref.get("asset_sha"),
                               "keep" if inspiration else ref["decision"],
                               "inspiration" if inspiration else ref["lane"],
-                              preference=changes.get("preference"), borrow=changes.get("borrow"),
+                              preference=changes.get("preference", ref.get("preference") if ref.get("preference_origin") == "human_curation" else None),
+                              borrow=changes.get("borrow", ref.get("borrow") if ref.get("borrow_origin") == "human_curation" else None),
                               is_aesthetic_negative=bool(ref.get("is_aesthetic_negative") and ref.get("aesthetic_negative_origin") == "human_curation"),
                               reject_reason=ref.get("rejection_reason") or "",
-                              reference_revision=ref["revision"], project_context=row_data(con, "projects", ref["project_id"]))
+                              reference_revision=ref["revision"], project_context=row_data(con, "projects", ref["project_id"]),
+                              decision_origin=ref.get("decision_origin", "legacy_unverified") if ref.get("decision_asset_sha") == ref.get("asset_sha") else "legacy_unverified",
+                              reference_fingerprint=digest(ref),
+                              inspiration_context={"id": membership["id"], "revision": membership["revision"]} if membership else None)
 
     def apply_candidate_preflight(self, ident: str, preflight: CandidatePreflight, revision: int, producer: str) -> dict:
         with self.db.transaction() as con:
@@ -783,7 +801,8 @@ class Library:
                 raise Problem(409, "图片字节已被清理；请重新导入相同图片后再恢复")
             previous = ref.get("before_reject") or {"decision": "pending", "lane": ref["lane"]}
             ref.update(decision=previous["decision"], lane=previous["lane"], rejected_at=None, accepted_fingerprint=None,
-                       is_aesthetic_negative=False, rejection_reason=None, decision_origin="human_curation")
+                       is_aesthetic_negative=False, rejection_reason=None, decision_origin="human_curation",
+                       decision_asset_sha=ref.get("asset_sha"))
             project = row_data(con, "projects", ref["project_id"])
             ensure_active_project(project)
             self._save(con, ref, project, "reference.restored", {"decision": ref["decision"]})
@@ -846,6 +865,7 @@ class Library:
             if borrow is not None:
                 ref["borrow"] = borrow
             ref["decision_origin"] = "human_inspiration_archive"
+            ref["decision_asset_sha"] = ref.get("asset_sha")
             if preference is not None:
                 ref["preference_origin"] = "human_curation"
             if borrow is not None:
@@ -1229,8 +1249,13 @@ class Library:
 
     def aesthetic_profile(self) -> dict:
         from .aesthetic_profile import get_current_profile
+        from .screening import feedback_is_current
         with self.db.transaction() as con:
-            return get_current_profile(con)
+            profile = get_current_profile(con)
+            for key in ("positive_exemplars", "explicit_aesthetic_negatives", "project_use_exemplars"):
+                for item in profile.get(key, []):
+                    item["learning_eligible"] = feedback_is_current(con, item)
+            return profile
 
     def profile_history(self) -> list[dict]:
         from .aesthetic_profile import list_profile_history
@@ -1260,7 +1285,7 @@ class Library:
                 if reason and human_reason:
                     rejection_cases.append({
                         "reference_id": d["id"], "project_id": d["project_id"],
-                        "origin": "human_rejection_reason", "learning_eligible": bool(d.get("is_aesthetic_negative")),
+                        "origin": "human_rejection_reason", "learning_eligible": bool(d.get("is_aesthetic_negative") and d.get("aesthetic_negative_origin") == "human_curation"),
                         "title": d.get("title", ""),
                         "reason": reason,
                         "asset_sha": d.get("asset_sha", ""),

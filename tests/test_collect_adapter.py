@@ -10,7 +10,7 @@ from PIL import Image
 
 from ref_lab.agent_collection import run_collection_attempt
 from ref_lab.models import JobInput
-from ref_lab.preflight import detect_modality, evaluate_identity
+from ref_lab.preflight import run_candidate_preflight, detect_modality, evaluate_identity
 from ref_lab.service import Library
 from ref_lab.db import encode
 from ref_lab.identity import build_identity_context
@@ -216,12 +216,12 @@ def test_deterministic_preflight_does_not_promote_query_metadata_to_visual_pass(
     }
     modality, evidence = detect_modality(image, metadata)
     assert modality == "unknown"
-    assert any("不能据此宣称真人实拍" in x for x in evidence)
+    assert evidence == []
 
     context = build_identity_context("王昭君", "王者荣耀", "长夜焕生")
     identity = evaluate_identity(first := image_bytes(seed=22, size=(800, 1200)), metadata, context)
     assert identity["prediction"] == "uncertain"
-    assert "metadata" in identity["reason"] or "标题/检索上下文" in identity["reason"]
+    assert "未从图像确认" in identity["reason"]
 
 
 def test_game_effect_metadata_is_filtered_even_when_query_is_cosplay():
@@ -235,7 +235,11 @@ def test_game_effect_metadata_is_filtered_even_when_query_is_cosplay():
         },
     }
     modality, _ = detect_modality(image, metadata)
-    assert modality == "game_screenshot"
+    assert modality == "unknown"
+    pf = run_candidate_preflight(image_bytes(seed=23, size=(1200,700)), metadata, None, "a"*64, "p")
+    assert pf["status"] == "filtered"
+    assert pf["visual_evidence"] == []
+    assert "特效设计" in pf["discovery_context"]["filter_terms"]
 
 
 def test_collect_adapter_transport_uses_schema2_without_fake_preflight(library, project, monkeypatch, tmp_path):
@@ -327,7 +331,9 @@ def test_startup_repairs_known_fake_local_adapter_preflight(client, project, lib
     repaired_library = Library(library.settings)
     repaired = repaired_library.reference(ref["id"])
     assert repaired["preflight"]["producer"] == "vision-preflight-gate"
-    assert repaired["preflight"]["content_type"] == "game_screenshot"
+    assert repaired["preflight"]["content_type"] == "unknown"
+    assert repaired["preflight"]["visual_evidence"] == []
+    assert "特效设计" in repaired["preflight"]["discovery_context"]["filter_terms"]
     assert repaired["preflight_status"] == "filtered"
     assert repaired["preflight_filtered"] is True
     assert repaired["invalidated_preflights"][-1]["producer"] == "local_collection_adapter"
@@ -346,7 +352,9 @@ def test_target_query_cannot_mask_explicit_confusion_character():
     }
     context = build_identity_context("王昭君", "王者荣耀", "长夜焕生")
     result = evaluate_identity(image_bytes(seed=88, size=(800, 1200)), metadata, context)
-    assert result["prediction"] == "mismatch"
+    assert result["prediction"] == "uncertain"
+    assert result["source_conflict"] is True
+    assert result["source_conflict_origin"] == "discovery_metadata"
     assert "小乔" in result["reason"]
 
 

@@ -138,7 +138,7 @@ def derive_session_hypotheses(
 
     Never manufacture positive prose when evidence is absent.
     """
-    items = [i for i in items if i.get("origin") == "human_curation"]
+    items = [i for i in items if i.get("origin") == "human_curation" and i.get("decision_origin") in {"human_curation", "human_inspiration_archive"}]
     hypotheses = []
     groups = [("inspiration_signal", [i for i in items if i.get("decision") == "keep" and i.get("lane") == "inspiration"], "你收藏了通用灵感；这不自动表明喜欢某种光线或机位"),
               ("keep_reference", [i for i in items if i.get("decision") == "keep" and i.get("lane") != "inspiration"], "你保留了项目参考；项目用途不等于长期审美偏好"),
@@ -178,25 +178,19 @@ def update_profile_from_session(
             continue
         dec = it.get("decision")
         lane = it.get("lane")
+        evidence = {k: it.get(k) for k in ("asset_sha", "reference_id", "reference_revision", "reference_fingerprint", "project_context", "inspiration_context", "borrow")}
+        evidence.update(session_id=session_id, added_at=now())
+        # Preserve different projects' judgments; replace repeated confirmation
+        # of the same reference/image in the current reusable sample view.
+        def upsert(samples, sample):
+            samples[:] = [s for s in samples if (s.get("reference_id"), s.get("asset_sha")) != (it.get("reference_id"), sha)]
+            samples.append({**evidence, **sample})
         if dec == "keep" and lane != "inspiration":
-            project_uses.append({"asset_sha": sha, "session_id": session_id,
-                                 "reference_id": it.get("reference_id"), "project_context": it.get("project_context"),
-                                 "preference": it.get("preference", ""), "origin": "human_project_use"})
+            upsert(project_uses, {"preference": it.get("preference", ""), "origin": "human_project_use"})
         elif dec == "keep" and lane == "inspiration":
-            if not any(p["asset_sha"] == sha for p in positives):
-                positives.append({
-                    "asset_sha": sha,
-                    "source_type": "inspiration" if lane == "inspiration" else "keep",
-                    "preference": it.get("preference", ""),
-                    "session_id": session_id, "origin": "human_curation", "added_at": now(),
-                })
+            upsert(positives, {"source_type": "inspiration", "preference": it.get("preference", ""), "origin": "human_curation"})
         elif dec == "reject" and it.get("is_aesthetic_negative"):
-            if not any(n["asset_sha"] == sha for n in negatives):
-                negatives.append({
-                    "asset_sha": sha,
-                    "reason": it.get("reject_reason", "审美淘汰"),
-                    "session_id": session_id, "origin": "human_curation", "added_at": now(),
-                })
+            upsert(negatives, {"reason": it.get("reject_reason", "审美淘汰"), "origin": "human_curation"})
 
     all_accepted = list(current.get("accepted_hypotheses", []))
     for h in accepted_hypotheses:
@@ -218,7 +212,7 @@ def update_profile_from_session(
         "uncertainties": current.get("uncertainties", []),
         "provenance": {
             "source_session_ids": source_sessions,
-            "total_feedback_count": current.get("provenance", {}).get("total_feedback_count", 0) + len(exemplar_items),
+            "total_feedback_count": len(project_uses) + len(positives[-50:]) + len(negatives[-30:]),
             "parent_version": current["version"],
         },
     }

@@ -45,7 +45,7 @@ class AssetStore:
             raise ValueError("Invalid image extension")
         return self.root / sha[:2] / sha / f"{variant}.{suffix}"
 
-    def ingest(self, content: bytes, filename: str = "") -> dict:
+    def ingest(self, content: bytes, filename: str = "", *, repair_derived: bool = False) -> dict:
         if not content or len(content) > self.settings.max_upload_bytes:
             raise ValueError("Empty image or image exceeds the 20 MiB upload limit")
         try:
@@ -80,14 +80,30 @@ class AssetStore:
             atomic_write(original, content)
         for variant, size in (("preview", 2000), ("thumb", 360)):
             target = self.path(meta, variant)
-            if not target.exists():
-                derivative = display.copy()
-                derivative.thumbnail((size, size), Image.Resampling.LANCZOS)
-                out = io.BytesIO()
-                derivative.save(out, "JPEG", quality=90, optimize=True)
-                atomic_write(target, out.getvalue())
+            if not target.exists() or repair_derived:
+                atomic_write(target, self._derivative_bytes(display, size))
         return meta
 
     def verify(self, metadata: dict) -> bool:
         path = self.path(metadata)
         return path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == metadata["id"]
+
+    @staticmethod
+    def _derivative_bytes(display: Image.Image, size: int) -> bytes:
+        derivative = display.copy()
+        derivative.thumbnail((size, size), Image.Resampling.LANCZOS)
+        out = io.BytesIO()
+        derivative.save(out, "JPEG", quality=90, optimize=True)
+        return out.getvalue()
+
+    def verify_derivative(self, metadata: dict, variant: str) -> bool:
+        if variant not in {"preview", "thumb"}:
+            raise ValueError("Expected a derivative variant")
+        try:
+            with Image.open(self.path(metadata)) as original:
+                original.load()
+                display = ImageOps.exif_transpose(original).convert("RGB")
+                expected = self._derivative_bytes(display, 2000 if variant == "preview" else 360)
+            return self.path(metadata, variant).read_bytes() == expected
+        except (OSError, ValueError):
+            return False

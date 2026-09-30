@@ -146,16 +146,17 @@ def test_identity_preflight_arima_kana_vs_akane():
         "title": "【我推的孩子】黑川茜 舞台演出正片",
         "source": {"search_query": "黑川茜 cosplay", "search_category": "cosplay_photo"},
     }
-    # Blue-headed image simulating Akane's blue hair
+    # Flat blue pixels cannot establish a head, person or character.
     blue_img = Image.new("RGB", (300, 400), (30, 40, 180))
     buf = io.BytesIO()
     blue_img.save(buf, "PNG")
     akane_bytes = buf.getvalue()
 
     res_akane = evaluate_identity(akane_bytes, akane_meta, kana_ctx)
-    assert res_akane["prediction"] == "mismatch"
+    assert res_akane["prediction"] == "uncertain"
+    assert res_akane["source_conflict"] is True
     assert "黑川茜" in res_akane["reason"]
-    assert res_akane["transferable_candidate"] is True  # Useful pose can be borrowed, not destroyed
+    assert res_akane["transferable_candidate"] is False  # Pixels did not establish a usable pose.
 
     # Matching candidate: Arima Kana
     kana_meta = {
@@ -168,7 +169,8 @@ def test_identity_preflight_arima_kana_vs_akane():
     kana_bytes = buf.getvalue()
 
     res_kana = evaluate_identity(kana_bytes, kana_meta, kana_ctx)
-    assert res_kana["prediction"] == "match"
+    assert res_kana["prediction"] == "uncertain"
+    assert res_kana["source_conflict"] is False
 
     # Honest uncertain: no metadata match and ambiguous pixels
     neutral_img = Image.new("RGB", (300, 400), (128, 128, 128))
@@ -188,9 +190,10 @@ def test_identity_preflight_kamen_rider_durendal_vs_sabela():
         "source": {"search_query": "假面骑士佩剑 cosplay", "search_category": "cosplay_photo"},
     }
     res_sabela = evaluate_identity(make_test_image(), sabela_meta, durendal_ctx)
-    assert res_sabela["prediction"] == "mismatch"
+    assert res_sabela["prediction"] == "uncertain"
+    assert res_sabela["source_conflict"] is True
     assert "Sabela" in res_sabela["reason"] or "佩剑" in res_sabela["reason"]
-    assert res_sabela["transferable_candidate"] is True
+    assert res_sabela["transferable_candidate"] is False
 
     # Metadata that names Durendal is still not visual identity proof.
     durendal_meta = {
@@ -271,87 +274,32 @@ def test_explainable_ranking_and_exploration_interleaving():
 # 6. Screening Session Lifecycle & Grounded Hypotheses
 # ==============================================================================
 
-def test_screening_session_and_grounded_hypotheses(app):
-    library = app.state.library
-    project = library.create_project(ProjectInput(character="有马加奈", work="我推的孩子"))
-
-    with library.db.transaction() as con:
-        # Start session
-        session = get_or_create_active_session(con, project["id"])
-        assert session["status"] == "active"
-        assert session["stats"]["viewed"] == 0
-
-        # Simulate actions
-        # 1. Keep a low-angle dynamic shot
-        record_session_action(
-            con,
-            session_id=session["id"],
-            reference_id="ref_1",
-            asset_sha="sha_1",
-            decision="keep",
-            lane="field",
-            preference="很喜欢这个低角度仰拍和眼神光",
-            borrow=["低角度", "眼神光", "轮廓光"],
-        )
-
-        # 2. Keep an inspiration shot
-        record_session_action(
-            con,
-            session_id=session["id"],
-            reference_id="ref_2",
-            asset_sha="sha_2",
-            decision="keep",
-            lane="inspiration",
-            preference="舞台光线质感极佳",
-            borrow=["轮廓光", "高对比度"],
-        )
-
-        # 3. Reject an aesthetic negative
-        record_session_action(
-            con,
-            session_id=session["id"],
-            reference_id="ref_3",
-            asset_sha="sha_3",
-            decision="reject",
-            is_aesthetic_negative=True,
-            reject_reason="背景太杂乱，光线平淡",
-        )
-
-        # 4. Reject due to quality / mismatch defect (NOT aesthetic negative!)
-        record_session_action(
-            con,
-            session_id=session["id"],
-            reference_id="ref_4",
-            asset_sha="sha_4",
-            decision="reject",
-            is_aesthetic_negative=False,
-            reject_reason="九宫格拼图缺陷",
-        )
-
-        # Finish session
-        summary = finish_screening_session(con, session["id"])
-        assert summary["stats"]["viewed"] == 4
-        assert summary["stats"]["keep"] == 1
-        assert summary["stats"]["inspiration"] == 1
-        assert summary["stats"]["reject"] == 2
-
-        # Check grounded hypotheses
-        hypotheses = summary["hypotheses"]
-        assert len(hypotheses) > 0
-        assert any(h["category"] == "inspiration_signal" for h in hypotheses)
-        assert len(next(h for h in hypotheses if h["category"] == "aesthetic_negative")["evidence"]) == 1
-
-        # Confirm summary and update profile
-        accepted = [hypotheses[0]["text"]]
-        result = confirm_session_summary(con, session["id"], accepted_hypotheses=accepted, apply_to_profile=True)
-        assert result["status"] == "completed_feedback_saved"
-        assert result["profile_version"] >= 2
-
-        # Check that profile now includes the accepted hypothesis
-        current_profile = get_current_profile(con)
-        assert current_profile["version"] == result["profile_version"]
-        accepted_texts = [h["text"] for h in current_profile["accepted_hypotheses"]]
-        assert accepted[0] in accepted_texts
+def test_screening_session_and_grounded_hypotheses(client, project, library):
+    # Real service choices and persisted references, not nonexistent ref_1/sha_1.
+    refs = [add_reference(client, project, i+70) for i in range(4)]
+    decisions = [
+        {"decision":"keep", "preference":"只用于当前项目", "borrow":["动作"]},
+        {"decision":"keep", "lane":"inspiration", "preference":"收藏兴趣"},
+        {"decision":"reject", "is_aesthetic_negative":True, "rejection_reason":"明确不喜欢"},
+        {"decision":"reject", "rejection_reason":"错角色，不是审美负反馈"},
+    ]
+    for ref, choice in zip(refs, decisions):
+        response = client.patch('/api/references/'+ref['id'], json={"expected_revision":ref['revision'], **choice})
+        assert response.status_code == 200, response.text
+    session = library.current_screening_session(project['id'])
+    summary = library.finish_screening_session(session['id'])
+    assert summary['stats'] == {"viewed":4,"keep":1,"inspiration":1,"maybe":0,"reject":2}
+    hypotheses = summary['hypotheses']
+    assert {h['category'] for h in hypotheses} == {"inspiration_signal","keep_reference","aesthetic_negative"}
+    assert len(next(h for h in hypotheses if h['category']=='aesthetic_negative')['evidence']) == 1
+    accepted = [hypotheses[0]['text']]
+    result = library.confirm_screening_summary(session['id'], accepted, True)
+    assert result['status']=='completed_feedback_saved'
+    profile = library.aesthetic_profile()
+    assert profile['version']==result['profile_version']
+    assert accepted[0] in [h['text'] for h in profile['accepted_hypotheses']]
+    assert len(profile['positive_exemplars']) == 1
+    assert profile['positive_exemplars'][0]['learning_eligible'] is True
 
 
 # ==============================================================================
@@ -552,7 +500,7 @@ def test_metadata_prefix_or_known_url_never_asserts_real_person_modality():
     }
     modality, evidence = detect_modality(image, metadata)
     assert modality == "unknown"
-    assert any("不能据此宣称真人实拍" in item for item in evidence)
+    assert evidence == []
 
 
 def test_costume_help_metadata_is_filtered_as_non_reference():
@@ -573,9 +521,12 @@ def test_costume_help_metadata_is_filtered_as_non_reference():
         project_id="project-a",
         reference_id="ref-a",
     )
-    assert result["content_type"] == "product"
+    assert result["content_type"] == "unknown"
+    assert result["visual_evidence"] == []
+    assert result["discovery_context"]["origin"] == "discovery_metadata"
     assert result["status"] == "filtered"
-    assert "服装求助" in result["status_reason"]
+    assert "来源文本筛选提示" in result["status_reason"]
+    assert "求助" in result["discovery_context"]["filter_terms"]
 
 
 def test_project_scoped_preflight_lookup_is_strict_and_chronological(app, client, project):

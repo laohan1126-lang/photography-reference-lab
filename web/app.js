@@ -477,7 +477,7 @@ function recommendationBadges(ref) {
     const rec = ref.recommendation;
     if (!rec) return '';
     const e = rec.evidence || {}, observation = e.visual_observations || {}, pf = e.preflight || {};
-    const labels = {unreviewed:'尚未逐图核验',human_visual_review:'人工图像判断',ai_visual_inference:'AI 图像推断，待核对',unknown_producer:'来源未核实的历史判断',local_heuristic:'本地规则预检，待核对',agent_prediction:'Agent 预检推断，待核对'};
+    const labels = {unreviewed:'尚未逐图核验',human_visual_review:'人工图像判断',ai_visual_inference:'AI 图像推断，待核对',unknown_producer:'来源未核实的历史判断',legacy_unverified:'历史预检未核验',local_heuristic:'本地像素规则提示，待核对',agent_prediction:'Agent 预检推断，待核对'};
     const list = items => (items || []).map(x => `<li>${esc(x)}</li>`).join('');
     return `<div class="recommendation-tags">${(rec.photographic_points || []).map(x => `<span class="tag tag-dim">${esc(x)}</span>`).join('')}</div>
         <details class="evidence-origin"><summary>判断来自哪里</summary>
@@ -499,7 +499,7 @@ function renderDetail(ref) {
     const next=ref.analysis_job?'查看制卡任务':ref.card?'检查草稿并确认':'制作现场卡';
     const blockers=(ref.blockers||[]).filter(b=>b.code!=='not_accepted');
     $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p>${preflightBadge(ref)}${recommendationBadges(ref)}</div>
-    ${pf?`<section class='gate-box'><strong>候选视觉预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p><small>来自 ${esc(pf.producer||'未记录执行器')}；这是 Agent prediction，不是人工确认。</small></section>`:''}
+    ${pf?`<section class='gate-box'><strong>候选预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p>${pf.discovery_context?`<p>来源文本提示（不是视觉证据）：${esc((pf.discovery_context.filter_terms||[]).join('、'))}</p>`:''}<small>来自 ${esc(pf.producer||'未记录执行器')}；这是规则或 Agent 推断，不是人工确认。</small></section>`:''}
     ${detached?`<button id="restore-project-use" class="primary">恢复到当前项目</button><p class="muted">这张图只是从当前项目移出，不是 X 淘汰；其他项目和全局收藏不受影响。</p>`:preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration"><strong>通用灵感</strong><small>I · 归档审美库并移出项目</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
     ${!detached&&!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
@@ -738,6 +738,7 @@ async function contextDialog(ref) {
 
 
 function renderInspirationDetail(item) {
+    $('detail-panel').innerHTML=`<span class="eyebrow">INSPIRATION · INDEPENDENT ASSET</span><h2>${esc(item.title)}</h2><p class="curation-hint">这是独立收藏，不归属于任何角色。动作、表情、光影或电影画面都可以先留下来。</p><div class="compact-row">${item.active?`<button id="use-inspiration" class="primary" ${!item.file_available?'disabled':''}>引用到拍摄项目</button><button id="remove-inspiration" class="quiet">移出审美库</button>`:'<button id="restore-inspiration" class="primary">恢复收藏</button>'}</div><section class="guide-section"><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',item.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(item.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form></section><section class="guide-section"><h3>已被这些项目选作参考</h3>${item.used_in_projects.map(p=>`<button data-use-project="${esc(p.project_id)}" data-reference="${esc(p.reference_id)}">${esc(p.character)}</button>`).join('')||'<p>还没有角色引用它，也可以一直独立收藏。</p>'}</section><details class="advanced-panel"><summary>来源与收藏上下文</summary>${item.source.page_url?`<a href="${esc(item.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:'<p>未记录原发布页</p>'}<button id="inspiration-source">修改标题与来源</button><button id="context-reference">发现上下文</button>${item.context_notes.map(n=>`<p>${esc(state.projects.find(p=>p.id===n.project_id)?.character||'历史项目')}：${esc(n.preference)} ${esc(n.borrow.join('、'))}</p>`).join('')}</details>`;
     $('preference-form').oninput=()=>{state.dirty=true;$('dirty-indicator').textContent='尚未保存';};
     $('preference-form').onsubmit=e=>{e.preventDefault();savePreference().catch(showError);};
     if($('use-inspiration'))$('use-inspiration').onclick=()=>{if(requireSaved())useInspirationDialog(item);};
@@ -939,8 +940,7 @@ async function finishScreeningSessionModal() {
             </form>
         </div>`;
         const root = modal('本轮筛选总结与偏好确认', content);
-        root.querySelector('#session-confirm-form').onsubmit = async (e) => {
-            e.preventDefault();
+        formSubmit(root, async () => {
             const checkedHypotheses = [...root.querySelectorAll('input[name=hypothesis]:checked')].map(input => input.value);
             const applyChoice = root.querySelector('input[name=apply_choice]:checked').value === 'true';
             const result = await api(`/api/screening-sessions/${currentSess.id}/confirm`, {
@@ -954,7 +954,7 @@ async function finishScreeningSessionModal() {
             toast(result.status === 'completed_feedback_saved' ? '本轮总结与反馈已保存；权重未自动调整' : '本轮筛选已完成（未更新画像）');
             await loadReferences();
             await renderStats();
-        };
+        });
     } catch (err) {
         showError(err);
     }
@@ -970,6 +970,8 @@ async function renderProfile() {
     if (epoch !== state.epoch) return;
 
     const dims = profile.dimensions || {};
+    const savedSamples = ['project_use_exemplars','positive_exemplars','explicit_aesthetic_negatives'].flatMap(k => profile[k] || []);
+    const currentSamples = savedSamples.filter(item => item.learning_eligible === true).length;
     const dimensionRows = Object.entries(dims).map(([category, weights]) => {
         const catNames = { angles: '视角偏好', framing: '景别偏好', lighting: '光线偏好', composition: '构图偏好', environment: '场景偏好' };
         const labelMap = {
@@ -1018,9 +1020,10 @@ async function renderProfile() {
         <div style="flex:1.2;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                 <h3 style="margin:0;">默认 / 历史维度权重 (版本 v${profile.version})</h3>
-                <small class="muted">样本数: ${profile.positive_exemplars?.length || 0} 历史/兴趣收藏 / ${profile.explicit_aesthetic_negatives?.length || 0} 明确负反馈</small>
+                <small class="muted">${currentSamples} 条当前可复用反馈 / ${savedSamples.length} 条保存记录</small>
             </div>
             <p class="form-help">这些数值为默认或历史启发式权重，尚未验证为你的偏好，当前不用于个性化排序。新总结仅保留反馈，不按关键词改权重。</p>
+            <p class="form-help">历史反馈保留；图片、选择、收藏或项目已改变的样本不作为当前学习输入。项目用途、兴趣收藏和明确负反馈分别保存。</p>
             ${dimensionRows}
             <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px;">
                 <h4 style="margin:0 0 8px 0;">已确认的选择总结</h4>

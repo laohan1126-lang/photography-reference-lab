@@ -17,9 +17,7 @@ from uuid import uuid4
 from PIL import Image
 
 from .db import encode, now
-from .identity import IdentityContext, normalize_character_key
 
-REAL_PERSON_MODALITIES = {"real_person_cosplay", "real_person_portrait"}
 FILTERED_MODALITIES = {
     "game_screenshot", "anime_screenshot", "official_illustration", "fan_art",
     "costume_display", "mannequin", "product", "collage", "scenery", "equipment",
@@ -27,61 +25,21 @@ FILTERED_MODALITIES = {
 
 
 def detect_modality(image: Image.Image, metadata: dict[str, Any]) -> tuple[str, list[str]]:
-    """Determine visual candidate modality and extract observable evidence."""
-    title = (metadata.get("title") or "").strip()
-    title_lower = title.lower()
-    source = metadata.get("source") or {}
-    source_url = (source.get("page_url") or "").lower()
-    tags = str(source.get("search_category") or "").lower()
-    # Search queries are discovery intent, never image facts. In particular,
-    # a query containing "cos" must not turn an unrelated result into cosplay.
-    combined = f"{title_lower} {source_url} {tags}"
-
-    if title.startswith("BTS_") or any(k in combined for k in ["bts", "器材", "机位", "布光图", "灯位", "镜头", "相机", "柔光"]):
-        return "equipment", ["画面为布光环境/摄影器材或花絮，非可执行人像摆姿主图"]
-
-    if title.startswith("PROP_") or any(k in combined for k in ["道具", "法杖制作", "假发造型", "定做", "武器道具", "假发", "商品图", "商品展示", "cos服", "cos服装"]):
-        return "product", ["来源上下文明示独立道具/假发/商品或服装销售展示，非真人动作参考"]
-
-    if title.startswith("OFFICIAL_"):
-        parts = title.split("_")
-        num = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 1
-        if num >= 8 or any(k in combined for k in ["3d", "model", "截图", "t-pose", "render", "建模"]):
-            return "game_screenshot", ["游戏引擎3D模型网格与贴图渲染特征", "画面为建模T-pose或游戏场景渲染截图"]
-        return "official_illustration", ["官方2D角色概念图/立绘插画", "非真人光学镜头摄影画面"]
-
-    if any(k in combined for k in ["截图", "游戏截图", "游戏画面", "screenshot", "游戏cg", "皮肤特效", "特效设计", "技能特效", "皮肤展示", "建模", "3d模型", "3d model", "render"]):
-        return "game_screenshot", ["来源标题/页面上下文明示游戏画面、特效展示或3D渲染；不能当真人摄影"]
-
-    if any(k in combined for k in ["插画", "同人画", "立绘", "原画", "手绘", "壁纸", "海报", "concept art", "illustration", "fanart", "fan art", "wallpaper", "pixiv", "厚涂"]):
-        mod = "official_illustration" if any(k in combined for k in ["官方", "立绘", "原画", "海报", "concept art"]) else "fan_art"
-        return mod, ["来源标题/页面上下文明示插画、立绘、海报或壁纸；不能当真人摄影"]
-
-    if any(k in combined for k in ["人台", "假人", "服装展示", "平铺图", "样衣", "mannequin"]):
-        return "costume_display", ["人台/服装展示或平铺，缺乏真人动态与骨骼走势"]
-
-    if any(k in combined for k in ["空镜", "纯景", "纯场景", "scenery"]):
-        return "scenery", ["场景环境空镜，无可见人物主体"]
-
+    """Pixel heuristic only. Source text cannot classify the depicted subject."""
     if detect_collage(image):
-        return "collage", ["检测为多图拼图/九宫格，非独立摄影参考"]
+        return "collage", ["图像分割线规则提示可能为拼图，仍需人工核对"]
+    return "unknown", []
 
-    # Title prefixes, URLs and search metadata are discovery/context evidence only.
-    # They may justify a conservative rejection when they explicitly describe a
-    # non-reference item, but they must never assert that pixels are a real person.
-    if any(k in combined for k in [
-        "求助", "怎么整理", "如何整理", "难打理", "整理教程", "穿戴教程",
-        "制作教程", "改造教程", "收纳教程", "裙边怎么", "裙撑怎么",
-    ]):
-        return "product", ["来源上下文明示服装求助/整理/教程内容，非人物摄影参考主图"]
 
-    if title.startswith(("COS_", "LIVE_", "SEL_")) or any(
-        k in combined for k in ["cos", "cosplay", "场照", "正片", "摄影", "出镜"]
-    ):
-        return "unknown", ["标题/来源元数据提示真人摄影意图，但当前确定性预检没有视觉分类器，不能据此宣称真人实拍"]
-
-    return "unknown", ["没有足够的图像级证据判定真人/插画/游戏模态，诚实保留 unknown"]
-
+def discovery_context(metadata: dict[str, Any]) -> dict[str, Any]:
+    source = metadata.get("source") or {}
+    text = " ".join(str(v or "") for v in (metadata.get("title"), source.get("title"), source.get("page_url"), source.get("search_category"))).lower()
+    # Conservative source filtering remains useful, but is not visual evidence.
+    keywords = ("bts_", "prop_", "official_", "器材", "布光图", "灯位", "相机", "柔光", "道具", "假发", "商品", "cos服", "截图", "特效设计", "皮肤展示", "建模", "render", "插画", "立绘", "原画", "壁纸", "fanart", "fan art", "illustration", "人台", "假人", "平铺", "mannequin", "空镜", "scenery", "求助", "教程")
+    return {"origin": "discovery_metadata", "title": metadata.get("title", ""),
+            "source_title": source.get("title", ""), "page_url": source.get("page_url", ""),
+            "search_query": source.get("search_query", ""),
+            "filter_terms": [term for term in keywords if term in text], "photographic_fact": False}
 
 
 def compute_dhash(image: Image.Image, hash_size: int = 8) -> str:
@@ -222,11 +180,11 @@ def evaluate_quality(image_path: Path | bytes) -> dict[str, Any]:
     return {
         "passed": passed,
         "filter_reasons": filter_reasons,
-        "is_single_person": not is_collage,
+        "is_single_person": None,
         "is_collage": is_collage,
         "is_equipment_or_scene": is_equipment,
         "is_blurry_or_lowres": is_lowres or is_blurry,
-        "pose_readable": passed,
+        "pose_readable": None,
         "sharpness": round(sharpness, 2),
         "dhash": dhash,
         "width": width,
@@ -239,215 +197,22 @@ def evaluate_identity(
     metadata: dict[str, Any],
     context: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    """Identity Preflight: Check whether candidate matches the target character."""
-    if not context:
-        return {
-            "prediction": "uncertain",
-            "confidence": "low",
-            "reason": "缺少角色 Identity Context，诚实保留为不确定",
-            "transferable_candidate": False,
-        }
-
-    canonical = context.get("canonical_name", "").strip()
-    key = normalize_character_key(canonical)
-    title = (metadata.get("title") or "").lower()
-    source = metadata.get("source", {}) or {}
-    source_title = str(source.get("title") or "").lower()
-    source_url = str(source.get("page_url") or "").lower()
-    tags = str(source.get("search_category") or "").lower()
-    # The query says what we hoped to find, not who/what is in the image.
-    # Excluding it here also prevents a target-character query from masking an
-    # explicit confusion character found in the result title/page context.
-    combined_text = f"{title} {source_title} {source_url} {tags}"
-
-    confusions = context.get("common_confusions", [])
-    aliases = context.get("aliases", {})
-    all_aliases = []
-    for lang, alias_list in aliases.items():
-        all_aliases.extend([a.lower() for a in alias_list])
-
-    # 1. Metadata-based confusion detection
-    for confusion in confusions:
-        c_name = confusion.get("name", "").lower()
-        if c_name and c_name in combined_text:
-            # Check if canonical or alias is also explicitly mentioned
-            has_canonical = any(a in combined_text for a in all_aliases)
-            if not has_canonical:
-                return {
-                    "prediction": "mismatch",
-                    "confidence": "high",
-                    "reason": f"检测到混淆角色信息：{confusion.get('name')}（{confusion.get('distinction', '')}），与目标角色 {canonical} 不符",
-                    "transferable_candidate": True,
-                }
-
-    # 2. Visual inspection heuristics based on image pixels
-    try:
-        if isinstance(image_path, bytes):
-            image = Image.open(io.BytesIO(image_path))
-        else:
-            image = Image.open(image_path)
-        rgb = image.convert("RGB").resize((64, 64), Image.Resampling.BILINEAR)
-    except Exception:
-        return {
-            "prediction": "uncertain",
-            "confidence": "low",
-            "reason": "无法读取图片像素进行视觉核验",
-            "transferable_candidate": False,
-        }
-
-    # Case A: Arima Kana (Red bob hair / beret) vs Akane Kurokawa (Blue hair)
-    if "有马加奈" in canonical or key == "有马加奈":
-        # Sample upper-center hair/head area: y from 8 to 28, x from 16 to 48
-        blue_pixels = 0
-        red_pixels = 0
-        total_head = 0
-        for y in range(8, 28):
-            for x in range(16, 48):
-                r, g, b = rgb.getpixel((x, y))
-                total_head += 1
-                if b > r + 20 and b > g + 10 and b > 70:
-                    blue_pixels += 1
-                elif r > b + 25 and r > g + 15 and r > 80:
-                    red_pixels += 1
-        blue_ratio = blue_pixels / max(1, total_head)
-        red_ratio = red_pixels / max(1, total_head)
-
-        if blue_ratio > 0.25:
-            return {
-                "prediction": "mismatch",
-                "confidence": "high",
-                "reason": "头部特征区域呈明显蓝色调（与黑川茜蓝发特征高度吻合），不符合有马加奈暗红短发",
-                "transferable_candidate": True,
-            }
-        if red_ratio > 0.15:
-            return {
-                "prediction": "match",
-                "confidence": "high",
-                "reason": "头部视觉色彩区域与有马加奈暗红短发特征相吻合",
-                "transferable_candidate": False,
-            }
-        if any(a in combined_text for a in all_aliases):
-            return {
-                "prediction": "uncertain",
-                "confidence": "medium",
-                "reason": "标题/检索上下文包含有马加奈别名，但 metadata 不是视觉身份事实",
-                "transferable_candidate": True,
-            }
-        return {
-            "prediction": "uncertain",
-            "confidence": "medium",
-            "reason": "发色/头部特征未能明确判定为红发，诚实保留供人工核查",
-            "transferable_candidate": True,
-        }
-
-    # Case B: Kamen Rider Durendal (Ocean History, Trident, Navy/Gold/White) vs Sabela / Saber
-    if "durendal" in key or "恒剑" in key:
-        # Check for Sabela / other riders
-        if "sabela" in combined_text or "佩剑" in combined_text or "玲花" in combined_text:
-            return {
-                "prediction": "mismatch",
-                "confidence": "high",
-                "reason": "识别为假面骑士佩剑 (Sabela)，属于女性昆虫装甲，非目标骑士恒剑",
-                "transferable_candidate": True,
-            }
-        if "saber" in combined_text and "durendal" not in combined_text and "恒剑" not in combined_text:
-            return {
-                "prediction": "mismatch",
-                "confidence": "medium",
-                "reason": "识别为同作品其他主骑 (Saber)，非目标骑士恒剑",
-                "transferable_candidate": True,
-            }
-        if any(a in combined_text for a in all_aliases):
-            return {
-                "prediction": "uncertain",
-                "confidence": "medium",
-                "reason": "标题/检索上下文包含恒剑别名，但未从图像确认海洋装甲、头雕或时国剑界时",
-                "transferable_candidate": True,
-            }
-        return {
-            "prediction": "uncertain",
-            "confidence": "medium",
-            "reason": "特摄装甲细节未达高确信度，诚实保留为不确定",
-            "transferable_candidate": True,
-        }
-
-    # Case C: Wang Zhaojun
-    if "王昭君" in canonical or key == "王昭君":
-        source_url = (metadata.get("source", {}).get("page_url") or "").lower()
-        if "irisvanherpen" in source_url or "haute-couture" in source_url or "sensory-seas" in source_url:
-            return {
-                "prediction": "mismatch",
-                "confidence": "high",
-                "reason": "检测为秀场高定时装模特摄影，非王昭君角色",
-                "transferable_candidate": True,
-            }
-        if "小乔" in combined_text and not any(a in combined_text for a in all_aliases):
-            return {
-                "prediction": "mismatch",
-                "confidence": "high",
-                "reason": "检测为同作品其他角色（小乔），与目标角色王昭君不符",
-                "transferable_candidate": True,
-            }
-        if "貂蝉" in combined_text and not any(a in combined_text for a in all_aliases):
-            return {
-                "prediction": "mismatch",
-                "confidence": "high",
-                "reason": "检测为同作品其他角色（貂蝉），与目标角色王昭君不符",
-                "transferable_candidate": True,
-            }
-        if any(a in combined_text for a in all_aliases):
-            return {
-                "prediction": "uncertain",
-                "confidence": "medium",
-                "reason": "标题/检索上下文包含王昭君别名，但当前规则没有图像级证据确认角色与皮肤",
-                "transferable_candidate": True,
-            }
-        return {
-            "prediction": "uncertain",
-            "confidence": "low",
-            "reason": "缺乏图像级证据确认王昭君长夜焕生，诚实保留为不确定",
-            "transferable_candidate": True,
-        }
-
-    # Case D: Anyoji Hime
-    if "安养寺姬芽" in canonical or key == "安养寺姬芽" or "姬芽" in canonical:
-        if any(c in combined_text for c in ["藤岛慈", "大泽瑠璃乃", "百生吟子", "村野沙耶香", "乙宗梢", "日野下花帆"]):
-            if not any(a in combined_text for a in all_aliases):
-                return {
-                    "prediction": "mismatch",
-                    "confidence": "high",
-                    "reason": "检测为同作品其他角色，与目标角色安养寺姬芽不符",
-                    "transferable_candidate": True,
-                }
-        if any(a in combined_text for a in all_aliases):
-            return {
-                "prediction": "uncertain",
-                "confidence": "medium",
-                "reason": "标题/检索上下文包含安养寺姬芽别名，但 metadata 不能代替视觉身份判断",
-                "transferable_candidate": True,
-            }
-        return {
-            "prediction": "uncertain",
-            "confidence": "medium",
-            "reason": "发色/头部特征未能明确判定为姬芽，诚实保留供人工核查",
-            "transferable_candidate": True,
-        }
-
-    # General character default
-    if any(a in combined_text for a in all_aliases):
-        return {
-            "prediction": "uncertain",
-            "confidence": "medium",
-            "reason": f"标题/检索上下文包含角色 {canonical} 别名，但缺少图像级身份依据",
-            "transferable_candidate": True,
-        }
-
-    return {
-        "prediction": "uncertain",
-        "confidence": "low",
-        "reason": "缺乏足以确定角色的视觉证据，诚实标记为不确定",
-        "transferable_candidate": True,
-    }
+    """Source conflicts can prompt review; neither text nor color proves identity."""
+    source = metadata.get("source") or {}
+    text = " ".join(str(v or "") for v in (metadata.get("title"), source.get("title"), source.get("page_url"), source.get("search_category"))).lower()
+    context = context or {}
+    aliases = [str(a).lower() for values in context.get("aliases", {}).values() for a in values]
+    canonical = context.get("canonical_name", "")
+    if canonical:
+        aliases.append(canonical.lower())
+    conflicts = [c.get("name", "") for c in context.get("common_confusions", [])
+                 if c.get("name") and any(part.strip() and part.strip().lower() in text
+                    for part in c["name"].replace("(", "|").replace(")", "|").split("|"))]
+    conflict = bool(conflicts and not any(a and a in text for a in aliases))
+    return {"prediction": "uncertain", "confidence": "low", "origin": "unverified_identity",
+            "reason": "来源文字提示其他角色：" + "、".join(conflicts) + "；未从图像确认身份" if conflict else "当前本地规则没有角色视觉分类器，诚实保留 uncertain；未从图像确认身份",
+            "source_conflict": conflict, "source_conflict_origin": "discovery_metadata",
+            "transferable_candidate": False}
 
 
 def run_candidate_preflight(
@@ -470,10 +235,11 @@ def run_candidate_preflight(
     if image is not None:
         content_type, visual_evidence = detect_modality(image, metadata)
     else:
-        content_type, visual_evidence = "unknown", ["无法打开图片进行视觉模态分析"]
+        content_type, visual_evidence = "unknown", []
 
     quality_res = evaluate_quality(image_bytes_or_path)
     identity_res = evaluate_identity(image_bytes_or_path, metadata, context)
+    source_context = discovery_context(metadata)
 
     # Determine overall candidate status
     if content_type in FILTERED_MODALITIES:
@@ -482,9 +248,9 @@ def run_candidate_preflight(
     elif not quality_res["passed"]:
         status = "filtered"
         status_reason = f"基础质量预检未通过: {'; '.join(quality_res['filter_reasons'])}"
-    elif identity_res["prediction"] == "mismatch":
+    elif source_context["filter_terms"] or identity_res["source_conflict"]:
         status = "filtered"
-        status_reason = f"角色身份不匹配: {identity_res['reason']}"
+        status_reason = "来源文本筛选提示（不是图像事实）：" + (", ".join(source_context["filter_terms"]) or identity_res["reason"])
     elif content_type == "unknown" or identity_res["prediction"] == "uncertain":
         status = "uncertain"
         status_reason = f"身份存疑: {identity_res['reason']}"
@@ -501,6 +267,8 @@ def run_candidate_preflight(
         "identity_prediction": identity_res["prediction"],
         "confidence": identity_res.get("confidence", "medium"),
         "visual_evidence": visual_evidence,
+        "evidence_boundary_version": 2,
+        "discovery_context": source_context,
         "reason": status_reason,
         "producer": "vision-preflight-gate",
         "status": status,

@@ -28,6 +28,8 @@ def score_and_rank_candidates(candidates: list[dict[str, Any]], profile: dict[st
         actor = cand.get('review_actor', 'unknown')
         pf = cand.get('preflight') or {}
         current_pf = bool(sha and pf.get('asset_sha') == sha)
+        local_pf = pf.get('producer') in {'vision-preflight-gate', 'local_collection_adapter'}
+        verified_boundary = not local_pf or pf.get('evidence_boundary_version') == 2
         source = cand.get('source') or {}
         evidence = {
             'asset_sha': sha,
@@ -39,9 +41,9 @@ def score_and_rank_candidates(candidates: list[dict[str, Any]], profile: dict[st
                                     'producer': cand.get('review_producer', ''),
                                     'items': review.get('observations', []) if current_review else [],
                                     'current_asset': current_review},
-            'preflight': {'origin': 'unreviewed' if not current_pf else 'local_heuristic' if pf.get('producer') == 'vision-preflight-gate' else 'agent_prediction',
+            'preflight': {'origin': 'unreviewed' if not current_pf else 'legacy_unverified' if not verified_boundary else 'local_heuristic' if local_pf else 'agent_prediction',
                           'producer': pf.get('producer', ''),
-                          'items': pf.get('visual_evidence', []) if current_pf else [],
+                          'items': pf.get('visual_evidence', []) if current_pf and verified_boundary else [],
                           'current_asset': current_pf},
             'shooting_plan': {'origin': 'shooting_plan_inference', 'producer': cand.get('card_producer', ''),
                               'interpretation': ((cand.get('card') or {}).get('lighting') or {}).get('interpretation', '') if current_review else '',
@@ -55,9 +57,9 @@ def score_and_rank_candidates(candidates: list[dict[str, Any]], profile: dict[st
                                'is_aesthetic_negative': cand.get('is_aesthetic_negative', False),
                                'rejection_reason': cand.get('rejection_reason', ''),
                                'photographic_fact': False,
-                               'learning_eligibility': {'project_use': cand.get('decision_origin') == 'human_curation' and cand.get('decision') == 'keep',
-                                                       'taste_interest': cand.get('decision_origin') == 'human_inspiration_archive',
-                                                       'aesthetic_negative': cand.get('aesthetic_negative_origin') == 'human_curation' and bool(cand.get('is_aesthetic_negative'))}},
+                               'learning_eligibility': {'project_use': cand.get('decision_origin') == 'human_curation' and cand.get('decision') == 'keep' and cand.get('lane') == 'field' and not cand.get('detached_at'),
+                                                       'taste_interest': cand.get('decision_origin') in {'human_inspiration_archive', 'human_curation'} and bool(cand.get('inspiration_id')) and cand.get('lane') == 'inspiration',
+                                                       'aesthetic_negative': cand.get('decision') == 'reject' and cand.get('aesthetic_negative_origin') == 'human_curation' and bool(cand.get('is_aesthetic_negative'))}},
         }
         explanation = {'identity_status': '身份未核验', 'recommendation_reason': '按入库顺序浏览；尚无可靠个性化排序',
                        'photographic_points': evidence['file_measurements'], 'preference_points': [],

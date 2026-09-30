@@ -35,6 +35,17 @@ def receipt(library, job):
     return json.loads(rows[-1][0])
 
 
+def test_exited_adapter_cannot_leave_a_background_writer(library,project,monkeypatch,tmp_path):
+    marker = tmp_path/'late-child.txt'
+    child = "import time;from pathlib import Path;time.sleep(1.5);Path("+repr(str(marker))+").write_text('escaped')"
+    adapter(monkeypatch,tmp_path,'import subprocess,sys\nsubprocess.Popen([sys.executable,"-c",'+repr(child)+'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\n')
+    job = new_job(library,project)
+    result = run_collection_attempt(library,job['id'])
+    assert result['status']=='blocked' and not result['imported_ids']
+    time.sleep(2)
+    assert not marker.exists(), 'Adapter parent exited, but its child survived cleanup'
+
+
 @pytest.mark.parametrize('configuration,code', [
     ('', 'adapter_not_configured'), ('not json', 'invalid_configuration'),
     ('"shell text"', 'invalid_configuration'), ('[null]', 'invalid_configuration'),

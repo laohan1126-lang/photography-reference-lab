@@ -62,6 +62,9 @@ def record_session_action(
     preflight: dict[str, Any] | None = None,
     reference_revision: int | None = None,
     project_context: dict[str, Any] | None = None,
+    decision_origin: str = "unknown",
+    inspiration_context: dict[str, Any] | None = None,
+    reference_fingerprint: str | None = None,
 ) -> dict[str, Any]:
     row = con.execute("SELECT data FROM screening_sessions WHERE id=?", (session_id,)).fetchone()
     if not row:
@@ -80,6 +83,9 @@ def record_session_action(
     # Record action
     action_record = {
         "origin": "human_curation",
+        "decision_origin": decision_origin,
+        "inspiration_context": inspiration_context,
+        "reference_fingerprint": reference_fingerprint,
         "reference_revision": reference_revision, "project_context": project_context,
         "reference_id": reference_id,
         "asset_sha": asset_sha,
@@ -119,10 +125,13 @@ def finish_screening_session(con: sqlite3.Connection, session_id: str) -> dict[s
 
     if data["status"] not in {"active", "reviewing_summary"}:
         raise ValueError("Completed session cannot be finished again")
-    # Preserve raw clicks; summarize the last choice per reference/image, not repeated clicks.
-    items = list({(a.get("reference_id"), a.get("asset_sha")): a for a in data.get("actions", [])}.values())
+    # Raw image-specific history survives replacement; only the final choice of
+    # a reference can become its current summary sample.
+    items = list({a.get("reference_id"): a for a in data.get("actions", [])}.values())
     stats = {"viewed": len(items), "keep": 0, "inspiration": 0, "maybe": 0, "reject": 0}
     for item in items:
+        if item.get("decision_origin") not in {"human_curation", "human_inspiration_archive"}:
+            continue
         key = "inspiration" if item["decision"] == "keep" and item.get("lane") == "inspiration" else item["decision"]
         if key in stats:
             stats[key] += 1
@@ -131,8 +140,8 @@ def finish_screening_session(con: sqlite3.Connection, session_id: str) -> dict[s
     data["status"] = "reviewing_summary"
 
     # Derive hypotheses from this session's actions
-    hypotheses = derive_session_hypotheses(data, items) if data.get("evidence_boundary_version") != 1 else data["derived_hypotheses"]
-    data["evidence_boundary_version"] = 1
+    hypotheses = derive_session_hypotheses(data, items) if data.get("evidence_boundary_version") != 2 else data["derived_hypotheses"]
+    data["evidence_boundary_version"] = 2
     data["derived_hypotheses"] = hypotheses
 
     con.execute(
@@ -174,12 +183,18 @@ def confirm_session_summary(
                 "profile": None, "idempotent": True}
     if data["status"] != "reviewing_summary":
         raise ValueError("Finish the session before confirming")
-    if data.get("evidence_boundary_version") != 1:
+    if data.get("evidence_boundary_version") != 2:
         raise ValueError("Historical summary must be reviewed again before confirmation")
     allowed = {h["text"] for h in data.get("derived_hypotheses", [])}
     if len(accepted_hypotheses) != len(set(accepted_hypotheses)) or not set(accepted_hypotheses) <= allowed:
         raise ValueError("Only this session's displayed summaries can be confirmed")
-    items = list({(a.get("reference_id"), a.get("asset_sha")): a for a in data.get("actions", [])}.values())
+    items = list({a.get("reference_id"): a for a in data.get("actions", [])}.values())
+    # The writer transaction closes the check-to-save race. A finished summary
+    # is a snapshot, not authorization to replay withdrawn or replaced choices.
+    from .service import Problem
+    for item in items:
+        if apply_to_profile and accepted_hypotheses and not feedback_is_current(con, item):
+            raise Problem(409, "筛选总结已过期：图片、选择、收藏或项目已改变，请重新筛选并总结")
     data["accepted_hypotheses"] = accepted_hypotheses
     data["apply_to_profile"] = apply_to_profile
 
@@ -189,7 +204,7 @@ def confirm_session_summary(
             category = "inspiration_signal" if item.get("lane") == "inspiration" else "keep_reference"
         else:
             category = "aesthetic_negative" if item.get("decision") == "reject" and item.get("is_aesthetic_negative") else None
-        return item.get("origin") == "human_curation" and category in selected_categories
+        return item.get("origin") == "human_curation" and item.get("decision_origin") in {"human_curation", "human_inspiration_archive"} and category in selected_categories
     new_profile = None
     if apply_to_profile and accepted_hypotheses:
         new_profile = update_profile_from_session(
@@ -222,3 +237,35 @@ def list_sessions(con: sqlite3.Connection, project_id: str) -> list[dict[str, An
         (project_id,),
     ).fetchall()
     return [json.loads(r[0]) for r in rows]
+
+
+def feedback_is_current(con: sqlite3.Connection, item: dict) -> bool:
+    """Historical feedback survives; only matching owner state is reusable now."""
+    row = con.execute("SELECT data FROM refs WHERE id=?", (item.get("reference_id"),)).fetchone()
+    if not row:
+        return False
+    ref = json.loads(row[0])
+    from .policy import digest, context_digest
+    if ref.get("asset_sha") != item.get("asset_sha") or ref["revision"] != item.get("reference_revision"):
+        return False
+    if digest(ref) != item.get("reference_fingerprint"):
+        return False  # Raw maintenance scripts can change state without revision.
+    asset = con.execute("SELECT data FROM assets WHERE id=?", (item.get("asset_sha"),)).fetchone()
+    if not asset:
+        return False
+    asset = json.loads(asset[0])
+    if asset.get("storage_status") in {"purged", "purge_failed"} or asset.get("integrity") == "failed":
+        return False
+    project = con.execute("SELECT data FROM projects WHERE id=?", (ref["project_id"],)).fetchone()
+    if not project:
+        return False
+    project = json.loads(project[0])
+    context = item.get("project_context") or {}
+    if project.get("archived_at") or project.get("revision") != context.get("revision") or context_digest(project) != context_digest(context):
+        return False
+    inspiration = item.get("inspiration_context")
+    if inspiration:
+        row = con.execute("SELECT data FROM inspirations WHERE id=? AND active=1", (inspiration.get("id"),)).fetchone()
+        if not row or json.loads(row[0])["revision"] != inspiration.get("revision"):
+            return False
+    return True

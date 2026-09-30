@@ -21,7 +21,7 @@ from .service import Library, Problem
 
 
 def doctor(library: Library, repair_derived: bool = False) -> dict:
-    report = {"database": "", "assets_checked": 0, "missing_or_corrupt": [], "missing_derivatives": [], "foreign_key_errors": [], "states_reindexed": 0, "intentionally_purged": []}
+    report = {"database": "", "assets_checked": 0, "missing_or_corrupt": [], "missing_derivatives": [], "invalid_derivatives": [], "foreign_key_errors": [], "states_reindexed": 0, "intentionally_purged": []}
     with library.db.read() as con:
         report["database"] = con.execute("PRAGMA integrity_check").fetchone()[0]
         report["foreign_key_errors"] = [list(r) for r in con.execute("PRAGMA foreign_key_check")]
@@ -34,10 +34,13 @@ def doctor(library: Library, repair_derived: bool = False) -> dict:
         if not library.assets.verify(asset):
             report["missing_or_corrupt"].append(asset["id"])
         else:
-            missing = [variant for variant in ("preview", "thumb") if not library.assets.path(asset, variant).is_file()]
+            missing = [variant for variant in ("preview", "thumb") if not library.assets.verify_derivative(asset, variant)]
             if missing:
-                if repair_derived: library.assets.ingest(library.assets.path(asset).read_bytes(), asset["received_name"])
-                else: report["missing_derivatives"].append({"sha": asset["id"], "variants": missing})
+                if repair_derived: library.assets.ingest(library.assets.path(asset).read_bytes(), asset["received_name"], repair_derived=True)
+                else:
+                    for variant in missing:
+                        key = "invalid_derivatives" if library.assets.path(asset, variant).is_file() else "missing_derivatives"
+                        report[key].append({"sha": asset["id"], "variants": [variant]})
     with library.db.transaction() as con:
         corrupt = set(report["missing_or_corrupt"])
         for asset in assets:
@@ -53,7 +56,7 @@ def doctor(library: Library, repair_derived: bool = False) -> dict:
                     ref["accepted_fingerprint"] = None
                 library._save(con, ref, project, "state.reindexed", {"state": state}, actor="doctor")
                 report["states_reindexed"] += 1
-    report["ok"] = report["database"] == "ok" and not any(report[k] for k in ("missing_or_corrupt", "missing_derivatives", "foreign_key_errors"))
+    report["ok"] = report["database"] == "ok" and not any(report[k] for k in ("missing_or_corrupt", "missing_derivatives", "invalid_derivatives", "foreign_key_errors"))
     return report
 
 
@@ -74,13 +77,16 @@ def backup(library: Library, output: Path) -> dict:
                         if asset.get("storage_status") == "purged": continue
                         if not library.assets.verify(asset): raise ValueError(f"Cannot back up corrupt or missing asset {asset['id']}")
                         for variant in ("original", "preview", "thumb"):
+                            if variant != "original" and not library.assets.verify_derivative(asset, variant):
+                                raise ValueError(f"Cannot back up invalid derivative {asset['id']} / {variant}; run doctor --repair-derived on a copy")
                             path = library.assets.path(asset, variant)
                             archive.write(path, str(path.relative_to(library.settings.data_dir)))
-                    archive.writestr("README.txt", "Private backup. Access tokens and provider secrets are intentionally excluded. Stop the server; restore only into a new, empty LAB_DATA_DIR, then run doctor before use.\n")
+                    archive.writestr("README.txt", "Private portable library backup: database + managed originals/previews/thumbs only. Exports, agent-runs, runtime configuration, access tokens and provider secrets are excluded. This is not a complete runtime/adoption snapshot. Stop the server; restore only into a new, empty LAB_DATA_DIR, then run doctor before use.\n")
             except Exception:
                 output.unlink(missing_ok=True)
                 raise
-    return {"backup": str(output.resolve()), "assets": len(assets), "secrets_included": False}
+    return {"backup": str(output.resolve()), "assets": len(assets), "secrets_included": False,
+            "scope": "database_and_managed_assets", "runtime_snapshot": False}
 
 
 def main(argv: list[str] | None = None) -> int:
