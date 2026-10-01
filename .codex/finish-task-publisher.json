@@ -9,16 +9,16 @@
     "allow_unrelated_pre_staged": false
   },
   "notion": {
-    "required": false,
-    "mode": "disabled",
-    "parent_page_id": "",
+    "required": true,
+    "mode": "api_page",
+    "parent_page_id": "ae097fef82124ccaa8deda1a84e33564",
     "token_env": "NOTION_TOKEN",
     "timeout": 20
   },
   "checks": [
     {
-      "name": "python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py",
-      "command": "python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py",
+      "name": "pytest core suite",
+      "command": ".venv\\Scripts\\python.exe -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py",
       "required": true,
       "timeout": 900
     },
