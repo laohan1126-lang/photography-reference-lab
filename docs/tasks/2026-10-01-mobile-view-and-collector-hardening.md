@@ -38,3 +38,6 @@
    - `node --check web/app.js`: exit 0.
 4. **Collector Test Suite**:
    - `pytest -q tests/test_collect_adapter.py`: **21 passed, 0 failed** (verifying metadata filtering, synthetic images, perceptual hash deduplication, aspect ratios).
+5. **Mobile Access & BrowserSkill Auto-Healing**:
+   - `pytest -q tests/test_windows_runtime_scripts.py`: **8 passed, 0 failed** (verifying launcher auto-heals Cloudflare tunnel and bsk daemon).
+   - Live tunnel verification: `https://ref.koshikorato.top/health` (200 OK), references API and image asset preview verified.

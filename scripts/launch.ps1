@@ -179,6 +179,17 @@ if ($alreadyHealthy) {
     Write-Host "[OK] Windows backend started (PID $($process.Id))." -ForegroundColor Green
 }
 
+$servicesHelper = Join-Path $PSScriptRoot "ensure-external-services.ps1"
+if (Test-Path $servicesHelper) {
+    try {
+        . $servicesHelper
+        Ensure-CloudflareTunnel | Out-Null
+        Ensure-BrowserSkillDaemon | Out-Null
+    } catch {
+        Write-Host "[!] 外部访问与采集服务检查异常: $_" -ForegroundColor Yellow
+    }
+}
+
 $token = ""
 $tokenFile = Join-Path $config.DataDir "access-token"
 if (Test-Path $tokenFile) {
@@ -198,14 +209,16 @@ if (-not $NoOpen) {
 
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "  Runtime : Windows Python + Windows BrowserSkill/Edge" -ForegroundColor White
-Write-Host "  URL     : $url" -ForegroundColor White
+Write-Host "  Runtime  : Windows Python + Windows BrowserSkill/Edge" -ForegroundColor White
+Write-Host "  电脑访问 : $url" -ForegroundColor White
+Write-Host "  手机访问 : https://ref.koshikorato.top" -ForegroundColor Green
 if ($token) {
-    Write-Host "  Token   : copied to clipboard" -ForegroundColor Green
+    Write-Host "  手机免密 : https://ref.koshikorato.top/?token=$token" -ForegroundColor Cyan
+    Write-Host "  Token    : $token (已复制到剪贴板)" -ForegroundColor Green
 } else {
-    Write-Host "  Token   : run .venv\Scripts\python.exe -m ref_lab token" -ForegroundColor Yellow
+    Write-Host "  Token    : run .venv\Scripts\python.exe -m ref_lab token" -ForegroundColor Yellow
 }
-Write-Host "  Stop    : double-click stop.bat" -ForegroundColor Gray
+Write-Host "  Stop     : double-click stop.bat" -ForegroundColor Gray
 Write-Host "================================================================" -ForegroundColor Cyan
 
 if (-not $NoWait -and [Environment]::UserInteractive) {

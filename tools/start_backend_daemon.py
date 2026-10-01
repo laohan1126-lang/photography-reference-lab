@@ -17,6 +17,18 @@ DETACHED_PROCESS = 0x00000008
 CREATE_NEW_PROCESS_GROUP = 0x00000200
 CREATE_NO_WINDOW = 0x08000000
 
+def ensure_external_services():
+    helper = REPO_ROOT / "scripts" / "ensure-external-services.ps1"
+    if helper.is_file():
+        try:
+            subprocess.run(
+                ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(helper)],
+                capture_output=True,
+                timeout=15
+            )
+        except Exception:
+            pass
+
 def main():
     runtime_dir = REPO_ROOT / ".local" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -36,6 +48,7 @@ def main():
         with urllib.request.urlopen(req, timeout=1) as resp:
             if resp.status == 200:
                 print("Server is already running and healthy.")
+                ensure_external_services()
                 return 0
     except Exception:
         pass
@@ -66,6 +79,7 @@ def main():
             with urllib.request.urlopen(req, timeout=1) as resp:
                 if resp.status == 200:
                     print("Server is up and healthy!")
+                    ensure_external_services()
                     return 0
         except Exception:
             pass

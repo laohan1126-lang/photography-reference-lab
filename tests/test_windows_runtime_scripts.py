@@ -69,3 +69,13 @@ def test_docs_name_windows_as_primary_and_wsl_as_compatibility():
     assert "WSL / Linux：兼容与开发路径" in readme
     assert "Windows 是当前日常主运行环境" in compatibility
     assert "禁止 Windows 与 WSL 轮流打开同一个活动 SQLite" in read("docs/DEPLOYMENT.md")
+
+
+def test_windows_launcher_ensures_external_services():
+    launch = read("scripts/launch.ps1")
+    assert "ensure-external-services.ps1" in launch
+    assert "Ensure-CloudflareTunnel" in launch
+    assert "Ensure-BrowserSkillDaemon" in launch
+    helper = read("scripts/ensure-external-services.ps1")
+    assert "ref.koshikorato.top" in helper
+    assert "bsk" in helper
