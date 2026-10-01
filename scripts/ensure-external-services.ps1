@@ -157,7 +157,7 @@ function Ensure-BrowserSkillDaemon {
         Write-Host "[*] 正在启动 BrowserSkill 后台守护服务..." -ForegroundColor Yellow
         $startArgs = @{
             FilePath = $bskExe
-            ArgumentList = @("daemon", "start", "--foreground")
+            ArgumentList = @("daemon", "start", "--foreground", "--daemon-idle", "24h")
             WindowStyle = "Hidden"
             PassThru = $true
         }
