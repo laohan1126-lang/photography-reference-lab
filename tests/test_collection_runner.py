@@ -237,3 +237,116 @@ def test_default_collection_timeout_survives_a_real_browserskill_pass():
     finally:
         if previous is not None:
             os.environ["LAB_COLLECTION_TIMEOUT_SECONDS"] = previous
+
+
+def test_collage_splitting_expands_candidates():
+    import io
+    from PIL import Image, ImageDraw
+    from tools.collect_adapter import process_and_expand_image
+
+    # 1. Single image (solid color) should not be split
+    single_img = Image.new("RGB", (640, 480), color=(120, 150, 180))
+    buf = io.BytesIO()
+    single_img.save(buf, format="JPEG")
+    single_bytes = buf.getvalue()
+
+    seen_shas = set()
+    seen_dhashes = []
+    base_meta = {"title": "单张参考图", "source": {"obtained_as": "platform_variant"}}
+
+    items = process_and_expand_image(single_bytes, "jpg", base_meta, seen_shas, seen_dhashes)
+    assert len(items) == 1
+    assert items[0][2]["title"] == "单张参考图"
+    assert items[0][2]["source"]["obtained_as"] == "platform_variant"
+
+    # 2. 2x2 grid image with distinct colors and visible dividers
+    grid_img = Image.new("RGB", (640, 480), color=(255, 255, 255))
+    draw = ImageDraw.Draw(grid_img)
+    # Cell 1
+    draw.rectangle([0, 0, 318, 238], fill=(220, 50, 50))
+    # Cell 2
+    draw.rectangle([322, 0, 640, 238], fill=(50, 220, 50))
+    # Cell 3
+    draw.rectangle([0, 242, 318, 480], fill=(50, 50, 220))
+    # Cell 4
+    draw.rectangle([322, 242, 640, 480], fill=(220, 220, 50))
+
+    grid_buf = io.BytesIO()
+    grid_img.save(grid_buf, format="JPEG")
+    grid_bytes = grid_buf.getvalue()
+
+    grid_seen_shas = set()
+    grid_seen_dhashes = []
+    grid_meta = {"title": "动作拼图参考", "source": {"obtained_as": "platform_variant"}}
+
+    split_items = process_and_expand_image(grid_bytes, "jpg", grid_meta, grid_seen_shas, grid_seen_dhashes)
+    assert len(split_items) >= 2
+    from ref_lab.models import PackCandidate
+    for idx, item in enumerate(split_items):
+        cand_meta = dict(item[2])
+        cand_meta["id"] = f"cand-{idx+1:03d}"
+        cand_meta["file"] = f"images/{item[0]}"
+        assert "【动作#" in cand_meta["title"]
+        assert cand_meta["source"]["obtained_as"] == "platform_variant"
+        # Must be 100% strictly valid PackCandidate model
+        validated = PackCandidate.model_validate(cand_meta)
+        assert validated.id == f"cand-{idx+1:03d}"
+
+
+def test_xhs_gallery_slides_extraction_and_packaging():
+    import json
+    from unittest.mock import MagicMock
+    from ref_lab.models import PackCandidate
+    from tools.collect_adapter import download_gallery_images, fetch_xhs_detail_metadata
+
+    # 1. Test mock download_gallery_images
+    mock_run = MagicMock()
+    fake_b64 = "data:image/jpeg;base64," + "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    mock_run.return_value.stdout = json.dumps({
+        "ok": True,
+        "value": [
+            {"url": "http://example.com/slide1.jpg", "data": fake_b64},
+            {"url": "http://example.com/slide2.jpg", "data": fake_b64},
+            {"url": "http://example.com/slide3.jpg", "data": fake_b64},
+        ]
+    })
+
+    import subprocess
+    orig_run = subprocess.run
+    try:
+        subprocess.run = mock_run
+        items = download_gallery_images("bsk", "sess-123", ["u1", "u2", "u3"], {})
+        assert len(items) == 3
+        assert items[0]["url"] == "http://example.com/slide1.jpg"
+
+        # 2. Test candidate model compliance with gallery pagination tags
+        total = len(items)
+        candidates = []
+        for idx, it in enumerate(items):
+            cand_dict = {
+                "id": f"cand-{idx+1:03d}",
+                "file": f"images/test_{idx+1}.jpg",
+                "title": f"双一 正片参考 (P{idx+1}/{total})",
+                "source": {
+                    "page_url": "https://www.xiaohongshu.com/search_result/6904288b0000000004004513?xsec_token=123",
+                    "image_url": it["url"],
+                    "author": "测试COS",
+                    "title": f"双一 正片参考 (P{idx+1}/{total})",
+                    "search_query": "双一 cos",
+                    "rights": "unknown",
+                    "source_confirmed": False,
+                    "obtained_as": "platform_variant",
+                },
+                "discovery_intent": "exact_character",
+                "discovery_reason": f"通过 BrowserSkill 检索「双一 cos」在小红书图集发现 (P{idx+1}/{total})",
+                "discovery_url": "https://www.xiaohongshu.com/search_result?keyword=双一",
+                "notes": "诅咒你！双一cos正片",
+            }
+            validated = PackCandidate.model_validate(cand_dict)
+            assert validated.id == f"cand-{idx+1:03d}"
+            assert f"P{idx+1}/{total}" in validated.title
+            candidates.append(validated)
+
+        assert len(candidates) == 3
+    finally:
+        subprocess.run = orig_run

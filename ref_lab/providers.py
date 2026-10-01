@@ -152,11 +152,19 @@ Step 2: Output ONLY a JSON object that satisfies this schema (no markdown format
                 "--dangerously-skip-permissions"
             ]
 
-            res = subprocess.run(cmd, cwd=tmp_wsl, capture_output=True, text=True, timeout=120)
+            res = subprocess.run(
+                cmd,
+                cwd=tmp_wsl,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=120,
+            )
             if res.returncode != 0:
-                raise ProviderError(f"Antigravity CLI 执行失败 (exit {res.returncode}): {res.stderr[:500]}")
+                raise ProviderError(f"Antigravity CLI 执行失败 (exit {res.returncode}): {(res.stderr or '')[:500]}")
             
-            raw_text = res.stdout.strip()
+            raw_text = (res.stdout or "").strip()
             if not raw_text:
                 raise ProviderError("Antigravity 未返回分析结果文本")
             

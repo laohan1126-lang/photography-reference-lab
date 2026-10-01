@@ -235,7 +235,7 @@ function mountReferenceShell() {
     if (view.dataset.shell===key&&$('filmstrip')) return;
     view.dataset.shell=key;
     const global=state.view==='inspiration';
-    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}${!global?'<button id="selection-actions" class="quiet">已选 0 · 批量/沟通板</button>':''}<span class="spacer"></span><small>${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="image-stage" id="image-stage"><img id="main-image" alt=""><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
+    view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}${!global?'<button id="selection-actions" class="quiet">已选 0 · 批量/沟通板</button>':''}<span class="spacer"></span><small class="desktop-shortcut-hint">${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="stage-and-cues" id="stage-and-cues"><aside class="mobile-cues-panel" id="mobile-cues-panel" hidden></aside><div class="image-stage" id="image-stage"><span class="stage-counter" id="stage-counter"></span><button type="button" class="stage-nav stage-prev" id="stage-prev-btn" aria-label="上一张">‹</button><img id="main-image" alt=""><button type="button" class="stage-nav stage-next" id="stage-next-btn" aria-label="下一张">›</button><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
     const change=async(key,element)=>{
         if (state[key]===element.value) return;
         if (!safeDiscard()) { element.value=state[key];return; }
@@ -264,6 +264,31 @@ function mountReferenceShell() {
     $('view-original').onclick=()=>openImage(current());
     $('auto-advance').onchange=e=>state.autoAdvance=e.target.checked;
     $('previous-image').onclick=()=>moveImage(-1); $('next-image').onclick=()=>moveImage(1);
+    if ($('stage-prev-btn')) $('stage-prev-btn').onclick=(e)=>{e.stopPropagation();moveImage(-1);};
+    if ($('stage-next-btn')) $('stage-next-btn').onclick=(e)=>{e.stopPropagation();moveImage(1);};
+
+    // Mobile touch swipe gestures on image-stage
+    const stage = $('image-stage');
+    let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+    stage.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+        }
+    }, { passive: true });
+    stage.addEventListener('touchend', e => {
+        if (e.changedTouches.length === 1) {
+            const diffX = e.changedTouches[0].clientX - touchStartX;
+            const diffY = e.changedTouches[0].clientY - touchStartY;
+            const duration = Date.now() - touchStartTime;
+            if (duration < 600 && Math.abs(diffX) > 42 && Math.abs(diffX) > Math.abs(diffY) * 1.4) {
+                if (diffX < 0) moveImage(1);
+                else moveImage(-1);
+            }
+        }
+    }, { passive: true });
+
     $('previous-page').onclick=()=>pageReferences(-1); $('next-page').onclick=()=>pageReferences(1);
 }
 function reconcileFilmstrip() {
@@ -335,8 +360,45 @@ function renderActiveReference() {
     [...$('filmstrip').children].forEach(n=>{const chosen=n.dataset.ref===ref.id;n.classList.toggle('selected',chosen);n.setAttribute('aria-current',String(chosen));n.tabIndex=chosen?0:-1;});
     keepActiveThumbnailVisible();
     const index=state.refs.findIndex(r=>r.id===ref.id);
-    $('previous-image').disabled=index===0&&state.offset===0;
-    $('next-image').disabled=index===state.refs.length-1&&state.offset+state.limit>=state.total;
+    const atFirst = index===0&&state.offset===0;
+    const atLast = index===state.refs.length-1&&state.offset+state.limit>=state.total;
+    $('previous-image').disabled=atFirst;
+    $('next-image').disabled=atLast;
+    if ($('stage-prev-btn')) $('stage-prev-btn').disabled = atFirst;
+    if ($('stage-next-btn')) $('stage-next-btn').disabled = atLast;
+    const counter = $('stage-counter');
+    if (counter) {
+        const curNum = state.total ? state.offset + index + 1 : 0;
+        counter.textContent = `${curNum} / ${state.total || state.refs.length}`;
+    }
+
+    // Mobile split view: if card exists, show 1/3 cues on the left, 2/3 image on the right
+    const cuePanel = $('mobile-cues-panel');
+    const cueWrapper = $('stage-and-cues');
+    if (cuePanel && cueWrapper) {
+        const card = ref.card;
+        const hasCues = card && (card.pose?.verbal_cues?.length || card.pose?.photographer_steps?.length);
+        if (hasCues) {
+            cueWrapper.classList.add('has-card');
+            cuePanel.hidden = false;
+            let html = '';
+            if (card.pose?.verbal_cues?.length) {
+                html += `<div class="cues-title">🗣️ 现场口令</div><ol class="cues-list">${card.pose.verbal_cues.map(c => `<li>${esc(c)}</li>`).join('')}</ol>`;
+            }
+            if (card.pose?.photographer_steps?.length) {
+                html += `<div class="cues-title" style="margin-top:6px;">📸 摄影动作</div><ul class="cues-steps">${card.pose.photographer_steps.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`;
+            }
+            if (card.pose?.fallback || card.pose?.safety) {
+                html += `<div class="cues-fallback" style="margin-top:6px;">🛡️ ${esc(card.pose.fallback || card.pose.safety)}</div>`;
+            }
+            cuePanel.innerHTML = html;
+        } else {
+            cueWrapper.classList.remove('has-card');
+            cuePanel.hidden = true;
+            cuePanel.innerHTML = '';
+        }
+    }
+
     if(state.view==='inspiration')renderInspirationDetail(ref);else renderDetail(ref);
 }
 function moveImage(delta) {
@@ -429,8 +491,40 @@ function openImage(ref) { if (!ref?.asset || ref.file_available === false)
     return; $('lightbox-title').textContent = `${ref.title} · ${ref.asset.width} × ${ref.asset.height}`; $('lightbox-image').src = `/api/assets/${ref.asset_sha}/original`; $('lightbox').classList.remove('actual'); $('lightbox').showModal(); }
 function paragraphs(text) { return `<p>${esc(text)}</p>`; }
 function ordered(items) { return `<ol>${(items || []).map(x => `<li>${esc(x)}</li>`).join('')}</ol>`; }
-function cardMarkup(card, field = false) { if (!card)
-    return ''; return `<section class="guide-section"><h3>${field ? '现场口令' : '资料卡草稿'} <small>先沟通，再调整</small></h3>${ordered(card.pose.verbal_cues)}<h4>摄影师动作</h4>${ordered(card.pose.photographer_steps)}<h4>安全与降级</h4>${paragraphs(card.pose.safety + '\n' + card.pose.fallback)}<details ${field ? '' : 'open'}><summary>静态摆姿、动作引导与布光</summary><h4>静态摆姿</h4>${ordered(card.pose.static_steps)}<h4>动作引导</h4>${paragraphs(card.pose.action_directing)}<h4>图中光线证据</h4>${ordered(card.lighting.visible_evidence)}<h4>布光推测 · ${esc(card.lighting.confidence)}</h4>${paragraphs(card.lighting.interpretation)}<h4>现有器材可尝试方案</h4>${paragraphs(card.lighting.available_gear_plan)}</details><details><summary>PS 路线：${esc(({ none: '不换背景', cleanup: '轻量清理', composite: '明确合成' })[card.retouch.route])}</summary>${ordered(card.retouch.steps)}<h4>拍摄准备</h4>${paragraphs(card.retouch.capture_preparation)}${card.retouch.background_prompt ? '<h4>AI 背景需求</h4>' + paragraphs(card.retouch.background_prompt) : ''}</details></section>`; }
+function cardMarkup(card, field = false) {
+    if (!card) return '';
+    return `<section class="guide-section ${field ? 'field-mode' : ''}">
+        <div class="field-card-banner">
+            <h3>${field ? '🎯 现场拍摄指引' : '📋 资料卡草稿'} <small>先沟通，再调整</small></h3>
+        </div>
+        ${card.pose.verbal_cues?.length ? `<div class="verbal-cues-card">
+            <span class="cue-label">🗣️ 现场口令（沟通引导词）</span>
+            ${ordered(card.pose.verbal_cues)}
+        </div>` : ''}
+        ${card.pose.photographer_steps?.length ? `<div class="photographer-steps-card">
+            <span class="cue-label">📸 摄影师机位与动作</span>
+            ${ordered(card.pose.photographer_steps)}
+        </div>` : ''}
+        ${card.pose.safety || card.pose.fallback ? `<div class="safety-fallback-card">
+            <span class="cue-label">🛡️ 安全与降级方案</span>
+            ${paragraphs((card.pose.safety ? '【安全】' + card.pose.safety + '\n' : '') + (card.pose.fallback ? '【降级】' + card.pose.fallback : ''))}
+        </div>` : ''}
+        <details ${field ? '' : 'open'} class="field-tech-details">
+            <summary>📐 静态摆姿、动作引导与布光推测</summary>
+            <h4>静态摆姿</h4>${ordered(card.pose.static_steps)}
+            ${card.pose.action_directing ? `<h4>动作引导</h4>${paragraphs(card.pose.action_directing)}` : ''}
+            <h4>图中光线证据</h4>${ordered(card.lighting.visible_evidence)}
+            <h4>布光推测 · ${esc(card.lighting.confidence)}</h4>${paragraphs(card.lighting.interpretation)}
+            <h4>现有器材可尝试方案</h4>${paragraphs(card.lighting.available_gear_plan)}
+        </details>
+        <details class="field-tech-details">
+            <summary>🎨 后期路线：${esc(({ none: '不换背景', cleanup: '轻量清理', composite: '明确合成' })[card.retouch.route] || card.retouch.route)}</summary>
+            ${ordered(card.retouch.steps)}
+            ${card.retouch.capture_preparation ? `<h4>拍摄准备</h4>${paragraphs(card.retouch.capture_preparation)}` : ''}
+            ${card.retouch.background_prompt ? `<h4>AI 背景需求</h4>${paragraphs(card.retouch.background_prompt)}` : ''}
+        </details>
+    </section>`;
+}
 async function updateAction(ref, action, body, message) { await api(`/api/references/${ref.id}/${action}`, { method: 'POST', body }); state.activeId = ref.id; state.dirty = false; closeModal(); await loadReferences(); await renderStats(); toast(message); }
 function sourceEditor(ref) { const s = ref.source; const root = modal('来源、权利状态与标题', `<form><p class="form-help">原发布页与图片 CDN 不是一回事。搜索结果页也不能代替原出处。来源不明仍可收藏，但不能伪装成已经确认的实拍资料卡。</p>${label('条目标题', 'title', ref.title, 'text', 'maxlength="400"')}${label('原发布页', 'page_url', s.page_url, 'url', 'maxlength="4000"')}${label('图片来源地址（只作追溯）', 'image_url', s.image_url, 'url', 'maxlength="4000"')}${label('作者', 'author', s.author, 'text', 'maxlength="400"')}${select('权利状态', 'rights', { unknown: '未确认', personal_reference: '私人参考，不代表公开转载许可', owned: '我拥有此图片的使用权', licensed: '已获授权' }, s.rights)}${area('使用权／来源说明', 'rights_note', s.rights_note, 'placeholder="自有作品请注明；授权请记录范围。" maxlength="12000"')}${check('我已检查原发布页，或确认这是我的自有作品', 'source_confirmed', s.source_confirmed)}<div class="form-actions"><button type="submit" class="primary">保存来源</button></div></form>`); formSubmit(root, async (data) => { const title = data.title; delete data.title; await api(`/api/references/${ref.id}`, { method: 'PATCH', body: { expected_revision: ref.revision, title, source: { ...s, ...data } } }); closeModal(); await loadReferences(); toast('来源信息已保存；旧发布确认已撤销'); }); }
 function reviewEditor(ref) { const r = ref.review || { kind: 'unknown', visible_person: false, pose_readable: false, single_image: false, sufficiently_clear: false, character_match: 'unknown', observations: [], critical_uncertainties: [] }; const root = modal('逐图人工核验', `<form><p class="form-help">请实际打开独立图片后填写。器材、场地、插画和拼图不能成为真人姿势主卡。没有把握就保留“未知”与疑点。</p><div class="form-grid">${select('图片实际类型', 'kind', kinds, r.kind)}${select('与目标角色的关系', 'character_match', { unknown: '未确认', exact: '目标角色／版本匹配', adapted: '不是同角色，仅借鉴指定方面', irrelevant: '不相关' }, r.character_match)}</div>${check('图中有明确可见的人物', 'visible_person', r.visible_person)}${check('需要借鉴的肢体／动作看得清', 'pose_readable', r.pose_readable)}${check('这是独立画面，不是多个画面的拼图', 'single_image', r.single_image)}${check('实际清晰度足以支持动作分析', 'sufficiently_clear', r.sufficiently_clear)}${area('看得见的事实（每行一条）*', 'observations', r.observations.join('\n'), 'required placeholder="只写图中可见的内容，不依据标题猜动作。"')}${area('仍未解决的关键疑点（没有则留空）', 'critical_uncertainties', r.critical_uncertainties.join('\n'))}<small>核验绑定图片 SHA：${esc(ref.asset_sha?.slice(0, 20))}…</small><div class="form-actions"><button type="submit" class="primary">保存人工核验</button></div></form>`); formSubmit(root, data => updateAction(ref, 'review', { expected_revision: ref.revision, review: { ...data, asset_sha: ref.asset_sha, observations: lines(data.observations), critical_uncertainties: lines(data.critical_uncertainties) } }, '逐图核验已保存')); }
@@ -504,12 +598,27 @@ function renderDetail(ref) {
     ${!detached&&!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
     ${ref.card?cardMarkup(ref.card,ref.field_ready):ref.review?`<section class="guide-section"><h3>分析结论</h3>${ordered(ref.review.observations)}${ref.review.critical_uncertainties.length?`<p>待确认：${esc(ref.review.critical_uncertainties.join('；'))}</p>`:''}<p>${ref.card?'':'尚未生成资料卡。可保留作审美参考，不强行凑拍摄指令。'}</p></section>`:''}
+    ${ref.asset_sha?`<section class="export-share-box">
+        <div class="button-row">
+            ${ref.archive_path?`<button id="reveal-file-btn" class="primary" title="在 Windows 资源管理器中定位此已确认的 JPG 图片">📂 定位归档 JPG</button>`:`<button id="reveal-file-btn" class="quiet" title="定位底层母图文件">📂 打开文件位置</button>`}
+            ${state.projectId?`<button id="reveal-folder-btn" class="${ref.archive_path?'quiet':'primary'}" title="打开此角色已确认文件夹（统一存放所有确认的 JPG 参考图）">📁 打开已确认文件夹</button>`:''}
+            <button id="copy-image-btn" class="quiet" title="将原画复制到系统剪贴板，打开微信按 Ctrl+V 即可直接发送给模特">📋 复制发微信</button>
+        </div>
+        ${ref.archive_path?`<div class="file-path-hint archive-success"><strong>📁 已归档至：</strong><code>${esc(ref.archive_path)}</code></div>`:
+          `<div class="file-path-hint"><strong>📁 归档目标：</strong><code>${esc(ref.archive_dir||ref.export_dir||'')} (确认后自动归位)</code></div>`}
+        ${ref.local_path?`<div class="file-path-secondary"><small>母本CAS底层：<code>${esc(ref.local_path)}</code></small> ${ref.archive_path?`<button id="reveal-cas-btn" class="tiny-link-btn" title="在资源管理器中查看底层CAS原图">打开母图文件夹</button>`:''}</div>`:''}
+        <div id="reveal-status-hint" class="reveal-status-hint" hidden></div>
+    </section>`:''}
     <details class="advanced-panel"><summary>审美笔记与借鉴点（选填）</summary><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',ref.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(ref.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form>${!ref.inspiration_id?'<button id="save-global">同时收藏到我的审美库</button>':'<button id="open-global">打开我的审美库</button>'}</details>
     ${!detached&&!recycled?`<details class="advanced-panel"><summary>跨项目复用与模特沟通</summary><p class="form-help">同一图片文件可以被多个项目引用，不会复制资产。转移只移除当前项目关系，不会把它当成 X。</p><div class="compact-row"><button id="toggle-selection">加入/移出批量选择</button><button id="transfer-reference">复制 / 转移到其他项目</button></div></details>`:""}
     <details class="advanced-panel"><summary>来源、判断修正与手动制卡</summary><p class="form-help">只有需要纠错时才填写。搜索来源不等于角色事实，人工修正不会自动确认现场卡。</p><div class="compact-row"><button id="review-reference">修正图片判断</button><button id="edit-source">来源与标题</button><button id="edit-card">手动编辑资料卡</button><button id="context-reference">发现上下文</button><button id="similar-images">相似图线索</button><button id="replace-image">替换图片</button></div>${blockers.length?`<div class="gate-box"><strong>制卡仍需检查</strong><ul>${blockers.map(b=>`<li>${esc(b.message)}</li>`).join('')}</ul></div>`:''}${ref.legacy_notes?`<details><summary>历史说明（未验证）</summary><pre>${esc(ref.legacy_notes)}</pre></details>`:''}<p class="detail-meta">修订 ${ref.revision} · ${esc(ref.id.slice(0,12))}</p></details>
     ${selected?`<details class="advanced-panel"><summary>拍摄复盘</summary><button id="add-reflection">＋ 记录实拍经验</button>${(ref.reflections||[]).slice(-3).map(x=>`<p>${esc(x.worked||x.failed||x.next_time||'已记录')}</p>`).join('')}</details>`:''}
     ${ref.source.page_url?`<a class="source-link" href="${esc(ref.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:''}`;
     listen('detail-panel','[data-decision]','click',(e,n)=>triggerDecision(n.dataset.decision, e.shiftKey));
+    if($('copy-image-btn'))$('copy-image-btn').onclick=()=>copyImageToClipboard(ref);
+    if($('reveal-file-btn'))$('reveal-file-btn').onclick=()=>revealReferenceFile(ref);
+    if($('reveal-folder-btn'))$('reveal-folder-btn').onclick=()=>revealProjectExport();
+    if($('reveal-cas-btn'))$('reveal-cas-btn').onclick=()=>revealAssetSha(ref.asset_sha);
     if($('restore-project-use'))$('restore-project-use').onclick=()=>restoreProjectUse(ref).catch(showError);
     if($('restore-preflight'))$('restore-preflight').onclick=()=>restorePreflight(ref).catch(showError);
     if($('make-transferable'))$('make-transferable').onclick=()=>makeTransferable(ref).catch(showError);
@@ -539,6 +648,113 @@ async function savePreference() {
     const body={expected_revision:ref.revision,...preferenceValues()};state.busy=true;
     try { await api(`/api/${state.view==='inspiration'?'inspirations':'references'}/${ref.id}`,{method:'PATCH',body});state.dirty=false;await loadReferences();toast('审美笔记已保存'); }
     finally {state.busy=false;}
+}
+async function copyImageToClipboard(ref) {
+    if (!ref || !ref.asset_sha) return;
+    try {
+        toast('正在读取图片并准备复制...');
+        const imgUrl = `/api/assets/${ref.asset_sha}/original`;
+        const res = await fetch(imgUrl);
+        if (!res.ok) throw new Error('无法读取图片文件');
+        const blob = await res.blob();
+        let pngBlob = blob;
+        if (blob.type !== 'image/png') {
+            const imgBitmap = await createImageBitmap(blob);
+            const canvas = document.createElement('canvas');
+            canvas.width = imgBitmap.width;
+            canvas.height = imgBitmap.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imgBitmap, 0, 0);
+            pngBlob = await new Promise((resolve, reject) => {
+                canvas.toBlob(b => b ? resolve(b) : reject(new Error('Canvas 转换 PNG 失败')), 'image/png');
+            });
+        }
+        await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': pngBlob })
+        ]);
+        toast('✅ 图片已复制到剪贴板！可直接在微信聊天框中 Ctrl+V 粘贴发送给模特');
+    } catch (err) {
+        showError('复制图片失败: ' + (err.message || err));
+    }
+}
+async function copyTextToClipboard(text) {
+    if (!text) return;
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+    } catch (e) {}
+}
+async function revealReferenceFile(ref) {
+    if (!ref) return;
+    try {
+        let res;
+        if (ref.id && !ref.used_in_projects) {
+            res = await api(`/api/references/${ref.id}/reveal`, { method: 'POST' });
+        } else if (ref.asset_sha) {
+            res = await api(`/api/assets/${ref.asset_sha}/reveal`, { method: 'POST' });
+        }
+        if (res && res.path) {
+            await copyTextToClipboard(res.path);
+            const hint = $('reveal-status-hint');
+            if (hint) {
+                hint.hidden = false;
+                hint.innerHTML = `📂 <strong>已在电脑中打开所在文件夹：</strong><br><code>${esc(res.folder || res.path)}</code><br><small style="color:var(--muted)">目标文件：<code>${esc(res.filename || '')}</code>（完整路径已复制到剪贴板，可随时粘贴）</small>`;
+            }
+            toast(`📂 已打开文件夹，路径已复制: ${res.path}`);
+        } else {
+            toast('📂 已在资源管理器中打开该文件夹');
+        }
+    } catch (err) {
+        showError(err);
+    }
+}
+async function revealAssetSha(sha) {
+    if (!sha) return;
+    try {
+        const res = await api(`/api/assets/${sha}/reveal`, { method: 'POST' });
+        if (res && res.path) {
+            await copyTextToClipboard(res.path);
+            const hint = $('reveal-status-hint');
+            if (hint) {
+                hint.hidden = false;
+                hint.innerHTML = `📂 <strong>已在电脑中打开底层母图文件夹：</strong><br><code>${esc(res.folder || res.path)}</code><br><small style="color:var(--muted)">母图文件：<code>${esc(res.filename || '')}</code>（路径已复制）</small>`;
+            }
+            toast(`📂 已打开底层母图文件夹，路径已复制: ${res.path}`);
+        } else {
+            toast('📂 已在资源管理器中打开底层母图文件夹');
+        }
+    } catch (err) {
+        showError(err);
+    }
+}
+async function revealProjectExport() {
+    if (!state.projectId) return;
+    try {
+        const res = await api(`/api/projects/${state.projectId}/reveal-export`, { method: 'POST' });
+        if (res && res.path) {
+            await copyTextToClipboard(res.path);
+            const hint = $('reveal-status-hint');
+            if (hint) {
+                hint.hidden = false;
+                hint.innerHTML = `📁 <strong>已在电脑中打开已确认文件夹：</strong><br><code>${esc(res.path)}</code><br><small style="color:var(--muted)">（此处汇集了本角色所有已确认的 JPG 参考图，路径已复制）</small>`;
+            }
+            toast(`📁 已打开已确认文件夹，路径已复制: ${res.path}`);
+        } else {
+            toast('📁 已在资源管理器中打开导出文件夹');
+        }
+    } catch (err) {
+        showError(err);
+    }
 }
 function matchesCurrentView(ref) {
     if(state.view==='recycle')return ref.decision==='reject'||!!ref.detached_at;
@@ -581,7 +797,7 @@ async function decide(choice, rejectionReason = null, aestheticNegative = false)
             renderReferenceView(); // Reconcile membership without remounting the strip.
         }
         await loadReferences(removed?index:0);await renderStats();
-        toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?'已选为角色参考；尚未制卡':'已标为待定');
+        toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?'已选为本角色参考，已自动归位至角色已确认文件夹':'已标为待定');
     } finally {state.busy=false;}
 }
 
@@ -738,6 +954,9 @@ async function contextDialog(ref) {
 
 
 function renderInspirationDetail(item) {
+    $('detail-panel').innerHTML=`<span class="eyebrow">INSPIRATION · INDEPENDENT ASSET</span><h2>${esc(item.title)}</h2><p class="curation-hint">这是独立收藏，不归属于任何角色。动作、表情、光影或电影画面都可以先留下来。</p><div class="compact-row">${item.active?`<button id="use-inspiration" class="primary" ${!item.file_available?'disabled':''}>引用到拍摄项目</button><button id="remove-inspiration" class="quiet">移出审美库</button>`:'<button id="restore-inspiration" class="primary">恢复收藏</button>'}</div>${item.asset_sha?`<section class="export-share-box"><div class="button-row"><button id="copy-image-btn" class="primary" title="将原画复制到系统剪贴板，打开微信按 Ctrl+V 即可直接发送给模特">📋 复制图片发微信 (Ctrl+V)</button><button id="reveal-file-btn" class="quiet" title="在 Windows 资源管理器中打开此文件夹">📂 打开文件位置</button></div><div id="reveal-status-hint" class="reveal-status-hint" hidden></div></section>`:''}<section class="guide-section"><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',item.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(item.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form></section><section class="guide-section"><h3>已被这些项目选作参考</h3>${item.used_in_projects.map(p=>`<button data-use-project="${esc(p.project_id)}" data-reference="${esc(p.reference_id)}">${esc(p.character)}</button>`).join('')||'<p>还没有角色引用它，也可以一直独立收藏。</p>'}</section><details class="advanced-panel"><summary>来源与收藏上下文</summary>${item.source.page_url?`<a href="${esc(item.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:'<p>未记录原发布页</p>'}<button id="inspiration-source">修改标题与来源</button><button id="context-reference">发现上下文</button>${item.context_notes.map(n=>`<p>${esc(state.projects.find(p=>p.id===n.project_id)?.character||'历史项目')}：${esc(n.preference)} ${esc(n.borrow.join('、'))}</p>`).join('')}</details>`;
+    if($('copy-image-btn'))$('copy-image-btn').onclick=()=>copyImageToClipboard(item);
+    if($('reveal-file-btn'))$('reveal-file-btn').onclick=()=>revealReferenceFile(item);
     $('preference-form').oninput=()=>{state.dirty=true;$('dirty-indicator').textContent='尚未保存';};
     $('preference-form').onsubmit=e=>{e.preventDefault();savePreference().catch(showError);};
     if($('use-inspiration'))$('use-inspiration').onclick=()=>{if(requireSaved())useInspirationDialog(item);};
@@ -1074,4 +1293,19 @@ document.addEventListener('keydown',event=>{
     }else if(event.key==='ArrowRight'){event.preventDefault();moveImage(1);}
     else if(event.key==='ArrowLeft'){event.preventDefault();moveImage(-1);}
 });
-boot().catch(error=>{lockScreen();$('login-error').textContent='无法连接参考库：'+error.message;});
+(async()=>{
+    const searchParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = searchParams.get('token');
+    if (tokenFromUrl) {
+        searchParams.delete('token');
+        const newSearch = searchParams.toString() ? '?' + searchParams.toString() : '';
+        window.history.replaceState({}, document.title, window.location.pathname + newSearch + window.location.hash);
+        try {
+            const session = await api('/api/session', { method: 'POST', body: { token: tokenFromUrl } });
+            state.csrf = session.csrf;
+        } catch(e) {
+            console.warn('Auto-login failed', e);
+        }
+    }
+    boot().catch(error => { lockScreen(); $('login-error').textContent = '无法连接参考库：' + error.message; });
+})();

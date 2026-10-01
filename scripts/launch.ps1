@@ -1,4 +1,4 @@
-
+﻿
 param(
     [switch]$NoOpen,
     [switch]$NoWait
@@ -60,8 +60,7 @@ if ($record -and $record.pid) {
     $recordMatches = (
         ([System.IO.Path]::GetFullPath([string]$record.repo_root) -eq $config.RepoRoot) -and
         ([System.IO.Path]::GetFullPath([string]$record.data_dir) -eq $config.DataDir) -and
-        ([int]$record.port -eq $config.Port) -and
-        ([System.IO.Path]::GetFullPath([string]$record.python) -eq $python)
+        ([int]$record.port -eq $config.Port)
     )
     if (-not $recordMatches) {
         throw "Runtime PID record belongs to a different checkout/data configuration. Refusing to reuse it; inspect $pidFile."
@@ -71,22 +70,55 @@ if ($record -and $record.pid) {
     if (-not $managedProcess) {
         Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
         $record = $null
-    } elseif ($managedProcess.Path -and ([System.IO.Path]::GetFullPath($managedProcess.Path) -ne $python)) {
-        throw "PID $($record.pid) was reused by a different executable. Refusing to treat it as the reference-lab server."
+    } elseif ($managedProcess.ProcessName -notmatch "python") {
+        throw "PID $($record.pid) was reused by a different executable ($($managedProcess.ProcessName)). Refusing to treat it as the reference-lab server."
     }
 }
 
 $alreadyHealthy = Test-ReferenceLabHealth
 if ($alreadyHealthy) {
     if (-not $record -or -not $managedProcess) {
-        throw @"
-A healthy reference-lab service already answers at $url, but it was not started by this Windows launcher.
-Refusing to attach to an unmanaged/legacy WSL process because that would make the running code version ambiguous.
+        $orphanConn = Get-NetTCPConnection -LocalPort $config.Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+        $canAttach = $false
+        if ($orphanConn -and $orphanConn.OwningProcess) {
+            $orphanProc = Get-Process -Id $orphanConn.OwningProcess -ErrorAction SilentlyContinue
+            if ($orphanProc -and ($orphanProc.ProcessName -match "python")) {
+                $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId = $($orphanConn.OwningProcess)" -ErrorAction SilentlyContinue).CommandLine
+                $isSameRepo = ($cmdLine -like "*$($config.RepoRoot)*" -or $cmdLine -like "*ref_lab*")
+                if ($isSameRepo) {
+                    $record = [ordered]@{
+                        pid = $orphanConn.OwningProcess
+                        repo_root = $config.RepoRoot
+                        data_dir = $config.DataDir
+                        port = $config.Port
+                        python = $python
+                        adapter = $adapter
+                        started_at = (Get-Date).ToString("o")
+                    }
+                    $record | ConvertTo-Json | Set-Content -LiteralPath $pidFile -Encoding UTF8
+                    $managedProcess = $orphanProc
+                    $canAttach = $true
+                    Write-Host "[*] 已检测到本地参考库服务正在运行 (PID $($record.pid)，可与手机端/外部隧道同时使用)。" -ForegroundColor Green
+                }
+            }
+        }
 
-Stop the old WSL service first, then run start.bat again.
-"@
+        if (-not $canAttach) {
+            $extraHint = "Stop the old WSL service first, then run start.bat again."
+            if ($orphanConn -and $orphanConn.OwningProcess) {
+                $orphanProc = Get-Process -Id $orphanConn.OwningProcess -ErrorAction SilentlyContinue
+                if ($orphanProc) {
+                    $extraHint = "An unmanaged Windows process (PID $($orphanConn.OwningProcess), $($orphanProc.ProcessName)) is occupying port $($config.Port). Run stop.bat to stop it, then run start.bat again."
+                }
+            }
+            $msg = "A healthy reference-lab service already answers at $url, but it was not started by this Windows launcher.`n" +
+                   "Refusing to attach to an unmanaged process because that would make the running code version ambiguous.`n`n" +
+                   "$extraHint"
+            throw $msg
+        }
+    } else {
+        Write-Host "[*] Windows reference-lab service is already running (PID $($record.pid))." -ForegroundColor Green
     }
-    Write-Host "[*] Windows reference-lab service is already running (PID $($record.pid))." -ForegroundColor Green
 } else {
     if ($managedProcess) {
         throw "Managed Windows process PID $($record.pid) exists but health check failed. Run stop.bat, inspect $stderrLog, then start again."

@@ -548,3 +548,27 @@ def test_wait_for_cards_survives_unparsable_evaluate(monkeypatch):
     monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
 
     assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == [{"t": "a"}]
+
+
+def test_extreme_aspect_ratio_and_slice_quality_filtering():
+    import tools.collect_adapter as ca
+    from conftest import image_bytes
+
+    policy = {"portrait_only": False}
+    # 358x797 (ratio 0.449) is a deformed narrow strip, must be rejected
+    narrow_strip = image_bytes(seed=1, size=(358, 797))
+    ok_narrow, _, reason_narrow = ca.validate_downloaded_image(narrow_strip, policy)
+    assert ok_narrow is False
+    assert reason_narrow == "extreme_aspect_ratio"
+
+    # Extreme panorama banner (ratio 3.0), must be rejected
+    wide_banner = image_bytes(seed=2, size=(900, 300))
+    ok_wide, _, reason_wide = ca.validate_downloaded_image(wide_banner, policy)
+    assert ok_wide is False
+    assert reason_wide == "extreme_aspect_ratio"
+
+    # Normal portrait ratio 2:3 (800x1200), must be accepted
+    normal_portrait = image_bytes(seed=3, size=(800, 1200))
+    ok_norm, _, _ = ca.validate_downloaded_image(normal_portrait, policy)
+    assert ok_norm is True
+

@@ -12,12 +12,13 @@ if (-not (Test-Path .venv\Scripts\python.exe)) {
     & $Python.Source -m venv .venv
     if ($LASTEXITCODE -ne 0) { throw "Virtual environment creation failed." }
 }
-& .venv\Scripts\python.exe -m pip install -e ".[test]"
+$venvPython = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
+& $venvPython -m pip install -e ".[test]"
 if ($LASTEXITCODE -ne 0) { throw "Dependency installation failed." }
 . (Join-Path $PSScriptRoot "scripts\runtime-common.ps1")
 Assert-ReferenceLabPythonMatchesRepo -Python (Get-ReferenceLabPython)
 if ($WithBrowser) {
-    & .venv\Scripts\python.exe -m playwright install chromium
+    & $venvPython -m playwright install chromium
     if ($LASTEXITCODE -ne 0) { throw "Browser installation failed." }
 }
 Write-Host "Installed Windows runtime for this checkout." -ForegroundColor Green

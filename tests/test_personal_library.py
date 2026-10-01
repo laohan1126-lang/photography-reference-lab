@@ -431,3 +431,31 @@ def test_make_transferable_candidate_archives_to_inspiration_and_detaches_from_p
     assert restored["lane"] == "inspiration"
     assert any(item["id"] == ref["id"] for item in client.get(f"/api/projects/{project['id']}/references").json()["items"])
 
+
+def test_rejection_reason_and_curator_skill_refine(client, project, library):
+    ref1 = add_reference(client, project, 1)
+    res = client.patch(f"/api/references/{ref1['id']}", json={
+        "expected_revision": ref1["revision"],
+        "decision": "reject",
+        "rejection_reason": "打光过曝且面部油光明显"
+    })
+    assert res.status_code == 200
+    updated = res.json()
+    assert updated["decision"] == "reject"
+    assert updated["rejection_reason"] == "打光过曝且面部油光明显"
+
+    ref2 = add_reference(client, project, 2)
+    client.patch(f"/api/references/{ref2['id']}", json={
+        "expected_revision": ref2["revision"],
+        "decision": "reject",
+        "rejection_reason": "动作生硬僵化，背景路人杂乱"
+    })
+
+    refine_res = client.post("/api/skills/curator/refine")
+    assert refine_res.status_code == 200
+    data = refine_res.json()
+    assert data["status"] == "ok"
+    assert data["total_reasons_collected"] >= 2
+    cat_names = [c["category"] for c in data["categories"]]
+    assert any("打光" in name or "背景" in name for name in cat_names)
+

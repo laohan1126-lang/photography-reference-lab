@@ -138,6 +138,10 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("Remote binding requires an explicit LAB_ACCESS_TOKEN")
             import uvicorn
             from .api import create_app
+            if not os.environ.get("LAB_COLLECTION_COMMAND"):
+                adapter_path = ROOT / "tools" / "collect_adapter.py"
+                if adapter_path.is_file():
+                    os.environ["LAB_COLLECTION_COMMAND"] = json.dumps([sys.executable, str(adapter_path), "{task_file}", "{result_file}"])
             print(f"Private reference library: {settings.public_origin}")
             print("Unlock token: run `python -m ref_lab token` locally. Do not commit or publicly share it.")
             uvicorn.run(create_app(settings), host=args.host, port=args.port)

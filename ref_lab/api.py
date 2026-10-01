@@ -46,10 +46,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     maintenance_file = settings.data_dir / "maintenance"
     origin = settings.public_origin.rstrip("/")
     origin_url = urlsplit(origin)
-    allowed_hosts = [origin_url.hostname]
-    allowed_origins = {origin}
+    allowed_hosts = [h for h in {origin_url.hostname, "localhost", "127.0.0.1", "::1", "ref.koshikorato.top", "c2c-photography-reference-lab.koshikorato.top"} if h]
+    allowed_origins = {origin, "http://localhost:18765", "http://127.0.0.1:18765", "https://ref.koshikorato.top", "https://c2c-photography-reference-lab.koshikorato.top"}
     if origin_url.hostname in {"127.0.0.1", "localhost", "::1"}:
-        allowed_hosts += ["localhost", "127.0.0.1", "::1"]
         for host in ("localhost", "127.0.0.1"):
             allowed_origins.add(f"{origin_url.scheme}://{host}" + (f":{origin_url.port}" if origin_url.port else ""))
     attempts: dict[str, deque] = defaultdict(deque)
@@ -146,7 +145,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         recent.clear()
         session = make_session(settings.token)
         response = JSONResponse({"authenticated": True, "csrf": csrf_for(settings.token, session)})
-        response.set_cookie(COOKIE, session, httponly=True, secure=origin_url.scheme == "https", samesite="strict", max_age=86400)
+        response.set_cookie(COOKIE, session, httponly=True, secure=request.url.scheme == "https" or origin_url.scheme == "https", samesite="strict", max_age=86400 * 7)
         return response
 
     @app.delete("/api/session")
@@ -277,6 +276,79 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def similar(reference_id: str):
         ref = library.reference(reference_id)
         return library.duplicates(ref["project_id"], reference_id)
+
+    @app.post("/api/assets/{sha}/reveal")
+    def reveal_asset(sha: str):
+        asset = library.asset(sha)
+        file_path = library.assets.path(asset, "original")
+        if not file_path.is_file():
+            raise Problem(404, "图片文件在本地不存在")
+        import os
+        import subprocess
+        import sys
+        folder = str(file_path.parent).replace("/", "\\")
+        filename = file_path.name
+        if sys.platform == "win32":
+            try:
+                os.startfile(folder)
+            except Exception:
+                try:
+                    subprocess.Popen(f'explorer.exe "{folder}"')
+                except Exception:
+                    pass
+        return {"revealed": True, "path": str(file_path), "folder": folder, "filename": filename}
+
+    @app.post("/api/references/{reference_id}/reveal")
+    def reveal_reference(reference_id: str):
+        ref = library.reference(reference_id)
+        target_path = None
+        if ref.get("archive_path") and Path(ref["archive_path"]).is_file():
+            target_path = Path(ref["archive_path"])
+        elif ref.get("asset_sha"):
+            asset = library.asset(ref["asset_sha"])
+            target_path = library.assets.path(asset, "original")
+        if not target_path or not target_path.is_file():
+            raise Problem(404, "图片文件在本地不存在")
+        import os
+        import subprocess
+        import sys
+        folder = str(target_path.parent).replace("/", "\\")
+        filename = target_path.name
+        if sys.platform == "win32":
+            try:
+                os.startfile(folder)
+            except Exception:
+                try:
+                    subprocess.Popen(f'explorer.exe "{folder}"')
+                except Exception:
+                    pass
+        return {"revealed": True, "path": str(target_path), "folder": folder, "filename": filename}
+
+    @app.post("/api/projects/{project_id}/reveal-export")
+    def reveal_project_export(project_id: str):
+        from .archiver import get_project_archive_dir, sync_project_confirmed_archive
+        proj = library.project(project_id)
+        target = get_project_archive_dir(settings.data_dir, proj)
+        target.mkdir(parents=True, exist_ok=True)
+        try:
+            sync_project_confirmed_archive(library, project_id)
+        except Exception:
+            pass
+        import os
+        import sys
+        if sys.platform == "win32":
+            try:
+                os.startfile(str(target))
+            except Exception:
+                import subprocess
+                p = str(target).replace("/", "\\")
+                subprocess.Popen(f'explorer.exe "{p}"', shell=True)
+        return {"revealed": True, "path": str(target)}
+
+    @app.post("/api/projects/{project_id}/sync-archive")
+    def sync_project_archive(project_id: str):
+        from .archiver import sync_project_confirmed_archive
+        return sync_project_confirmed_archive(library, project_id)
 
     @app.post("/api/assets", status_code=201)
     def upload(file: UploadFile = File(...)):

@@ -46,9 +46,9 @@ def component_factory(client, library):
                 return {'status':response.status_code, 'bytes':base64.b64encode(response.content).decode(),
                         'type':response.headers.get('content-type', 'application/octet-stream')}
             page.expose_binding('__testRequest', request)
-            markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text())
+            markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
-            page.add_style_tag(content=(ROOT/'web/styles.css').read_text())
+            page.add_style_tag(content=(ROOT/'web/styles.css').read_text(encoding='utf-8'))
             page.evaluate('''fragment => {
                 if(fragment)location.hash=fragment;
                 window.fetch = async(path, options={}) => {
@@ -75,7 +75,7 @@ def component_factory(client, library):
                 });
                 new MutationObserver(replace).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src']});
             }''', fragment)
-            page.add_script_tag(content=(ROOT/'web/app.js').read_text())
+            page.add_script_tag(content=(ROOT/'web/app.js').read_text(encoding='utf-8'))
             page.locator('#application').wait_for(state='visible')
             page.locator('#filmstrip').wait_for(state='attached')
             return page

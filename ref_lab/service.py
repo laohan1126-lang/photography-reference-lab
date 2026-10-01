@@ -249,6 +249,23 @@ class Library:
         result["inspiration_id"] = saved[0] if saved else None
         result["workflow_stage"] = self._workflow_stage(con, ref, project, result)
         result["card_current_context"] = bool(ref.get("card") and ref.get("card_context") == context_digest(project))
+        if result.get("asset") and exists:
+            result["local_path"] = str(self.assets.path(result["asset"]))
+        if project and project.get("character"):
+            from .archiver import get_project_archive_dir, sanitize_filename
+            archive_dir = get_project_archive_dir(self.settings.data_dir, project)
+            result["archive_dir"] = str(archive_dir)
+            result["export_dir"] = str(archive_dir)
+            if ref.get("decision") == "keep" and not detached and archive_dir.is_dir():
+                safe_title = sanitize_filename(ref.get("title") or "", max_length=30)
+                matched = [p for p in archive_dir.glob("*.jpg") if safe_title and safe_title in p.name]
+                result["archive_path"] = str(matched[0]) if matched else None
+            else:
+                result["archive_path"] = None
+        else:
+            result["archive_dir"] = None
+            result["archive_path"] = None
+            result["export_dir"] = None
         from .ranking import score_and_rank_candidates
         return score_and_rank_candidates([result])[0]
 
@@ -458,6 +475,14 @@ class Library:
                 self._save(con, ref, project, "reference.updated", changes)
                 if any(k in changes for k in ("decision", "lane", "preference", "borrow", "rejection_reason", "is_aesthetic_negative")):
                     self._record_feedback(con, ref, changes)
+        if any(k in changes for k in ("decision", "lane", "title")):
+            try:
+                from .archiver import sync_project_confirmed_archive
+                sync_project_confirmed_archive(self, ref["project_id"])
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Archive sync error on edit_reference: {e}")
+        with self.db.read() as con:
             return self._decorate(con, ref, project)
 
     def _record_feedback(self, con: sqlite3.Connection, ref: dict, changes: dict, *, inspiration: bool = False) -> None:
@@ -788,6 +813,14 @@ class Library:
             ensure_active_project(project)
             self._save(con, ref, project, "reference.restored", {"decision": ref["decision"]})
             self._record_feedback(con, ref, {"decision": ref["decision"]})
+        if ref.get("decision") == "keep":
+            try:
+                from .archiver import sync_project_confirmed_archive
+                sync_project_confirmed_archive(self, ref["project_id"])
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Archive sync error on restore_reference: {e}")
+        with self.db.read() as con:
             return self._decorate(con, ref, project)
 
     def _decorate_inspiration(self, con: sqlite3.Connection, item: dict) -> dict:

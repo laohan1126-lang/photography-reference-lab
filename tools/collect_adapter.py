@@ -25,13 +25,22 @@ from uuid import uuid4
 import zipfile
 
 import httpx
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter, ImageEnhance
+
+try:
+    from tools.collage_splitter import CollageSplitter
+except ImportError:
+    try:
+        from collage_splitter import CollageSplitter
+    except ImportError:
+        CollageSplitter = None
 
 
 POSITIVE_COSPLAY_MARKERS = (
     "cosplay", "coser", " cos ", "cos正片", "cos 正片", "正片", "场照",
     "返图", "出镜", "写真", "棚拍", "摄影", "漫展", "自拍", "出片", "拍了",
     "📷", "动作参考", "妆面", "毛娘", "试衣", "后期", "成片", "出cos",
+    "姿势分享", "姿势", "捞捞", "客片", "约拍", "同框",
 )
 NEGATIVE_TYPE_MARKERS = (
     "游戏截图", "游戏画面", "游戏cg", "游戏 cg", "皮肤特效", "特效设计", "技能特效",
@@ -45,10 +54,16 @@ NEGATIVE_TYPE_MARKERS = (
     "制作教程", "改造教程", "收纳教程", "怎么穿", "怎么做",
     "哪家好", "避雷", "测评", "店铺", "手办", "雕像", "粘土",
     "大家都在搜", "连招", "出装", "铭文", "上分", "对局",
+    "大全套", "换物", "免押金", "同人", "恶搞", "段子",
+    "对比", "详细对比", "盘点", "版型", "体验馆", "一条龙", "骗钱", "跑路", "拍的什么东西", "挂人", "三视图",
+    "对镜自拍", "对镜拍", "试衣间", "各家", "出格裙", "山正", "好价", "急抛", "拼单",
+    "搭子", "求搭子", "找搭子", "求一个", "蹲搭子", "组队", "扩列", "招募", "约拍搭子", "求队友",
+    "道具展示", "道具制作", "自制道具", "道具自制", "翅膀",
+    "聊天记录", "求问", "问问", "求返图", "捞返图", "求图", "有没有人拍到", "捞捞",
 )
 NEGATIVE_QUERY_TERMS = (
     "游戏截图", "游戏画面", "皮肤特效", "特效设计", "插画", "立绘", "原画",
-    "壁纸", "CG", "建模", "模型", "商品图", "服装展示", "人台",
+    "壁纸", "CG", "建模", "模型", "商品图", "服装展示", "人台", "搭子",
 )
 NEGATION_WORDS = ("不要", "不需要", "排除", "禁止", "别找", "不要找")
 
@@ -115,7 +130,8 @@ def build_policy(job: dict) -> dict:
     work = (project.get("work") or "").strip()
     notes = (job.get("notes") or "").strip()
     notes_lower = notes.lower()
-    require_cosplay = any(k in notes_lower for k in ("cos", "cosplay", "正片", "场照", "真人", "实拍", "返图"))
+    explicit_non_cosplay = any(k in notes_lower for k in ("不限cos", "非cos", "无需cos", "不仅cos", "不限真人"))
+    require_cosplay = not explicit_non_cosplay
     require_character = bool(character)
     require_costume = bool(costume) and any(k in notes_lower for k in ("该皮肤", "这个皮肤", "本皮肤", "同皮肤", "只找", "仅找", "限定"))
     portrait_only = any(k in notes_lower for k in ("竖图", "竖版", "竖构图", "竖幅"))
@@ -188,6 +204,7 @@ def _character_aliases(name: str) -> list[str]:
     aliases = [name]
     if len(name) == 3:
         aliases.append(name[1:])  # 王昭君 -> 昭君
+        aliases.append(f"{name[1:]}{name[0]}")  # 王昭君 -> 昭君王
     elif "·" in name:
         aliases.extend(p for p in name.split("·") if p)
     return aliases
@@ -265,14 +282,19 @@ def hamming_distance(left: str, right: str) -> int:
 
 
 def validate_downloaded_image(raw: bytes, policy: dict) -> tuple[bool, str, str]:
+    if not raw or len(raw) < 1_000:
+        return False, "", "file_too_small"
     try:
         with Image.open(io.BytesIO(raw)) as image:
             image.load()
             if getattr(image, "n_frames", 1) != 1:
                 return False, "", "animated_or_multiframe"
             width, height = image.size
-            if min(width, height) < 480 or max(width, height) < 720:
+            if max(width, height) < 600 or min(width, height) < 240:
                 return False, "", "too_small"
+            aspect = width / height
+            if aspect < 0.45 or aspect > 2.2:
+                return False, "", "extreme_aspect_ratio"
             if policy["portrait_only"] and height <= width:
                 return False, "", "not_portrait"
             fmt = (image.format or "").lower()
@@ -280,9 +302,113 @@ def validate_downloaded_image(raw: bytes, policy: dict) -> tuple[bool, str, str]
                 return False, "", "unsupported_format"
             ext = "jpg" if fmt in {"jpeg", "jpg"} else fmt
             dhash = compute_dhash(image)
+
+            # Sanity check: detect solid pure-white e-commerce backgrounds (mannequins, product catalogs)
+            # and solid text screenshots (notes, chat screenshots)
+            rgb = image.convert("RGB")
+            thumb = rgb.resize((64, 64), Image.Resampling.BOX)
+            pixels = list(thumb.get_flattened_data() if hasattr(thumb, "get_flattened_data") else thumb.getdata())
+            total_px = len(pixels)
+            near_whites = sum(1 for (r, g, b) in pixels if r > 240 and g > 240 and b > 240)
+            white_ratio = near_whites / total_px
+            if white_ratio > 0.60:
+                return False, "", "ecommerce_white_background_or_document"
+
             return True, ext, dhash
     except Exception:
         return False, "", "invalid_image"
+
+
+def process_and_expand_image(
+    img_bytes: bytes,
+    ext: str,
+    meta: dict,
+    seen_shas: set[str],
+    seen_dhashes: list[str],
+    allow_split: bool = True,
+) -> list[tuple[str, bytes, dict]]:
+    """Check image for multi-panel collage layout and split into individual action cards.
+
+    If CollageSplitter recognizes the image as a multi-grid collage, it slices out
+    each sub-panel, applies high-DPI super-sampling/sharpening, and returns independent
+    candidate items. Otherwise, returns the original image.
+    """
+    items = []
+    split_done = False
+
+    if allow_split and CollageSplitter is not None:
+        try:
+            with Image.open(io.BytesIO(img_bytes)) as pil_img:
+                pil_img_rgb = pil_img.convert("RGB")
+                res = CollageSplitter().split(pil_img_rgb)
+                sub_imgs = res.get("sub_images") or []
+                if res.get("is_collage") and len(sub_imgs) > 1:
+                    orig_title = meta.get("title", "")
+                    valid_slices = []
+                    for idx, sub_img in enumerate(sub_imgs):
+                        sw, sh = sub_img.size
+                        if sw < 200 or sh < 200:
+                            continue
+                        sub_aspect = sw / sh
+                        if sub_aspect < 0.48 or sub_aspect > 2.1:
+                            continue
+                        valid_slices.append((idx, sub_img))
+                        if len(valid_slices) >= 2:
+                            break
+
+                    for idx, sub_img in valid_slices:
+                        sw, sh = sub_img.size
+                        scale = max(1, int(round(650.0 / max(sw, sh))))
+                        if scale > 1:
+                            target_w = sw * scale
+                            target_h = sh * scale
+                            hi_res = sub_img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+                            hi_res = hi_res.filter(ImageFilter.UnsharpMask(radius=1.5, percent=130, threshold=2))
+                            out_img = ImageEnhance.Contrast(hi_res).enhance(1.05)
+                        else:
+                            out_img = sub_img
+
+                        buf = io.BytesIO()
+                        save_fmt = "JPEG" if ext.lower() in ("jpg", "jpeg") else ext.upper()
+                        if save_fmt not in ("JPEG", "PNG", "WEBP"):
+                            save_fmt = "JPEG"
+                        out_img.save(buf, format=save_fmt, quality=95)
+                        sub_bytes = buf.getvalue()
+
+                        sub_sha = hashlib.sha256(sub_bytes).hexdigest()
+                        sub_dhash = compute_dhash(out_img)
+                        if sub_sha in seen_shas or any(hamming_distance(sub_dhash, old) <= 3 for old in seen_dhashes):
+                            continue
+                        seen_shas.add(sub_sha)
+                        seen_dhashes.append(sub_dhash)
+
+                        sub_fn = f"{sub_sha[:16]}.{ext}"
+                        sub_title = f"【动作#{idx+1:02d}】{orig_title}"[:350]
+                        sub_meta = dict(meta)
+                        sub_meta["title"] = sub_title
+                        if "source" in sub_meta and isinstance(sub_meta["source"], dict):
+                            sub_meta["source"] = dict(sub_meta["source"])
+                            sub_meta["source"]["obtained_as"] = "platform_variant"
+                        sub_meta["discovery_reason"] = (
+                            meta.get("discovery_reason", "") + f" (从多宫格拼图自动拆解动作#{idx+1:02d})"
+                        )[:400]
+                        items.append((sub_fn, sub_bytes, sub_meta))
+                    if items:
+                        split_done = True
+        except Exception:
+            split_done = False
+
+    if not split_done:
+        sha = hashlib.sha256(img_bytes).hexdigest()
+        with Image.open(io.BytesIO(img_bytes)) as pil_img:
+            dhash = compute_dhash(pil_img)
+        if sha not in seen_shas and not any(hamming_distance(dhash, old) <= 3 for old in seen_dhashes):
+            seen_shas.add(sha)
+            seen_dhashes.append(dhash)
+            fn = f"{sha[:16]}.{ext}"
+            items.append((fn, img_bytes, meta))
+
+    return items
 
 
 def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -> tuple[list[dict], dict[str, bytes], list[dict]]:
@@ -349,20 +475,9 @@ def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -
                 if not valid:
                     rejected_image += 1
                     continue
-                sha = hashlib.sha256(image_bytes).hexdigest()
-                if sha in seen_shas or any(hamming_distance(dhash, old) <= 3 for old in seen_dhashes):
-                    rejected_duplicate += 1
-                    continue
-
-                seen_shas.add(sha)
-                seen_dhashes.append(dhash)
-                filename = f"{sha[:16]}.{ext}"
-                images[filename] = image_bytes
                 title = str(record.get("t") or record.get("desc") or f"{policy['character']} {policy['costume']} 参考")[:350]
                 desc = str(record.get("desc") or "")[:800]
-                candidates.append({
-                    "id": f"cand-{len(candidates) + 1:03d}",
-                    "file": f"images/{filename}",
+                base_meta = {
                     "title": title,
                     "source": {
                         "page_url": page_url[:2000],
@@ -378,8 +493,18 @@ def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -
                     "discovery_reason": "严格按本轮角色/皮肤/COS要求筛选的公开图片搜索候选；尚未做视觉身份确认。",
                     "discovery_url": search_url[:2000],
                     "notes": desc,
-                })
-                kept += 1
+                }
+                expanded_items = process_and_expand_image(image_bytes, ext, base_meta, seen_shas, seen_dhashes, allow_split=False)
+                if not expanded_items:
+                    rejected_duplicate += 1
+                    continue
+
+                for fn, raw_data, cand_meta in expanded_items:
+                    images[fn] = raw_data
+                    cand_meta["id"] = f"cand-{len(candidates) + 1:03d}"
+                    cand_meta["file"] = f"images/{fn}"
+                    candidates.append(cand_meta)
+                    kept += 1
 
             query_log.append({
                 "query": query,
@@ -447,6 +572,10 @@ def _pick_browser(browsers: list[dict]) -> str | None:
     for browser in browsers:
         if browser.get("browser_name") == "edge":
             return browser.get("instance_id")
+    if os.name == "nt":
+        # Windows primary runtime is Edge. Never silently fall back to Chrome
+        # where user credentials/profiles do not exist.
+        return None
     return browsers[0].get("instance_id") if browsers else None
 
 
@@ -541,11 +670,11 @@ def wait_for_cards(
 def fetch_xhs_detail_metadata(
     bsk_bin: str, session_id: str, page_url: str, env: dict[str, str]
 ) -> dict:
-    """Read visible Xiaohongshu detail metadata for an ambiguous search card.
+    """Read visible Xiaohongshu detail metadata and gallery image URLs for a note.
 
-    This is still metadata evidence, not a visual review.  It exists only to
-    distinguish a voice-line-titled cosplay post whose hashtags/body carry the
-    requested identity from an unrelated/help card returned by search ranking.
+    Extracts note title, description, tags, body, and all high-resolution image
+    URLs in the note gallery (via window.__INITIAL_STATE__.note.noteDetailMap,
+    falling back to DOM slider elements).
     """
     if not _is_note_url(page_url):
         # Never inspect the search-result page as if it were one note: its
@@ -560,19 +689,54 @@ def fetch_xhs_detail_metadata(
         )
         time.sleep(2.0)
         js = """(() => {
-            const title = document.querySelector('#detail-title, .title')?.innerText?.trim() || '';
-            const desc = document.querySelector('#detail-desc, .desc, .content')?.innerText?.trim() || '';
+            let noteTitle = '';
+            let noteDesc = '';
+            const gallery_urls = [];
+            try {
+                const state = window.__INITIAL_STATE__;
+                if (state?.note?.noteDetailMap) {
+                    for (const k of Object.keys(state.note.noteDetailMap)) {
+                        const note = state.note.noteDetailMap[k]?.note;
+                        if (note) {
+                            if (note.title && !noteTitle) noteTitle = note.title;
+                            if (note.desc && !noteDesc) noteDesc = note.desc;
+                            if (note.imageList) {
+                                for (const img of note.imageList) {
+                                    const u = img.urlDefault || (img.infoList && img.infoList[1]?.url) || (img.infoList && img.infoList[0]?.url);
+                                    if (u && !gallery_urls.includes(u)) {
+                                        gallery_urls.push(u);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            const title = noteTitle || document.querySelector('#detail-title, .title')?.innerText?.trim() || '';
+            const desc = noteDesc || document.querySelector('#detail-desc, .desc, .content')?.innerText?.trim() || '';
             const tags = Array.from(document.querySelectorAll('a[href*="/search_result/"]'))
                 .map(a => a.innerText?.trim() || '')
                 .filter(Boolean);
             const root = document.querySelector('.note-container, [role="dialog"], .note-scroller');
             const body = root?.innerText?.trim() || '';
+
+            if (gallery_urls.length === 0) {
+                const domImgs = Array.from(document.querySelectorAll('.swiper-slide img, .note-slider img, .media-container img, .note-container img'))
+                    .map(i => i.currentSrc || i.src)
+                    .filter(u => u && u.includes('xhscdn.com') && !u.includes('avatar'));
+                for (const u of domImgs) {
+                    if (!gallery_urls.includes(u)) gallery_urls.push(u);
+                }
+            }
+
             return {
                 title,
                 desc,
                 tags,
                 body: body.slice(0, 2400),
-                purl: location.href
+                purl: location.href,
+                gallery_urls
             };
         })()"""
         p = subprocess.run(
@@ -585,6 +749,45 @@ def fetch_xhs_detail_metadata(
         return value if isinstance(value, dict) else {}
     except Exception:
         return {}
+
+
+def download_gallery_images(
+    bsk_bin: str, session_id: str, urls: list[str], env: dict[str, str], timeout: int = 30
+) -> list[dict]:
+    """Download multiple images concurrently in browser context via fetch."""
+    if not urls:
+        return []
+    fetch_js = f"""(async () => {{
+        const urls = {json.dumps(urls)};
+        const downloaded = [];
+        for (const u of urls) {{
+            try {{
+                const resp = await fetch(u);
+                if (!resp.ok) continue;
+                const blob = await resp.blob();
+                const b64 = await new Promise((resolve) => {{
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                }});
+                if (b64 && b64.includes(',')) {{
+                    downloaded.push({{ url: u, data: b64 }});
+                }}
+            }} catch (e) {{}}
+        }}
+        return downloaded;
+    }})()"""
+    try:
+        p = subprocess.run(
+            [bsk_bin, "evaluate", "--session", session_id, "--json", fetch_js],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=env, timeout=timeout
+        )
+        val = json.loads(p.stdout)
+        items = val.get("value", []) if isinstance(val, dict) else []
+        return items if isinstance(items, list) else []
+    except Exception:
+        return []
 
 
 def fetch_bsk_candidates(
@@ -609,6 +812,8 @@ def fetch_bsk_candidates(
     candidates: list[dict] = []
     images: dict[str, bytes] = {}
     query_log: list[dict] = []
+    note_kept_counts: dict[str, int] = {}
+    note_dhashes: dict[str, list[str]] = {}
 
     browser_queries = build_queries(job, for_browser=True)
 
@@ -665,15 +870,17 @@ def fetch_bsk_candidates(
             for card in cards:
                 if len(candidates) >= target_count:
                     break
+                card_purl = str(card.get("purl") or "").strip()
                 record = {
                     "t": card["title"],
                     "desc": card["desc"],
                     "author": card.get("author", ""),
                     "full_text": card.get("full_text", ""),
-                    "purl": card["purl"],
+                    "purl": card_purl,
                 }
                 allowed, reason = result_metadata_allowed(record, policy)
 
+                detail = None
                 # A voice-line/poetic title may omit the character and cosplay
                 # words on the search card.  Resolve only those ambiguous XHS
                 # cards by opening the visible detail page and using its body /
@@ -682,10 +889,11 @@ def fetch_bsk_candidates(
                     not allowed
                     and reason.startswith("needs_detail_evidence:")
                     and detail_checks < max_detail_checks
+                    and _is_note_url(card_purl)
                 ):
                     detail_checks += 1
                     detail = fetch_xhs_detail_metadata(
-                        bsk_bin, session_id, str(card.get("purl") or ""), env
+                        bsk_bin, session_id, card_purl, env
                     )
                     if detail:
                         detail_text = " ".join([
@@ -706,81 +914,107 @@ def fetch_bsk_candidates(
                     rejected_metadata += 1
                     continue
 
-                img_url = card.get("image_url", "").strip()
-                if not img_url or img_url in seen_urls:
-                    rejected_duplicate += 1
-                    continue
-                seen_urls.add(img_url)
+                downloaded_batch = []
+                if _is_note_url(card_purl):
+                    if detail is None:
+                        detail = fetch_xhs_detail_metadata(
+                            bsk_bin, session_id, card_purl, env
+                        )
+                    gallery_urls = [u for u in detail.get("gallery_urls", []) if u and u not in seen_urls]
+                    if gallery_urls:
+                        urls_to_fetch = gallery_urls[:min(len(gallery_urls), 8)]
+                        downloaded_batch = download_gallery_images(
+                            bsk_bin, session_id, urls_to_fetch, env, timeout=20
+                        )
 
-                fetch_js = f"""(async () => {{
-                    try {{
-                        const resp = await fetch({json.dumps(img_url)});
-                        if (!resp.ok) return null;
-                        const blob = await resp.blob();
-                        const reader = new FileReader();
-                        return await new Promise((resolve) => {{
-                            reader.onloadend = () => resolve(reader.result);
-                            reader.readAsDataURL(blob);
-                        }});
-                    }} catch (e) {{
-                        return null;
-                    }}
-                }})()"""
-                fetch_p = subprocess.run(
-                    [bsk_bin, "evaluate", "--session", session_id, "--json", fetch_js],
-                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=12
-                )
-                try:
-                    fetch_val = json.loads(fetch_p.stdout).get("value")
-                except Exception:
-                    fetch_val = None
+                # Fallback to single card cover image if gallery extraction was empty or failed
+                if not downloaded_batch:
+                    cover_url = card.get("image_url", "").strip()
+                    if cover_url and cover_url not in seen_urls:
+                        downloaded_batch = download_gallery_images(
+                            bsk_bin, session_id, [cover_url], env, timeout=15
+                        )
 
-                if not fetch_val or "," not in fetch_val:
+                if not downloaded_batch:
                     rejected_image += 1
                     continue
 
-                try:
-                    img_bytes = base64.b64decode(fetch_val.split(",", 1)[1])
-                except Exception:
-                    rejected_image += 1
-                    continue
+                total_downloaded = len(downloaded_batch)
+                raw_title = str(detail.get("title") if detail else None) or str(card.get("title")) or f"{policy['character']} 小红书参考"
+                raw_title = raw_title[:350]
+                note_desc = str(detail.get("desc") if detail else None) or str(card.get("desc") or "")
+                note_page_url = str(detail.get("purl") if detail else None) or card_purl or xhs_url
+                clean_note_url = note_page_url.split("?")[0] if "?" in note_page_url else note_page_url
 
-                valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
-                if not valid:
-                    rejected_image += 1
-                    continue
+                for img_idx, item in enumerate(downloaded_batch):
+                    if len(candidates) >= target_count:
+                        break
+                    img_url = item.get("url") or ""
+                    b64_data = item.get("data") or ""
+                    if not b64_data or "," not in b64_data:
+                        rejected_image += 1
+                        continue
+                    seen_urls.add(img_url)
 
-                sha = hashlib.sha256(img_bytes).hexdigest()
-                if sha in seen_shas or any(hamming_distance(dhash, old) <= 3 for old in seen_dhashes):
-                    rejected_duplicate += 1
-                    continue
+                    try:
+                        img_bytes = base64.b64decode(b64_data.split(",", 1)[1])
+                    except Exception:
+                        rejected_image += 1
+                        continue
 
-                seen_shas.add(sha)
-                seen_dhashes.append(dhash)
-                filename = f"{sha[:16]}.{ext}"
-                images[filename] = img_bytes
-                title = str(card.get("title") or f"{policy['character']} 小红书参考")[:350]
-                desc = str(card.get("desc") or "")[:800]
-                candidates.append({
-                    "id": f"cand-{len(candidates) + 1:03d}",
-                    "file": f"images/{filename}",
-                    "title": title,
-                    "source": {
-                        "page_url": str(card.get("purl") or xhs_url)[:2000],
-                        "image_url": img_url[:2000],
-                        "author": str(card.get("author") or "")[:200],
-                        "title": title,
-                        "search_query": query[:350],
-                        "rights": "unknown",
-                        "source_confirmed": False,
-                        "obtained_as": "platform_variant",
-                    },
-                    "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
-                    "discovery_reason": f"通过 BrowserSkill 检索「{query}」在小红书发现",
-                    "discovery_url": xhs_url[:2000],
-                    "notes": desc,
-                })
-                kept += 1
+                    valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
+                    if not valid:
+                        rejected_image += 1
+                        continue
+
+                    # Secondary slide filtering (P2, P3...):
+                    # Filter out micro-burst duplicate shots (hamming distance < 6)
+                    if img_idx > 0:
+                        prev_dhashes = note_dhashes.get(clean_note_url, [])
+                        if prev_dhashes and any(hamming_distance(dhash, old_dh) < 6 for old_dh in prev_dhashes):
+                            rejected_duplicate += 1
+                            continue
+
+                    card_title = f"{raw_title} (P{img_idx+1}/{total_downloaded})" if total_downloaded > 1 else raw_title
+                    disc_reason = (
+                        f"通过 BrowserSkill 检索「{query}」在小红书图集发现 (P{img_idx+1}/{total_downloaded})"
+                        if total_downloaded > 1
+                        else f"通过 BrowserSkill 检索「{query}」在小红书发现"
+                    )
+
+                    base_meta = {
+                        "title": card_title,
+                        "source": {
+                            "page_url": note_page_url[:2000],
+                            "image_url": img_url[:2000],
+                            "author": str(card.get("author") or "")[:200],
+                            "title": card_title,
+                            "search_query": query[:350],
+                            "rights": "unknown",
+                            "source_confirmed": False,
+                            "obtained_as": "platform_variant",
+                        },
+                        "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
+                        "discovery_reason": disc_reason,
+                        "discovery_url": xhs_url[:2000],
+                        "notes": note_desc[:800],
+                    }
+
+                    expanded_items = process_and_expand_image(img_bytes, ext, base_meta, seen_shas, seen_dhashes, allow_split=False)
+                    if not expanded_items:
+                        rejected_duplicate += 1
+                        continue
+
+                    for fn, raw_data, cand_meta in expanded_items:
+                        if len(candidates) >= target_count:
+                            break
+                        images[fn] = raw_data
+                        cand_meta["id"] = f"cand-{len(candidates) + 1:03d}"
+                        cand_meta["file"] = f"images/{fn}"
+                        candidates.append(cand_meta)
+                        kept += 1
+                        note_kept_counts[clean_note_url] = note_kept_counts.get(clean_note_url, 0) + 1
+                        note_dhashes.setdefault(clean_note_url, []).append(dhash)
 
             query_log.append({
                 "query": query,
@@ -866,20 +1100,9 @@ def fetch_bsk_candidates(
                         rejected_image += 1
                         continue
 
-                    sha = hashlib.sha256(img_bytes).hexdigest()
-                    if sha in seen_shas or any(hamming_distance(dhash, old) <= 3 for old in seen_dhashes):
-                        rejected_duplicate += 1
-                        continue
-
-                    seen_shas.add(sha)
-                    seen_dhashes.append(dhash)
-                    filename = f"{sha[:16]}.{ext}"
-                    images[filename] = img_bytes
                     title = str(pin.get("title") or f"{policy['character']} Pinterest 参考")[:350]
                     desc = str(pin.get("desc") or "")[:800]
-                    candidates.append({
-                        "id": f"cand-{len(candidates) + 1:03d}",
-                        "file": f"images/{filename}",
+                    base_meta = {
                         "title": title,
                         "source": {
                             "page_url": str(pin.get("purl") or pin_url)[:2000],
@@ -895,8 +1118,18 @@ def fetch_bsk_candidates(
                         "discovery_reason": f"通过 BrowserSkill 检索「{query}」在 Pinterest 发现",
                         "discovery_url": pin_url[:2000],
                         "notes": desc,
-                    })
-                    kept += 1
+                    }
+                    expanded_items = process_and_expand_image(img_bytes, ext, base_meta, seen_shas, seen_dhashes, allow_split=False)
+                    if not expanded_items:
+                        rejected_duplicate += 1
+                        continue
+
+                    for fn, raw_data, cand_meta in expanded_items:
+                        images[fn] = raw_data
+                        cand_meta["id"] = f"cand-{len(candidates) + 1:03d}"
+                        cand_meta["file"] = f"images/{fn}"
+                        candidates.append(cand_meta)
+                        kept += 1
 
                 query_log.append({
                     "query": query,
