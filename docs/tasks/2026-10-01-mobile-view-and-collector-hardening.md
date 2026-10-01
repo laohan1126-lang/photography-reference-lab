@@ -41,3 +41,10 @@
 5. **Mobile Access & BrowserSkill Auto-Healing**:
    - `pytest -q tests/test_windows_runtime_scripts.py`: **8 passed, 0 failed** (verifying launcher auto-heals Cloudflare tunnel and bsk daemon).
    - Live tunnel verification: `https://ref.koshikorato.top/health` (200 OK), references API and image asset preview verified.
+6. **Task Publishing & Dual Git+Notion Synchronization Integration**:
+   - Diagnosed missing hook execution in Antigravity: `~/.gemini/config/hooks.json` had broken paths to `hooks/stop_gate.py` because the scripts subfolder was not mounted in `.gemini/config/skills/finish-task-publisher`.
+   - Repaired script installation in `C:/Users/Dell/.gemini/config/skills/finish-task-publisher/hooks/`.
+   - Enhanced `common.py` with dynamic Windows registry token fallback (`HKCU\Environment`).
+   - Integrated Notion parent database (`AI Playbook`, ID `ae097fef82124ccaa8deda1a84e33564`) with automatic property detection (`名称`).
+   - Verified automated dual push: Git commits + GitHub remote push + Notion task record generation.
+   - Published Notion record: https://app.notion.com/p/Configure-Notion-sync-and-dual-Git-Notion-publication-gate-3ecbcf9bedba81178227e5d2ef94c6e1
