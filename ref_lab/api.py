@@ -73,7 +73,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         bearer = request.headers.get("authorization", "")
         bearer_ok = bearer.startswith("Bearer ") and hmac.compare_digest(bearer[7:], settings.token)
         session_ok = valid_session(settings.token, session)
-        request.state.authenticated = bearer_ok or session_ok
+        request.state.authenticated = settings.no_auth or bearer_ok or session_ok
         if request.method not in {"GET", "HEAD", "OPTIONS"}:
             supplied_origin = request.headers.get("origin")
             if supplied_origin and supplied_origin not in allowed_origins:
@@ -81,7 +81,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if path.startswith("/api/") and path != "/api/session":
             if not request.state.authenticated:
                 return JSONResponse({"message": "请先解锁私人参考库"}, 401)
-            if request.method not in {"GET", "HEAD", "OPTIONS"} and not bearer_ok:
+            if request.method not in {"GET", "HEAD", "OPTIONS"} and not bearer_ok and not settings.no_auth:
                 if not hmac.compare_digest(request.headers.get("x-lab-csrf", ""), csrf_for(settings.token, session)):
                     return JSONResponse({"message": "CSRF check failed; refresh and retry"}, 403)
             if (maintenance_file.exists() and path != "/api/maintenance"
@@ -128,9 +128,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/session")
     def session_info(request: Request):
+        session = request.cookies.get(COOKIE, "")
+        if settings.no_auth:
+            if not session:
+                session = make_session(settings.token)
+            response = JSONResponse({
+                "authenticated": True,
+                "csrf": csrf_for(settings.token, session),
+                "version": __version__,
+                "no_auth": True
+            })
+            response.set_cookie(COOKIE, session, httponly=True, secure=request.url.scheme == "https" or origin_url.scheme == "https", samesite="strict", max_age=86400 * 30)
+            return response
         return {"authenticated": request.state.authenticated,
-                "csrf": csrf_for(settings.token, request.cookies.get(COOKIE, "")) if request.state.authenticated else "",
-                "version": __version__}
+                "csrf": csrf_for(settings.token, session) if request.state.authenticated else "",
+                "version": __version__,
+                "no_auth": False}
 
     @app.post("/api/session")
     def login(data: Login, request: Request):

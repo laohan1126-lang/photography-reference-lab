@@ -1,4 +1,4 @@
-﻿
+
 param(
     [switch]$NoOpen,
     [switch]$NoWait
@@ -216,12 +216,18 @@ Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "  Runtime  : Windows Python + Windows BrowserSkill/Edge" -ForegroundColor White
 Write-Host "  电脑访问 : $url" -ForegroundColor White
-Write-Host "  手机访问 : https://ref.koshikorato.top" -ForegroundColor Green
-if ($token) {
-    Write-Host "  手机免密 : https://ref.koshikorato.top/?token=$token" -ForegroundColor Cyan
-    Write-Host "  Token    : $token (已复制到剪贴板)" -ForegroundColor Green
+$noAuthFile = Join-Path $config.DataDir "no-auth"
+if ((Test-Path $noAuthFile) -or ($env:LAB_NO_AUTH -eq "1")) {
+    Write-Host "  手机访问 : https://ref.koshikorato.top (完全免密模式)" -ForegroundColor Green
+    Write-Host "  模式     : 免密直接进入，无需输入任何口令" -ForegroundColor Cyan
 } else {
-    Write-Host "  Token    : run .venv\Scripts\python.exe -m ref_lab token" -ForegroundColor Yellow
+    Write-Host "  手机访问 : https://ref.koshikorato.top" -ForegroundColor Green
+    if ($token) {
+        Write-Host "  手机免密 : https://ref.koshikorato.top/?token=$token" -ForegroundColor Cyan
+        Write-Host "  Token    : $token (已复制到剪贴板)" -ForegroundColor Green
+    } else {
+        Write-Host "  Token    : run .venv\Scripts\python.exe -m ref_lab token" -ForegroundColor Yellow
+    }
 }
 Write-Host "  Stop     : double-click stop.bat" -ForegroundColor Gray
 Write-Host "================================================================" -ForegroundColor Cyan

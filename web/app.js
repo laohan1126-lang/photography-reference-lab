@@ -52,7 +52,7 @@ async function api(path, options = {}) {
         return response.blob();
     return response.json();
 }
-function lockScreen() { closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
+function lockScreen() { if (state.noAuth) return; closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
 function current() { return state.refs.find(x => x.id === state.activeId) || state.refs[0] || null; }
 function label(text, name, value = '', type = 'text', extra = '') { return `<label>${esc(text)}<input aria-label="${esc(text)}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`; }
 function area(text, name, value = '', extra = '') { return `<label>${esc(text)}<textarea aria-label="${esc(text)}" name="${name}" ${extra}>${esc(value)}</textarea></label>`; }
@@ -139,8 +139,13 @@ function toggleProjectSelection(ref){
 function safeDiscard() { return !state.busy && (!state.dirty || window.confirm('当前审美反馈尚未保存。仍然离开？')); }
 async function boot() {
     const session = await api('/api/session');
+    state.noAuth = Boolean(session.no_auth);
     if (!session.authenticated) { lockScreen(); return; }
     state.csrf=session.csrf; $('version').textContent='v'+session.version;
+    if (state.noAuth) {
+        const lockBtn = $('lock-library');
+        if (lockBtn) lockBtn.hidden = true;
+    }
     state.caps=await api('/api/capabilities');
     const q=new URLSearchParams(location.hash.slice(1));
     if ([...projectViews,'inspiration','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
@@ -1283,6 +1288,7 @@ $('login-form').addEventListener('submit',async e=>{
 $('new-project').onclick=()=>projectEditor();
 if ($('optimize-skill-btn')) $('optimize-skill-btn').onclick = optimizeSkillFromRejectionReasons;
 $('lock-library').onclick=async()=>{
+    if (state.noAuth) { toast('当前已开启完全免密模式，无需锁定'); return; }
     if(!safeDiscard())return;
     try { localStorage.removeItem('ref_lab_token'); } catch(_) {}
     try{await api('/api/session',{method:'DELETE'});lockScreen();}catch(error){showError(error);}
@@ -1328,6 +1334,7 @@ document.addEventListener('keydown',event=>{
         }
     }
     boot().catch(error => {
+        if (state.noAuth) return;
         lockScreen();
         $('login-error').textContent = '无法连接参考库：' + error.message;
         try {
