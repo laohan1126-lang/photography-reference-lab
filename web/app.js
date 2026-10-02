@@ -52,7 +52,7 @@ async function api(path, options = {}) {
         return response.blob();
     return response.json();
 }
-function lockScreen() { closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
+function lockScreen() { LibraryDiscovery.reset(); closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
 function current() { return state.refs.find(x => x.id === state.activeId) || state.refs[0] || null; }
 function label(text, name, value = '', type = 'text', extra = '') { return `<label>${esc(text)}<input aria-label="${esc(text)}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`; }
 function area(text, name, value = '', extra = '') { return `<label>${esc(text)}<textarea aria-label="${esc(text)}" name="${name}" ${extra}>${esc(value)}</textarea></label>`; }
@@ -114,6 +114,7 @@ const stages = {candidate:'先选出你喜欢的', selected:'角色参考 · 尚
 function scopeKey() { return projectViews.includes(state.view) ? `${state.view}:${state.project?.id || ''}` : state.view; }
 function rememberNavigation() {
     const q = new URLSearchParams({view:state.view, project:state.project?.id || '', ref:state.activeId || '', offset:state.offset, q:state.query, decision:state.decision, kind:state.kind, job:state.jobId || '', recycled:state.recycled?'1':'0'});
+    LibraryDiscovery.navigationParams(q);
     try { history.replaceState(null, '', '#'+q); } catch { /* Sandboxed component tests need no browser history. */ }
 }
 function resetFilters() { state.offset=0; state.query=''; state.decision=''; state.kind=''; state.jobId=''; state.focusId=null; state.recycled=false; state.activeId=null; state.dirty=false; state.selectLast=false; }
@@ -143,7 +144,8 @@ async function boot() {
     state.csrf=session.csrf; $('version').textContent='v'+session.version;
     state.caps=await api('/api/capabilities');
     const q=new URLSearchParams(location.hash.slice(1));
-    if ([...projectViews,'inspiration','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
+    LibraryDiscovery.restore(q);
+    if ([...projectViews,'library','inspiration','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
     state.activeId=q.get('ref'); state.focusId=state.activeId; state.offset=Math.max(0,Number(q.get('offset'))||0);
     state.query=(q.get('q')||'').slice(0,400); state.decision=q.get('decision')||''; state.kind=q.get('kind')||'';
     state.jobId=q.get('job')||''; state.recycled=q.get('recycled')==='1';
@@ -153,19 +155,21 @@ async function loadProjects(preferredId) {
     [state.projects,state.archivedProjects]=await Promise.all([api('/api/projects'),api('/api/projects?archived=true')]);
     state.project=state.projects.find(x=>x.id===(preferredId||state.project?.id))||state.projects[0]||null;
     if (!state.project && projectViews.includes(state.view)) state.view='inspiration';
+    await LibraryDiscovery.init();
     $('login-screen').hidden=true; $('application').hidden=false;
     renderSidebar(); renderHeader(); await refreshView();
 }
-async function navigate(view, projectId=null) {
+async function navigate(view, projectId=null, focusId=null) {
     if (!safeDiscard()) return;
     const before=state.project?.id;
     if (projectId) state.project=state.projects.find(p=>p.id===projectId)||state.project;
     if (projectId&&state.project?.id!==before) state.selection=[];
-    state.view=view; resetFilters(); renderSidebar(); renderHeader(); await refreshView();
+    state.view=view; resetFilters(); state.focusId=focusId; state.activeId=focusId;
+    renderSidebar(); renderHeader(); await refreshView();
+    if(projectId) LibraryDiscovery.visit(projectId).catch(showError);
 }
 function renderSidebar() {
-    $('project-list').innerHTML=state.projects.map(p=>`<button class="project-link ${projectViews.includes(state.view)&&p.id===state.project?.id?'selected':''}" data-id="${esc(p.id)}"><span class="project-avatar">${esc(p.character.slice(0,1))}</span><span><strong>${esc(p.character)}</strong><small>${esc(p.costume||p.work||'拍摄项目')}</small></span></button>`).join('')||'<small>角色名即可建立项目。</small>';
-    listen('project-list','button','click',(e,n)=>navigate('references',n.dataset.id));
+    LibraryDiscovery.renderProjects();
     $('archived-projects').hidden=!state.archivedProjects.length;
     $('archived-projects').onclick=()=>archivedProjectsDialog();
     document.querySelectorAll('#global-nav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
@@ -180,7 +184,7 @@ function renderHeader() {
         $('export-pack').onclick=()=>packDialog(); $('show-events').onclick=()=>navigate('events');
         $('archive-project').onclick=()=>archiveProject(p).catch(showError);
     } else {
-        const titles={inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','保留人工选择、审美笔记与确认总结；默认和历史权重不是已验证的个人偏好。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
+        const titles={library:['MY PHOTO LIBRARY','图库','不必记得图片在哪个项目。按画面特征找图，再回到项目使用。'],inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','保留人工选择、审美笔记与确认总结；默认和历史权重不是已验证的个人偏好。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
         const t=titles[state.view]||titles.inspiration;
         $('project-header').innerHTML=`<div><span class="eyebrow">${t[0]}</span><h1>${t[1]}</h1><p>${t[2]}</p></div>${state.view==='inspiration'?'<div class="header-actions"><button id="add-inspiration" class="primary">＋ 收藏独立图片</button></div>':''}`;
         if ($('add-inspiration')) $('add-inspiration').onclick=()=>importDialog();
@@ -198,7 +202,8 @@ async function refreshView() {
     document.querySelectorAll('#view-tabs [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
     renderStats().catch(showError); rememberNavigation();
     if (projectViews.includes(state.view)&&!state.project) { $('view').innerHTML=empty('建立一个拍摄项目','只需填写角色名。','建立项目','first-project'); $('first-project').onclick=()=>projectEditor(); return; }
-    if (imageViews.includes(state.view)) await loadReferences();
+    if (state.view==='library') await LibraryDiscovery.render();
+    else if (imageViews.includes(state.view)) await loadReferences();
     else if (state.view==='jobs') await renderJobs();
     else if (state.view==='notes') await renderNotes();
     else if (state.view==='profile') await renderProfile();

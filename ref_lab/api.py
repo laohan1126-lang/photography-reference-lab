@@ -527,12 +527,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         path = build_pack(library, project_id, data)
         return FileResponse(path, media_type="application/zip", filename=f"{data.mode}-shooting-pack.zip", background=BackgroundTask(path.unlink, missing_ok=True))
 
+    from .library_browser import install_browser_routes
+    install_browser_routes(app)
+
     @app.get("/")
     def home(): return FileResponse(settings.web_dir / "index.html", media_type="text/html")
 
     @app.get("/static/{filename}")
     def static(filename: str):
-        if filename not in {"app.js", "styles.css"}: raise Problem(404, "Static file not found")
+        if filename not in {"app.js", "styles.css", "library-browser.js"}: raise Problem(404, "Static file not found")
         return FileResponse(settings.web_dir / filename, headers={"Cache-Control": "no-cache, must-revalidate"})
 
     return app
