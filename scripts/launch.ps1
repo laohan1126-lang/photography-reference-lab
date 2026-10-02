@@ -132,6 +132,11 @@ if ($alreadyHealthy) {
         "{task_file}",
         "{result_file}"
     ) | ConvertTo-Json -Compress)
+    if (-not $env:HTTP_PROXY -and -not $env:http_proxy) {
+        $env:HTTP_PROXY = "http://127.0.0.1:12000"
+        $env:HTTPS_PROXY = "http://127.0.0.1:12000"
+        $env:ALL_PROXY = "http://127.0.0.1:12000"
+    }
 
     Write-Host "[*] Starting repo-local Windows backend..." -ForegroundColor Yellow
     $startArgs = @{

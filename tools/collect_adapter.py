@@ -629,7 +629,7 @@ def _is_note_url(page_url: str) -> bool:
 def wait_for_cards(
     bsk_bin: str, session_id: str, extract_js: str, env: dict[str, str],
     attempts: int = 5, delay: float = 2.0, settle: int = 1,
-) -> list[dict]:
+) -> tuple[list[dict], bool]:
     """Poll the search page until its lazily-loaded cover images actually appear.
 
     A fixed sleep is a race: Xiaohongshu renders result cards over time, and a
@@ -638,6 +638,7 @@ def wait_for_cards(
     count stops growing, so a healthy page is not taxed the full budget.
     """
     best: list[dict] = []
+    login_wall_detected = False
     stable = 0
     for attempt in range(attempts):
         if attempt:
@@ -651,20 +652,25 @@ def wait_for_cards(
             raw = json.loads(completed.stdout)
         except Exception:
             raw = None
-        cards = raw.get("value", []) if isinstance(raw, dict) else (raw if isinstance(raw, list) else [])
+        data = raw.get("value", raw) if isinstance(raw, dict) else raw
+        if isinstance(data, dict):
+            cards = data.get("cards", [])
+            if data.get("is_login_wall"):
+                login_wall_detected = True
+        elif isinstance(data, list):
+            cards = data
+        else:
+            cards = []
         if not isinstance(cards, list):
             cards = []
         if len(cards) > len(best):
             best = cards
             stable = 0
         elif best:
-            # Still nothing new, but only give up once cards have appeared:
-            # an empty first sample usually just means the page is still
-            # rendering, not that there were no results.
             stable += 1
             if stable >= settle:
                 break
-    return best
+    return best, login_wall_detected
 
 
 def fetch_xhs_detail_metadata(
@@ -814,6 +820,7 @@ def fetch_bsk_candidates(
     query_log: list[dict] = []
     note_kept_counts: dict[str, int] = {}
     note_dhashes: dict[str, list[str]] = {}
+    xhs_login_wall: bool = False
 
     browser_queries = build_queries(job, for_browser=True)
 
@@ -835,6 +842,10 @@ def fetch_bsk_candidates(
             time.sleep(3.5)
 
             extract_js = """(() => {
+                const isLoginWall = !!(
+                    document.querySelector('.login-container, .qrcode-img, .login-box, .modal-container')
+                    || (document.body && (document.body.innerText.includes('登录后查看搜索结果') || document.body.innerText.includes('可用小红书或微信扫码')))
+                );
                 const cards = [];
                 const items = document.querySelectorAll('section, div.note-item, div.search-card');
                 for (const item of items) {
@@ -860,10 +871,13 @@ def fetch_bsk_candidates(
                         }
                     }
                 }
-                return cards;
+                return { cards: cards, is_login_wall: isLoginWall };
             })()"""
 
-            cards = wait_for_cards(bsk_bin, session_id, extract_js, env)
+            cards, is_wall = wait_for_cards(bsk_bin, session_id, extract_js, env)
+            if is_wall:
+                xhs_login_wall = True
+                sys.stderr.write("[!] 小红书弹出登录扫码窗口，请在 Edge 浏览器中扫码登录小红书账号\n")
 
             detail_checks = 0
             max_detail_checks = max(8, min(24, target_count * 3))
@@ -1064,7 +1078,7 @@ def fetch_bsk_candidates(
                     return pins;
                 })()"""
 
-                pins = wait_for_cards(bsk_bin, session_id, pin_js, env)
+                pins, _ = wait_for_cards(bsk_bin, session_id, pin_js, env)
 
                 for pin in pins:
                     if len(candidates) >= target_count:
@@ -1144,7 +1158,7 @@ def fetch_bsk_candidates(
         subprocess.run([bsk_bin, "session", "stop", session_id],
                        capture_output=True, text=True, env=env, timeout=5)
 
-    return candidates, images, query_log
+    return candidates, images, query_log, xhs_login_wall
 
 
 def main() -> None:
@@ -1157,6 +1171,7 @@ def main() -> None:
     images: dict[str, bytes] = {}
     query_log: list[dict] = []
     source_checks: list[dict] = []
+    xhs_login_wall = False
     producer = "local_collection_adapter_search_only"
 
     # 1. 使用真正连得上浏览器的 BrowserSkill (小红书 + Pinterest)
@@ -1166,14 +1181,21 @@ def main() -> None:
         bsk_bin, browser_id = nudge_extension(env, bsk_candidates())
     if bsk_bin and browser_id:
         producer = "local_browserskill_adapter"
-        candidates, images, query_log = fetch_bsk_candidates(
+        candidates, images, query_log, xhs_login_wall = fetch_bsk_candidates(
             bsk_bin, browser_id, job, target_count, policy
         )
-        source_checks.append({
-            "source": "xiaohongshu",
-            "status": "usable" if any(q.get("source") == "xiaohongshu" and q.get("kept", 0) > 0 for q in query_log) else "untested",
-            "detail": "通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
-        })
+        if xhs_login_wall:
+            source_checks.append({
+                "source": "xiaohongshu",
+                "status": "blocked",
+                "detail": "小红书登录已失效，弹出扫码登录窗口；请在宿主机 Edge 浏览器中扫码登录小红书账号后再试。",
+            })
+        else:
+            source_checks.append({
+                "source": "xiaohongshu",
+                "status": "usable" if any(q.get("source") == "xiaohongshu" and q.get("kept", 0) > 0 for q in query_log) else "untested",
+                "detail": "通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
+            })
         source_checks.append({
             "source": "pinterest",
             "status": "usable" if any(q.get("source") == "pinterest" and q.get("kept", 0) > 0 for q in query_log) else "untested",
@@ -1207,16 +1229,18 @@ def main() -> None:
                 "detail": "调用方显式允许 Bing 备用检索；这不是小红书来源。",
             })
 
-    summary_text = (
-        f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
-        if candidates else
-        (browserskill_missing if browserskill_missing
-         else "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。")
-    )
-    gaps = (
-        [browserskill_missing] if browserskill_missing
-        else ([] if candidates else ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"])
-    )
+    if candidates:
+        summary_text = f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
+        gaps = []
+    elif browserskill_missing:
+        summary_text = browserskill_missing
+        gaps = [browserskill_missing]
+    elif xhs_login_wall:
+        summary_text = "小红书账号未登录或被安全拦截（请在电脑 Edge 浏览器中扫码登录小红书）；未采集到满足条件的真人参考。"
+        gaps = ["小红书账号未登录或被安全拦截（提示：登录后查看搜索结果）；请在 Edge 浏览器中扫码登录小红书。"]
+    else:
+        summary_text = "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。"
+        gaps = ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"]
 
     manifest = {
         # Search-only adapter: no fake visual preflight.

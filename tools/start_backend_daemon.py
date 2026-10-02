@@ -11,7 +11,8 @@ import urllib.request
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PYTHON = sys.executable
+venv_python = REPO_ROOT / ".venv" / "Scripts" / "python.exe"
+PYTHON = str(venv_python) if venv_python.is_file() else sys.executable
 
 DETACHED_PROCESS = 0x00000008
 CREATE_NEW_PROCESS_GROUP = 0x00000200
@@ -41,6 +42,10 @@ def main():
     adapter_path = REPO_ROOT / "tools" / "collect_adapter.py"
     if adapter_path.is_file():
         env["LAB_COLLECTION_COMMAND"] = json.dumps([PYTHON, str(adapter_path), "{task_file}", "{result_file}"])
+    if "HTTP_PROXY" not in env and "http_proxy" not in env:
+        env["HTTP_PROXY"] = "http://127.0.0.1:12000"
+        env["HTTPS_PROXY"] = "http://127.0.0.1:12000"
+        env["ALL_PROXY"] = "http://127.0.0.1:12000"
 
     # Check if already running
     try:

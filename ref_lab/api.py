@@ -145,7 +145,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         recent.clear()
         session = make_session(settings.token)
         response = JSONResponse({"authenticated": True, "csrf": csrf_for(settings.token, session)})
-        response.set_cookie(COOKIE, session, httponly=True, secure=request.url.scheme == "https" or origin_url.scheme == "https", samesite="strict", max_age=86400 * 7)
+        response.set_cookie(COOKIE, session, httponly=True, secure=request.url.scheme == "https" or origin_url.scheme == "https", samesite="strict", max_age=86400 * 30)
         return response
 
     @app.delete("/api/session")
