@@ -42,3 +42,7 @@
 3. **Live Public Tunnel Endpoint Verification**:
    - `curl -A "iPhone" https://ref.koshikorato.top/api/session` without any credentials -> HTTP 200 `{"authenticated": true, "no_auth": true}`.
    - `curl -A "iPhone" https://ref.koshikorato.top/api/projects` -> HTTP 200 with full projects payload.
+4. **Windows PowerShell 5.1 Execution Verification**:
+   - Re-encoded `scripts/launch.ps1` with `utf-8-sig` (UTF-8 with BOM).
+   - Executed `powershell.exe -ExecutionPolicy Bypass -File scripts/launch.ps1 -NoWait -NoOpen` successfully with exit code 0.
+

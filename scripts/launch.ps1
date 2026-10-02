@@ -1,4 +1,4 @@
-
+﻿
 param(
     [switch]$NoOpen,
     [switch]$NoWait
