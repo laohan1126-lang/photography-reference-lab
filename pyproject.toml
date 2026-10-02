@@ -26,4 +26,4 @@ testpaths = ["tests"]
 addopts = "-ra"
 
 [tool.setuptools.data-files]
-"share/photography-reference-lab/web" = ["web/index.html", "web/app.js", "web/styles.css"]
+"share/photography-reference-lab/web" = ["web/index.html", "web/app.js", "web/styles.css", "web/library-browser.js"]

@@ -42,24 +42,24 @@ POSITIVE_COSPLAY_MARKERS = (
     "📷", "动作参考", "妆面", "毛娘", "试衣", "后期", "成片", "出cos",
     "姿势分享", "姿势", "捞捞", "客片", "约拍", "同框",
 )
+# Post-intent/type phrases only. Generic nouns and personal style dislikes are not hard exclusions.
 NEGATIVE_TYPE_MARKERS = (
-    "游戏截图", "游戏画面", "游戏cg", "游戏 cg", "皮肤特效", "特效设计", "技能特效",
-    "官方立绘", "立绘", "插画", "同人图", "同人画", "原画", "壁纸", "海报",
-    "concept art", "illustration", "fanart", "fan art", "wallpaper", "render",
-    "3d model", "3d模型", "建模", "模型展示", "皮肤展示", "角色展示",
-    "商品图", "商品展示", "服装展示", "人台", "假人", "mannequin",
-    "cos服", "c服", "出服", "求服", "转单", "闲鱼", "出租", "出物",
-    "裙撑", "做裙", "做衣服", "打版", "材料", "剪裁", "缝纫", "代工", "假发",
-    "求助", "怎么整理", "如何整理", "难打理", "整理教程", "穿戴教程",
-    "制作教程", "改造教程", "收纳教程", "怎么穿", "怎么做",
-    "哪家好", "避雷", "测评", "店铺", "手办", "雕像", "粘土",
-    "大家都在搜", "连招", "出装", "铭文", "上分", "对局",
-    "大全套", "换物", "免押金", "同人", "恶搞", "段子",
-    "对比", "详细对比", "盘点", "版型", "体验馆", "一条龙", "骗钱", "跑路", "拍的什么东西", "挂人", "三视图",
-    "对镜自拍", "对镜拍", "试衣间", "各家", "出格裙", "山正", "好价", "急抛", "拼单",
-    "搭子", "求搭子", "找搭子", "求一个", "蹲搭子", "组队", "扩列", "招募", "约拍搭子", "求队友",
-    "道具展示", "道具制作", "自制道具", "道具自制", "翅膀",
-    "聊天记录", "求问", "问问", "求返图", "捞返图", "求图", "有没有人拍到", "捞捞",
+    '游戏截图', '游戏画面', '游戏cg', '游戏 cg', '皮肤特效', '特效设计', '技能特效',
+    '官方立绘', '立绘', '插画', '同人图', '同人画', '原画', '壁纸',
+    'concept art', 'illustration', 'fanart', 'fan art', 'wallpaper', 'render', '3d model',
+    '3d模型', '建模', '模型展示', '皮肤展示', '角色展示', '商品图', '商品展示',
+    '服装展示', '人台', '假人', 'mannequin', '出服', '求服', '转单',
+    '闲鱼', '出租', '出物', '做裙', '做衣服', '打版', '剪裁',
+    '缝纫', '代工', '求助', '怎么整理', '如何整理', '难打理', '整理教程',
+    '穿戴教程', '制作教程', '改造教程', '收纳教程', '怎么穿', '怎么做', '哪家好',
+    '避雷', '测评', '店铺', '手办', '雕像', '粘土', '大家都在搜',
+    '连招', '出装', '铭文', '上分', '对局', '大全套', '换物',
+    '免押金', '恶搞', '段子', '详细对比', '盘点', '体验馆', '一条龙',
+    '骗钱', '跑路', '拍的什么东西', '挂人', '三视图', '好价', '急抛',
+    '拼单', '求搭子', '找搭子', '蹲搭子', '组队', '扩列', '招募',
+    '约拍搭子', '求队友', '道具展示', '聊天记录', '求问', '求返图', '捞返图',
+    '求图', '有没有人拍到', '假发出售', '假发测评', '假发制作教程', 'cos服出租', 'c服转卖',
+    '道具制作教程', '道具出售', '招募摄影', '找摄影搭子',
 )
 NEGATIVE_QUERY_TERMS = (
     "游戏截图", "游戏画面", "皮肤特效", "特效设计", "插画", "立绘", "原画",
@@ -225,8 +225,11 @@ def result_metadata_allowed(record: dict, policy: dict) -> tuple[bool, str]:
     page = _normal(str(record.get("purl") or ""))
     combined = f" {title} {desc} {author} {full_text} {page} "
 
+    # Author names and URL paths are not post intent. Keep them as discovery
+    # context only; a maker/photographer username must not blacklist every post.
+    post_text = f" {title} {desc} {full_text} "
     for marker in NEGATIVE_TYPE_MARKERS:
-        if marker.lower() in combined:
+        if marker.lower() in post_text:
             return False, f"negative_type:{marker}"
 
     char_aliases = _character_aliases(policy["character"])
@@ -303,20 +306,19 @@ def validate_downloaded_image(raw: bytes, policy: dict) -> tuple[bool, str, str]
             ext = "jpg" if fmt in {"jpeg", "jpg"} else fmt
             dhash = compute_dhash(image)
 
-            # Sanity check: detect solid pure-white e-commerce backgrounds (mannequins, product catalogs)
-            # and solid text screenshots (notes, chat screenshots)
-            rgb = image.convert("RGB")
-            thumb = rgb.resize((64, 64), Image.Resampling.BOX)
-            pixels = list(thumb.get_flattened_data() if hasattr(thumb, "get_flattened_data") else thumb.getdata())
-            total_px = len(pixels)
-            near_whites = sum(1 for (r, g, b) in pixels if r > 240 and g > 240 and b > 240)
-            white_ratio = near_whites / total_px
-            if white_ratio > 0.60:
-                return False, "", "ecommerce_white_background_or_document"
-
+            # Bright backgrounds are a measurable signal, not evidence of
+            # product/mannequin/document content. Keep originals for review.
             return True, ext, dhash
     except Exception:
         return False, "", "invalid_image"
+
+
+def white_background_ratio(raw: bytes) -> float:
+    """Technical signal only; not a content classifier or aesthetic score."""
+    with Image.open(io.BytesIO(raw)) as image:
+        thumb = image.convert("RGB").resize((64, 64), Image.Resampling.BOX)
+        pixels = list(thumb.get_flattened_data() if hasattr(thumb, "get_flattened_data") else thumb.getdata())
+        return sum(min(pixel) > 240 for pixel in pixels) / len(pixels)
 
 
 def process_and_expand_image(
@@ -333,6 +335,15 @@ def process_and_expand_image(
     each sub-panel, applies high-DPI super-sampling/sharpening, and returns independent
     candidate items. Otherwise, returns the original image.
     """
+    # Attach the measured warning to discovery context, never to visual facts,
+    # a fabricated preflight, or the owner's aesthetic feedback.
+    ratio = white_background_ratio(img_bytes)
+    if ratio > 0.60:
+        meta = dict(meta)
+        meta["discovery_reason"] = (
+            f"像素提示：近白区域约 {ratio:.0%}；不能据此判断商品/文档，待实际看图。 "
+            + meta.get("discovery_reason", "")
+        )[:400]
     items = []
     split_done = False
 
