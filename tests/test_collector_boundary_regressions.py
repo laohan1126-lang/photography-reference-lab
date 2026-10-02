@@ -38,3 +38,15 @@ def test_high_white_ratio_is_warning_not_product_classification():
     assert '不能据此判断商品/文档' in result[0][2]['discovery_reason']
     assert 'preflight' not in result[0][2]
     assert source['discovery_reason']=='测试，不是真实人像'
+
+
+def test_collage_splitter_dependency_is_declared_and_available():
+    """A clean install must not silently turn the shipped splitter off."""
+    import tomllib
+    from pathlib import Path
+    from tools import collect_adapter as adapter
+    from tools.collage_splitter import CollageSplitter
+
+    manifest = tomllib.loads((Path(__file__).parents[1] / "pyproject.toml").read_text(encoding="utf-8"))
+    assert any(dep.startswith("numpy>=") for dep in manifest["project"]["dependencies"])
+    assert adapter.CollageSplitter is CollageSplitter
