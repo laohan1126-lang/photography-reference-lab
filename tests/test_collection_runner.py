@@ -350,3 +350,16 @@ def test_xhs_gallery_slides_extraction_and_packaging():
         assert len(candidates) == 3
     finally:
         subprocess.run = orig_run
+
+
+def test_exited_adapter_does_not_leave_running_descendant(library, project, monkeypatch, tmp_path):
+    job = new_job(library, project)
+    marker = tmp_path / "descendant-must-not-exist"
+    child_code = "import pathlib,sys,time; time.sleep(1.5); pathlib.Path(sys.argv[1]).write_text('orphan')"
+    adapter(monkeypatch, tmp_path,
+            "import subprocess,sys; subprocess.Popen([sys.executable, '-c', sys.argv[3], sys.argv[4]])",
+            child_code, marker)
+    result = run_collection_attempt(library, job["id"])
+    assert result["status"] == "blocked" and receipt(library, job)["code"] == "result_missing"
+    time.sleep(1.6)
+    assert not marker.exists()

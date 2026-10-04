@@ -13,6 +13,7 @@ from pathlib import Path
 import shutil
 import signal
 import subprocess
+import sys
 import tempfile
 import time
 from uuid import uuid4
@@ -70,10 +71,9 @@ def stop_process_tree(process: subprocess.Popen) -> None:
     """Terminate only this attempt's process group, never the owner's browser."""
     if os.name == "nt":
         if process.poll() is None:
-            result = subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
-            if result.returncode and process.poll() is None:
-                raise AttemptStop("cleanup_failed", "Windows 子进程树清理失败，请检查本地进程；未宣称本轮成功。", "failed")
+            # Terminate the held supervisor handle; Windows closes its owned job
+            # and kills descendants, including those whose adapter root exited.
+            process.terminate()
     else:
         try:
             # A child may remain in the group after the parent exits.
@@ -90,7 +90,10 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
     env.pop("LAB_COLLECTION_COMMAND", None)
     # A wrapper must return an artifact, not import into the real personal DB.
     env["LAB_DATA_DIR"] = str(directory / "adapter-scratch")
-    options = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt" else {"start_new_session": True}
+    options = {} if os.name == "nt" else {"start_new_session": True}
+    if os.name == "nt":
+        # Use the base interpreter: a venv redirector can exit before its child.
+        command = [sys._base_executable, str(Path(__file__).with_name("windows_adapter_runner.py")), *command]
     process = subprocess.Popen(command, cwd=directory, env=env, stdin=subprocess.DEVNULL,
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False, **options)
     try:

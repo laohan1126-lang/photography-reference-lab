@@ -215,10 +215,6 @@ def run_analysis_job(library: Library, job_id: str, analyzer: Any) -> dict:
             result = analyzer.analyze(library.assets.path(ref["asset"], "preview").read_bytes(), context)
             producer = getattr(analyzer, "producer_name", f"openai:{getattr(analyzer, 'model', 'unknown')}")
             library.apply_analysis(ident, result, snapshot["revision"], producer, job_id)
-            if result.card:
-                ref_now = library.reference(ident)
-                if not ref_now.get("card"):
-                    library.save_card(ident, result.card, ref_now["revision"])
         latest = library.job(job_id)
         if latest["status"] == "succeeded": return latest
         return library.transition_job(job_id, "succeeded", latest["revision"], "逐图分析已保存为草稿；尚未代替用户验收", actor="worker")
