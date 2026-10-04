@@ -5,6 +5,7 @@ exist. Numeric preference/usefulness/exploration scores would imply knowledge we
 """
 from __future__ import annotations
 from typing import Any
+from .policy import review_is_current, preflight_is_current
 
 
 def evaluate_photographic_points(quality_data: dict[str, Any], metadata: dict[str, Any]) -> list[str]:
@@ -24,10 +25,10 @@ def score_and_rank_candidates(candidates: list[dict[str, Any]], profile: dict[st
     for cand in candidates:
         sha = cand.get('asset_sha')
         review = cand.get('review') or {}
-        current_review = bool(sha and review.get('asset_sha') == sha)
+        current_review = review_is_current(cand)
         actor = cand.get('review_actor', 'unknown')
         pf = cand.get('preflight') or {}
-        current_pf = bool(sha and pf.get('asset_sha') == sha)
+        current_pf = preflight_is_current(cand)
         source = cand.get('source') or {}
         evidence = {
             'asset_sha': sha,
@@ -39,7 +40,7 @@ def score_and_rank_candidates(candidates: list[dict[str, Any]], profile: dict[st
                                     'producer': cand.get('review_producer', ''),
                                     'items': review.get('observations', []) if current_review else [],
                                     'current_asset': current_review},
-            'preflight': {'origin': 'unreviewed' if not current_pf else 'local_heuristic' if pf.get('producer') == 'vision-preflight-gate' else 'agent_prediction',
+            'preflight': {'origin': 'unreviewed' if not current_pf else 'deterministic_file_check' if pf.get('producer') == 'deterministic_preflight' else 'agent_prediction',
                           'producer': pf.get('producer', ''),
                           'items': pf.get('visual_evidence', []) if current_pf else [],
                           'current_asset': current_pf},

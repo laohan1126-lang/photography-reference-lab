@@ -50,6 +50,11 @@ CREATE INDEX IF NOT EXISTS event_project ON events(project_id,id);
 """
 
 
+class TransactionConnection(sqlite3.Connection):
+    """Callbacks belong to one connection/transaction, never a shared global queue."""
+    after_commit: dict
+
+
 class Database:
     def __init__(self, path: Path):
         self.path = path
@@ -91,7 +96,8 @@ class Database:
 
 
     def connection(self) -> sqlite3.Connection:
-        con = sqlite3.connect(self.path, timeout=15)
+        con = sqlite3.connect(self.path, timeout=15, factory=TransactionConnection)
+        con.after_commit = {}
         con.row_factory = sqlite3.Row
         con.execute("PRAGMA foreign_keys=ON")
         con.execute("PRAGMA journal_mode=WAL")
@@ -110,6 +116,12 @@ class Database:
             raise
         finally:
             con.close()
+        for callback in con.after_commit.values():
+            try:
+                callback()
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception("Post-commit projection failed; business data remains committed")
 
     @contextmanager
     def read(self) -> Iterator[sqlite3.Connection]:

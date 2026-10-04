@@ -6,6 +6,7 @@ confusions to support candidate-level identity preflight.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 from typing import Any
@@ -122,6 +123,23 @@ CANONICAL_PRESETS: dict[str, dict[str, Any]] = {
         "reference_provenance": "东映假面骑士官方图鉴、Saber TV正片皮套特写真集",
     },
 }
+
+
+def identity_digest(project: dict) -> str:
+    inputs = {key: project.get(key, "") for key in ("character", "work", "costume", "brief")}
+    inputs["identity_context_revision"] = project.get("identity_context_revision", 0)
+    return hashlib.sha256(encode(inputs).encode("utf-8")).hexdigest()
+
+
+def ensure_identity_context(con: sqlite3.Connection, project: dict) -> dict:
+    """Resolve the current inputs, retaining previous contexts as immutable history."""
+    current = get_identity_context(con, project_id=project["id"])
+    snapshot = identity_digest(project)
+    if current and current.get("project_context") == snapshot:
+        return current
+    fresh = build_identity_context(project["character"], project.get("work", ""), project.get("costume", ""), project.get("brief", ""))
+    fresh.update(version=current.get("version", 0) + 1 if current else 1, project_context=snapshot)
+    return save_identity_context(con, project["id"], fresh)
 
 
 def normalize_character_key(character: str) -> str:

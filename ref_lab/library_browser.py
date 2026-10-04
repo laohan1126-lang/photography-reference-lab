@@ -9,6 +9,7 @@ from fastapi import Query
 from pydantic import Field, field_validator
 
 from .db import encode, now
+from .policy import preflight_filter_sql, effective_preflight_filtered, trusted_producer_sql
 from .models import Strict, Kind
 from .service import Problem, row_data, ensure_active_project
 
@@ -131,7 +132,7 @@ class LibraryBrowser:
         # A scope predicate applies to the SAME reference. In particular, keep
         # in project B must not make a pending reference in project A a keep.
         eligible = ["r.decision <> 'reject'", "COALESCE(json_extract(r.data,'$.detached_at'),'')=''",
-                    "COALESCE(json_extract(r.data,'$.preflight_filtered'),0)=0",
+                    f"NOT {preflight_filter_sql('r.data')}",
                     "COALESCE(json_extract(p.data,'$.archived_at'),'')=''"]
         params = []
         if f.project_id:
@@ -140,10 +141,10 @@ class LibraryBrowser:
         if f.scope == "kept":
             eligible += ["r.decision='keep'", "json_extract(r.data,'$.lane')='field'"]
         cte = "WITH eligible AS (SELECT r.*,p.data AS project_data FROM refs r JOIN projects p ON p.id=r.project_id WHERE " + " AND ".join(eligible) + ") "
-        joins = """ FROM assets a
+        joins = f""" FROM assets a
  LEFT JOIN inspirations i ON i.asset_sha=a.id AND i.active=1
  LEFT JOIN library_annotations n ON n.asset_sha=a.id
- LEFT JOIN asset_observations o ON o.rowid=(SELECT MAX(ob.rowid) FROM asset_observations ob WHERE ob.asset_sha=a.id)
+ LEFT JOIN asset_observations o ON o.rowid=(SELECT MAX(ob.rowid) FROM asset_observations ob WHERE ob.asset_sha=a.id AND json_extract(ob.data,'$.facts.asset_sha')=a.id AND json_extract(ob.data,'$.actor') IN ('human','ai') AND {trusted_producer_sql('producer', 'ob.data')})
 """
         exists = "EXISTS(SELECT 1 FROM eligible e WHERE e.asset_sha=a.id)"
         if f.scope == "inspiration":
@@ -185,7 +186,7 @@ class LibraryBrowser:
                 uses = con.execute(f"SELECT r.*,p.data AS project_data FROM refs r JOIN projects p ON p.id=r.project_id WHERE r.asset_sha IN ({marks}) AND COALESCE(json_extract(p.data,'$.archived_at'),'')='' AND COALESCE(json_extract(r.data,'$.detached_at'),'')='' ORDER BY r.rowid DESC", [r["id"] for r in rows])
                 for row in uses:
                     ref, project = json.loads(row["data"]), json.loads(row["project_data"])
-                    by_asset[row["asset_sha"]].append({"id": ref["id"], "project_id": project["id"], "character": project["character"], "costume": project.get("costume", ""), "title": ref["title"], "decision": ref["decision"], "lane": ref.get("lane", "field"), "filtered": bool(ref.get("preflight_filtered"))})
+                    by_asset[row["asset_sha"]].append({"id": ref["id"], "project_id": project["id"], "character": project["character"], "costume": project.get("costume", ""), "title": ref["title"], "decision": ref["decision"], "lane": ref.get("lane", "field"), "filtered": effective_preflight_filtered(ref)})
             items = []
             for row in rows:
                 asset = json.loads(row["data"])

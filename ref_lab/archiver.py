@@ -1,12 +1,14 @@
 """Project confirmed references auto-archive manager.
 
 Organizes kept references into human-readable directory:
-    <data_dir>/exports/<character>/已确认/<idx>_<title>.jpg
+    <data_dir>/exports/<character>/已确认/ref-lab_<reference-and-asset-hash>_<title>.jpg
 Preserves underlying CAS original bytes in assets/ while providing
 a clean, single-folder archive for photography and model sharing.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import re
 from pathlib import Path
@@ -38,10 +40,18 @@ def get_project_archive_dir(data_dir: Path, project: dict[str, Any]) -> Path:
     return data_dir / "exports" / char / "已确认"
 
 
-def get_reference_archive_filename(index: int, ref: dict[str, Any]) -> str:
-    """Generate clean, ordered filename: 01_标题.jpg."""
-    safe_title = sanitize_filename(ref.get("title") or "参考图", max_length=40)
-    return f"{index:02d}_{safe_title}.jpg"
+MANAGED_FILENAME = re.compile(r"^ref-lab_[a-f0-9]{64}_.+\.jpg$")
+
+
+def get_reference_archive_filename(ref: dict[str, Any]) -> str:
+    """Human title is a label; reference and received bytes define identity."""
+    reference_hash = hashlib.sha256(json.dumps([ref["id"], ref["asset_sha"]]).encode("utf-8")).hexdigest()
+    title = sanitize_filename(ref.get("title") or "参考图", max_length=40)
+    return f"ref-lab_{reference_hash}_{title}.jpg"
+
+
+def get_reference_archive_path(data_dir: Path, project: dict, ref: dict) -> Path:
+    return get_project_archive_dir(data_dir, project) / get_reference_archive_filename(ref)
 
 
 def export_asset_as_jpeg(src_path: Path, dest_path: Path) -> bool:
@@ -81,61 +91,44 @@ def export_asset_as_jpeg(src_path: Path, dest_path: Path) -> bool:
     return False
 
 
-def sync_project_confirmed_archive(library: Library, project_id: str) -> dict[str, Any]:
-    """Synchronize all confirmed (decision == 'keep') references into the project's archive folder.
+def sync_project_confirmed_archive(library: Library, project_id: str, *, archive_dir: Path | None = None) -> dict[str, Any]:
+    """Project committed K selections into their shared character folder.
 
-    - Creates <data_dir>/exports/<character>/已确认/
-    - Converts each kept reference's original asset to <idx>_<title>.jpg
-    - Cleans up stale images of references that are no longer kept
-    - Returns a summary with archive_dir and mapped references
+    A writer transaction serializes snapshots and file updates. Original CAS and
+    files without this exporter's managed namespace are never removed.
     """
-    project = library.project(project_id)
-    archive_dir = get_project_archive_dir(library.settings.data_dir, project)
-    archive_dir.mkdir(parents=True, exist_ok=True)
-
-    # Fetch kept references for this project
-    all_refs = library.references(project_id, limit=2000, include_rejected=False)["items"]
-    kept_refs = [
-        r for r in all_refs
-        if r.get("decision") == "keep" and not r.get("detached_at") and r.get("asset_sha")
-    ]
-
-    expected_files: set[str] = set()
-    ref_to_archive_path: dict[str, str] = {}
-
-    for idx, ref in enumerate(kept_refs, 1):
-        filename = get_reference_archive_filename(idx, ref)
-        dest_file = archive_dir / filename
-        expected_files.add(dest_file.name)
-        ref_to_archive_path[ref["id"]] = str(dest_file)
-
-        # Retrieve CAS asset
-        try:
-            asset = library.asset(ref["asset_sha"])
-            src_path = library.assets.path(asset, "original")
-        except Exception as e:
-            logger.warning(f"Could not locate asset for reference {ref['id']}: {e}")
-            continue
-
-        # Export if destination does not exist or has zero size
-        if not dest_file.is_file() or dest_file.stat().st_size == 0:
-            export_asset_as_jpeg(src_path, dest_file)
-
-    # Remove any extra .jpg/.jpeg/.png/.webp in the archive folder that are no longer kept
-    try:
-        for existing in archive_dir.iterdir():
-            if existing.is_file() and existing.name not in expected_files:
-                if existing.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
+    errors: list[str] = []
+    mapping: dict[str, str] = {}
+    expected: set[str] = set()
+    with library.db.transaction() as con:
+        projects = [json.loads(row[0]) for row in con.execute("SELECT data FROM projects")]
+        project = next(p for p in projects if p["id"] == project_id)
+        folder = archive_dir or get_project_archive_dir(library.settings.data_dir, project)
+        folder.mkdir(parents=True, exist_ok=True)
+        shared_projects = {p["id"] for p in projects if not p.get("archived_at") and get_project_archive_dir(library.settings.data_dir, p) == folder}
+        refs = [json.loads(row[0]) for row in con.execute("SELECT data FROM refs WHERE decision='keep'")]
+        for ref in refs:
+            if ref["project_id"] not in shared_projects or ref.get("detached_at") or ref.get("lane") != "field" or not ref.get("asset_sha"):
+                continue
+            target = folder / get_reference_archive_filename(ref)
+            expected.add(target.name)
+            row = con.execute("SELECT data FROM assets WHERE id=?", (ref["asset_sha"],)).fetchone()
+            asset = json.loads(row[0]) if row else None
+            source = library.assets.path(asset, "original") if asset else None
+            if not source or not source.is_file():
+                errors.append(f"Reference {ref['id']}: original asset unavailable")
+                continue
+            if not target.is_file() or target.stat().st_size == 0:
+                if not export_asset_as_jpeg(source, target):
+                    errors.append(f"Reference {ref['id']}: JPEG export failed")
+                    continue
+            mapping[ref["id"]] = str(target)
+        # Keep older exports when their replacements failed; retry after a successful sync.
+        if not errors:
+            for existing in folder.iterdir():
+                if existing.is_file() and MANAGED_FILENAME.fullmatch(existing.name) and existing.name not in expected:
                     try:
                         existing.unlink()
-                        logger.info(f"Removed unconfirmed archive file: {existing}")
-                    except OSError:
-                        pass
-    except Exception as e:
-        logger.warning(f"Error cleaning stale files in {archive_dir}: {e}")
-
-    return {
-        "archive_dir": str(archive_dir),
-        "count": len(expected_files),
-        "mapping": ref_to_archive_path
-    }
+                    except OSError as exc:
+                        errors.append(f"Could not remove derived export {existing.name}: {exc}")
+    return {"archive_dir": str(folder), "count": len(mapping), "mapping": mapping, "errors": errors}

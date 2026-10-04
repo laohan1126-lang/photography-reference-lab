@@ -62,6 +62,7 @@ def test_recycled_filtered_and_archived_uses_do_not_leak(client,project,library)
     with library.db.transaction() as con:
         data=json.loads(con.execute('SELECT data FROM refs WHERE id=?',(ref['id'],)).fetchone()[0])
         data['preflight_filtered']=True
+        data['preflight']={'producer':'deterministic_preflight','status':'filtered','asset_sha':ref['asset_sha'],'project_context':data['preflight_context']}
         con.execute('UPDATE refs SET data=? WHERE id=?',(encode(data),ref['id']))
     assert gallery(client)['total']==0
     with library.db.transaction() as con:
@@ -230,3 +231,27 @@ def test_full_backup_restores_gallery_annotations_searches_and_navigation(client
         result=gallery(reopened,viewpoint='high_angle')
         assert result['total']==1 and result['items'][0]['file_available']
         assert result['items'][0]['annotation']['viewpoint']=='high_angle'
+
+
+@pytest.mark.parametrize("has_real_review", [False, True])
+def test_legacy_heuristic_filter_and_observation_do_not_pollute_gallery(client,project,library,has_real_review):
+    ref=add_reference(client,project,seed=113)
+    if has_real_review:
+        r=client.post(f"/api/references/{ref['id']}/review",json={"expected_revision":ref["revision"],"review":review_data(ref["asset_sha"],kind="portrait_photo")})
+        assert r.status_code==200
+    with library.db.transaction() as con:
+        stored=json.loads(con.execute("SELECT data FROM refs WHERE id=?",(ref["id"],)).fetchone()[0])
+        stored.update(preflight={"producer":"vision-preflight-gate","identity_prediction":"mismatch"},preflight_filtered=True,preflight_status="filtered")
+        con.execute("UPDATE refs SET data=? WHERE id=?",(encode(stored),ref["id"]))
+        fake={"facts":review_data(ref["asset_sha"]),"actor":"ai","producer":"vision-preflight-gate"}
+        con.execute("INSERT INTO asset_observations VALUES(?,?,?)",("old-gate",ref["asset_sha"],encode(fake)))
+    result=gallery(client,project_id=project["id"])
+    assert result["total"]==1
+    assert result["items"][0]["uses"][0]["filtered"] is False
+    expected="portrait_photo" if has_real_review else "unknown"
+    assert result["items"][0]["kind"]==expected
+    assert gallery(client,kind=expected)["total"]==1
+    assert gallery(client,kind="cosplay_photo")["total"]==0
+    with library.db.read() as con:
+        assert json.loads(con.execute("SELECT data FROM refs WHERE id=?",(ref["id"],)).fetchone()[0])["preflight_filtered"] is True
+        assert con.execute("SELECT COUNT(*) FROM asset_observations WHERE id='old-gate'").fetchone()[0]==1
