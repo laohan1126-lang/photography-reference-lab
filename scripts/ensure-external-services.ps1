@@ -83,7 +83,7 @@ function Ensure-CloudflareTunnel {
         $env:HTTPS_PROXY = ""
         $startArgs = @{
             FilePath = $cfExe
-            ArgumentList = @("tunnel", "--no-autoupdate", "--protocol", "http2", "--config", $cfConfig, "run")
+            ArgumentList = @("tunnel", "--no-autoupdate", "--no-prechecks", "--protocol", "http2", "--config", $cfConfig, "run")
             WindowStyle = "Hidden"
             PassThru = $true
         }
