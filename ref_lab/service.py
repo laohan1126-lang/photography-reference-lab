@@ -208,8 +208,10 @@ class Library:
         result = dict(ref)
         if ref.get("review_producer") in UNTRUSTED_EVIDENCE_PRODUCERS:
             result.update(legacy_review=ref.get("review"), review=None, review_evidence_status="legacy_unverified")
+        result["preflight_current_context"] = False
         if ref.get("preflight"):
-            projected = project_preflight(ref["preflight"], identity_digest(project))
+            projected = project_preflight(ref["preflight"], current_asset_sha=ref.get("asset_sha"), current_context=identity_digest(project))
+            result["preflight_current_context"] = projected["effective"]
             if not projected["effective"]:
                 result.update(legacy_preflight=ref["preflight"], preflight=None,
                               preflight_status="unreviewed", preflight_filtered=False,
@@ -217,7 +219,6 @@ class Library:
                               preflight_evidence_status=projected["evidence_status"],
                               preflight_warning=projected["reason"])
         result["review_current_context"] = review_context_matches(ref, project)
-        result["preflight_current_context"] = ref.get("preflight_context") == identity_digest(project)
         result["asset"] = row_data(con, "assets", ref["asset_sha"]) if ref["asset_sha"] else None
         detached = bool(ref.get("detached_at"))
         result["state"] = "detached" if detached else state_for(ref, project, exists)
@@ -1106,8 +1107,10 @@ class Library:
     def preflights(self, project_id: str, status: str = "") -> list[dict]:
         from .preflight import list_preflights
         with self.db.read() as con:
+            con.execute("BEGIN")
             project = row_data(con, "projects", project_id)
-            items = [project_preflight(p, identity_digest(project)) for p in list_preflights(con, project_id)]
+            current_assets = {row["id"]: row["asset_sha"] for row in con.execute("SELECT id,asset_sha FROM refs WHERE project_id=?", (project_id,))}
+            items = [project_preflight(p, current_asset_sha=current_assets.get(p.get("reference_id")), current_context=identity_digest(project)) for p in list_preflights(con, project_id)]
             return [p for p in items if not status or p["status"] == status]
 
     def scan_project_preflight(self, project_id: str, force: bool = False) -> dict:

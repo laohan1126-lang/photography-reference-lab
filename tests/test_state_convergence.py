@@ -241,3 +241,40 @@ def test_history_preflight_from_previous_project_inputs_is_not_effective(client,
     after=next(p for p in lib.preflights(project["id"]) if p["id"]==before["id"])
     assert not after["effective"] and after["status"]=="unreviewed"
     assert after["legacy_preflight"]["project_context"]==before["project_context"]
+
+
+def test_replace_api_expires_preflight_history_for_old_asset(client,app,project):
+    lib=app.state.library
+    ref=add_reference(client,project,seed=151)
+    before=next(p for p in client.get(f"/api/projects/{project['id']}/preflights").json() if p["reference_id"]==ref["id"])
+    assert before["effective"] and before["asset_sha"]==ref["asset_sha"]
+    replaced=client.post(f"/api/references/{ref['id']}/replace",data={"expected_revision":ref["revision"]},files={"file":("new.png",image_bytes(152),"image/png")})
+    assert replaced.status_code==200,replaced.text
+    assert replaced.json()["asset_sha"]!=ref["asset_sha"]
+    assert replaced.json()["preflight"] is None
+    after=next(p for p in client.get(f"/api/projects/{project['id']}/preflights").json() if p["id"]==before["id"])
+    assert not after["effective"] and after["status"]=="unreviewed"
+    assert after["quality"] is None and after["visual_evidence"]==[]
+    assert after["legacy_preflight"]["asset_sha"]==ref["asset_sha"]
+    with lib.db.read() as con:
+        raw=json.loads(con.execute("SELECT data FROM preflights WHERE id=?",(before["id"],)).fetchone()[0])
+        assert raw["asset_sha"]==ref["asset_sha"] and raw["status"]==before["status"]
+
+
+def test_wrong_asset_preflight_matches_reference_filters_and_ranking(client,app,project):
+    from ref_lab.db import encode
+    lib=app.state.library
+    ref=add_reference(client,project,seed=153)
+    with lib.db.transaction() as con:
+        stored=json.loads(con.execute("SELECT data FROM refs WHERE id=?",(ref["id"],)).fetchone()[0])
+        stored["preflight"].update(asset_sha="another-image-sha",producer="synthetic_agent",status="passed",content_type="real_person_cosplay",identity_prediction="match",visual_evidence=["Wrong asset assertion"])
+        stored.update(preflight_status="passed",preflight_filtered=True)
+        con.execute("UPDATE refs SET data=? WHERE id=?",(encode(stored),ref["id"]))
+    shown=client.get(f"/api/references/{ref['id']}").json()
+    assert shown["preflight"] is None
+    assert shown["preflight_status"]=="unreviewed" and not shown["preflight_filtered"]
+    assert not shown["preflight_current_context"]
+    assert shown["legacy_preflight"]["asset_sha"]=="another-image-sha"
+    assert shown["recommendation"]["evidence"]["preflight"]["items"]==[]
+    assert ref["id"] in {r["id"] for r in lib.references(project["id"],preflight_status="unreviewed")["items"]}
+    assert lib.references(project["id"],view_filtered=True)["total"]==0

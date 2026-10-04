@@ -29,10 +29,11 @@ def review_kind_sql(data_column: str = "data") -> str:
     return f"CASE WHEN {trusted_producer_sql('review_producer', data_column)} AND json_extract({data_column},'$.review.asset_sha')=json_extract({data_column},'$.asset_sha') THEN COALESCE(json_extract({data_column},'$.review.kind'),'unknown') ELSE 'unknown' END"
 
 
-def project_preflight(preflight: dict, current_context: str) -> dict:
-    """An effective assertion has a trusted producer and the current input snapshot."""
+def project_preflight(preflight: dict, *, current_asset_sha: str | None, current_context: str) -> dict:
+    """Effective evidence binds its producer, current reference bytes and project inputs."""
     trusted = preflight.get("producer") not in UNTRUSTED_EVIDENCE_PRODUCERS
-    if trusted and preflight.get("project_context") == current_context:
+    if (trusted and current_asset_sha and preflight.get("asset_sha") == current_asset_sha
+            and preflight.get("project_context") == current_context):
         return {**preflight, "effective": True, "evidence_status": "current"}
     return {"id": preflight.get("id"), "project_id": preflight.get("project_id"),
             "asset_sha": preflight.get("asset_sha"), "reference_id": preflight.get("reference_id"),
@@ -40,7 +41,7 @@ def project_preflight(preflight: dict, current_context: str) -> dict:
             "status": "unreviewed", "content_type": "unknown", "identity_prediction": "uncertain",
             "visual_evidence": [], "quality": None, "identity": None, "effective": False,
             "evidence_status": "stale_context" if trusted else "legacy_unverified", "legacy_preflight": preflight,
-            "reason": "预检没有绑定当前角色、版本或身份依据，仅保留作历史记录" if trusted else "旧启发式预检不是视觉核验，仅保留作历史记录"}
+            "reason": "预检没有绑定当前图片、角色、版本或身份依据，仅保留作历史记录" if trusted else "旧启发式预检不是视觉核验，仅保留作历史记录"}
 
 
 def effective_preflight_filtered(ref: dict) -> bool:
