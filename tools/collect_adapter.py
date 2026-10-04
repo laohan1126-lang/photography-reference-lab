@@ -1224,7 +1224,7 @@ def main() -> None:
                 elif attempts:
                     status, detail = "usable", "已执行检索，本轮得到 0 个满足结构化约束的候选。"
                 elif len(candidates) >= target_count:
-                    status, detail = "untested", "已达到本轮数量目标，未尝试此来源。"
+                    status, detail = "untested", "已达到本轮执行预算，未尝试此来源。"
                 else:
                     status, detail = "blocked", "本轮未能执行此来源检索；没有可验证的执行记录。"
                 source_checks.append({"source": source, "status": status, "detail": detail})
@@ -1248,14 +1248,13 @@ def main() -> None:
                     "detail": "调用方显式允许 Bing 备用检索；原请求来源受阻仍单独保留。",
                 })
 
-    gaps = [f"{check['source']}: {check['detail']}" for check in source_checks if check["status"] in {"blocked", "unavailable"}]
+    gaps = [f"{check['source']}: {check['detail']}" for check in source_checks if check["status"] in {"blocked", "unavailable", "untested"}]
     if not selected_sources:
         gaps.append("没有选择采集来源；请指定来源后再执行。")
     if len(candidates) < requested_count:
         gaps.append(f"本轮得到 {len(candidates)} / {requested_count} 个候选；数量是软目标，不以重复图凑数。")
-    completed = bool(candidates) and bool(selected_sources) and all(
-        check["status"] not in {"blocked", "unavailable"} for check in source_checks
-    )
+    # Preferences guide source choice; this run needs one usable queried source.
+    completed = bool(candidates) and any(check["status"] == "usable" for check in source_checks)
     summary_text = (
         f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
         + (" 本轮来源受阻或没有候选，见 source_checks/gaps。" if not completed else "")

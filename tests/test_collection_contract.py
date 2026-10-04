@@ -6,6 +6,7 @@ import zipfile
 import pytest
 from PIL import Image
 
+from ref_lab.models import CandidatePackage
 from ref_lab.identity import build_identity_context
 from ref_lab.preflight import detect_modality, evaluate_identity, evaluate_quality, run_candidate_preflight
 from tools import collect_adapter as adapter
@@ -59,7 +60,7 @@ def test_uniform_background_is_a_hint_not_a_visual_collage_or_blur():
     assert result["is_collage"] is None and result["is_blurry_or_lowres"] is None
 
 
-def run_adapter(monkeypatch, tmp_path, *, sources, candidates, query_log, login_wall, target_count=30):
+def run_adapter(monkeypatch, tmp_path, *, sources, candidates, query_log, login_wall, target_count=30, images=None):
     task_dir = tmp_path / "task"
     task_dir.mkdir()
     job = {"id": "synthetic-job", "project_snapshot": {"character": "test"}, "target_count": target_count, "preferred_sources": sources}
@@ -67,17 +68,34 @@ def run_adapter(monkeypatch, tmp_path, *, sources, candidates, query_log, login_
     result_file = tmp_path / "result.zip"
     monkeypatch.setattr(adapter, "parse_arguments", lambda: (task_dir, result_file, False))
     monkeypatch.setattr(adapter, "select_browserskill", lambda env: ("synthetic-bsk", "browser"))
-    monkeypatch.setattr(adapter, "fetch_bsk_candidates", lambda *args: (candidates, {}, query_log, login_wall))
+    monkeypatch.setattr(adapter, "fetch_bsk_candidates", lambda *args: (candidates, images or {}, query_log, login_wall))
     adapter.main()
     with zipfile.ZipFile(result_file) as archive:
         return json.loads(archive.read("manifest.json"))
 
 
-def test_partial_candidates_do_not_erase_source_block(monkeypatch, tmp_path):
-    result = run_adapter(monkeypatch, tmp_path, sources=["xiaohongshu", "pinterest"], candidates=[{"id": "fixture"}], query_log=[{"source": "xiaohongshu", "query": "fixture", "kept": 0, "stop_reason": "login_required"}, {"source": "pinterest", "query": "fixture", "kept": 1, "stop_reason": "kept=1"}], login_wall=True)
+def test_one_completed_preferred_source_preserves_another_source_block(monkeypatch, tmp_path):
+    raw = image_bytes()
+    result = run_adapter(
+        monkeypatch, tmp_path, sources=["xiaohongshu", "pinterest"],
+        candidates=[{"id": "fixture", "file": "images/fixture.png"}],
+        images={"fixture.png": raw},
+        query_log=[
+            {"source": "xiaohongshu", "query": "fixture", "kept": 0, "stop_reason": "login_required"},
+            {"source": "pinterest", "query": "fixture", "kept": 1, "stop_reason": "kept=1"},
+        ],
+        login_wall=True,
+    )
+    CandidatePackage.model_validate(result)
+    with zipfile.ZipFile(tmp_path / "result.zip") as archive:
+        assert archive.read("images/fixture.png") == raw
     report = result["execution_report"]
-    assert len(result["candidates"]) == 1
-    assert report["status"] == "blocked" and report["gaps"]
+    assert report["status"] == "completed"
+    assert {check["source"]: check["status"] for check in report["source_checks"]} == {
+        "xiaohongshu": "blocked", "pinterest": "usable",
+    }
+    assert any("xiaohongshu:" in gap for gap in report["gaps"])
+    assert any("1 / 30" in gap for gap in report["gaps"])
 
 
 def test_attempted_zero_yield_source_is_not_reported_untested(monkeypatch, tmp_path):
@@ -167,3 +185,45 @@ def test_soft_quantity_gap_does_not_block_a_completed_source_run(monkeypatch, tm
     assert report["status"] == "completed"
     assert any("1 / 60" in gap for gap in report["gaps"])
     assert "preflight" not in manifest["candidates"][0]
+
+
+def test_unused_preferred_source_reports_execution_budget_not_requested_goal(monkeypatch, tmp_path):
+    manifest = run_adapter(
+        monkeypatch, tmp_path, sources=["xiaohongshu", "pinterest"],
+        candidates=[{"id": str(index)} for index in range(40)],
+        query_log=[{"source": "xiaohongshu", "query": "fixture", "kept": 40}],
+        login_wall=False, target_count=60,
+    )
+    report = manifest["execution_report"]
+    untested = next(check for check in report["source_checks"] if check["source"] == "pinterest")
+    assert report["status"] == "completed"
+    assert untested["status"] == "untested"
+    assert "执行预算" in untested["detail"]
+    assert "数量目标" not in untested["detail"]
+    assert any("40 / 60" in gap for gap in report["gaps"])
+    assert any("pinterest:" in gap for gap in report["gaps"])
+
+
+def test_all_preferred_sources_blocked_keep_assets_without_completing(monkeypatch, tmp_path):
+    manifest = run_adapter(
+        monkeypatch, tmp_path, sources=["xiaohongshu"],
+        candidates=[{"id": "earlier-current-candidate"}],
+        query_log=[{"source": "xiaohongshu", "query": "fixture", "kept": 1}],
+        login_wall=True,
+    )
+    assert len(manifest["candidates"]) == 1
+    assert manifest["execution_report"]["status"] == "blocked"
+    assert manifest["execution_report"]["source_checks"][0]["status"] == "blocked"
+
+
+def test_unavailable_secondary_preference_does_not_block_a_usable_source(monkeypatch, tmp_path):
+    manifest = run_adapter(
+        monkeypatch, tmp_path, sources=["instagram", "pinterest"],
+        candidates=[{"id": "current-candidate"}],
+        query_log=[{"source": "pinterest", "query": "fixture", "kept": 1}],
+        login_wall=False,
+    )
+    report = manifest["execution_report"]
+    assert report["status"] == "completed"
+    assert any(check["source"] == "instagram" and check["status"] == "unavailable" for check in report["source_checks"])
+    assert any("instagram:" in gap for gap in report["gaps"])
