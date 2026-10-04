@@ -152,15 +152,26 @@ Step 2: Output ONLY a JSON object that satisfies this schema (no markdown format
                 "--dangerously-skip-permissions"
             ]
 
-            res = subprocess.run(
-                cmd,
-                cwd=tmp_wsl,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=120,
-            )
+            env = dict(os.environ)
+            proxy = env.get("HTTPS_PROXY") or env.get("https_proxy") or env.get("HTTP_PROXY") or env.get("http_proxy")
+            if not proxy:
+                env["HTTP_PROXY"] = "http://127.0.0.1:12000"
+                env["HTTPS_PROXY"] = "http://127.0.0.1:12000"
+                env["ALL_PROXY"] = "http://127.0.0.1:12000"
+
+            try:
+                res = subprocess.run(
+                    cmd,
+                    cwd=tmp_wsl,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    env=env,
+                    timeout=180,
+                )
+            except subprocess.TimeoutExpired as exc:
+                raise ProviderError(f"Antigravity 分析超时 (180s)；请检查本地代理及网络连接: {exc}") from exc
             if res.returncode != 0:
                 raise ProviderError(f"Antigravity CLI 执行失败 (exit {res.returncode}): {(res.stderr or '')[:500]}")
             

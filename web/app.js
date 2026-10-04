@@ -52,7 +52,7 @@ async function api(path, options = {}) {
         return response.blob();
     return response.json();
 }
-function lockScreen() { LibraryDiscovery.reset(); closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
+function lockScreen() { if (state.noAuth) return; LibraryDiscovery.reset(); closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
 function current() { return state.refs.find(x => x.id === state.activeId) || state.refs[0] || null; }
 function label(text, name, value = '', type = 'text', extra = '') { return `<label>${esc(text)}<input aria-label="${esc(text)}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`; }
 function area(text, name, value = '', extra = '') { return `<label>${esc(text)}<textarea aria-label="${esc(text)}" name="${name}" ${extra}>${esc(value)}</textarea></label>`; }
@@ -140,8 +140,13 @@ function toggleProjectSelection(ref){
 function safeDiscard() { return !state.busy && (!state.dirty || window.confirm('当前审美反馈尚未保存。仍然离开？')); }
 async function boot() {
     const session = await api('/api/session');
+    state.noAuth = Boolean(session.no_auth);
     if (!session.authenticated) { lockScreen(); return; }
     state.csrf=session.csrf; $('version').textContent='v'+session.version;
+    if (state.noAuth) {
+        const lockBtn = $('lock-library');
+        if (lockBtn) lockBtn.hidden = true;
+    }
     state.caps=await api('/api/capabilities');
     const q=new URLSearchParams(location.hash.slice(1));
     LibraryDiscovery.restore(q);
@@ -1275,12 +1280,24 @@ async function renderProfile() {
 
 $('login-form').addEventListener('submit',async e=>{
     e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;$('login-error').textContent='';
-    try{const session=await api('/api/session',{method:'POST',body:{token:$('login-token').value}});state.csrf=session.csrf;$('login-token').value='';await boot();}
+    try{
+        const tokenVal = $('login-token').value.trim();
+        const session=await api('/api/session',{method:'POST',body:{token:tokenVal}});
+        state.csrf=session.csrf;
+        try { localStorage.setItem('ref_lab_token', tokenVal); } catch(_) {}
+        $('login-token').value='';
+        await boot();
+    }
     catch(error){$('login-error').textContent=error.message;}finally{button.disabled=false;}
 });
 $('new-project').onclick=()=>projectEditor();
 if ($('optimize-skill-btn')) $('optimize-skill-btn').onclick = optimizeSkillFromRejectionReasons;
-$('lock-library').onclick=async()=>{if(!safeDiscard())return;try{await api('/api/session',{method:'DELETE'});lockScreen();}catch(error){showError(error);}};
+$('lock-library').onclick=async()=>{
+    if (state.noAuth) { toast('当前已开启完全免密模式，无需锁定'); return; }
+    if(!safeDiscard())return;
+    try { localStorage.removeItem('ref_lab_token'); } catch(_) {}
+    try{await api('/api/session',{method:'DELETE'});lockScreen();}catch(error){showError(error);}
+};
 listen(document,'[data-view]','click',(e,n)=>navigate(n.dataset.view));
 $('editor-close').onclick=manualCloseModal;
 $('editor').addEventListener('input',()=>modalDirty=true);
@@ -1301,16 +1318,33 @@ document.addEventListener('keydown',event=>{
 (async()=>{
     const searchParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = searchParams.get('token');
+    let savedToken = '';
+    try { savedToken = localStorage.getItem('ref_lab_token') || ''; } catch(_) {}
+    const tokenToUse = tokenFromUrl || savedToken;
+
     if (tokenFromUrl) {
+        try { localStorage.setItem('ref_lab_token', tokenFromUrl); } catch(_) {}
         searchParams.delete('token');
         const newSearch = searchParams.toString() ? '?' + searchParams.toString() : '';
         window.history.replaceState({}, document.title, window.location.pathname + newSearch + window.location.hash);
+    }
+
+    if (tokenToUse) {
         try {
-            const session = await api('/api/session', { method: 'POST', body: { token: tokenFromUrl } });
+            const session = await api('/api/session', { method: 'POST', body: { token: tokenToUse } });
             state.csrf = session.csrf;
         } catch(e) {
-            console.warn('Auto-login failed', e);
+            console.warn('Auto-login with token failed', e);
+            try { localStorage.removeItem('ref_lab_token'); } catch(_) {}
         }
     }
-    boot().catch(error => { lockScreen(); $('login-error').textContent = '无法连接参考库：' + error.message; });
+    boot().catch(error => {
+        if (state.noAuth) return;
+        lockScreen();
+        $('login-error').textContent = '无法连接参考库：' + error.message;
+        try {
+            const remembered = localStorage.getItem('ref_lab_token');
+            if (remembered && !$('login-token').value) $('login-token').value = remembered;
+        } catch(_) {}
+    });
 })();

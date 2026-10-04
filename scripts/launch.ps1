@@ -132,6 +132,11 @@ if ($alreadyHealthy) {
         "{task_file}",
         "{result_file}"
     ) | ConvertTo-Json -Compress)
+    if (-not $env:HTTP_PROXY -and -not $env:http_proxy) {
+        $env:HTTP_PROXY = "http://127.0.0.1:12000"
+        $env:HTTPS_PROXY = "http://127.0.0.1:12000"
+        $env:ALL_PROXY = "http://127.0.0.1:12000"
+    }
 
     Write-Host "[*] Starting repo-local Windows backend..." -ForegroundColor Yellow
     $startArgs = @{
@@ -211,12 +216,18 @@ Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "  Runtime  : Windows Python + Windows BrowserSkill/Edge" -ForegroundColor White
 Write-Host "  电脑访问 : $url" -ForegroundColor White
-Write-Host "  手机访问 : https://ref.koshikorato.top" -ForegroundColor Green
-if ($token) {
-    Write-Host "  手机免密 : https://ref.koshikorato.top/?token=$token" -ForegroundColor Cyan
-    Write-Host "  Token    : $token (已复制到剪贴板)" -ForegroundColor Green
+$noAuthFile = Join-Path $config.DataDir "no-auth"
+if ((Test-Path $noAuthFile) -or ($env:LAB_NO_AUTH -eq "1")) {
+    Write-Host "  手机访问 : https://ref.koshikorato.top (完全免密模式)" -ForegroundColor Green
+    Write-Host "  模式     : 免密直接进入，无需输入任何口令" -ForegroundColor Cyan
 } else {
-    Write-Host "  Token    : run .venv\Scripts\python.exe -m ref_lab token" -ForegroundColor Yellow
+    Write-Host "  手机访问 : https://ref.koshikorato.top" -ForegroundColor Green
+    if ($token) {
+        Write-Host "  手机免密 : https://ref.koshikorato.top/?token=$token" -ForegroundColor Cyan
+        Write-Host "  Token    : $token (已复制到剪贴板)" -ForegroundColor Green
+    } else {
+        Write-Host "  Token    : run .venv\Scripts\python.exe -m ref_lab token" -ForegroundColor Yellow
+    }
 }
 Write-Host "  Stop     : double-click stop.bat" -ForegroundColor Gray
 Write-Host "================================================================" -ForegroundColor Cyan

@@ -193,3 +193,18 @@ def test_field_integrity_rejects_modified_local_file(client, project, library):
     ref = ready_reference(client, project)
     library.assets.path(ref["asset"]).write_bytes(b"corrupt")
     assert client.post(f"/api/projects/{project['id']}/pack", json={"reference_ids": [ref["id"]]}).status_code == 409
+
+
+def test_no_auth_mode(tmp_path):
+    from ref_lab.api import create_app
+    settings = Settings(data_dir=tmp_path, token="test-token-" * 4, public_origin="http://testserver", no_auth=True)
+    app = create_app(settings)
+    with TestClient(app) as c:
+        res = c.get("/api/session")
+        assert res.json()["authenticated"] is True
+        assert res.json()["no_auth"] is True
+        assert c.get("/api/projects").status_code == 200
+        post_res = c.post("/api/projects", json={"character": "TestNoAuth"})
+        assert post_res.status_code == 201
+
+
