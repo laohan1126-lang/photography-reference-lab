@@ -566,6 +566,7 @@ function preflightBadge(ref) {
     const status = ref.preflight_status || ref.preflight?.status;
     if (!status) return '';
     const badges = {
+        unreviewed: '<span class="badge">尚未逐图核验</span>',
         passed: '<span class="badge badge-success">预检推断匹配</span>',
         uncertain: '<span class="badge badge-warning">预检身份存疑</span>',
         transferable: '<span class="badge badge-info">可迁移动作</span>',
@@ -581,7 +582,7 @@ function recommendationBadges(ref) {
     const rec = ref.recommendation;
     if (!rec) return '';
     const e = rec.evidence || {}, observation = e.visual_observations || {}, pf = e.preflight || {};
-    const labels = {unreviewed:'尚未逐图核验',human_visual_review:'人工图像判断',ai_visual_inference:'AI 图像推断，待核对',unknown_producer:'来源未核实的历史判断',local_heuristic:'本地规则预检，待核对',agent_prediction:'Agent 预检推断，待核对'};
+    const labels = {unreviewed:'尚未逐图核验',human_visual_review:'人工图像判断',ai_visual_inference:'AI 图像推断，待核对',unknown_producer:'来源未核实的历史判断',local_heuristic:'本地规则线索，不能证明图像内容',deterministic_file_check:'文件与尺寸检查，未做视觉判断',legacy_unverified:'历史预检未核实',stale_context:'项目要求已改变，旧判断待复核',agent_prediction:'Agent 预检推断，待核对'};
     const list = items => (items || []).map(x => `<li>${esc(x)}</li>`).join('');
     return `<div class="recommendation-tags">${(rec.photographic_points || []).map(x => `<span class="tag tag-dim">${esc(x)}</span>`).join('')}</div>
         <details class="evidence-origin"><summary>判断来自哪里</summary>
@@ -599,11 +600,9 @@ function renderDetail(ref) {
     const detached=!!ref.detached_at;
     const recycled=ref.decision==='reject';
     const preflightFiltered=state.view==='filtered'&&ref.preflight_filtered;
-    const pf=ref.preflight;
     const next=ref.analysis_job?'查看制卡任务':ref.card?'检查草稿并确认':'制作现场卡';
     const blockers=(ref.blockers||[]).filter(b=>b.code!=='not_accepted');
     $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p>${preflightBadge(ref)}${recommendationBadges(ref)}</div>
-    ${pf?`<section class='gate-box'><strong>候选视觉预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p><small>来自 ${esc(pf.producer||'未记录执行器')}；这是 Agent prediction，不是人工确认。</small></section>`:''}
     ${detached?`<button id="restore-project-use" class="primary">恢复到当前项目</button><p class="muted">这张图只是从当前项目移出，不是 X 淘汰；其他项目和全局收藏不受影响。</p>`:preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration"><strong>通用灵感</strong><small>I · 归档审美库并移出项目</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
     ${!detached&&!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
@@ -616,6 +615,7 @@ function renderDetail(ref) {
         </div>
         ${ref.archive_path?`<div class="file-path-hint archive-success"><strong>📁 已归档至：</strong><code>${esc(ref.archive_path)}</code></div>`:
           `<div class="file-path-hint"><strong>📁 归档目标：</strong><code>${esc(ref.archive_dir||ref.export_dir||'')} (确认后自动归位)</code></div>`}
+        ${ref.archive_error?`<p id="archive-error" class="notice" role="status">选择已保存，归档未完成：${esc(ref.archive_error)}</p>`:''}
         ${ref.local_path?`<div class="file-path-secondary"><small>母本CAS底层：<code>${esc(ref.local_path)}</code></small> ${ref.archive_path?`<button id="reveal-cas-btn" class="tiny-link-btn" title="在资源管理器中查看底层CAS原图">打开母图文件夹</button>`:''}</div>`:''}
         <div id="reveal-status-hint" class="reveal-status-hint" hidden></div>
     </section>`:''}
@@ -807,7 +807,7 @@ async function decide(choice, rejectionReason = null, aestheticNegative = false)
             renderReferenceView(); // Reconcile membership without remounting the strip.
         }
         await loadReferences(removed?index:0);await renderStats();
-        toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?'已选为本角色参考，已自动归位至角色已确认文件夹':'已标为待定');
+        toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?(updated.archive_error?'已选为本角色参考；归档未完成：'+updated.archive_error:updated.archive_path?'已选为本角色参考，已归档至角色已确认文件夹':'已选为本角色参考'):'已标为待定');
     } finally {state.busy=false;}
 }
 

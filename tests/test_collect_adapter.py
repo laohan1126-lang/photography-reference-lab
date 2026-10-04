@@ -326,7 +326,8 @@ def test_startup_preserves_legacy_record_and_projects_unverified(client, project
 
     repaired_library = Library(library.settings)
     repaired = repaired_library.reference(ref["id"])
-    assert repaired["preflight"] == data["preflight"]
+    assert repaired["preflight"] is None
+    assert repaired["legacy_preflight"] == data["preflight"]
     assert repaired["preflight_status"] == "unreviewed"
     assert repaired["preflight_filtered"] is False
     assert repaired["preflight_evidence_status"] == "legacy_unverified"

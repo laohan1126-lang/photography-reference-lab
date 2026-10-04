@@ -104,7 +104,6 @@ def sync_project_confirmed_archive(library: Library, project_id: str, *, archive
         projects = [json.loads(row[0]) for row in con.execute("SELECT data FROM projects")]
         project = next(p for p in projects if p["id"] == project_id)
         folder = archive_dir or get_project_archive_dir(library.settings.data_dir, project)
-        folder.mkdir(parents=True, exist_ok=True)
         shared_projects = {p["id"] for p in projects if not p.get("archived_at") and get_project_archive_dir(library.settings.data_dir, p) == folder}
         refs = [json.loads(row[0]) for row in con.execute("SELECT data FROM refs WHERE decision='keep'")]
         for ref in refs:
@@ -124,7 +123,7 @@ def sync_project_confirmed_archive(library: Library, project_id: str, *, archive
                     continue
             mapping[ref["id"]] = str(target)
         # Keep older exports when their replacements failed; retry after a successful sync.
-        if not errors:
+        if not errors and folder.exists():
             for existing in folder.iterdir():
                 if existing.is_file() and MANAGED_FILENAME.fullmatch(existing.name) and existing.name not in expected:
                     try:
