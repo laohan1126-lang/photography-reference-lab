@@ -1185,7 +1185,8 @@ def main() -> None:
     task_path, result_file, allow_bing_fallback = parse_arguments()
     job, _ = load_job_info(task_path)
     policy = build_policy(job)
-    target_count = min(int(job.get("target_count") or 30), 40)
+    requested_count = int(job.get("target_count") or 30)
+    target_count = min(requested_count, 40)
 
     candidates: list[dict] = []
     images: dict[str, bytes] = {}
@@ -1250,12 +1251,14 @@ def main() -> None:
     gaps = [f"{check['source']}: {check['detail']}" for check in source_checks if check["status"] in {"blocked", "unavailable"}]
     if not selected_sources:
         gaps.append("没有选择采集来源；请指定来源后再执行。")
-    if len(candidates) < target_count:
-        gaps.append(f"本轮得到 {len(candidates)} / {target_count} 个候选；数量是软目标，不以重复图凑数。")
-    blocked = bool(gaps)
+    if len(candidates) < requested_count:
+        gaps.append(f"本轮得到 {len(candidates)} / {requested_count} 个候选；数量是软目标，不以重复图凑数。")
+    completed = bool(candidates) and bool(selected_sources) and all(
+        check["status"] not in {"blocked", "unavailable"} for check in source_checks
+    )
     summary_text = (
         f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
-        + (" 本轮任务仍有受阻或数量缺口，见 source_checks/gaps。" if blocked else "")
+        + (" 本轮来源受阻或没有候选，见 source_checks/gaps。" if not completed else "")
     )
     if browserskill_missing:
         summary_text += " " + browserskill_missing
@@ -1268,7 +1271,7 @@ def main() -> None:
         "candidates": candidates,
         "execution_report": {
             "producer": producer,
-            "status": "blocked" if blocked else "completed",
+            "status": "completed" if completed else "blocked",
             "summary": summary_text,
             "source_checks": source_checks,
             "query_log": query_log,

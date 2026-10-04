@@ -153,3 +153,17 @@ def test_invalid_file_is_filtered_without_inventing_visual_failure():
     assert preflight["status"] == "filtered"
     assert preflight["content_type"] == "unknown"
     assert preflight["visual_evidence"] == []
+
+
+def test_soft_quantity_gap_does_not_block_a_completed_source_run(monkeypatch, tmp_path):
+    manifest = run_adapter(
+        monkeypatch, tmp_path, sources=["pinterest"],
+        candidates=[{"id": "one-current-candidate"}],
+        query_log=[{"source": "pinterest", "query": "test", "kept": 1}],
+        login_wall=False, target_count=60,
+    )
+    report = manifest["execution_report"]
+    assert report["source_checks"][0]["status"] == "usable"
+    assert report["status"] == "completed"
+    assert any("1 / 60" in gap for gap in report["gaps"])
+    assert "preflight" not in manifest["candidates"][0]
