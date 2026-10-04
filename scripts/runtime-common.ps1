@@ -21,8 +21,11 @@ function Get-ReferenceLabRuntimeConfig {
 
     if (Test-Path $script:WindowsRuntimeConfigPath) {
         $stored = Get-Content -LiteralPath $script:WindowsRuntimeConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
-        if (-not $dataDirValue -and $stored.data_dir) {
-            $dataDirValue = [string]$stored.data_dir
+        if (-not ($stored -is [pscustomobject]) -or -not ($stored.data_dir -is [string]) -or -not $stored.data_dir.Trim()) {
+            throw "Windows runtime configuration requires a non-empty data_dir."
+        }
+        if (-not $dataDirValue) {
+            $dataDirValue = $stored.data_dir
         }
         if (-not $env:LAB_PORT -and $stored.port) {
             $port = [int]$stored.port
@@ -106,4 +109,59 @@ function Assert-ReferenceLabPythonMatchesRepo {
 function Get-ReferenceLabPidFile {
     New-Item -ItemType Directory -Path $script:RuntimeDir -Force | Out-Null
     return (Join-Path $script:RuntimeDir "server.json")
+}
+
+function Get-ReferenceLabManagedProcess {
+    param($Record, $Config)
+
+    if (-not $Record.pid -or
+        [System.IO.Path]::GetFullPath([string]$Record.repo_root) -ne $Config.RepoRoot -or
+        [System.IO.Path]::GetFullPath([string]$Record.data_dir) -ne $Config.DataDir -or
+        [int]$Record.port -ne $Config.Port) {
+        throw "Runtime PID record belongs to a different checkout/data configuration. Refusing to manage it."
+    }
+    $process = Get-Process -Id ([int]$Record.pid) -ErrorAction SilentlyContinue
+    if (-not $process) { return $null }
+    if (-not $Record.process_start_ticks -or -not $Record.process_path -or -not $process.Path -or
+        [string]$process.StartTime.ToUniversalTime().Ticks -ne [string]$Record.process_start_ticks -or
+        [System.IO.Path]::GetFullPath($process.Path) -ne [System.IO.Path]::GetFullPath([string]$Record.process_path)) {
+        throw "Unverified or reused PID $($Record.pid). Refusing to manage it; inspect the runtime record."
+    }
+    return $process
+}
+
+function Get-ReferenceLabRuntimeInfo {
+    param($Config, [string]$Origin = $Config.Url)
+
+    $token = $env:LAB_ACCESS_TOKEN
+    $tokenFile = Join-Path $Config.DataDir "access-token"
+    if (-not $token -and (Test-Path $tokenFile)) {
+        $token = (Get-Content -LiteralPath $tokenFile -Raw -Encoding UTF8).Trim()
+    }
+    $headers = @{}
+    if ($token) { $headers.Authorization = "Bearer $token" }
+    try {
+        return (Invoke-RestMethod -Uri "$Origin/api/runtime" -Headers $headers -TimeoutSec 2 -ErrorAction Stop)
+    } catch {
+        return $null
+    }
+}
+
+function Assert-ReferenceLabRuntimeIdentity {
+    param($Runtime, $Config, [int]$ExpectedPid)
+
+    if (-not $Runtime -or [int]$Runtime.pid -ne $ExpectedPid -or
+        [System.IO.Path]::GetFullPath([string]$Runtime.source) -ne (Join-Path $Config.RepoRoot "ref_lab\api.py") -or
+        [System.IO.Path]::GetFullPath([string]$Runtime.data_dir) -ne $Config.DataDir -or
+        [System.IO.Path]::GetFullPath([string]$Runtime.database) -ne (Join-Path $Config.DataDir "library.sqlite3")) {
+        throw "Running server identity does not match this process, checkout and library. Refusing to reuse it."
+    }
+}
+
+function Get-ReferenceLabRevision {
+    param([string]$RepoRoot)
+
+    $revision = & git -C $RepoRoot rev-parse --verify HEAD 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $revision) { throw "Cannot identify this checkout's Git revision." }
+    return $revision.Trim()
 }

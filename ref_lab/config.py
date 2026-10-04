@@ -42,21 +42,21 @@ class Settings:
             runtime_json = ROOT / ".local" / "windows-runtime.json"
             if runtime_json.is_file():
                 try:
-                    stored = json.loads(runtime_json.read_text(encoding="utf-8"))
-                    if stored.get("data_dir"):
-                        data_dir_env = stored["data_dir"]
-                except Exception:
-                    pass
-        if not data_dir_env and (ROOT / "data").is_dir():
-            data_dir_env = str(ROOT / "data")
-        data_dir = Path(data_dir_env if data_dir_env else ROOT / ".local").expanduser().resolve()
+                    stored = json.loads(runtime_json.read_text(encoding="utf-8-sig"))
+                except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                    raise ValueError("Invalid Windows runtime configuration; refusing to choose another library") from exc
+                if not isinstance(stored, dict) or not isinstance(stored.get("data_dir"), str) or not stored["data_dir"].strip():
+                    raise ValueError("Windows runtime configuration requires a non-empty data_dir")
+                data_dir_env = stored["data_dir"]
+        data_dir = Path(data_dir_env or ROOT / ".local").expanduser()
+        if not data_dir.is_absolute():
+            data_dir = ROOT / data_dir
+        data_dir = data_dir.resolve()
+        no_auth_env = os.environ.get("LAB_NO_AUTH", "").strip().lower()
+        if no_auth_env and no_auth_env not in {"0", "false", "no", "1", "true", "yes"}:
+            raise ValueError("LAB_NO_AUTH must be 0/false/no or 1/true/yes")
+        no_auth = no_auth_env in {"1", "true", "yes"} if no_auth_env else (data_dir / "no-auth").is_file()
         data_dir.mkdir(parents=True, exist_ok=True)
-        no_auth = (
-            os.environ.get("LAB_NO_AUTH", "").lower() in {"1", "true", "yes"}
-            or (data_dir / "no-auth").exists()
-            or (ROOT / "data" / "no-auth").exists()
-            or (ROOT / ".local" / "no-auth").exists()
-        )
         token = os.environ.get("LAB_ACCESS_TOKEN", "")
         if not token:
             token_file = data_dir / "access-token"
@@ -67,7 +67,7 @@ class Settings:
                     token_file.chmod(0o600)
                 except FileExistsError:
                     pass
-            token = token_file.read_text(encoding="utf-8").strip() if token_file.exists() else secrets.token_urlsafe(32)
+            token = token_file.read_text(encoding="utf-8").strip()
         return cls(data_dir=data_dir, token=token,
                    public_origin=os.environ.get("LAB_PUBLIC_ORIGIN", "http://127.0.0.1:8765").rstrip("/"),
                    no_auth=no_auth)
