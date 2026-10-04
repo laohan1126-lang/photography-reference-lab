@@ -49,8 +49,6 @@ def configured_command() -> list[str]:
     # WSL cannot reliably own/reap a Windows process tree using POSIX killpg.
     if os.name != "nt" and executable.lower().endswith(".exe"):
         raise AttemptStop("cross_runtime_unsupported", "不跨 WSL 启动 Windows exe；请让服务与适配器在同一运行环境执行，或使用手动任务包。")
-    if os.name == "nt" and not shutil.which("taskkill"):
-        raise AttemptStop("process_cleanup_unavailable", "缺少 Windows 子进程树清理工具；未启动适配器。")
     return [executable, *command[1:]]
 
 

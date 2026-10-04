@@ -363,3 +363,13 @@ def test_exited_adapter_does_not_leave_running_descendant(library, project, monk
     assert result["status"] == "blocked" and receipt(library, job)["code"] == "result_missing"
     time.sleep(1.6)
     assert not marker.exists()
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows Job Object transport')
+def test_windows_adapter_has_no_taskkill_path_dependency(monkeypatch):
+    from ref_lab.agent_collection import configured_command
+    executable = sys.executable
+    command = [executable, '{task_file}', '{result_file}']
+    monkeypatch.setenv('LAB_COLLECTION_COMMAND', json.dumps(command))
+    monkeypatch.setattr('ref_lab.agent_collection.shutil.which', lambda value: executable if value == executable else None)
+    assert configured_command() == command
