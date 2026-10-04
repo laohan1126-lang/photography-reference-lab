@@ -216,7 +216,7 @@ def test_deterministic_preflight_does_not_promote_query_metadata_to_visual_pass(
     }
     modality, evidence = detect_modality(image, metadata)
     assert modality == "unknown"
-    assert any("不能据此宣称真人实拍" in x for x in evidence)
+    assert evidence == []
 
     context = build_identity_context("王昭君", "王者荣耀", "长夜焕生")
     identity = evaluate_identity(first := image_bytes(seed=22, size=(800, 1200)), metadata, context)
@@ -224,7 +224,7 @@ def test_deterministic_preflight_does_not_promote_query_metadata_to_visual_pass(
     assert "metadata" in identity["reason"] or "标题/检索上下文" in identity["reason"]
 
 
-def test_game_effect_metadata_is_filtered_even_when_query_is_cosplay():
+def test_game_effect_metadata_remains_discovery_context_even_when_query_is_cosplay():
     image = Image.open(io.BytesIO(image_bytes(seed=23, size=(1200, 700))))
     metadata = {
         "title": "王昭君FMVP皮肤长夜焕生特效设计介绍",
@@ -235,7 +235,7 @@ def test_game_effect_metadata_is_filtered_even_when_query_is_cosplay():
         },
     }
     modality, _ = detect_modality(image, metadata)
-    assert modality == "game_screenshot"
+    assert modality == "unknown"
 
 
 def test_collect_adapter_transport_uses_schema2_without_fake_preflight(library, project, monkeypatch, tmp_path):
@@ -303,7 +303,7 @@ with zipfile.ZipFile(sys.argv[2], 'w') as z:
         assert ref["decision"] == "pending"
 
 
-def test_startup_repairs_known_fake_local_adapter_preflight(client, project, library):
+def test_startup_preserves_legacy_record_and_projects_unverified(client, project, library):
     ref = add_reference(client, project, seed=77)
     with library.db.transaction() as con:
         row = con.execute("SELECT data FROM refs WHERE id=?", (ref["id"],)).fetchone()
@@ -326,11 +326,13 @@ def test_startup_repairs_known_fake_local_adapter_preflight(client, project, lib
 
     repaired_library = Library(library.settings)
     repaired = repaired_library.reference(ref["id"])
-    assert repaired["preflight"]["producer"] == "vision-preflight-gate"
-    assert repaired["preflight"]["content_type"] == "game_screenshot"
-    assert repaired["preflight_status"] == "filtered"
-    assert repaired["preflight_filtered"] is True
-    assert repaired["invalidated_preflights"][-1]["producer"] == "local_collection_adapter"
+    assert repaired["preflight"] == data["preflight"]
+    assert repaired["preflight_status"] == "unreviewed"
+    assert repaired["preflight_filtered"] is False
+    assert repaired["preflight_evidence_status"] == "legacy_unverified"
+    with repaired_library.db.transaction() as con:
+        stored = con.execute("SELECT data FROM refs WHERE id=?", (ref["id"],)).fetchone()[0]
+    assert json.loads(stored) == data
     assert repaired["decision"] == ref["decision"]
 
 
@@ -346,7 +348,8 @@ def test_target_query_cannot_mask_explicit_confusion_character():
     }
     context = build_identity_context("王昭君", "王者荣耀", "长夜焕生")
     result = evaluate_identity(image_bytes(seed=88, size=(800, 1200)), metadata, context)
-    assert result["prediction"] == "mismatch"
+    assert result["prediction"] == "uncertain"
+    assert result["source_conflict"] is True
     assert "小乔" in result["reason"]
 
 
@@ -447,7 +450,7 @@ def test_browserskill_selection_returns_nothing_when_every_candidate_is_unusable
     assert ca.select_browserskill({}) == (None, None)
 
 
-def test_no_usable_browserskill_must_not_silently_use_bing(tmp_path):
+def test_no_usable_browserskill_must_not_silently_use_bing(tmp_path, monkeypatch):
     """No live browser and no --allow-bing-fallback => blocked, zero candidates."""
     import tools.collect_adapter as ca
     import zipfile
@@ -464,13 +467,13 @@ def test_no_usable_browserskill_must_not_silently_use_bing(tmp_path):
 
     def _no_browser(_env, *_a, **_k):
         return None, None
-    ca.select_browserskill = _no_browser
-    ca.nudge_extension = lambda *_a, **_k: (None, None)
-    ca.bsk_candidates = lambda: [dead]
+    monkeypatch.setattr(ca, "select_browserskill", _no_browser)
+    monkeypatch.setattr(ca, "nudge_extension", lambda *_a, **_k: (None, None))
+    monkeypatch.setattr(ca, "bsk_candidates", lambda: [dead])
     called = []
-    ca.fetch_bing_candidates = lambda *a, **k: called.append(True) or ([], {}, [])
+    monkeypatch.setattr(ca, "fetch_bing_candidates", lambda *a, **k: called.append(True) or ([], {}, []))
 
-    sys.argv = ["collect_adapter.py", str(task_dir / "job.json"), str(result_file)]
+    monkeypatch.setattr(sys, "argv", ["collect_adapter.py", str(task_dir / "job.json"), str(result_file)])
     ca.main()
 
     assert called == [], "Bing must not be used without an explicit opt-in"
@@ -483,7 +486,7 @@ def test_no_usable_browserskill_must_not_silently_use_bing(tmp_path):
     assert any("BrowserSkill" in gap for gap in report["gaps"])
 
 
-def test_bing_fallback_requires_explicit_opt_in(tmp_path):
+def test_bing_fallback_requires_explicit_opt_in(tmp_path, monkeypatch):
     import tools.collect_adapter as ca
     import zipfile
 
@@ -495,14 +498,14 @@ def test_bing_fallback_requires_explicit_opt_in(tmp_path):
     }, ensure_ascii=False), encoding="utf-8")
     result_file = tmp_path / "result.zip"
 
-    ca.select_browserskill = lambda *_a, **_k: (None, None)
-    ca.nudge_extension = lambda *_a, **_k: (None, None)
-    ca.bsk_candidates = lambda: []
+    monkeypatch.setattr(ca, "select_browserskill", lambda *_a, **_k: (None, None))
+    monkeypatch.setattr(ca, "nudge_extension", lambda *_a, **_k: (None, None))
+    monkeypatch.setattr(ca, "bsk_candidates", lambda: [])
     seen = []
-    ca.fetch_bing_candidates = lambda *a, **k: seen.append(True) or ([], {}, [])
+    monkeypatch.setattr(ca, "fetch_bing_candidates", lambda *a, **k: seen.append(True) or ([], {}, []))
 
-    sys.argv = ["collect_adapter.py", str(task_dir / "job.json"), str(result_file),
-                "--allow-bing-fallback"]
+    monkeypatch.setattr(sys, "argv", ["collect_adapter.py", str(task_dir / "job.json"), str(result_file),
+                "--allow-bing-fallback"])
     ca.main()
 
     assert seen == [True], "explicit opt-in must still allow the Bing path"
@@ -525,7 +528,7 @@ def test_wait_for_cards_keeps_polling_until_cards_appear(monkeypatch):
                         lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
     monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
 
-    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == [{"t": "a"}, {"t": "b"}]
+    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == ([{"t": "a"}, {"t": "b"}], False)
 
 
 def test_wait_for_cards_returns_best_sample_not_the_last(monkeypatch):
@@ -536,7 +539,7 @@ def test_wait_for_cards_returns_best_sample_not_the_last(monkeypatch):
                         lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
     monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
 
-    assert len(ca.wait_for_cards("bsk", "s", "js", {}, attempts=4, delay=0)) == 3
+    assert len(ca.wait_for_cards("bsk", "s", "js", {}, attempts=4, delay=0)[0]) == 3
 
 
 def test_wait_for_cards_survives_unparsable_evaluate(monkeypatch):
@@ -547,7 +550,7 @@ def test_wait_for_cards_survives_unparsable_evaluate(monkeypatch):
                         lambda *a, **k: type("R", (), {"stdout": next(samples)})())
     monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
 
-    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == [{"t": "a"}]
+    assert ca.wait_for_cards("bsk", "s", "js", {}, attempts=5, delay=0) == ([{"t": "a"}], False)
 
 
 def test_extreme_aspect_ratio_and_slice_quality_filtering():

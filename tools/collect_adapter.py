@@ -65,7 +65,6 @@ NEGATIVE_QUERY_TERMS = (
     "游戏截图", "游戏画面", "皮肤特效", "特效设计", "插画", "立绘", "原画",
     "壁纸", "CG", "建模", "模型", "商品图", "服装展示", "人台", "搭子",
 )
-NEGATION_WORDS = ("不要", "不需要", "排除", "禁止", "别找", "不要找")
 
 
 def parse_arguments() -> tuple[Path, Path, bool]:
@@ -119,7 +118,7 @@ def _note_fragments(notes: str) -> list[str]:
     parts = re.split(r"[\n。；;！!？?]+", notes or "")
     return [
         p.strip()[:80] for p in parts
-        if p.strip() and not any(word in p for word in NEGATION_WORDS)
+        if p.strip()
     ][:4]
 
 
@@ -129,12 +128,12 @@ def build_policy(job: dict) -> dict:
     costume = (project.get("costume") or "").strip()
     work = (project.get("work") or "").strip()
     notes = (job.get("notes") or "").strip()
-    notes_lower = notes.lower()
-    explicit_non_cosplay = any(k in notes_lower for k in ("不限cos", "非cos", "无需cos", "不仅cos", "不限真人"))
-    require_cosplay = not explicit_non_cosplay
+    # This strict adapter uses the existing structured project scope. Free text
+    # remains discovery intent; substrings cannot safely infer Boolean requirements.
+    require_cosplay = True
     require_character = bool(character)
-    require_costume = bool(costume) and any(k in notes_lower for k in ("该皮肤", "这个皮肤", "本皮肤", "同皮肤", "只找", "仅找", "限定"))
-    portrait_only = any(k in notes_lower for k in ("竖图", "竖版", "竖构图", "竖幅"))
+    require_costume = bool(costume)
+    portrait_only = False
     return {
         "character": character,
         "costume": costume,
@@ -807,9 +806,17 @@ def download_gallery_images(
         return []
 
 
+def requested_sources(job: dict) -> list[str]:
+    """Preserve the caller's source selection and ordering, including an empty list."""
+    sources = job.get("preferred_sources")
+    if sources is None:
+        sources = ["xiaohongshu", "pinterest"]
+    return list(dict.fromkeys(str(source).strip().lower() for source in sources))
+
+
 def fetch_bsk_candidates(
     bsk_bin: str, browser_id: str, job: dict, target_count: int, policy: dict
-) -> tuple[list[dict], dict[str, bytes], list[dict]]:
+) -> tuple[list[dict], dict[str, bytes], list[dict], bool]:
     env = {**os.environ, "BSK_AUTO_START": "0"}
     try:
         start_p = subprocess.run([bsk_bin, "session", "start", "--browser", browser_id, "--json"],
@@ -818,10 +825,10 @@ def fetch_bsk_candidates(
         session_id = sess_data.get("session_id")
     except Exception as exc:
         sys.stderr.write(f"Failed to start BrowserSkill session: {exc}\n")
-        return [], {}, []
+        return [], {}, [], False
 
     if not session_id:
-        return [], {}, []
+        return [], {}, [], False
 
     seen_shas: set[str] = set()
     seen_dhashes: list[str] = []
@@ -836,335 +843,337 @@ def fetch_bsk_candidates(
     browser_queries = build_queries(job, for_browser=True)
 
     try:
-        # Phase 1: 优先小红书 (Xiaohongshu)
-        for query in browser_queries:
-            if len(candidates) >= target_count:
-                break
-            kept = 0
-            rejected_metadata = 0
-            rejected_image = 0
-            rejected_duplicate = 0
+        for source in requested_sources(job):
+            if source == "xiaohongshu":
+                for query in browser_queries:
+                    if len(candidates) >= target_count:
+                        break
+                    kept = 0
+                    rejected_metadata = 0
+                    rejected_image = 0
+                    rejected_duplicate = 0
 
-            xhs_url = f"https://www.xiaohongshu.com/search_result?keyword={quote(query)}"
-            subprocess.run(
-                [bsk_bin, "navigate", xhs_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
-            )
-            time.sleep(3.5)
+                    xhs_url = f"https://www.xiaohongshu.com/search_result?keyword={quote(query)}"
+                    subprocess.run(
+                        [bsk_bin, "navigate", xhs_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
+                        capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
+                    )
+                    time.sleep(3.5)
 
-            extract_js = """(() => {
-                const isLoginWall = !!(
-                    document.querySelector('.login-container, .qrcode-img, .login-box, .modal-container')
-                    || (document.body && (document.body.innerText.includes('登录后查看搜索结果') || document.body.innerText.includes('可用小红书或微信扫码')))
-                );
-                const cards = [];
-                const items = document.querySelectorAll('section, div.note-item, div.search-card');
-                for (const item of items) {
-                    const img = item.querySelector('img');
-                    const link = item.querySelector('a[href*="xsec_token"]')
-                        || item.querySelector('a[href*="/explore/"]')
-                        || item.querySelector('a[href*="/search_result/"]');
-                    const titleEl = item.querySelector('.title, .desc, a.title span, span.title') || item.querySelector('a:not(.user) span');
-                    const authorEl = item.querySelector('.author, .name, .user-name, a.user span');
-                    if (img && (img.currentSrc || img.src)) {
-                        const src = img.currentSrc || img.src;
-                        if (src.includes('xhscdn.com') && !src.includes('avatar') && img.naturalWidth >= 180) {
-                            cards.push({
-                                title: titleEl?.innerText?.trim() || img.alt?.trim() || '',
-                                author: authorEl?.innerText?.trim() || '',
-                                full_text: item.innerText?.trim() || '',
-                                desc: titleEl?.innerText?.trim() || img.alt?.trim() || '',
+                    extract_js = """(() => {
+                        const isLoginWall = !!(
+                            document.querySelector('.login-container, .qrcode-img, .login-box, .modal-container')
+                            || (document.body && (document.body.innerText.includes('登录后查看搜索结果') || document.body.innerText.includes('可用小红书或微信扫码')))
+                        );
+                        const cards = [];
+                        const items = document.querySelectorAll('section, div.note-item, div.search-card');
+                        for (const item of items) {
+                            const img = item.querySelector('img');
+                            const link = item.querySelector('a[href*="xsec_token"]')
+                                || item.querySelector('a[href*="/explore/"]')
+                                || item.querySelector('a[href*="/search_result/"]');
+                            const titleEl = item.querySelector('.title, .desc, a.title span, span.title') || item.querySelector('a:not(.user) span');
+                            const authorEl = item.querySelector('.author, .name, .user-name, a.user span');
+                            if (img && (img.currentSrc || img.src)) {
+                                const src = img.currentSrc || img.src;
+                                if (src.includes('xhscdn.com') && !src.includes('avatar') && img.naturalWidth >= 180) {
+                                    cards.push({
+                                        title: titleEl?.innerText?.trim() || img.alt?.trim() || '',
+                                        author: authorEl?.innerText?.trim() || '',
+                                        full_text: item.innerText?.trim() || '',
+                                        desc: titleEl?.innerText?.trim() || img.alt?.trim() || '',
+                                        purl: link?.href || location.href,
+                                        image_url: src,
+                                        width: img.naturalWidth,
+                                        height: img.naturalHeight
+                                    });
+                                }
+                            }
+                        }
+                        return { cards: cards, is_login_wall: isLoginWall };
+                    })()"""
+
+                    cards, is_wall = wait_for_cards(bsk_bin, session_id, extract_js, env)
+                    if is_wall:
+                        xhs_login_wall = True
+                        sys.stderr.write("[!] 小红书弹出登录扫码窗口，请在 Edge 浏览器中扫码登录小红书账号\n")
+                        query_log.append({"query": query, "source": "xiaohongshu", "kept": 0, "stop_reason": "login_required"})
+                        break
+
+                    detail_checks = 0
+                    max_detail_checks = max(8, min(24, target_count * 3))
+                    for card in cards:
+                        if len(candidates) >= target_count:
+                            break
+                        card_purl = str(card.get("purl") or "").strip()
+                        record = {
+                            "t": card["title"],
+                            "desc": card["desc"],
+                            "author": card.get("author", ""),
+                            "full_text": card.get("full_text", ""),
+                            "purl": card_purl,
+                        }
+                        allowed, reason = result_metadata_allowed(record, policy)
+
+                        detail = None
+                        # A voice-line/poetic title may omit the character and cosplay
+                        # words on the search card.  Resolve only those ambiguous XHS
+                        # cards by opening the visible detail page and using its body /
+                        # hashtags; never accept merely because search returned it.
+                        if (
+                            not allowed
+                            and reason.startswith("needs_detail_evidence:")
+                            and detail_checks < max_detail_checks
+                            and _is_note_url(card_purl)
+                        ):
+                            detail_checks += 1
+                            detail = fetch_xhs_detail_metadata(
+                                bsk_bin, session_id, card_purl, env
+                            )
+                            if detail:
+                                detail_text = " ".join([
+                                    str(detail.get("desc") or ""),
+                                    " ".join(str(x) for x in (detail.get("tags") or [])),
+                                    str(detail.get("body") or ""),
+                                ])
+                                record = {
+                                    **record,
+                                    "t": str(detail.get("title") or record["t"]),
+                                    "desc": str(detail.get("desc") or record["desc"]),
+                                    "full_text": f"{record['full_text']} {detail_text}",
+                                    "purl": str(detail.get("purl") or record["purl"]),
+                                }
+                                allowed, reason = result_metadata_allowed(record, policy)
+
+                        if not allowed:
+                            rejected_metadata += 1
+                            continue
+
+                        downloaded_batch = []
+                        if _is_note_url(card_purl):
+                            if detail is None:
+                                detail = fetch_xhs_detail_metadata(
+                                    bsk_bin, session_id, card_purl, env
+                                )
+                            gallery_urls = [u for u in detail.get("gallery_urls", []) if u and u not in seen_urls]
+                            if gallery_urls:
+                                urls_to_fetch = gallery_urls[:min(len(gallery_urls), 8)]
+                                downloaded_batch = download_gallery_images(
+                                    bsk_bin, session_id, urls_to_fetch, env, timeout=20
+                                )
+
+                        # Fallback to single card cover image if gallery extraction was empty or failed
+                        if not downloaded_batch:
+                            cover_url = card.get("image_url", "").strip()
+                            if cover_url and cover_url not in seen_urls:
+                                downloaded_batch = download_gallery_images(
+                                    bsk_bin, session_id, [cover_url], env, timeout=15
+                                )
+
+                        if not downloaded_batch:
+                            rejected_image += 1
+                            continue
+
+                        total_downloaded = len(downloaded_batch)
+                        raw_title = str(detail.get("title") if detail else None) or str(card.get("title")) or f"{policy['character']} 小红书参考"
+                        raw_title = raw_title[:350]
+                        note_desc = str(detail.get("desc") if detail else None) or str(card.get("desc") or "")
+                        note_page_url = str(detail.get("purl") if detail else None) or card_purl or xhs_url
+                        clean_note_url = note_page_url.split("?")[0] if "?" in note_page_url else note_page_url
+
+                        for img_idx, item in enumerate(downloaded_batch):
+                            if len(candidates) >= target_count:
+                                break
+                            img_url = item.get("url") or ""
+                            b64_data = item.get("data") or ""
+                            if not b64_data or "," not in b64_data:
+                                rejected_image += 1
+                                continue
+                            seen_urls.add(img_url)
+
+                            try:
+                                img_bytes = base64.b64decode(b64_data.split(",", 1)[1])
+                            except Exception:
+                                rejected_image += 1
+                                continue
+
+                            valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
+                            if not valid:
+                                rejected_image += 1
+                                continue
+
+                            # Secondary slide filtering (P2, P3...):
+                            # Filter out micro-burst duplicate shots (hamming distance < 6)
+                            if img_idx > 0:
+                                prev_dhashes = note_dhashes.get(clean_note_url, [])
+                                if prev_dhashes and any(hamming_distance(dhash, old_dh) < 6 for old_dh in prev_dhashes):
+                                    rejected_duplicate += 1
+                                    continue
+
+                            card_title = f"{raw_title} (P{img_idx+1}/{total_downloaded})" if total_downloaded > 1 else raw_title
+                            disc_reason = (
+                                f"通过 BrowserSkill 检索「{query}」在小红书图集发现 (P{img_idx+1}/{total_downloaded})"
+                                if total_downloaded > 1
+                                else f"通过 BrowserSkill 检索「{query}」在小红书发现"
+                            )
+
+                            base_meta = {
+                                "title": card_title,
+                                "source": {
+                                    "page_url": note_page_url[:2000],
+                                    "image_url": img_url[:2000],
+                                    "author": str(card.get("author") or "")[:200],
+                                    "title": card_title,
+                                    "search_query": query[:350],
+                                    "rights": "unknown",
+                                    "source_confirmed": False,
+                                    "obtained_as": "platform_variant",
+                                },
+                                "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
+                                "discovery_reason": disc_reason,
+                                "discovery_url": xhs_url[:2000],
+                                "notes": note_desc[:800],
+                            }
+
+                            expanded_items = process_and_expand_image(img_bytes, ext, base_meta, seen_shas, seen_dhashes, allow_split=False)
+                            if not expanded_items:
+                                rejected_duplicate += 1
+                                continue
+
+                            for fn, raw_data, cand_meta in expanded_items:
+                                if len(candidates) >= target_count:
+                                    break
+                                images[fn] = raw_data
+                                cand_meta["id"] = f"cand-{len(candidates) + 1:03d}"
+                                cand_meta["file"] = f"images/{fn}"
+                                candidates.append(cand_meta)
+                                kept += 1
+                                note_kept_counts[clean_note_url] = note_kept_counts.get(clean_note_url, 0) + 1
+                                note_dhashes.setdefault(clean_note_url, []).append(dhash)
+
+                    query_log.append({
+                        "query": query,
+                        "source": "xiaohongshu",
+                        "kept": kept,
+                        "stop_reason": (
+                            f"kept={kept}; metadata_filtered={rejected_metadata}; "
+                            f"detail_checked={detail_checks}; "
+                            f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
+                        ),
+                    })
+
+            elif source == "pinterest" and len(candidates) < target_count:
+                for query in browser_queries:
+                    if len(candidates) >= target_count:
+                        break
+                    kept = 0
+                    rejected_metadata = 0
+                    rejected_image = 0
+                    rejected_duplicate = 0
+
+                    pin_url = f"https://www.pinterest.com/search/pins/?q={quote(query)}"
+                    subprocess.run(
+                        [bsk_bin, "navigate", pin_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
+                        capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
+                    )
+                    time.sleep(3.0)
+
+                    pin_js = """(() => {
+                        const pins = [];
+                        const imgs = Array.from(document.querySelectorAll("img")).filter(img => {
+                            return (img.src.includes("pinimg.com") || (img.currentSrc && img.currentSrc.includes("pinimg.com")))
+                                && img.naturalWidth >= 200 && img.naturalHeight >= 200;
+                        });
+                        for (const img of imgs) {
+                            const link = img.closest('a');
+                            pins.push({
+                                title: img.alt || '',
+                                desc: img.alt || '',
                                 purl: link?.href || location.href,
-                                image_url: src,
+                                image_url: img.currentSrc || img.src,
                                 width: img.naturalWidth,
                                 height: img.naturalHeight
                             });
                         }
-                    }
-                }
-                return { cards: cards, is_login_wall: isLoginWall };
-            })()"""
+                        return pins;
+                    })()"""
 
-            cards, is_wall = wait_for_cards(bsk_bin, session_id, extract_js, env)
-            if is_wall:
-                xhs_login_wall = True
-                sys.stderr.write("[!] 小红书弹出登录扫码窗口，请在 Edge 浏览器中扫码登录小红书账号\n")
+                    pins, _ = wait_for_cards(bsk_bin, session_id, pin_js, env)
 
-            detail_checks = 0
-            max_detail_checks = max(8, min(24, target_count * 3))
-            for card in cards:
-                if len(candidates) >= target_count:
-                    break
-                card_purl = str(card.get("purl") or "").strip()
-                record = {
-                    "t": card["title"],
-                    "desc": card["desc"],
-                    "author": card.get("author", ""),
-                    "full_text": card.get("full_text", ""),
-                    "purl": card_purl,
-                }
-                allowed, reason = result_metadata_allowed(record, policy)
+                    for pin in pins:
+                        if len(candidates) >= target_count:
+                            break
+                        allowed, reason = result_metadata_allowed({
+                            "t": pin["title"],
+                            "desc": pin["desc"],
+                            "purl": pin["purl"]
+                        }, policy)
+                        if not allowed:
+                            rejected_metadata += 1
+                            continue
 
-                detail = None
-                # A voice-line/poetic title may omit the character and cosplay
-                # words on the search card.  Resolve only those ambiguous XHS
-                # cards by opening the visible detail page and using its body /
-                # hashtags; never accept merely because search returned it.
-                if (
-                    not allowed
-                    and reason.startswith("needs_detail_evidence:")
-                    and detail_checks < max_detail_checks
-                    and _is_note_url(card_purl)
-                ):
-                    detail_checks += 1
-                    detail = fetch_xhs_detail_metadata(
-                        bsk_bin, session_id, card_purl, env
-                    )
-                    if detail:
-                        detail_text = " ".join([
-                            str(detail.get("desc") or ""),
-                            " ".join(str(x) for x in (detail.get("tags") or [])),
-                            str(detail.get("body") or ""),
-                        ])
-                        record = {
-                            **record,
-                            "t": str(detail.get("title") or record["t"]),
-                            "desc": str(detail.get("desc") or record["desc"]),
-                            "full_text": f"{record['full_text']} {detail_text}",
-                            "purl": str(detail.get("purl") or record["purl"]),
+                        img_url = pin.get("image_url", "").strip()
+                        if not img_url or img_url in seen_urls:
+                            rejected_duplicate += 1
+                            continue
+                        seen_urls.add(img_url)
+
+                        try:
+                            resp = httpx.get(img_url, timeout=8.0)
+                            if resp.status_code == 200 and len(resp.content) > 10_000:
+                                img_bytes = resp.content
+                            else:
+                                rejected_image += 1
+                                continue
+                        except Exception:
+                            rejected_image += 1
+                            continue
+
+                        valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
+                        if not valid:
+                            rejected_image += 1
+                            continue
+
+                        title = str(pin.get("title") or f"{policy['character']} Pinterest 参考")[:350]
+                        desc = str(pin.get("desc") or "")[:800]
+                        base_meta = {
+                            "title": title,
+                            "source": {
+                                "page_url": str(pin.get("purl") or pin_url)[:2000],
+                                "image_url": img_url[:2000],
+                                "author": "",
+                                "title": title,
+                                "search_query": query[:350],
+                                "rights": "unknown",
+                                "source_confirmed": False,
+                                "obtained_as": "platform_variant",
+                            },
+                            "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
+                            "discovery_reason": f"通过 BrowserSkill 检索「{query}」在 Pinterest 发现",
+                            "discovery_url": pin_url[:2000],
+                            "notes": desc,
                         }
-                        allowed, reason = result_metadata_allowed(record, policy)
-
-                if not allowed:
-                    rejected_metadata += 1
-                    continue
-
-                downloaded_batch = []
-                if _is_note_url(card_purl):
-                    if detail is None:
-                        detail = fetch_xhs_detail_metadata(
-                            bsk_bin, session_id, card_purl, env
-                        )
-                    gallery_urls = [u for u in detail.get("gallery_urls", []) if u and u not in seen_urls]
-                    if gallery_urls:
-                        urls_to_fetch = gallery_urls[:min(len(gallery_urls), 8)]
-                        downloaded_batch = download_gallery_images(
-                            bsk_bin, session_id, urls_to_fetch, env, timeout=20
-                        )
-
-                # Fallback to single card cover image if gallery extraction was empty or failed
-                if not downloaded_batch:
-                    cover_url = card.get("image_url", "").strip()
-                    if cover_url and cover_url not in seen_urls:
-                        downloaded_batch = download_gallery_images(
-                            bsk_bin, session_id, [cover_url], env, timeout=15
-                        )
-
-                if not downloaded_batch:
-                    rejected_image += 1
-                    continue
-
-                total_downloaded = len(downloaded_batch)
-                raw_title = str(detail.get("title") if detail else None) or str(card.get("title")) or f"{policy['character']} 小红书参考"
-                raw_title = raw_title[:350]
-                note_desc = str(detail.get("desc") if detail else None) or str(card.get("desc") or "")
-                note_page_url = str(detail.get("purl") if detail else None) or card_purl or xhs_url
-                clean_note_url = note_page_url.split("?")[0] if "?" in note_page_url else note_page_url
-
-                for img_idx, item in enumerate(downloaded_batch):
-                    if len(candidates) >= target_count:
-                        break
-                    img_url = item.get("url") or ""
-                    b64_data = item.get("data") or ""
-                    if not b64_data or "," not in b64_data:
-                        rejected_image += 1
-                        continue
-                    seen_urls.add(img_url)
-
-                    try:
-                        img_bytes = base64.b64decode(b64_data.split(",", 1)[1])
-                    except Exception:
-                        rejected_image += 1
-                        continue
-
-                    valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
-                    if not valid:
-                        rejected_image += 1
-                        continue
-
-                    # Secondary slide filtering (P2, P3...):
-                    # Filter out micro-burst duplicate shots (hamming distance < 6)
-                    if img_idx > 0:
-                        prev_dhashes = note_dhashes.get(clean_note_url, [])
-                        if prev_dhashes and any(hamming_distance(dhash, old_dh) < 6 for old_dh in prev_dhashes):
+                        expanded_items = process_and_expand_image(img_bytes, ext, base_meta, seen_shas, seen_dhashes, allow_split=False)
+                        if not expanded_items:
                             rejected_duplicate += 1
                             continue
 
-                    card_title = f"{raw_title} (P{img_idx+1}/{total_downloaded})" if total_downloaded > 1 else raw_title
-                    disc_reason = (
-                        f"通过 BrowserSkill 检索「{query}」在小红书图集发现 (P{img_idx+1}/{total_downloaded})"
-                        if total_downloaded > 1
-                        else f"通过 BrowserSkill 检索「{query}」在小红书发现"
-                    )
+                        for fn, raw_data, cand_meta in expanded_items:
+                            images[fn] = raw_data
+                            cand_meta["id"] = f"cand-{len(candidates) + 1:03d}"
+                            cand_meta["file"] = f"images/{fn}"
+                            candidates.append(cand_meta)
+                            kept += 1
 
-                    base_meta = {
-                        "title": card_title,
-                        "source": {
-                            "page_url": note_page_url[:2000],
-                            "image_url": img_url[:2000],
-                            "author": str(card.get("author") or "")[:200],
-                            "title": card_title,
-                            "search_query": query[:350],
-                            "rights": "unknown",
-                            "source_confirmed": False,
-                            "obtained_as": "platform_variant",
-                        },
-                        "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
-                        "discovery_reason": disc_reason,
-                        "discovery_url": xhs_url[:2000],
-                        "notes": note_desc[:800],
-                    }
-
-                    expanded_items = process_and_expand_image(img_bytes, ext, base_meta, seen_shas, seen_dhashes, allow_split=False)
-                    if not expanded_items:
-                        rejected_duplicate += 1
-                        continue
-
-                    for fn, raw_data, cand_meta in expanded_items:
-                        if len(candidates) >= target_count:
-                            break
-                        images[fn] = raw_data
-                        cand_meta["id"] = f"cand-{len(candidates) + 1:03d}"
-                        cand_meta["file"] = f"images/{fn}"
-                        candidates.append(cand_meta)
-                        kept += 1
-                        note_kept_counts[clean_note_url] = note_kept_counts.get(clean_note_url, 0) + 1
-                        note_dhashes.setdefault(clean_note_url, []).append(dhash)
-
-            query_log.append({
-                "query": query,
-                "source": "xiaohongshu",
-                "kept": kept,
-                "stop_reason": (
-                    f"kept={kept}; metadata_filtered={rejected_metadata}; "
-                    f"detail_checked={detail_checks}; "
-                    f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
-                ),
-            })
-
-        # Phase 2: 其次 Pinterest (若数量不足且未达标)
-        if len(candidates) < target_count:
-            for query in browser_queries:
-                if len(candidates) >= target_count:
-                    break
-                kept = 0
-                rejected_metadata = 0
-                rejected_image = 0
-                rejected_duplicate = 0
-
-                pin_url = f"https://www.pinterest.com/search/pins/?q={quote(query)}"
-                subprocess.run(
-                    [bsk_bin, "navigate", pin_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
-                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
-                )
-                time.sleep(3.0)
-
-                pin_js = """(() => {
-                    const pins = [];
-                    const imgs = Array.from(document.querySelectorAll("img")).filter(img => {
-                        return (img.src.includes("pinimg.com") || (img.currentSrc && img.currentSrc.includes("pinimg.com")))
-                            && img.naturalWidth >= 200 && img.naturalHeight >= 200;
-                    });
-                    for (const img of imgs) {
-                        const link = img.closest('a');
-                        pins.push({
-                            title: img.alt || '',
-                            desc: img.alt || '',
-                            purl: link?.href || location.href,
-                            image_url: img.currentSrc || img.src,
-                            width: img.naturalWidth,
-                            height: img.naturalHeight
-                        });
-                    }
-                    return pins;
-                })()"""
-
-                pins, _ = wait_for_cards(bsk_bin, session_id, pin_js, env)
-
-                for pin in pins:
-                    if len(candidates) >= target_count:
-                        break
-                    allowed, reason = result_metadata_allowed({
-                        "t": pin["title"],
-                        "desc": pin["desc"],
-                        "purl": pin["purl"]
-                    }, policy)
-                    if not allowed:
-                        rejected_metadata += 1
-                        continue
-
-                    img_url = pin.get("image_url", "").strip()
-                    if not img_url or img_url in seen_urls:
-                        rejected_duplicate += 1
-                        continue
-                    seen_urls.add(img_url)
-
-                    try:
-                        resp = httpx.get(img_url, timeout=8.0)
-                        if resp.status_code == 200 and len(resp.content) > 10_000:
-                            img_bytes = resp.content
-                        else:
-                            rejected_image += 1
-                            continue
-                    except Exception:
-                        rejected_image += 1
-                        continue
-
-                    valid, ext, dhash = validate_downloaded_image(img_bytes, policy)
-                    if not valid:
-                        rejected_image += 1
-                        continue
-
-                    title = str(pin.get("title") or f"{policy['character']} Pinterest 参考")[:350]
-                    desc = str(pin.get("desc") or "")[:800]
-                    base_meta = {
-                        "title": title,
-                        "source": {
-                            "page_url": str(pin.get("purl") or pin_url)[:2000],
-                            "image_url": img_url[:2000],
-                            "author": "",
-                            "title": title,
-                            "search_query": query[:350],
-                            "rights": "unknown",
-                            "source_confirmed": False,
-                            "obtained_as": "platform_variant",
-                        },
-                        "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
-                        "discovery_reason": f"通过 BrowserSkill 检索「{query}」在 Pinterest 发现",
-                        "discovery_url": pin_url[:2000],
-                        "notes": desc,
-                    }
-                    expanded_items = process_and_expand_image(img_bytes, ext, base_meta, seen_shas, seen_dhashes, allow_split=False)
-                    if not expanded_items:
-                        rejected_duplicate += 1
-                        continue
-
-                    for fn, raw_data, cand_meta in expanded_items:
-                        images[fn] = raw_data
-                        cand_meta["id"] = f"cand-{len(candidates) + 1:03d}"
-                        cand_meta["file"] = f"images/{fn}"
-                        candidates.append(cand_meta)
-                        kept += 1
-
-                query_log.append({
-                    "query": query,
-                    "source": "pinterest",
-                    "kept": kept,
-                    "stop_reason": (
-                        f"kept={kept}; metadata_filtered={rejected_metadata}; "
-                        f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
-                    ),
-                })
+                    query_log.append({
+                        "query": query,
+                        "source": "pinterest",
+                        "kept": kept,
+                        "stop_reason": (
+                            f"kept={kept}; metadata_filtered={rejected_metadata}; "
+                            f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
+                        ),
+                    })
     finally:
         subprocess.run([bsk_bin, "session", "stop", session_id],
                        capture_output=True, text=True, env=env, timeout=5)
@@ -1185,73 +1194,71 @@ def main() -> None:
     xhs_login_wall = False
     producer = "local_collection_adapter_search_only"
 
-    # 1. 使用真正连得上浏览器的 BrowserSkill (小红书 + Pinterest)
-    env = {**os.environ, "BSK_AUTO_START": "0"}
-    bsk_bin, browser_id = select_browserskill(env)
-    if not bsk_bin:
-        bsk_bin, browser_id = nudge_extension(env, bsk_candidates())
-    if bsk_bin and browser_id:
-        producer = "local_browserskill_adapter"
-        candidates, images, query_log, xhs_login_wall = fetch_bsk_candidates(
-            bsk_bin, browser_id, job, target_count, policy
-        )
-        if xhs_login_wall:
+    selected_sources = requested_sources(job)
+    supported_sources = [source for source in selected_sources if source in {"xiaohongshu", "pinterest"}]
+    for source in selected_sources:
+        if source not in supported_sources:
             source_checks.append({
-                "source": "xiaohongshu",
-                "status": "blocked",
-                "detail": "小红书登录已失效，弹出扫码登录窗口；请在宿主机 Edge 浏览器中扫码登录小红书账号后再试。",
+                "source": source, "status": "unavailable",
+                "detail": "当前本地适配器不支持此来源；请交给 Agent 或人工采集，不能静默替换来源。",
             })
-        else:
-            source_checks.append({
-                "source": "xiaohongshu",
-                "status": "usable" if any(q.get("source") == "xiaohongshu" and q.get("kept", 0) > 0 for q in query_log) else "untested",
-                "detail": "通过本地 BrowserSkill Edge 实例访问小红书检索真人参考。",
-            })
-        source_checks.append({
-            "source": "pinterest",
-            "status": "usable" if any(q.get("source") == "pinterest" and q.get("kept", 0) > 0 for q in query_log) else "untested",
-            "detail": "在小红书后通过 BrowserSkill 访问 Pinterest 补充参考。",
-        })
 
-    # 2. 没有可用浏览器时不得静默改用 Bing：本任务要求小红书真人 COS 正片，
-    #    Bing 结果不是同一个来源，悄悄替换会让受阻看起来像搜到了。
     browserskill_missing = ""
-    if not (bsk_bin and browser_id):
-        browserskill_missing = (
-            "BrowserSkill 没有可用的浏览器：已探测 " + (
-                "、".join(bsk_candidates()) or "（未找到任何 bsk 可执行文件）"
-            ) + "，但没有一个能连上已装扩展的浏览器。"
-            "请启动带 BrowserSkill 扩展的 Edge 并确认 bsk doctor 全部 ok；"
-            "只有明确接受 Bing 备用检索时才使用 --allow-bing-fallback。"
-        )
-        source_checks.append({
-            "source": "browserskill",
-            "status": "blocked",
-            "detail": browserskill_missing,
-        })
-        if not allow_bing_fallback:
-            sys.stderr.write(browserskill_missing + "\n")
+    if supported_sources:
+        env = {**os.environ, "BSK_AUTO_START": "0"}
+        bsk_bin, browser_id = select_browserskill(env)
+        if not bsk_bin:
+            bsk_bin, browser_id = nudge_extension(env, bsk_candidates())
+        if bsk_bin and browser_id:
+            producer = "local_browserskill_adapter"
+            candidates, images, query_log, xhs_login_wall = fetch_bsk_candidates(
+                bsk_bin, browser_id, job, target_count, policy
+            )
+            for source in supported_sources:
+                attempts = [entry for entry in query_log if entry.get("source") == source]
+                if source == "xiaohongshu" and xhs_login_wall:
+                    status, detail = "blocked", "小红书登录已失效；请在宿主机 Edge 浏览器中扫码登录后再试。"
+                elif any(entry.get("kept", 0) > 0 for entry in attempts):
+                    status, detail = "usable", "已实际检索并得到候选；候选仍需看图核验。"
+                elif attempts:
+                    status, detail = "usable", "已执行检索，本轮得到 0 个满足结构化约束的候选。"
+                elif len(candidates) >= target_count:
+                    status, detail = "untested", "已达到本轮数量目标，未尝试此来源。"
+                else:
+                    status, detail = "blocked", "本轮未能执行此来源检索；没有可验证的执行记录。"
+                source_checks.append({"source": source, "status": status, "detail": detail})
         else:
-            queries = build_queries(job, for_browser=False)
-            candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
-            source_checks.append({
-                "source": "bing_images_photo_filter",
-                "status": "usable" if candidates else "untested",
-                "detail": "调用方显式允许 Bing 备用检索；这不是小红书来源。",
-            })
+            browserskill_missing = (
+                "BrowserSkill 没有可用的浏览器：已探测 " + (
+                    "、".join(bsk_candidates()) or "（未找到任何 bsk 可执行文件）"
+                ) + "，但没有一个能连上已装扩展的浏览器。"
+                "请启动带 BrowserSkill 扩展的 Edge 并确认 bsk doctor 全部 ok；"
+                "只有明确接受 Bing 备用检索时才使用 --allow-bing-fallback。"
+            )
+            source_checks.extend({"source": source, "status": "blocked", "detail": browserskill_missing} for source in supported_sources)
+            if not allow_bing_fallback:
+                sys.stderr.write(browserskill_missing + "\n")
+            else:
+                queries = build_queries(job, for_browser=False)
+                candidates, images, query_log = fetch_bing_candidates(queries, target_count, policy)
+                source_checks.append({
+                    "source": "bing_images_photo_filter",
+                    "status": "usable" if candidates else "unavailable",
+                    "detail": "调用方显式允许 Bing 备用检索；原请求来源受阻仍单独保留。",
+                })
 
-    if candidates:
-        summary_text = f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
-        gaps = []
-    elif browserskill_missing:
-        summary_text = browserskill_missing
-        gaps = [browserskill_missing]
-    elif xhs_login_wall:
-        summary_text = "小红书账号未登录或被安全拦截（请在电脑 Edge 浏览器中扫码登录小红书）；未采集到满足条件的真人参考。"
-        gaps = ["小红书账号未登录或被安全拦截（提示：登录后查看搜索结果）；请在 Edge 浏览器中扫码登录小红书。"]
-    else:
-        summary_text = "严格检索没有得到满足硬条件的候选；宁可少图，不用插画/游戏图凑数。"
-        gaps = ["没有足够满足用户硬要求的候选；请调整搜索词或改用人工检索。"]
+    gaps = [f"{check['source']}: {check['detail']}" for check in source_checks if check["status"] in {"blocked", "unavailable"}]
+    if not selected_sources:
+        gaps.append("没有选择采集来源；请指定来源后再执行。")
+    if len(candidates) < target_count:
+        gaps.append(f"本轮得到 {len(candidates)} / {target_count} 个候选；数量是软目标，不以重复图凑数。")
+    blocked = bool(gaps)
+    summary_text = (
+        f"严格检索得到 {len(candidates)} 个候选；未运行视觉模型，未宣称角色/模态已通过。"
+        + (" 本轮任务仍有受阻或数量缺口，见 source_checks/gaps。" if blocked else "")
+    )
+    if browserskill_missing:
+        summary_text += " " + browserskill_missing
 
     manifest = {
         # Search-only adapter: no fake visual preflight.
@@ -1261,7 +1268,7 @@ def main() -> None:
         "candidates": candidates,
         "execution_report": {
             "producer": producer,
-            "status": "completed" if candidates else "blocked",
+            "status": "blocked" if blocked else "completed",
             "summary": summary_text,
             "source_checks": source_checks,
             "query_log": query_log,
@@ -1274,7 +1281,7 @@ def main() -> None:
         archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
         for filename, data in images.items():
             archive.writestr(f"images/{filename}", data)
-    print(f"Collection complete: {len(candidates)} candidates saved to {result_file}")
+    print(f"Collection {manifest['execution_report']['status']}: {len(candidates)} candidates saved to {result_file}")
 
 
 if __name__ == "__main__":

@@ -2,8 +2,8 @@
 
 Verifies:
 1. Identity Context grounding, presets (Arima Kana, Durendal), and versioning.
-2. Candidate-level Quality Preflight (resolution, blur, collage).
-3. Candidate-level Identity Preflight (mismatch, transferable pose, honest uncertain).
+2. Candidate-level file checks (resolution and diagnostic edge/divider measurements).
+3. Candidate-level metadata doubts without invented visual identity or pose claims.
 4. Near-duplicate perceptual hashing (dHash) & burst shot convergence.
 5. Explainable multi-factor ranking & exploration candidate interleaving.
 6. Screening session lifecycle, K/I/M/X distinction, and grounded summary hypotheses.
@@ -123,8 +123,9 @@ def test_quality_preflight_filters():
     # Collage / grid detection
     collage_img = make_collage_image()
     res_collage = evaluate_quality(collage_img)
-    assert not res_collage["passed"]
-    assert any("拼图" in r for r in res_collage["filter_reasons"])
+    assert res_collage["passed"]
+    assert res_collage["divider_hint"] is True
+    assert res_collage["is_collage"] is None
 
     # Valid photographic candidate
     good_img = make_test_image(size=(800, 1200))
@@ -153,9 +154,10 @@ def test_identity_preflight_arima_kana_vs_akane():
     akane_bytes = buf.getvalue()
 
     res_akane = evaluate_identity(akane_bytes, akane_meta, kana_ctx)
-    assert res_akane["prediction"] == "mismatch"
+    assert res_akane["prediction"] == "uncertain"
+    assert res_akane["source_conflict"] is True
     assert "黑川茜" in res_akane["reason"]
-    assert res_akane["transferable_candidate"] is True  # Useful pose can be borrowed, not destroyed
+    assert res_akane["transferable_candidate"] is False  # No observed pose usefulness from a color fixture.
 
     # Matching candidate: Arima Kana
     kana_meta = {
@@ -168,7 +170,8 @@ def test_identity_preflight_arima_kana_vs_akane():
     kana_bytes = buf.getvalue()
 
     res_kana = evaluate_identity(kana_bytes, kana_meta, kana_ctx)
-    assert res_kana["prediction"] == "match"
+    assert res_kana["prediction"] == "uncertain"
+    assert res_kana["confidence"] == "low"
 
     # Honest uncertain: no metadata match and ambiguous pixels
     neutral_img = Image.new("RGB", (300, 400), (128, 128, 128))
@@ -184,13 +187,14 @@ def test_identity_preflight_kamen_rider_durendal_vs_sabela():
 
     # Mismatch candidate: Kamen Rider Sabela (神代玲花 / 佩剑)
     sabela_meta = {
-        "title": "假面骑士Sabela 佩剑 烟睿剑狼烟 皮套特写",
+        "title": "假面骑士佩剑 (Sabela) 烟睿剑狼烟 皮套特写",
         "source": {"search_query": "假面骑士佩剑 cosplay", "search_category": "cosplay_photo"},
     }
     res_sabela = evaluate_identity(make_test_image(), sabela_meta, durendal_ctx)
-    assert res_sabela["prediction"] == "mismatch"
+    assert res_sabela["prediction"] == "uncertain"
+    assert res_sabela["source_conflict"] is True
     assert "Sabela" in res_sabela["reason"] or "佩剑" in res_sabela["reason"]
-    assert res_sabela["transferable_candidate"] is True
+    assert res_sabela["transferable_candidate"] is False
 
     # Metadata that names Durendal is still not visual identity proof.
     durendal_meta = {
@@ -199,7 +203,7 @@ def test_identity_preflight_kamen_rider_durendal_vs_sabela():
     }
     res_durendal = evaluate_identity(make_test_image(), durendal_meta, durendal_ctx)
     assert res_durendal["prediction"] == "uncertain"
-    assert "未从图像确认" in res_durendal["reason"]
+    assert "metadata 不能代替图像核验" in res_durendal["reason"]
 
 
 # ==============================================================================
@@ -414,11 +418,11 @@ def test_api_candidate_preflight_and_filtered_restoration(client):
     assert upload_normal.status_code == 201
     normal_sha = upload_normal.json()["id"]
 
-    # Ingest collage image
-    collage_img = make_collage_image()
-    upload_collage = client.post("/api/assets", files={"file": ("collage.png", collage_img, "image/png")})
-    assert upload_collage.status_code == 201
-    collage_sha = upload_collage.json()["id"]
+    # Ingest lowres image
+    lowres_img = make_test_image(size=(120, 150))
+    upload_lowres = client.post("/api/assets", files={"file": ("lowres.png", lowres_img, "image/png")})
+    assert upload_lowres.status_code == 201
+    lowres_sha = upload_lowres.json()["id"]
 
     # Ingest confused character image (Akane Kurokawa)
     akane_img = make_test_image(size=(800, 1200), color=(80, 90, 180), text="AKANE")
@@ -438,9 +442,9 @@ def test_api_candidate_preflight_and_filtered_restoration(client):
     assert norm_ref["preflight_status"] == "uncertain"
     assert norm_ref["preflight_filtered"] is False
 
-    # Collage candidate
+    # Low-resolution candidate
     r_col = client.post(f"/api/projects/{project_id}/references", json={
-        "asset_sha": collage_sha, "title": "九宫格拼图测试", "source": {"page_url": "https://example.com/2"}
+        "asset_sha": lowres_sha, "title": "低分辨率文件测试", "source": {"page_url": "https://example.com/2"}
     })
     assert r_col.status_code == 201
     col_ref = r_col.json()["reference"]
@@ -453,25 +457,25 @@ def test_api_candidate_preflight_and_filtered_restoration(client):
     })
     assert r_ak.status_code == 201
     ak_ref = r_ak.json()["reference"]
-    assert ak_ref["preflight_status"] == "filtered"
-    assert ak_ref["preflight_filtered"] is True
+    assert ak_ref["preflight_status"] == "uncertain"
+    assert ak_ref["preflight_filtered"] is False
+    assert ak_ref["preflight"]["identity"]["source_conflict"] is True
 
     # 4. Verify candidate streams
-    # Normal stream: only normal candidate is visible
+    # Normal stream: both visually uncertain candidates remain visible
     r_list = client.get(f"/api/projects/{project_id}/references")
     assert r_list.status_code == 200
     items = r_list.json()["items"]
-    assert len(items) == 1
-    assert items[0]["id"] == norm_ref["id"]
+    assert {item["id"] for item in items} == {norm_ref["id"], ak_ref["id"]}
 
-    # Filtered stream: collage and akane are visible
+    # Filtered stream: only the measured low-resolution file is hidden
     r_filtered = client.get(f"/api/projects/{project_id}/references?view_filtered=true")
     assert r_filtered.status_code == 200
     filtered_items = r_filtered.json()["items"]
-    assert len(filtered_items) == 2
+    assert len(filtered_items) == 1
     filtered_ids = [item["id"] for item in filtered_items]
     assert col_ref["id"] in filtered_ids
-    assert ak_ref["id"] in filtered_ids
+    assert ak_ref["id"] not in filtered_ids
 
     # 5. Restore candidate from filtered stream
     r_restore = client.post(f"/api/references/{col_ref['id']}/restore-preflight", json={"expected_revision": col_ref["revision"]})
@@ -480,9 +484,9 @@ def test_api_candidate_preflight_and_filtered_restoration(client):
     assert restored["preflight_filtered"] is False
     assert restored["preflight_status"] == "restored"
 
-    # Now normal stream has 2 items
+    # Now normal stream has 3 items
     r_list2 = client.get(f"/api/projects/{project_id}/references")
-    assert len(r_list2.json()["items"]) == 2
+    assert len(r_list2.json()["items"]) == 3
 
     # 6. Make Akane transferable inspiration (archives to aesthetic library, detaches from project queue)
     r_trans = client.post(f"/api/references/{ak_ref['id']}/make-transferable", json={"expected_revision": ak_ref["revision"]})
@@ -552,10 +556,10 @@ def test_metadata_prefix_or_known_url_never_asserts_real_person_modality():
     }
     modality, evidence = detect_modality(image, metadata)
     assert modality == "unknown"
-    assert any("不能据此宣称真人实拍" in item for item in evidence)
+    assert evidence == []
 
 
-def test_costume_help_metadata_is_filtered_as_non_reference():
+def test_costume_help_metadata_stays_a_discovery_doubt():
     payload = make_test_image(size=(800, 1200))
     metadata = {
         "title": "求助：三分妄想家的王昭君长夜焕生c服裙边怎么整理",
@@ -573,9 +577,10 @@ def test_costume_help_metadata_is_filtered_as_non_reference():
         project_id="project-a",
         reference_id="ref-a",
     )
-    assert result["content_type"] == "product"
-    assert result["status"] == "filtered"
-    assert "服装求助" in result["status_reason"]
+    assert result["content_type"] == "unknown"
+    assert result["status"] == "uncertain"
+    assert "怎么整理" in result["discovery_context"]["filter_terms"]
+    assert result["visual_evidence"] == []
 
 
 def test_project_scoped_preflight_lookup_is_strict_and_chronological(app, client, project):
