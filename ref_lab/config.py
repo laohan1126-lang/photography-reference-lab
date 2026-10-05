@@ -25,6 +25,8 @@ class Settings:
     max_pixels: int = 40_000_000
     web_dir: Path = WEB_DIR
     no_auth: bool = False
+    auto_classify: bool = False
+    classification_model: str = "gemini-3.8-flash-medium"
 
     def __post_init__(self) -> None:
         origin = urlsplit(self.public_origin)
@@ -70,4 +72,6 @@ class Settings:
             token = token_file.read_text(encoding="utf-8").strip()
         return cls(data_dir=data_dir, token=token,
                    public_origin=os.environ.get("LAB_PUBLIC_ORIGIN", "http://127.0.0.1:8765").rstrip("/"),
-                   no_auth=no_auth)
+                   no_auth=no_auth,
+                   auto_classify=os.environ.get("LAB_AUTO_CLASSIFY", "1").lower() in {"1", "true", "yes"},
+                   classification_model=os.environ.get("LAB_CLASSIFICATION_MODEL", "gemini-3.8-flash-medium"))

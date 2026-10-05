@@ -84,3 +84,14 @@ Linux 原生子进程、退出/超时/取消与合成包已可回归；Windows �
 ## 图库检索扩展（2026-10-02）
 
 `library_browser.py` 提供独立资产查询与导航扩展，`web/library-browser.js` 负责网格和组合条件，原单图工作台继续负责人工选择。三张扩展表只保存人工导航分类、查询定义、项目置顶/访问记录；无旧表回写、无 CAS 变更、无图像事实推断，schema 3 兼容不变。筛选先于分页；计数、结果页和使用关系处于同一 SQLite 读快照。新写入口沿用现有认证、CSRF 与维护模式。详细约定见 [LIBRARY_DISCOVERY.md](LIBRARY_DISCOVERY.md)。
+
+
+## 保留后的自动摄影分类（2026-10-06）
+
+用户明确授权后，正常 Windows 启动流程默认使用现有 Antigravity 登录，逐张检查已保留图片（K / 有效全局收藏），生成视角、景别、主动作的初步找图标签。既有已保留图片也进入队列；不处理待定或仅候选图片。LAB_AUTO_CLASSIFY=0 可关闭，独立嵌入的 Settings 默认不启动执行器。这里更新了上述“不自动调度 Agent”的范围，仅限用户已授权的摄影分类，不包括自动搜图、制卡或验收。
+
+classification.py 以实际资产 SHA 为任务主键，统一扫描保留关系，不在多个写入入口堆叠触发分支。library_classification_jobs 保存 pending/running/succeeded/failed/cancelled/superseded 状态与 300 秒租约；单张 CLI 最多 180 秒，正常退出释放任务，硬退出后过期租约可恢复。队列不会重新执行已有 annotation；人工注释优先，写回须匹配预期 revision 与当前保留关系。失败暂停队列并显示原因，显式重试保留已完成结果。
+
+Antigravity 只读计划模式在仅含当前图的临时目录运行，查看从校验过的原图生成的 1800px 预览。模型必须留下当前文件 view_file 完成回执并返回合法 JSON，不能以标题或项目上下文代替视觉观察。使用原有子进程树控制结束超时/停止的任务；不会接入单独收费 API。图片会传送给用户现有 Antigravity 模型服务，不对外发布图库。
+
+结果写 library_annotations 并标 actor=ai、producer、asset_sha、evidence，筛选直接使用初步标签；不改变资产字节、K/I/M/X、观察核验、审美画像或现场卡验收。详情页显示模型建议与人工修正来源。编辑时只合并迟到 AI 的未修改字段，另一窗口人工编辑仍受 revision 冲突保护。图库可看排队进度、失败原因及刷新结果。

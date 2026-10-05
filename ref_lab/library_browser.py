@@ -70,8 +70,7 @@ class BrowseFilters(Strict):
         return value
 
 
-class AnnotationInput(Strict):
-    expected_revision: int = Field(ge=0)
+class PhotographyFacets(Strict):
     viewpoint: str = "unknown"
     framing: str = "unknown"
     pose: str = "unknown"
@@ -82,6 +81,10 @@ class AnnotationInput(Strict):
         if value not in {"unknown", *FACETS[info.field_name]}:
             raise ValueError("未知摄影分类")
         return value
+
+
+class AnnotationInput(PhotographyFacets):
+    expected_revision: int = Field(ge=0)
 
 
 class SearchInput(Strict):

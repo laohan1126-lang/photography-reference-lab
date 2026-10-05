@@ -6,6 +6,8 @@ import json
 import os
 import time
 from pathlib import Path
+from contextlib import asynccontextmanager
+import asyncio
 from collections import defaultdict, deque
 from urllib.parse import urlsplit
 from fastapi import FastAPI, File, Form, Query, Request, UploadFile
@@ -37,10 +39,21 @@ class MaintenanceInput(Strict):
     enabled: bool
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     settings = settings or Settings.from_env()
     library = Library(settings)
-    app = FastAPI(title="Photography Reference Lab", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
+    @asynccontextmanager
+    async def lifespan(app):
+        worker = app.state.classification_worker
+        if settings.auto_classify:
+            worker.start()
+        try:
+            yield
+        finally:
+            if settings.auto_classify:
+                await asyncio.to_thread(worker.stop)
+
+    app = FastAPI(title="Photography Reference Lab", version=__version__, docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.library = library
     app.state.settings = settings
     maintenance_file = settings.data_dir / "maintenance"
@@ -542,6 +555,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     from .library_browser import install_browser_routes
     install_browser_routes(app)
+    from .classification import ClassificationQueue, ClassificationWorker, AntigravityClassifier
+    classification_queue = ClassificationQueue(app.state.library_browser)
+    worker = ClassificationWorker(classification_queue, classifier or AntigravityClassifier(settings.classification_model))
+    app.state.classification_queue = classification_queue
+    app.state.classification_worker = worker
+
+    @app.get("/api/library/classification")
+    def classification_status():
+        return {**classification_queue.status(), "enabled": settings.auto_classify, "worker_error": worker.error}
+
+    @app.post("/api/library/classification/retry")
+    def retry_classification():
+        return {"retried": classification_queue.retry_failed()}
+
+    @app.get("/api/library/assets/{sha}/classification")
+    def asset_classification(sha: str):
+        library.asset(sha)
+        with library.db.read() as con:
+            annotation = app.state.library_browser._annotation(con.execute("SELECT data FROM library_annotations WHERE asset_sha=?", (sha,)).fetchone())
+        return {"annotation": annotation, **classification_queue.item_status(sha)}
+
 
     @app.get("/")
     def home(): return FileResponse(settings.web_dir / "index.html", media_type="text/html")

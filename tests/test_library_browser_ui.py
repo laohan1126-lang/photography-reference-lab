@@ -107,3 +107,58 @@ def test_late_gallery_response_cannot_overwrite_another_view(component_factory,c
     page.evaluate('window.releaseGallery()')
     expect(page.locator('#project-header')).to_contain_text('摄影笔记')
     expect(page.locator('#library-grid')).to_have_count(0)
+
+def test_ai_suggestion_is_visible_in_project_detail_and_human_correction_wins(component_factory, client, project, library):
+    from ref_lab.classification import ClassificationQueue
+    from ref_lab.library_browser import LibraryBrowser
+    from test_classification import Analyzer, keep
+    ref = keep(client, add_reference(client, project))
+    q = ClassificationQueue(LibraryBrowser(library))
+    q.discover()
+    q.run_one(Analyzer())
+    page = component_factory()
+    expect(page.locator('#reference-classification-summary')).to_contain_text('仰拍')
+    page.locator('#reference-classification-edit').click()
+    expect(page.locator('#photo-classification-status')).to_contain_text('AI 初步分类')
+    expect(page.locator('#editor [name=pose]')).to_have_value('standing')
+    page.locator('#editor [name=viewpoint]').select_option('high_angle')
+    page.get_by_role('button',name='保存摄影分类',exact=True).click()
+    expect(page.locator('#editor')).not_to_be_visible()
+    page.locator('#reference-classification-edit').click()
+    expect(page.locator('#photo-classification-status')).to_contain_text('已由你修正')
+    expect(page.locator('#editor [name=viewpoint]')).to_have_value('high_angle')
+    assert library.reference(ref['id'])['decision'] == 'keep'
+
+
+def test_editor_merges_late_ai_into_untouched_fields(component_factory, client, project, library):
+    from ref_lab.classification import ClassificationQueue
+    from ref_lab.library_browser import LibraryBrowser
+    from test_classification import Analyzer, keep
+    ref = keep(client, add_reference(client, project))
+    q = ClassificationQueue(LibraryBrowser(library))
+    q.discover()
+    page = component_factory()
+    page.locator('#reference-classification-edit').click()
+    page.locator('#editor [name=viewpoint]').select_option('high_angle')
+    q.run_one(Analyzer())
+    page.get_by_role('button',name='保存摄影分类',exact=True).click()
+    expect(page.locator('#editor')).not_to_be_visible()
+    annotation = client.get(f"/api/library/assets/{ref['asset_sha']}/classification").json()['annotation']
+    assert annotation['actor'] == 'human'
+    assert annotation['viewpoint'] == 'high_angle'
+    assert annotation['framing'] == 'full_body' and annotation['pose'] == 'standing'
+
+def test_human_conflict_in_classification_editor_is_not_silently_overwritten(component_factory, client, project, library):
+    from ref_lab.library_browser import AnnotationInput, LibraryBrowser
+    ref = add_reference(client, project)
+    page = component_factory()
+    page.locator('#reference-classification-edit').click()
+    page.locator('#editor [name=viewpoint]').select_option('high_angle')
+    LibraryBrowser(library).annotate(ref['asset_sha'],
+        AnnotationInput(expected_revision=0, viewpoint='low_angle'))
+    page.get_by_role('button',name='保存摄影分类',exact=True).click()
+    expect(page.locator('#toast')).to_contain_text('分类已被其他窗口修改')
+    expect(page.locator('#editor')).to_be_visible()
+    expect(page.locator('#editor [name=viewpoint]')).to_have_value('high_angle')
+    annotation = client.get(f"/api/library/assets/{ref['asset_sha']}/classification").json()['annotation']
+    assert annotation['viewpoint'] == 'low_angle'

@@ -125,3 +125,10 @@ python -m pytest -q tests/test_browser.py tests/test_live_system_regression.py
 FastAPI + SQLite WAL + 原始图片文件 + 无构建步骤的 Web。默认仅监听回环地址，单所有者使用。数据库、登录口令、浏览器档案和新增私人图片不提交 Git。已有公开 Git 历史无法通过私人页面撤回。公网部署前配置 HTTPS、随机 `LAB_ACCESS_TOKEN`、准确 `LAB_PUBLIC_ORIGIN`、持久卷和备份，参见 [部署说明](docs/DEPLOYMENT.md)。本版本不自动部署、不合并 main、不自动操作 PS、不重绘人物。
 
 详细设计：[架构](docs/ARCHITECTURE.md) · [执行器协议](docs/WORKER_PROTOCOL.md)。
+
+
+### 已保留图片的自动分类
+
+正常用 start.bat 启动后，K 保留和全局收藏图片会在后台交给已登录的 Antigravity 看图，初步填写视角、景别、主动作；旧的已保留图片也会自动补齐。详情中可查看与纠正，人工保存后模型不再覆盖。跨项目图库显示分类队列进度，失败时可在解决 Antigravity 登录/网络问题后重试。标签用于找图，不自动代表角色核验或现场卡验收。
+
+这条流程会把图片交给现有 Antigravity 模型服务；项目所有者已授权此行为。需要暂停时，在启动环境设 LAB_AUTO_CLASSIFY=0；.env.example 仅为示例，启动器不会自动加载该文件。关闭网页不停止后台，停止参考库服务才停止处理；下次启动从未完成任务继续。
