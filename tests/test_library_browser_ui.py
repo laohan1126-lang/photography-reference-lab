@@ -162,3 +162,36 @@ def test_human_conflict_in_classification_editor_is_not_silently_overwritten(com
     expect(page.locator('#editor [name=viewpoint]')).to_have_value('high_angle')
     annotation = client.get(f"/api/library/assets/{ref['asset_sha']}/classification").json()['annotation']
     assert annotation['viewpoint'] == 'low_angle'
+
+
+def test_real_failure_combination_kind_and_standing_returns_ai_photo(component_factory, client, project, library):
+    from ref_lab.classification import ClassificationQueue
+    from ref_lab.library_browser import LibraryBrowser
+    from test_classification import Analyzer
+    ref = add_reference(client, project)
+    q=ClassificationQueue(LibraryBrowser(library)); q.discover(); q.run_one(Analyzer())
+    page=component_factory(); go_gallery(page)
+    page.locator('summary').filter(has_text='更多条件').click()
+    page.locator('#library-filter-form [name=kind]').select_option('cosplay_photo')
+    page.locator('#library-filter-form [name=pose]').select_option('standing')
+    page.get_by_role('button',name='查找',exact=True).click()
+    expect(page.locator('.library-tile')).to_have_count(1)
+    page.locator('.library-preview').click()
+    expect(page.locator('#editor [name=kind]')).to_have_value('cosplay_photo')
+    page.locator('#editor [name=kind]').select_option('illustration')
+    page.get_by_role('button',name='保存摄影分类',exact=True).click()
+    expect(page.locator('.library-tile')).to_have_count(0)
+    assert library.reference(ref['id'])['decision']=='pending'
+
+
+def test_filtered_results_refresh_when_background_classification_completes(component_factory, client, project, library):
+    from ref_lab.classification import ClassificationQueue
+    from ref_lab.library_browser import LibraryBrowser
+    from test_classification import Analyzer
+    add_reference(client, project)
+    page=component_factory('#view=library&library_pose=standing&library_kind=cosplay_photo')
+    expect(page.locator('.library-tile')).to_have_count(0)
+    expect(page.locator('#library-status')).to_contain_text('分类不完整')
+    expect(page.locator('#library-classification-status')).to_contain_text('自动分类未开启')
+    q=ClassificationQueue(LibraryBrowser(library)); q.discover(); q.run_one(Analyzer())
+    expect(page.locator('.library-tile')).to_have_count(1,timeout=10000)

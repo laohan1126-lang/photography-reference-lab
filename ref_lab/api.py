@@ -573,7 +573,7 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     def asset_classification(sha: str):
         library.asset(sha)
         with library.db.read() as con:
-            annotation = app.state.library_browser._annotation(con.execute("SELECT data FROM library_annotations WHERE asset_sha=?", (sha,)).fetchone())
+            annotation = app.state.library_browser.classification_snapshot(con, sha)
         return {"annotation": annotation, **classification_queue.item_status(sha)}
 
 

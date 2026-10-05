@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from uuid import uuid4
+from typing import get_args
+from .catalog_data import record_asset_observation
 
 from fastapi import Query
 from pydantic import Field, field_validator
@@ -20,6 +22,31 @@ FACETS = {
     "orientation": {"portrait": "竖幅", "landscape": "横幅", "square": "方形"},
 }
 ANNOTATION_KEYS = ("viewpoint", "framing", "pose")
+
+# Visibility is shared by the gallery and its automatic search-index enrichment.
+BROWSABLE_REFERENCE = f"""r.decision <> 'reject'
+ AND COALESCE(json_extract(r.data,'$.detached_at'),'')=''
+ AND NOT {preflight_filter_sql('r.data')}
+ AND COALESCE(json_extract(p.data,'$.archived_at'),'')=''"""
+BROWSABLE_ASSET = f"""(
+ EXISTS(SELECT 1 FROM refs r JOIN projects p ON p.id=r.project_id
+        WHERE r.asset_sha=a.id AND {BROWSABLE_REFERENCE})
+ OR EXISTS(SELECT 1 FROM inspirations i WHERE i.asset_sha=a.id AND i.active=1)
+)"""
+
+# One projection for browsing, detail, and classification completeness.
+# Human type corrections outrank machine observations, regardless of arrival order.
+_KIND_VALUES = ",".join("'" + value + "'" for value in get_args(Kind))
+KIND_OBSERVATION_JOIN = f"""
+ LEFT JOIN asset_observations o ON o.rowid=(
+ SELECT ob.rowid FROM asset_observations ob WHERE ob.asset_sha=a.id
+ AND json_extract(ob.data,'$.facts.asset_sha')=a.id
+ AND json_extract(ob.data,'$.facts.kind') IN ({_KIND_VALUES})
+ AND json_extract(ob.data,'$.actor') IN ('human','ai')
+ AND {trusted_producer_sql('producer', 'ob.data')}
+ ORDER BY (json_extract(ob.data,'$.actor')='human') DESC,ob.rowid DESC LIMIT 1)
+"""
+
 
 # Additive extension tables, compatible with schema 3 and old clients. They do
 # not rewrite any existing rows. SQLite backup/restore includes them unchanged.
@@ -85,6 +112,8 @@ class PhotographyFacets(Strict):
 
 class AnnotationInput(PhotographyFacets):
     expected_revision: int = Field(ge=0)
+    kind: Kind | None = None
+    expected_kind_id: str | None = None
 
 
 class SearchInput(Strict):
@@ -111,6 +140,15 @@ class LibraryBrowser:
             return json.loads(row["data"])
         return {"revision": 0, **{key: "unknown" for key in ANNOTATION_KEYS}, "actor": None}
 
+    def classification_snapshot(self, con, sha):
+        row = con.execute("SELECT n.data,o.id kind_id,o.data observation FROM assets a "
+            "LEFT JOIN library_annotations n ON n.asset_sha=a.id " + KIND_OBSERVATION_JOIN +
+            " WHERE a.id=?", (sha,)).fetchone()
+        observation = json.loads(row["observation"]) if row and row["observation"] else {}
+        annotation = self._annotation(row if row and row["data"] else None)
+        return {**annotation, "kind": observation.get("facts", {}).get("kind", "unknown"),
+                "kind_actor": observation.get("actor"), "kind_observation_id": row["kind_id"] if row else None}
+
     def annotate(self, sha, data):
         with self.db.transaction() as con:
             asset = row_data(con, "assets", sha)
@@ -121,7 +159,14 @@ class LibraryBrowser:
             old = self._annotation(con.execute("SELECT data FROM library_annotations WHERE asset_sha=?", (sha,)).fetchone())
             if old["revision"] != data.expected_revision:
                 raise Problem(409, "分类已被其他窗口修改，请重新打开后再保存")
-            item = {**data.model_dump(exclude={"expected_revision"}), "revision": old["revision"] + 1,
+            if data.kind is not None:
+                if data.expected_kind_id is None:
+                    raise Problem(422, "修改图片类型需要携带读取时的观察版本")
+                snapshot = self.classification_snapshot(con, sha)
+                if data.expected_kind_id is not None and (snapshot["kind_observation_id"] or "") != data.expected_kind_id:
+                    raise Problem(409, "图片类型已被其他窗口修改，请重新打开后核对")
+                record_asset_observation(con, sha, {"kind": data.kind}, actor="human", producer="human-classification")
+            item = {**data.model_dump(exclude={"expected_revision", "kind", "expected_kind_id"}), "revision": old["revision"] + 1,
                     "actor": "human", "updated_at": now()}
             con.execute("INSERT INTO library_annotations VALUES(?,?,?) ON CONFLICT(asset_sha) DO UPDATE SET revision=excluded.revision,data=excluded.data",
                         (sha, item["revision"], encode(item)))
@@ -134,9 +179,7 @@ class LibraryBrowser:
         f = filters
         # A scope predicate applies to the SAME reference. In particular, keep
         # in project B must not make a pending reference in project A a keep.
-        eligible = ["r.decision <> 'reject'", "COALESCE(json_extract(r.data,'$.detached_at'),'')=''",
-                    f"NOT {preflight_filter_sql('r.data')}",
-                    "COALESCE(json_extract(p.data,'$.archived_at'),'')=''"]
+        eligible = [BROWSABLE_REFERENCE]
         params = []
         if f.project_id:
             eligible.append("r.project_id=?")
@@ -147,7 +190,7 @@ class LibraryBrowser:
         joins = f""" FROM assets a
  LEFT JOIN inspirations i ON i.asset_sha=a.id AND i.active=1
  LEFT JOIN library_annotations n ON n.asset_sha=a.id
- LEFT JOIN asset_observations o ON o.rowid=(SELECT MAX(ob.rowid) FROM asset_observations ob WHERE ob.asset_sha=a.id AND json_extract(ob.data,'$.facts.asset_sha')=a.id AND json_extract(ob.data,'$.actor') IN ('human','ai') AND {trusted_producer_sql('producer', 'ob.data')})
+{KIND_OBSERVATION_JOIN}
 """
         exists = "EXISTS(SELECT 1 FROM eligible e WHERE e.asset_sha=a.id)"
         if f.scope == "inspiration":
@@ -163,6 +206,8 @@ class LibraryBrowser:
  instr(lower(COALESCE(json_extract(e.data,'$.title'),'')||' '||COALESCE(json_extract(e.data,'$.source.author'),'')||' '||COALESCE(json_extract(e.data,'$.preference'),'')||' '||COALESCE(json_extract(e.project_data,'$.character'),'')||' '||COALESCE(json_extract(e.project_data,'$.costume'),'')),?)>0)
  OR instr(lower(COALESCE(json_extract(i.data,'$.title'),'')||' '||COALESCE(json_extract(i.data,'$.preference'),'')),?)>0)""")
             params.extend([needle, needle])
+        unclassified_query = joins + " WHERE " + " AND ".join(where) + " AND (n.asset_sha IS NULL OR o.id IS NULL)"
+        unclassified_params = tuple(params)
         if f.kind:
             where.append("COALESCE(json_extract(o.data,'$.facts.kind'),'unknown')=?")
             params.append(f.kind)
@@ -180,6 +225,7 @@ class LibraryBrowser:
             con.execute("BEGIN")  # count, page and use metadata share one snapshot
             if f.project_id:
                 ensure_active_project(row_data(con, "projects", f.project_id))
+            unclassified = con.execute(cte + "SELECT COUNT(*)" + unclassified_query, unclassified_params).fetchone()[0]
             total = con.execute(cte + "SELECT COUNT(*)" + query, params).fetchone()[0]
             offset = min(offset, ((total - 1) // limit) * limit) if total else 0
             rows = con.execute(cte + "SELECT a.id,a.data,n.data AS annotation,i.data AS inspiration,o.data AS observation," + orientation + " AS orientation" + query + " ORDER BY a.rowid DESC,a.id LIMIT ? OFFSET ?", (*params, limit, offset)).fetchall()
@@ -204,7 +250,7 @@ class LibraryBrowser:
                               "kind": observation.get("facts", {}).get("kind", "unknown"), "kind_actor": observation.get("actor"),
                               "orientation": row["orientation"],
                               "annotation": json.loads(row["annotation"]) if row["annotation"] else self._annotation()})
-            return {"items": items, "total": total, "offset": offset, "limit": limit, "filters": f.model_dump()}
+            return {"items": items, "total": total, "offset": offset, "limit": limit, "filters": f.model_dump(), "unclassified": unclassified}
 
     def searches(self):
         with self.db.read() as con:

@@ -2,10 +2,10 @@
 /* Asset-first discovery; curation stays in the existing project workbench. */
 window.LibraryDiscovery = (() => {
     const defaults = {q:'', scope:'all', project_id:'', kind:'', viewpoint:'', framing:'', pose:'', orientation:''};
-    const captions = {viewpoint:'视角', framing:'景别', pose:'主动作', orientation:'画幅'};
+    const captions = {kind:'图片类型', viewpoint:'视角', framing:'景别', pose:'主动作', orientation:'画幅'};
     let filters = {...defaults}, offset = 0, items = [], saved = [], facetChoices = {};
     let nav = {pinned_ids:[], recent_ids:[]}, requestId = 0, navRequestId = 0, controller;
-    let selectedSearch = '';
+    let selectedSearch = '', classifiedCount = null;
 
     function restore(params) {
         filters = {...defaults};
@@ -111,9 +111,10 @@ window.LibraryDiscovery = (() => {
         $('library-delete-search').disabled=!selectedSearch;
     }
     async function render() {
+        classifiedCount=null;
         const view=$('view');delete view.dataset.shell;
         const projects={'':'所有项目',...Object.fromEntries(state.projects.map(p=>[p.id,`${p.character}${p.costume?' / '+p.costume:''}`]))};
-        view.innerHTML=`<section class="library-browser"><form id="library-filter-form" class="library-filters"><label class="library-query">找图<input name="q" aria-label="跨项目搜索图片" maxlength="400" placeholder="标题、作者、项目或审美笔记"></label>${select('范围','scope',{all:'全部可浏览图片',kept:'本角色参考（K）',inspiration:'我的审美收藏'},filters.scope)}${choices('viewpoint')}${choices('framing')}<details class="library-more"><summary>更多条件</summary><div class="form-grid">${choices('pose')}${choices('orientation')}${select('图片类型','kind',{'':'全部',...kinds},'')}${select('限定项目','project_id',projects,'')}</div></details><button type="submit" class="primary">查找</button><button type="button" id="library-reset">清空条件</button></form><div class="library-saved-bar"><select id="library-saved-search" aria-label="常用搜索"></select><button id="library-save-search">保存当前搜索</button><button id="library-delete-search" disabled>删除该搜索</button></div><p class="form-help">同图只显示一次；分类是找图线索，不代替核验。已保留图片由模型看图后初步分类；旧图也会补齐，人工修正优先。</p><div class="library-saved-bar"><span id="library-classification-status" role="status"></span><button id="library-classification-retry" hidden>重试失败分类</button><button id="library-classification-refresh">刷新分类结果</button></div><p id="library-status" role="status"></p><div id="library-grid" class="library-grid"></div><div class="pagination"><button id="library-prev">上一页</button><span id="library-page"></span><button id="library-next">下一页</button></div></section>`;
+        view.innerHTML=`<section class="library-browser"><form id="library-filter-form" class="library-filters"><label class="library-query">找图<input name="q" aria-label="跨项目搜索图片" maxlength="400" placeholder="标题、作者、项目或审美笔记"></label>${select('范围','scope',{all:'全部可浏览图片',kept:'本角色参考（K）',inspiration:'我的审美收藏'},filters.scope)}${choices('viewpoint')}${choices('framing')}<details class="library-more"><summary>更多条件</summary><div class="form-grid">${choices('pose')}${choices('orientation')}${select('图片类型','kind',{'':'全部',...kinds},'')}${select('限定项目','project_id',projects,'')}</div></details><button type="submit" class="primary">查找</button><button type="button" id="library-reset">清空条件</button></form><div class="library-saved-bar"><select id="library-saved-search" aria-label="常用搜索"></select><button id="library-save-search">保存当前搜索</button><button id="library-delete-search" disabled>删除该搜索</button></div><p class="form-help">同图只显示一次；分类是找图线索，不代替核验。可浏览图片由模型看图后补齐类型与姿态；人工修正优先，不改变你的保留或淘汰。</p><div class="library-saved-bar"><span id="library-classification-status" role="status"></span><button id="library-classification-retry" hidden>重试失败分类</button><button id="library-classification-refresh">刷新分类结果</button></div><p id="library-status" role="status"></p><div id="library-grid" class="library-grid"></div><div class="pagination"><button id="library-prev">上一页</button><span id="library-page"></span><button id="library-next">下一页</button></div></section>`;
         syncControls();drawSaved();
         $('library-classification-retry').onclick=async()=>{try{await api('/api/library/classification/retry',{method:'POST'});toast('失败图片已重新排队');}catch(e){showError(e);}};
         $('library-classification-refresh').onclick=()=>load().catch(showError);
@@ -148,7 +149,7 @@ window.LibraryDiscovery = (() => {
             const data=await api('/api/library/assets?'+q,{signal:controller.signal});
             if(!currentRequest())return;
             items=data.items;offset=data.offset;
-            $('library-status').textContent=data.total?`${data.total} 张独立图片`:'没有符合这些条件的图片。可以清空条件，或先为常用图片补充分类。';
+            $('library-status').textContent=data.total?`${data.total} 张匹配图片${data.unclassified?' · 当前范围还有 '+data.unclassified+' 张分类不完整，结果尚未覆盖全部图片':''}`:(data.unclassified?`当前已识别图片中暂无匹配；当前范围还有 ${data.unclassified} 张分类不完整，不能据此认定图库没有这类图片。`:'没有符合这些条件的图片。');
             $('library-grid').innerHTML=items.map(item=>{
                 const tags=Object.entries(item.annotation).filter(([key,v])=>facetChoices[key]?.[v]).map(([key,v])=>badge(facetChoices[key][v])).join('');
                 const projects=[...new Set(item.uses.filter(u=>u.decision!=='reject'&&!u.filtered).map(u=>u.character))];
@@ -192,25 +193,27 @@ window.LibraryDiscovery = (() => {
     function annotationLabel(annotation, status='unrequested') {
         if(annotation.actor==='human')return '已由你修正';
         if(annotation.actor==='ai')return 'AI 初步分类 · 可直接修改';
-        return ({pending:'等待模型分类',running:'模型正在看图',failed:'分类失败',cancelled:'尚未保留',superseded:'已有人工分类'})[status]||'确认保留后自动分类';
+        return ({pending:'等待模型分类',running:'模型正在看图',failed:'此图分类失败',blocked:'执行器暂不可用',cancelled:'尚未保留',superseded:'已有人工分类'})[status]||'等待自动分类';
     }
     function annotationForm(item) {
-        return `<form id="photo-classification-form"><h3>摄影分类</h3><p id="photo-classification-status" role="status"></p><div class="form-grid">${['viewpoint','framing','pose'].map(key=>choices(key,true,item.annotation[key])).join('')}</div><p id="photo-classification-evidence" class="form-help"></p><p class="form-help">模型先给出找图标签，你可以直接纠正；保存后以你的分类为准。</p><div class="form-actions"><button type="submit" class="primary" ${item.file_available?'':'disabled'}>保存摄影分类</button><button type="button" id="photo-classification-retry" hidden>重试失败分类</button></div></form>`;
+        return `<form id="photo-classification-form"><h3>摄影分类</h3><p id="photo-classification-status" role="status"></p><div class="form-grid">${select('图片类型','kind',kinds,item.annotation.kind||'unknown')}${['viewpoint','framing','pose'].map(key=>choices(key,true,item.annotation[key])).join('')}</div><p id="photo-kind-source" class="form-help"></p><p id="photo-classification-evidence" class="form-help"></p><p class="form-help">模型先给出找图标签，你可以直接纠正；保存后以你的分类为准。</p><div class="form-actions"><button type="submit" class="primary" ${item.file_available?'':'disabled'}>保存摄影分类</button><button type="button" id="photo-classification-retry" hidden>重试失败分类</button></div></form>`;
     }
     function bindClassification(root,item,initial) {
         const form=root.querySelector('#photo-classification-form'), touched=new Set();
         let annotation=initial.annotation;
         form.addEventListener('change',e=>{if(captions[e.target.name])touched.add(e.target.name);});
         function display(data) {
-            if(touched.size&&data.annotation.actor==='human'&&data.annotation.revision!==annotation.revision){
+            if(touched.size&&((data.annotation.actor==='human'&&data.annotation.revision!==annotation.revision)||
+                (data.annotation.kind_actor==='human'&&data.annotation.kind_observation_id!==annotation.kind_observation_id))){
                 form.querySelector('#photo-classification-status').textContent='分类已被其他窗口修改；请重新打开后核对，当前输入不会覆盖新修改。';
                 return;
             }
             annotation=data.annotation;
-            for(const key of ['viewpoint','framing','pose'])if(!touched.has(key))form.elements.namedItem(key).value=annotation[key]||'unknown';
+            for(const key of ['kind','viewpoint','framing','pose'])if(!touched.has(key))form.elements.namedItem(key).value=annotation[key]||'unknown';
             form.querySelector('#photo-classification-status').textContent=annotationLabel(annotation,data.status)+(data.error?'：'+data.error:'');
             form.querySelector('#photo-classification-evidence').textContent=annotation.evidence||'';
-            form.querySelector('#photo-classification-retry').hidden=data.status!=='failed';
+            form.querySelector('#photo-kind-source').textContent=annotation.kind_actor==='human'?'图片类型：人工修正':annotation.kind_actor==='ai'?'图片类型：AI 看图初判':'图片类型：尚未识别';
+            form.querySelector('#photo-classification-retry').hidden=!['failed','blocked'].includes(data.status);
         }
         display(initial);
         let timer;
@@ -233,6 +236,10 @@ window.LibraryDiscovery = (() => {
             const latest=await api(`/api/library/assets/${item.id}/classification`);
             const base=latest.annotation.actor==='ai'?latest.annotation:annotation;
             const values=Object.fromEntries(['viewpoint','framing','pose'].map(key=>[key,touched.has(key)?data[key]:(base[key]||'unknown')]));
+            if(touched.has('kind')){
+                values.kind=data.kind;
+                values.expected_kind_id=annotation.kind_observation_id||'';
+            }
             await api(`/api/library/assets/${item.id}/annotation`,{method:'PUT',body:{...values,expected_revision:base.revision}});
             clearTimeout(timer);closeModal();
             if(state.view==='library')await load();
@@ -260,7 +267,7 @@ window.LibraryDiscovery = (() => {
                 if(!target.isConnected)return;
                 const labels=['viewpoint','framing','pose'].map(k=>`${captions[k]}：${facetChoices[k]?.[data.annotation[k]]||'待分类'}`);
                 target.textContent=labels.join(' · ')+' · '+annotationLabel(data.annotation,data.status)+(data.error?'：'+data.error:'');
-                if(!data.annotation.actor)setTimeout(refresh,4000);
+                if(!data.annotation.actor||!data.annotation.kind_actor)setTimeout(refresh,4000);
             } catch(e){if(target.isConnected)target.textContent='分类状态读取失败：'+e.message;}
         };
         refresh();
@@ -273,8 +280,13 @@ window.LibraryDiscovery = (() => {
             if(state.view!=='library'||epoch!==state.epoch||!$('library-classification-status'))return;
             const c=data.counts;
             $('library-classification-status').textContent=data.enabled?`自动分类：完成 ${c.succeeded||0} · 排队 ${c.pending||0} · 看图中 ${c.running||0}`:'自动分类未开启';
-            if(data.error||data.worker_error)$('library-classification-status').textContent+=' · 已暂停：'+(data.error||data.worker_error);
-            $('library-classification-retry').hidden=!c.failed;
+            if(data.error||data.worker_error)$('library-classification-status').textContent+=(c.blocked||data.worker_error?' · 已暂停：':' · 单图失败（其余继续）：')+(data.error||data.worker_error);
+            $('library-classification-retry').hidden=!(c.failed||c.blocked);
+            if(classifiedCount===null)classifiedCount=c.succeeded||0;
+            else if(classifiedCount!==(c.succeeded||0)&&!$('editor').open){
+                classifiedCount=c.succeeded||0;
+                await load();
+            }
         }catch(e){if($('library-classification-status'))$('library-classification-status').textContent='分类状态读取失败：'+e.message;}
         if(state.view==='library'&&epoch===state.epoch)setTimeout(()=>pollClassification(epoch),5000);
     }
