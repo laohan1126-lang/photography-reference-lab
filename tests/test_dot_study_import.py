@@ -67,6 +67,27 @@ def test_study_candidate_is_pending_and_rerun_preserves_human_choice(client, lib
     assert client.get("/api/inspirations").json()["total"] == 0
 
 
+def test_unified_library_keeps_study_only_assets_out_of_classification(library):
+    from ref_lab.classification import ClassificationQueue
+    from ref_lab.library_browser import LibraryBrowser
+    from ref_lab.service import Library
+
+    asset = library.ingest_asset(image_bytes(84))
+    library.add_study_candidate(candidate_data(dot_record(), asset['id'], None))
+    queue = ClassificationQueue(LibraryBrowser(library))
+    assert queue.discover() == 0
+    tables = ('projects', 'assets', 'refs', 'inspirations', 'study_candidates', 'events')
+    with library.db.read() as con:
+        before = {table: [tuple(row) for row in con.execute(f'SELECT * FROM {table} ORDER BY rowid')]
+                  for table in tables}
+    reopened = Library(library.settings, repair_untrusted_preflights=True)
+    with reopened.db.read() as con:
+        after = {table: [tuple(row) for row in con.execute(f'SELECT * FROM {table} ORDER BY rowid')]
+                 for table in tables}
+    assert after == before
+    assert reopened.study_candidate('dot:P366')['status'] == 'pending'
+
+
 def test_study_reasons_are_independent_human_choices_with_revision(client, library):
     asset = library.ingest_asset(image_bytes())
     library.add_study_candidate(candidate_data(dot_record(), asset["id"], None))

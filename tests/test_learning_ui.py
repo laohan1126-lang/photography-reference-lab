@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def prototype(tmp_path):
     web = tmp_path / 'web'
     web.mkdir()
-    for name in ('index.html', 'app.js', 'styles.css', 'learning.html', 'learning.js', 'learning.css', 'learning-icons.json'):
+    for name in ('index.html', 'app.js', 'styles.css', 'library-browser.js', 'learning.html', 'learning.js', 'learning.css', 'learning-icons.json'):
         shutil.copyfile(ROOT / 'web' / name, web / name)
     samples = tmp_path / '.local/learning-preview'
     samples.mkdir(parents=True)
@@ -252,8 +252,14 @@ def test_workspace_switch_roundtrip_keeps_learning_place(prototype_site, browser
     learning_link = page.get_by_role('link', name='摄影学习', exact=False)
     expect(learning_link).to_be_visible()
     assert learning_link.get_attribute('target') in (None, '')
+    assert learning_link.get_attribute('href') == '/learning'
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    page.locator('#global-nav [data-view="library"]').click()
+    expect(page.locator('#project-header h1')).to_have_text('图库')
+    page.locator('#global-nav [data-view="study"]').click()
+    expect(page.locator('#project-header h1')).to_have_text('待筛摄影参考')
     page.reload()
+    expect(page.locator('#project-header h1')).to_have_text('待筛摄影参考')
     page.get_by_role('link', name='摄影学习', exact=False).click()
     expect(page).to_have_url(re.compile(r'/learning(?:#.*)?$'))
     expect(page.locator('#topic-view')).to_be_visible()
