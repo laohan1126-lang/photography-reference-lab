@@ -31,10 +31,19 @@ def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, 
     expect(page.locator("#project-header h1")).to_have_text("待筛摄影参考")
     expect(page.locator("#main-image")).to_be_visible()
     expect(page.locator("#detail-panel")).to_contain_text("Dot 文案线索")
-    expect(page.locator("#detail-panel")).to_contain_text("尚未由你二筛")
+    expect(page.locator('[data-study-reason="composition"]')).to_have_attribute("aria-pressed", "false")
+    page.locator('[data-study-reason="composition"]').click()
+    expect(page.locator('[data-study-reason="composition"]')).to_have_attribute("aria-pressed", "true")
+    page.locator('[data-study-reason="pose"]').click()
+    expect(page.locator('[data-study-reason="pose"]')).to_have_attribute("aria-pressed", "true")
+    page.locator('[data-view="inspiration"]').click()
+    page.locator('[data-view="study"]').click()
+    expect(page.locator('[data-study-reason="composition"]')).to_have_attribute("aria-pressed", "true")
+    expect(page.locator('[data-study-reason="pose"]')).to_have_attribute("aria-pressed", "true")
     page.locator('[data-study-status="priority"]').click()
     expect(page.locator("#detail-panel")).to_contain_text("值得优先看")
     assert library.study_candidate("dot:P366")["status"] == "priority"
+    assert library.study_candidate("dot:P366")["study_reasons"] == ["composition", "pose"]
     assert library.inspirations()["total"] == 0
 
 

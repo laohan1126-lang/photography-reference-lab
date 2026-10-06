@@ -74,6 +74,7 @@ def candidate_data(record: dict, original_sha: str, compatibility_sha: str | Non
         "compat_file_id": (record.get("兼容PNG预览_同一作品") or {}).get("Drive文件ID", ""),
         "received_name": record["图片文件名"], "title": record["主题"],
         "status": "pending", "decision_origin": "unreviewed", "human_note": "",
+        "study_reasons": [], "reason_origin": "unreviewed",
         "suggested_topics": topics, "topic_origin": "Dot 文案关键词，未逐图视觉复核",
         "source_page": safe_url(record.get("公开出处") or record.get("原帖") or ""),
         "source_image_url": safe_url(record.get("原图链接", "")),

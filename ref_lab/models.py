@@ -281,6 +281,7 @@ class InspirationEdit(Strict):
 class StudyCandidateEdit(Strict):
     expected_revision: int = Field(ge=1)
     status: Literal["pending", "priority", "ordinary", "skip"] | None = None
+    study_reasons: list[Literal["composition", "pose", "lighting"]] | None = Field(default=None, max_length=3)
     human_note: Text | None = None
 
 

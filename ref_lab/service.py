@@ -850,6 +850,8 @@ class Library:
 
     def _decorate_study_candidate(self, con: sqlite3.Connection, item: dict) -> dict:
         result = dict(item)
+        result.setdefault("study_reasons", [])
+        result.setdefault("reason_origin", "unreviewed")
         result["asset"] = row_data(con, "assets", item["asset_sha"])
         result["file_available"] = self.assets.path(result["asset"]).is_file()
         result["decision"] = item["status"]
@@ -909,6 +911,9 @@ class Library:
             item = row_data(con, "study_candidates", ident)
             check_revision(item, data.expected_revision)
             changes = data.model_dump(exclude_none=True, exclude={"expected_revision"})
+            if "study_reasons" in changes:
+                changes["study_reasons"] = [reason for reason in ("composition", "pose", "lighting")
+                                            if reason in changes["study_reasons"]]
             if not changes:
                 return self._decorate_study_candidate(con, item)
             if all(item.get(key) == value for key, value in changes.items()):
@@ -919,6 +924,8 @@ class Library:
                 item["decision_origin"] = "human"
             if "human_note" in changes:
                 item["note_origin"] = "human"
+            if "study_reasons" in changes:
+                item["reason_origin"] = "human"
             con.execute("UPDATE study_candidates SET status=?,data=? WHERE id=?",
                         (item["status"], encode(item), ident))
             self.db.event(con, None, ident, "study_candidate.reviewed", changes)

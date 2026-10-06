@@ -67,6 +67,33 @@ def test_study_candidate_is_pending_and_rerun_preserves_human_choice(client, lib
     assert client.get("/api/inspirations").json()["total"] == 0
 
 
+def test_study_reasons_are_independent_human_choices_with_revision(client, library):
+    asset = library.ingest_asset(image_bytes())
+    library.add_study_candidate(candidate_data(dot_record(), asset["id"], None))
+    selected = client.patch("/api/study-candidates/dot:P366", json={
+        "expected_revision": 1, "study_reasons": ["composition", "pose"]})
+    assert selected.status_code == 200
+    assert selected.json()["study_reasons"] == ["composition", "pose"]
+    assert selected.json()["status"] == "pending"
+    assert selected.json()["decision_origin"] == "unreviewed"
+    assert selected.json()["reason_origin"] == "human"
+    assert client.get("/api/study-candidates/dot:P366").json()["study_reasons"] == ["composition", "pose"]
+    assert not library.add_study_candidate(candidate_data(dot_record(), asset["id"], None))["created"]
+    assert library.study_candidate("dot:P366")["study_reasons"] == ["composition", "pose"]
+    assert client.patch("/api/study-candidates/dot:P366", json={
+        "expected_revision": 1, "study_reasons": ["lighting"]}).status_code == 409
+    assert client.patch("/api/study-candidates/dot:P366", json={
+        "expected_revision": 2, "study_reasons": ["unknown"]}).status_code == 422
+    noted = client.patch("/api/study-candidates/dot:P366", json={
+        "expected_revision": 2, "human_note": "只学走位"})
+    assert noted.status_code == 200 and noted.json()["study_reasons"] == ["composition", "pose"]
+    cleared = client.patch("/api/study-candidates/dot:P366", json={
+        "expected_revision": 3, "study_reasons": []})
+    assert cleared.status_code == 200 and cleared.json()["study_reasons"] == []
+    assert library.study_candidate("dot:P366")["human_note"] == "只学走位"
+    assert client.get("/api/inspirations").json()["total"] == 0
+
+
 def test_avif_received_bytes_remain_original(client, library):
     stream = io.BytesIO()
     Image.new("RGB", (64, 48), (70, 100, 130)).save(stream, format="AVIF")

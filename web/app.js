@@ -970,9 +970,12 @@ async function contextDialog(ref) {
 
 function renderStudyDetail(item) {
     const statusNames={pending:'待你判断',priority:'值得优先看',ordinary:'普通可留',skip:'可以跳过'};
+    const reasonNames={composition:'构图可学',pose:'姿势可学',lighting:'光线可学'};
+    const selectedReasons=new Set(item.study_reasons||[]);
+    const reasonButtons=Object.entries(reasonNames).map(([key,name])=>`<button type="button" data-study-reason="${key}" aria-pressed="${selectedReasons.has(key)}" class="${selectedReasons.has(key)?'primary':'quiet'}">${name}</button>`).join('');
     const restrictions=(item.source_restrictions||[]).map(x=>`<li>${esc(x)}</li>`).join('');
     const topics=(item.suggested_topics||[]).map(x=>badge(x)).join('')||badge('尚无文案线索');
-    $('detail-panel').innerHTML=`<span class="eyebrow">STUDY QUEUE · ${esc(item.number)}</span><h2>${esc(item.title)}</h2><p class="curation-hint">${esc(statusNames[item.status]||'待你判断')} · 这张图尚未由你二筛；Dot 的说明与检索线索不代表你的认可或本次视觉核验。</p><div class="guide-section"><h3>你的筛选</h3><div class="button-row">${Object.entries(statusNames).map(([key,name])=>`<button data-study-status="${key}" class="${item.status===key?'primary':'quiet'}">${esc(name)}</button>`).join('')}</div>${area('你的判断或用途（选填）','human_note',item.human_note||'','maxlength="12000"')}<button id="save-study-note">保存个人备注</button></div><div class="guide-section"><h3>Dot 文案线索 · 待看图核对</h3><p>${topics}</p><p>${esc(item.dot_notes||'Dot 未提供判断')}</p>${item.dot_shooting_hint?`<p><strong>Dot 建议的现场借鉴：</strong>${esc(item.dot_shooting_hint)}</p>`:''}</div><details class="advanced-panel" open><summary>来源、署名与使用限制</summary><p>${esc(item.source_credit||'署名未知')}</p>${item.source_page?`<p><a href="${esc(item.source_page)}" target="_blank" rel="noopener noreferrer">打开公开出处 ↗</a></p>`:''}${item.drive_url?`<p><a href="${esc(item.drive_url)}" target="_blank" rel="noopener noreferrer">打开 Drive 归档 ↗</a></p>`:''}<p>收到的原文件：${esc(item.received_name)}${item.compat_asset_sha?'；另存有同作品 PNG 兼容副本':''}</p>${item.compat_asset_sha?`<p><a href="/api/assets/${esc(item.compat_asset_sha)}/original" target="_blank" rel="noopener noreferrer">查看兼容副本 ↗</a></p>`:''}<ul>${restrictions||'<li>来源未记录额外限制；这不等于获得公开转载许可。</li>'}</ul></details>`;
+    $('detail-panel').innerHTML=`<span class="eyebrow">STUDY QUEUE · ${esc(item.number)}</span><h2>${esc(item.title)}</h2><p class="curation-hint">${esc(statusNames[item.status]||'待你判断')} · 状态和理由由你决定；Dot 的说明与检索线索不代表你的认可或本次视觉核验。</p><div class="guide-section"><h3>你的筛选</h3><div class="button-row">${Object.entries(statusNames).map(([key,name])=>`<button data-study-status="${key}" class="${item.status===key?'primary':'quiet'}">${esc(name)}</button>`).join('')}</div><h4>筛选理由（可多选，点击即保存）</h4><div class="button-row">${reasonButtons}</div>${area('你的判断或用途（选填）','human_note',item.human_note||'','maxlength="12000"')}<button id="save-study-note">保存个人备注</button></div><div class="guide-section"><h3>Dot 文案线索 · 待看图核对</h3><p>${topics}</p><p>${esc(item.dot_notes||'Dot 未提供判断')}</p>${item.dot_shooting_hint?`<p><strong>Dot 建议的现场借鉴：</strong>${esc(item.dot_shooting_hint)}</p>`:''}</div><details class="advanced-panel" open><summary>来源、署名与使用限制</summary><p>${esc(item.source_credit||'署名未知')}</p>${item.source_page?`<p><a href="${esc(item.source_page)}" target="_blank" rel="noopener noreferrer">打开公开出处 ↗</a></p>`:''}${item.drive_url?`<p><a href="${esc(item.drive_url)}" target="_blank" rel="noopener noreferrer">打开 Drive 归档 ↗</a></p>`:''}<p>收到的原文件：${esc(item.received_name)}${item.compat_asset_sha?'；另存有同作品 PNG 兼容副本':''}</p>${item.compat_asset_sha?`<p><a href="/api/assets/${esc(item.compat_asset_sha)}/original" target="_blank" rel="noopener noreferrer">查看兼容副本 ↗</a></p>`:''}<ul>${restrictions||'<li>来源未记录额外限制；这不等于获得公开转载许可。</li>'}</ul></details>`;
     const note=$('detail-panel').querySelector('[name="human_note"]');
     note.addEventListener('input',()=>state.dirty=true);
     $('save-study-note').onclick=async()=>{
@@ -983,6 +986,18 @@ function renderStudyDetail(item) {
         if(state.dirty){toast('请先保存个人备注');return;}
         const updated=await api(`/api/study-candidates/${item.id}`,{method:'PATCH',body:{expected_revision:item.revision,status:button.dataset.studyStatus}});
         Object.assign(item,updated);await loadReferences();toast('你的筛选已保存');
+    });
+    listen('detail-panel','[data-study-reason]','click',async(e,button)=>{
+        if(state.dirty){toast('请先保存个人备注');return;}
+        if(state.busy)return;
+        const reasons=new Set(item.study_reasons||[]);
+        if(reasons.has(button.dataset.studyReason))reasons.delete(button.dataset.studyReason);
+        else reasons.add(button.dataset.studyReason);
+        state.busy=true;
+        try {
+            const updated=await api(`/api/study-candidates/${item.id}`,{method:'PATCH',body:{expected_revision:item.revision,study_reasons:[...reasons]}});
+            Object.assign(item,updated);renderStudyDetail(item);toast('筛选理由已保存');
+        } finally { state.busy=false; }
     });
 }
 
