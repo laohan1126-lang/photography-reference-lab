@@ -23,7 +23,7 @@ from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardI
                      RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport,
                      CandidatePreflightInput, PreflightOverrideInput,
                      IdentityContextInput, ConfirmSummaryInput, RollbackProfileInput, PreflightScanInput,
-                     ReferenceTransferInput, ContactBoardInput, ArchiveInspirationInput)
+                     ReferenceTransferInput, ContactBoardInput, ArchiveInspirationInput, StudyCandidateEdit)
 
 from .security import BodyLimitMiddleware, COOKIE, csrf_for, make_session, valid_session
 from .service import Library, Problem
@@ -114,7 +114,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     "maintenance": maintenance_file.exists(),
                     "foreign_key_errors": len(con.execute("PRAGMA foreign_key_check").fetchall()),
                     "counts": {t: con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
-                               for t in ("projects", "assets", "refs", "inspirations", "events")}}
+                               for t in ("projects", "assets", "refs", "inspirations", "study_candidates", "events")}}
 
     @app.post("/api/maintenance")
     def maintenance(data: MaintenanceInput):
@@ -419,6 +419,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/inspirations/{inspiration_id}/use")
     def use_inspiration(inspiration_id: str, data: InspirationUse):
         return library.use_inspiration(inspiration_id, data.project_id, data.expected_revision)
+
+    @app.get("/api/study-candidates")
+    def study_candidates(limit: int = Query(60, ge=1, le=200), offset: int = Query(0, ge=0),
+                         q: str = Query("", max_length=400),
+                         status: str = Query("", pattern="^(|pending|priority|ordinary|skip)$"),
+                         topic: str = Query("", pattern="^(|动作|光线|构图|环境|道具)$")):
+        return library.study_candidates(limit=limit, offset=offset, query=q, status=status, topic=topic)
+
+    @app.get("/api/study-candidates/{candidate_id}")
+    def study_candidate(candidate_id: str):
+        return library.study_candidate(candidate_id)
+
+    @app.patch("/api/study-candidates/{candidate_id}")
+    def edit_study_candidate(candidate_id: str, data: StudyCandidateEdit):
+        return library.edit_study_candidate(candidate_id, data)
 
     @app.post("/api/imports/notion")
     def import_global_notes(file: UploadFile = File(...)):

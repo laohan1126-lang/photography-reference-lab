@@ -11,7 +11,7 @@ from .db import Database, encode, now
 from .catalog_data import keep_inspiration, record_discovery, record_observation
 from .models import (CandidateInput, ProjectInput, ReferenceEdit, Source, VisualReview, Card,
                      AnalysisResult, NoteInput, JobInput, InspirationInput, InspirationEdit, CollectionReport,
-                     CandidatePreflight, ReferenceTransferInput)
+                     CandidatePreflight, ReferenceTransferInput, StudyCandidateEdit)
 from .storage import AssetStore
 from .policy import (MESSAGES, acceptance_digest, blockers, context_digest, digest, state_for)
 
@@ -27,7 +27,7 @@ def fresh_id() -> str:
 
 
 def row_data(con: sqlite3.Connection, table: str, ident: str) -> dict:
-    if table not in {"projects", "assets", "refs", "jobs", "notes", "inspirations"}:
+    if table not in {"projects", "assets", "refs", "jobs", "notes", "inspirations", "study_candidates"}:
         raise ValueError("Invalid table")
     row = con.execute(f"SELECT data FROM {table} WHERE id=?", (ident,)).fetchone()
     if not row:
@@ -63,11 +63,12 @@ def candidate_preflight_status(preflight: CandidatePreflight) -> str:
 
 
 class Library:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, *, repair_untrusted_preflights: bool = True):
         self.settings = settings
         self.db = Database(settings.data_dir / "library.sqlite3")
         self.assets = AssetStore(settings)
-        self._repair_untrusted_local_adapter_preflights()
+        if repair_untrusted_preflights:
+            self._repair_untrusted_local_adapter_preflights()
 
     def _repair_untrusted_local_adapter_preflights(self) -> None:
         """Replace the known metadata-only local adapter preflight with conservative gates."""
@@ -846,6 +847,82 @@ class Library:
     def inspiration(self, ident: str) -> dict:
         with self.db.read() as con:
             return self._decorate_inspiration(con, row_data(con, "inspirations", ident))
+
+    def _decorate_study_candidate(self, con: sqlite3.Connection, item: dict) -> dict:
+        result = dict(item)
+        result["asset"] = row_data(con, "assets", item["asset_sha"])
+        result["file_available"] = self.assets.path(result["asset"]).is_file()
+        result["decision"] = item["status"]
+        return result
+
+    def study_candidates(self, *, limit: int = 60, offset: int = 0, query: str = "",
+                         status: str = "", topic: str = "") -> dict:
+        where, args = ["1=1"], []
+        if status:
+            where.append("status=?")
+            args.append(status)
+        if topic:
+            where.append("EXISTS (SELECT 1 FROM json_each(study_candidates.data,'$.suggested_topics') WHERE value=?)")
+            args.append(topic)
+        if query:
+            where.append("instr(lower(data),lower(?))>0")
+            args.append(query)
+        condition = " AND ".join(where)
+        with self.db.read() as con:
+            total = con.execute(f"SELECT COUNT(*) FROM study_candidates WHERE {condition}", args).fetchone()[0]
+            rows = con.execute(f"SELECT data FROM study_candidates WHERE {condition} ORDER BY rowid LIMIT ? OFFSET ?",
+                               (*args, limit, offset))
+            return {"items": [self._decorate_study_candidate(con, json.loads(r[0])) for r in rows],
+                    "total": total, "limit": limit, "offset": offset}
+
+    def study_candidate(self, ident: str) -> dict:
+        with self.db.read() as con:
+            return self._decorate_study_candidate(con, row_data(con, "study_candidates", ident))
+
+    def add_study_candidate(self, item: dict) -> dict:
+        """Import one immutable Dot work; reruns leave later human edits intact."""
+        if item.get("status") != "pending" or item.get("revision") != 1:
+            raise ValueError("Imported study candidates must begin pending at revision 1")
+        with self.db.transaction() as con:
+            if not self._asset_exists(con, {"asset_sha": item["asset_sha"]}):
+                raise Problem(409, "待筛图片原文件不可用")
+            if item.get("compat_asset_sha") and not self._asset_exists(con, {"asset_sha": item["compat_asset_sha"]}):
+                raise Problem(409, "待筛图片兼容副本不可用")
+            existing = con.execute("SELECT data FROM study_candidates WHERE id=?", (item["id"],)).fetchone()
+            if existing:
+                saved = json.loads(existing[0])
+                if (saved["asset_sha"] != item["asset_sha"] or saved["original_file_id"] != item["original_file_id"]
+                        or saved.get("compat_asset_sha") != item.get("compat_asset_sha")
+                        or saved.get("compat_file_id", "") != item.get("compat_file_id", "")
+                        or saved["batch_id"] != item["batch_id"]):
+                    raise Problem(409, "同一编号已有不同图片或来源；拒绝覆盖")
+                return {"created": False, "item": self._decorate_study_candidate(con, saved)}
+            con.execute("INSERT INTO study_candidates(id,batch_id,asset_sha,status,data) VALUES(?,?,?,?,?)",
+                        (item["id"], item["batch_id"], item["asset_sha"], item["status"], encode(item)))
+            self.db.event(con, None, item["id"], "study_candidate.imported",
+                          {"batch_id": item["batch_id"], "asset_sha": item["asset_sha"],
+                           "original_file_id": item["original_file_id"]}, "import")
+            return {"created": True, "item": self._decorate_study_candidate(con, item)}
+
+    def edit_study_candidate(self, ident: str, data: StudyCandidateEdit) -> dict:
+        with self.db.transaction() as con:
+            item = row_data(con, "study_candidates", ident)
+            check_revision(item, data.expected_revision)
+            changes = data.model_dump(exclude_none=True, exclude={"expected_revision"})
+            if not changes:
+                return self._decorate_study_candidate(con, item)
+            if all(item.get(key) == value for key, value in changes.items()):
+                return self._decorate_study_candidate(con, item)
+            item.update(changes)
+            item.update(revision=item["revision"] + 1, updated_at=now())
+            if "status" in changes:
+                item["decision_origin"] = "human"
+            if "human_note" in changes:
+                item["note_origin"] = "human"
+            con.execute("UPDATE study_candidates SET status=?,data=? WHERE id=?",
+                        (item["status"], encode(item), ident))
+            self.db.event(con, None, ident, "study_candidate.reviewed", changes)
+            return self._decorate_study_candidate(con, item)
 
     def create_inspiration(self, data: InspirationInput) -> dict:
         with self.db.transaction() as con:

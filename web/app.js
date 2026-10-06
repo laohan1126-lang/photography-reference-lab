@@ -109,7 +109,7 @@ catch {
 } }
 
 const projectViews = ['references', 'selected', 'field', 'filtered', 'recycle', 'events'];
-const imageViews = ['references', 'selected', 'field', 'filtered', 'recycle', 'inspiration'];
+const imageViews = ['references', 'selected', 'field', 'filtered', 'recycle', 'inspiration', 'study'];
 const stages = {candidate:'先选出你喜欢的', selected:'角色参考 · 尚未制卡', waiting_analysis:'待 Agent 接手', analyzing:'Agent 分析中', analyzed:'分析完成 · 请看结论', card_draft:'资料卡草稿 · 待你检查', ready:'已确认现场卡', inspiration:'已存入我的审美库', rejected:'已淘汰 · 可以恢复', detached:'已移出当前项目 · 可以恢复'};
 function scopeKey() { return projectViews.includes(state.view) ? `${state.view}:${state.project?.id || ''}` : state.view; }
 function rememberNavigation() {
@@ -148,7 +148,7 @@ async function boot() {
     }
     state.caps=await api('/api/capabilities');
     const q=new URLSearchParams(location.hash.slice(1));
-    if ([...projectViews,'inspiration','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
+    if ([...projectViews,'inspiration','study','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
     state.activeId=q.get('ref'); state.focusId=state.activeId; state.offset=Math.max(0,Number(q.get('offset'))||0);
     state.query=(q.get('q')||'').slice(0,400); state.decision=q.get('decision')||''; state.kind=q.get('kind')||'';
     state.jobId=q.get('job')||''; state.recycled=q.get('recycled')==='1';
@@ -185,7 +185,7 @@ function renderHeader() {
         $('export-pack').onclick=()=>packDialog(); $('show-events').onclick=()=>navigate('events');
         $('archive-project').onclick=()=>archiveProject(p).catch(showError);
     } else {
-        const titles={inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','保留人工选择、审美笔记与确认总结；默认和历史权重不是已验证的个人偏好。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
+        const titles={study:['PHOTOGRAPHY STUDY QUEUE','待筛摄影参考','Dot 搜集的图片先在这里看原图、核对来源，再由你决定用途和取舍。文案线索不是已核实的图像观察。'],inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','保留人工选择、审美笔记与确认总结；默认和历史权重不是已验证的个人偏好。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
         const t=titles[state.view]||titles.inspiration;
         $('project-header').innerHTML=`<div><span class="eyebrow">${t[0]}</span><h1>${t[1]}</h1><p>${t[2]}</p></div>${state.view==='inspiration'?'<div class="header-actions"><button id="add-inspiration" class="primary">＋ 收藏独立图片</button></div>':''}`;
         if ($('add-inspiration')) $('add-inspiration').onclick=()=>importDialog();
@@ -213,9 +213,10 @@ async function refreshView() {
 
 
 async function loadReferences(fallbackIndex=0) {
-    const scope=scopeKey(), epoch=++state.epoch, global=state.view==='inspiration';
+    const scope=scopeKey(), epoch=++state.epoch, global=state.view==='inspiration', study=state.view==='study';
     const q=new URLSearchParams({limit:state.limit,offset:state.offset,q:state.query});
     if (global) q.set('recycled',state.recycled?'true':'false');
+    else if (study) { q.set('status',state.decision); q.set('topic',state.kind); }
     else {
         q.set('decision',state.decision); q.set('kind',state.kind); if(state.focusId)q.set('focus_id',state.focusId);
         if (state.jobId) q.set('job_id',state.jobId);
@@ -224,7 +225,7 @@ async function loadReferences(fallbackIndex=0) {
         if (state.view==='filtered') q.set('view_filtered','true');
         if (state.view==='recycle') q.set('view_recycle','true');
     }
-    const data=await api(global?`/api/inspirations?${q}`:`/api/projects/${state.project.id}/references?${q}`);
+    const data=await api(global?`/api/inspirations?${q}`:study?`/api/study-candidates?${q}`:`/api/projects/${state.project.id}/references?${q}`);
     if (epoch!==state.epoch||scope!==scopeKey()) return;
     state.refs=data.items; state.total=data.total; state.offset=data.offset; state.focusId=null;
     if (state.offset>=data.total&&state.offset>0) {
@@ -239,8 +240,17 @@ function mountReferenceShell() {
     const view=$('view'), key=scopeKey();
     if (view.dataset.shell===key&&$('filmstrip')) return;
     view.dataset.shell=key;
-    const global=state.view==='inspiration';
+    const global=state.view==='inspiration', study=state.view==='study';
     view.innerHTML=`<div class="toolbar"><input id="search-ref" aria-label="搜索参考" placeholder="搜索标题、作者、审美反馈" value="${esc(state.query)}"><select id="decision-filter" aria-label="选择状态" ${global||['selected','field','filtered','recycle'].includes(state.view)?'hidden':''}><option value="">全部未淘汰</option>${Object.entries(decisions).map(([k,v])=>`<option value="${k}" ${state.decision===k?'selected':''}>${v}</option>`).join('')}</select><details class="filter-more" ${global?'hidden':''}><summary>图片类型</summary><select id="kind-filter" aria-label="图片类型"><option value="">全部图片类型</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}" ${state.kind===k?'selected':''}>${v}</option>`).join('')}</select></details>${global?`<button id="toggle-recycled">${state.recycled?'回到审美库':'已移除收藏'}</button>`:''}${!global&&state.view==='references'?'<button id="finish-screening-btn" class="quiet" style="margin-left:8px;border:1px solid var(--line);">结束本轮筛选并总结</button>':''}${!global?'<button id="selection-actions" class="quiet">已选 0 · 批量/沟通板</button>':''}<span class="spacer"></span><small class="desktop-shortcut-hint">${global?'独立收藏 · 可引用到多个项目':'K 角色参考 / I 通用灵感 / M 待定 / X 淘汰'}</small></div><div id="collection-context"></div><div id="reference-empty" hidden></div><div id="reference-content" class="review-layout"><div class="image-column"><div class="stage-and-cues" id="stage-and-cues"><aside class="mobile-cues-panel" id="mobile-cues-panel" hidden></aside><div class="image-stage" id="image-stage"><span class="stage-counter" id="stage-counter"></span><button type="button" class="stage-nav stage-prev" id="stage-prev-btn" aria-label="上一张">‹</button><img id="main-image" alt=""><button type="button" class="stage-nav stage-next" id="stage-next-btn" aria-label="下一张">›</button><div class="missing-image" id="missing-image" hidden>图片文件不可用，请检查资产或重新导入原图。</div></div></div><div class="image-caption"><span id="image-caption-text"></span><button id="view-original">查看独立原图</button></div><div id="filmstrip" class="filmstrip" role="group" aria-label="参考缩略图"></div><div class="image-nav"><button id="previous-image">← 上一张</button><label class="check"><input id="auto-advance" type="checkbox" ${state.autoAdvance?'checked':''}>选择后下一张</label><button id="next-image">下一张 →</button></div><div class="pagination"><button id="previous-page">上一页</button><span id="page-count"></span><button id="next-page">下一页</button></div></div><div class="detail-panel" id="detail-panel"></div></div>`;
+    if (study) {
+        $('search-ref').placeholder='搜索编号、主题、署名、来源与 Dot 说明';
+        $('decision-filter').innerHTML='<option value="">全部待筛状态</option><option value="pending">待你判断</option><option value="priority">值得优先看</option><option value="ordinary">普通可留</option><option value="skip">可以跳过</option>';
+        view.querySelector('.filter-more summary').textContent='Dot 文案线索';
+        $('kind-filter').innerHTML='<option value="">全部文案线索</option>'+['动作','光线','构图','环境','道具'].map(x=>`<option value="${x}">${x}</option>`).join('');
+        $('kind-filter').setAttribute('aria-label','Dot 文案线索');
+        $('selection-actions')?.remove();
+        view.querySelector('.desktop-shortcut-hint').textContent='待筛 · 文案线索未做视觉复核';
+    }
     const change=async(key,element)=>{
         if (state[key]===element.value) return;
         if (!safeDiscard()) { element.value=state[key];return; }
@@ -316,7 +326,7 @@ function reconcileFilmstrip() {
         if (node.querySelector('img')) node.querySelector('img').alt=ref.title;
         const verdict=node.querySelector('.verdict');
         verdict.className='verdict '+ref.decision;
-        verdict.textContent=ref.lane==='inspiration'&&ref.decision==='keep'?'♡':({keep:'✓',maybe:'?',reject:'×'})[ref.decision]||'';
+        verdict.textContent=ref.lane==='inspiration'&&ref.decision==='keep'?'♡':({keep:'✓',maybe:'?',reject:'×',priority:'★',ordinary:'•',skip:'×'})[ref.decision]||'';
         if (strip.children[index]!==node) strip.insertBefore(node,strip.children[index]||null);
     });
     const keptAnchor=anchorId&&existing.get(anchorId);
@@ -338,10 +348,10 @@ function renderReferenceView() {
     $('reference-content').hidden=!state.refs.length;
     $('reference-empty').hidden=!!state.refs.length;
     if (!state.refs.length) {
-        const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',recycle:'没有已淘汰图片'};
+        const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',study:'还没有匹配的待筛摄影参考',recycle:'没有已淘汰图片'};
         $('reference-empty').innerHTML=empty(titles[state.view]||'没有匹配的候选','可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。');
     }
-    $('collection-context').textContent=state.jobId?'正在查看一个采集任务的发现结果；不代表已确认图片属于这个角色。':state.view==='filtered'?'这里保留被视觉预检降级的候选。过滤不是 K/I/M/X，也不会删除资产；可以人工恢复后再决定。':state.view==='recycle'?'这里同时包含 X 淘汰和从当前项目移出的引用。两者都只影响本项目；其他项目和全局收藏不会一起删除。':'';
+    $('collection-context').textContent=state.view==='study'?'这里有 Dot 主候选原图；分类线索来自 Dot 文案，待你逐图判断。讨论图与历史留存不在此处。':state.jobId?'正在查看一个采集任务的发现结果；不代表已确认图片属于这个角色。':state.view==='filtered'?'这里保留被视觉预检降级的候选。过滤不是 K/I/M/X，也不会删除资产；可以人工恢复后再决定。':state.view==='recycle'?'这里同时包含 X 淘汰和从当前项目移出的引用。两者都只影响本项目；其他项目和全局收藏不会一起删除。':'';
     if($('toggle-recycled'))$('toggle-recycled').textContent=state.recycled?'回到审美库':'已移除收藏';
     $('search-ref').value=state.query;$('decision-filter').value=state.decision;$('kind-filter').value=state.kind;
     reconcileFilmstrip();
@@ -404,7 +414,7 @@ function renderActiveReference() {
         }
     }
 
-    if(state.view==='inspiration')renderInspirationDetail(ref);else renderDetail(ref);
+    if(state.view==='inspiration')renderInspirationDetail(ref);else if(state.view==='study')renderStudyDetail(ref);else renderDetail(ref);
 }
 function moveImage(delta) {
     if(!safeDiscard())return;
@@ -958,6 +968,24 @@ async function contextDialog(ref) {
 }
 
 
+function renderStudyDetail(item) {
+    const statusNames={pending:'待你判断',priority:'值得优先看',ordinary:'普通可留',skip:'可以跳过'};
+    const restrictions=(item.source_restrictions||[]).map(x=>`<li>${esc(x)}</li>`).join('');
+    const topics=(item.suggested_topics||[]).map(x=>badge(x)).join('')||badge('尚无文案线索');
+    $('detail-panel').innerHTML=`<span class="eyebrow">STUDY QUEUE · ${esc(item.number)}</span><h2>${esc(item.title)}</h2><p class="curation-hint">${esc(statusNames[item.status]||'待你判断')} · 这张图尚未由你二筛；Dot 的说明与检索线索不代表你的认可或本次视觉核验。</p><div class="guide-section"><h3>你的筛选</h3><div class="button-row">${Object.entries(statusNames).map(([key,name])=>`<button data-study-status="${key}" class="${item.status===key?'primary':'quiet'}">${esc(name)}</button>`).join('')}</div>${area('你的判断或用途（选填）','human_note',item.human_note||'','maxlength="12000"')}<button id="save-study-note">保存个人备注</button></div><div class="guide-section"><h3>Dot 文案线索 · 待看图核对</h3><p>${topics}</p><p>${esc(item.dot_notes||'Dot 未提供判断')}</p>${item.dot_shooting_hint?`<p><strong>Dot 建议的现场借鉴：</strong>${esc(item.dot_shooting_hint)}</p>`:''}</div><details class="advanced-panel" open><summary>来源、署名与使用限制</summary><p>${esc(item.source_credit||'署名未知')}</p>${item.source_page?`<p><a href="${esc(item.source_page)}" target="_blank" rel="noopener noreferrer">打开公开出处 ↗</a></p>`:''}${item.drive_url?`<p><a href="${esc(item.drive_url)}" target="_blank" rel="noopener noreferrer">打开 Drive 归档 ↗</a></p>`:''}<p>收到的原文件：${esc(item.received_name)}${item.compat_asset_sha?'；另存有同作品 PNG 兼容副本':''}</p>${item.compat_asset_sha?`<p><a href="/api/assets/${esc(item.compat_asset_sha)}/original" target="_blank" rel="noopener noreferrer">查看兼容副本 ↗</a></p>`:''}<ul>${restrictions||'<li>来源未记录额外限制；这不等于获得公开转载许可。</li>'}</ul></details>`;
+    const note=$('detail-panel').querySelector('[name="human_note"]');
+    note.addEventListener('input',()=>state.dirty=true);
+    $('save-study-note').onclick=async()=>{
+        const updated=await api(`/api/study-candidates/${item.id}`,{method:'PATCH',body:{expected_revision:item.revision,human_note:note.value}});
+        state.dirty=false;Object.assign(item,updated);renderStudyDetail(item);toast('个人备注已保存');
+    };
+    listen('detail-panel','[data-study-status]','click',async(e,button)=>{
+        if(state.dirty){toast('请先保存个人备注');return;}
+        const updated=await api(`/api/study-candidates/${item.id}`,{method:'PATCH',body:{expected_revision:item.revision,status:button.dataset.studyStatus}});
+        Object.assign(item,updated);await loadReferences();toast('你的筛选已保存');
+    });
+}
+
 function renderInspirationDetail(item) {
     $('detail-panel').innerHTML=`<span class="eyebrow">INSPIRATION · INDEPENDENT ASSET</span><h2>${esc(item.title)}</h2><p class="curation-hint">这是独立收藏，不归属于任何角色。动作、表情、光影或电影画面都可以先留下来。</p><div class="compact-row">${item.active?`<button id="use-inspiration" class="primary" ${!item.file_available?'disabled':''}>引用到拍摄项目</button><button id="remove-inspiration" class="quiet">移出审美库</button>`:'<button id="restore-inspiration" class="primary">恢复收藏</button>'}</div>${item.asset_sha?`<section class="export-share-box"><div class="button-row"><button id="copy-image-btn" class="primary" title="将原画复制到系统剪贴板，打开微信按 Ctrl+V 即可直接发送给模特">📋 复制图片发微信 (Ctrl+V)</button><button id="reveal-file-btn" class="quiet" title="在 Windows 资源管理器中打开此文件夹">📂 打开文件位置</button></div><div id="reveal-status-hint" class="reveal-status-hint" hidden></div></section>`:''}<section class="guide-section"><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',item.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(item.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form></section><section class="guide-section"><h3>已被这些项目选作参考</h3>${item.used_in_projects.map(p=>`<button data-use-project="${esc(p.project_id)}" data-reference="${esc(p.reference_id)}">${esc(p.character)}</button>`).join('')||'<p>还没有角色引用它，也可以一直独立收藏。</p>'}</section><details class="advanced-panel"><summary>来源与收藏上下文</summary>${item.source.page_url?`<a href="${esc(item.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:'<p>未记录原发布页</p>'}<button id="inspiration-source">修改标题与来源</button><button id="context-reference">发现上下文</button>${item.context_notes.map(n=>`<p>${esc(state.projects.find(p=>p.id===n.project_id)?.character||'历史项目')}：${esc(n.preference)} ${esc(n.borrow.join('、'))}</p>`).join('')}</details>`;
     if($('copy-image-btn'))$('copy-image-btn').onclick=()=>copyImageToClipboard(item);
@@ -1305,7 +1333,7 @@ document.addEventListener('keydown',event=>{
     if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)||document.activeElement?.isContentEditable)return;
     if(!imageViews.includes(state.view))return;
     const key=event.key.toLowerCase();
-    if(['k','i','m','x'].includes(key)&&state.view!=='inspiration'&&state.view!=='recycle'){
+    if(['k','i','m','x'].includes(key)&&state.view!=='inspiration'&&state.view!=='study'&&state.view!=='recycle'){
         event.preventDefault();if(!event.repeat)triggerDecision({k:'keep',i:'inspiration',m:'maybe',x:'reject'}[key], event.shiftKey);
     }else if(event.key==='ArrowRight'){event.preventDefault();moveImage(1);}
     else if(event.key==='ArrowLeft'){event.preventDefault();moveImage(-1);}

@@ -11,7 +11,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from .config import Settings
 from .db import now
 
-FORMATS = {"JPEG": ("jpg", "image/jpeg"), "PNG": ("png", "image/png"), "WEBP": ("webp", "image/webp")}
+FORMATS = {"JPEG": ("jpg", "image/jpeg"), "PNG": ("png", "image/png"), "WEBP": ("webp", "image/webp"), "AVIF": ("avif", "image/avif")}
 
 
 def atomic_write(path: Path, data: bytes) -> None:
@@ -41,7 +41,7 @@ class AssetStore:
         if variant not in {"original", "preview", "thumb"}:
             raise ValueError("Unknown image variant")
         suffix = metadata["ext"] if variant == "original" else "jpg"
-        if suffix not in {"jpg", "png", "webp"}:
+        if suffix not in {"jpg", "png", "webp", "avif"}:
             raise ValueError("Invalid image extension")
         return self.root / sha[:2] / sha / f"{variant}.{suffix}"
 
@@ -54,7 +54,7 @@ class AssetStore:
                 with Image.open(io.BytesIO(content)) as image:
                     fmt = image.format
                     if fmt not in FORMATS or getattr(image, "n_frames", 1) != 1:
-                        raise ValueError("Only single-frame JPEG, PNG and WebP images are supported")
+                        raise ValueError("Only single-frame JPEG, PNG, WebP and AVIF images are supported")
                     if image.width * image.height > self.settings.max_pixels:
                         raise ValueError("Image exceeds pixel safety limit")
                     image.verify()

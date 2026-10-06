@@ -278,6 +278,12 @@ class InspirationEdit(Strict):
     active: bool | None = None
 
 
+class StudyCandidateEdit(Strict):
+    expected_revision: int = Field(ge=1)
+    status: Literal["pending", "priority", "ordinary", "skip"] | None = None
+    human_note: Text | None = None
+
+
 class InspirationUse(Strict):
     expected_revision: int = Field(ge=1)
     project_id: Short

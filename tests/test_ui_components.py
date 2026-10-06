@@ -15,8 +15,27 @@ from playwright.sync_api import expect
 from browser_assertions import wait_until
 from conftest import add_reference, card_data, review_data, image_bytes
 from ref_lab.models import ProjectInput, JobInput, AnalysisResult
+from tools.import_dot_drive_batch import candidate_data
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, client, library):
+    asset = library.ingest_asset(image_bytes(83))
+    source = {"编号": "P366", "Drive文件ID": "drive-fixture-123", "图片文件名": "P366.jpg",
+              "主题": "合成测试摄影参考", "公开出处": "https://example.org/photo",
+              "助手判断": "手位与背景线条供核对", "现场借鉴": "轻扶道具",
+              "用户反馈": {"状态": "尚无对应用户反馈"}, "作者与来源使用限制": ["测试用"]}
+    library.add_study_candidate(candidate_data(source, asset["id"], None))
+    page = component_factory("view=study")
+    expect(page.locator("#project-header h1")).to_have_text("待筛摄影参考")
+    expect(page.locator("#main-image")).to_be_visible()
+    expect(page.locator("#detail-panel")).to_contain_text("Dot 文案线索")
+    expect(page.locator("#detail-panel")).to_contain_text("尚未由你二筛")
+    page.locator('[data-study-status="priority"]').click()
+    expect(page.locator("#detail-panel")).to_contain_text("值得优先看")
+    assert library.study_candidate("dot:P366")["status"] == "priority"
+    assert library.inspirations()["total"] == 0
 
 
 @pytest.fixture

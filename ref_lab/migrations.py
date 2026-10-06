@@ -103,3 +103,21 @@ def upgrade_v3(con: sqlite3.Connection) -> dict:
         "screening_sessions": con.execute("SELECT COUNT(*) FROM screening_sessions").fetchone()[0],
         "aesthetic_profiles": con.execute("SELECT COUNT(*) FROM aesthetic_profiles").fetchone()[0],
     }
+
+
+V4_SCHEMA = """
+CREATE TABLE IF NOT EXISTS study_candidates (
+ id TEXT PRIMARY KEY, batch_id TEXT NOT NULL,
+ asset_sha TEXT NOT NULL REFERENCES assets(id), status TEXT NOT NULL,
+ data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS study_batch_status ON study_candidates(batch_id,status);
+CREATE INDEX IF NOT EXISTS study_asset ON study_candidates(asset_sha);
+"""
+
+
+def upgrade_v4(con: sqlite3.Connection) -> dict:
+    for statement in V4_SCHEMA.split(";"):
+        if statement.strip():
+            con.execute(statement)
+    return {"study_candidates": con.execute("SELECT COUNT(*) FROM study_candidates").fetchone()[0]}
