@@ -1,6 +1,6 @@
 """Read-only browser check of the two running local photography workspaces.
 
-Only the learning prototype's tab-local state is edited. No reference-library
+Only the learning prototype's tab-local recent history is edited. No reference-library
 decisions are submitted. Screenshots remain under the ignored .local directory.
 """
 from __future__ import annotations
@@ -32,13 +32,23 @@ def verify(learning_url, reference_url, output):
                 errors, writes = [], []
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.on('request', lambda request: writes.append(request.url) if request.method not in {'GET', 'HEAD', 'OPTIONS'} else None)
-                page.goto(learning_url)
-                page.locator('#gallery .image-open').first.wait_for()
-                page.locator('[data-topic="光影"]').click()
-                page.locator('#gallery .image-open').first.click()
-                page.locator('#detail-save').click()
-                page.locator('#study-note').fill('导航回归：返回后继续观察。')
-                return_url, title = page.url, page.locator('#detail-title').inner_text()
+                page.goto(learning_url + '#map')
+                expect(page.locator('#topic-grid a[data-topic]')).to_have_count(10)
+                page.locator('#topic-grid img').evaluate_all('(images)=>Promise.all(images.map(i=>i.decode()))')
+                page.screenshot(path=str(output / f'map-{width}.png'), full_page=True)
+                page.locator('#topic-grid a[data-topic="perspective"]').click()
+                page.locator('#case-gallery img').evaluate_all('(images)=>Promise.all(images.map(i=>i.decode()))')
+                return_url, title = page.url, page.locator('#topic-title').inner_text()
+                page.screenshot(path=str(output / f'topic-{width}.png'))
+                page.screenshot(path=str(output / f'topic-full-{width}.png'), full_page=True)
+                opener = page.locator('#case-gallery .case-open[data-case="0"]')
+                opener.click()
+                expect(page.locator('#case-viewer')).to_be_visible()
+                page.locator('#viewer-image').evaluate('(i)=>i.decode()')
+                page.screenshot(path=str(output / f'case-{width}.png'))
+                page.keyboard.press('Escape')
+                expect(page.locator('#case-viewer')).not_to_be_visible()
+                assert opener.evaluate('(element)=>element===document.activeElement')
                 for cycle in range(2):
                     page.locator('#reference-link').click()
                     expect(page.locator('#application')).to_be_visible()
@@ -55,18 +65,20 @@ def verify(learning_url, reference_url, output):
                         page.screenshot(path=str(output / f'reference-nav-{width}.png'))
                     link.click()
                     expect(page).to_have_url(return_url)
-                    expect(page.locator('#detail-title')).to_have_text(title)
-                    expect(page.locator('#detail-save')).to_have_attribute('aria-pressed', 'true')
-                    expect(page.locator('#study-note')).to_have_value('导航回归：返回后继续观察。')
+                    expect(page.locator('#topic-title')).to_have_text(title)
+                    expect(page.locator('#research-note')).to_contain_text('低机位不等于必须让相机剧烈上仰')
                     assert len(context.pages) == 1
                     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-                page.locator('#back-to-wall').click()
-                expect(page.locator('[data-topic="光影"]')).to_have_attribute('aria-pressed', 'true')
+                page.locator('#back-to-map').click()
+                expect(page.locator('#topic-grid a[data-topic]')).to_have_count(10)
+                page.locator('#recent-toggle').click()
+                expect(page.locator('#recent-panel [data-recent="perspective"]')).to_be_visible()
+                page.locator('#recent-toggle').click()
                 page.screenshot(path=str(output / f'learning-return-{width}.png'))
                 assert not errors, errors
                 assert not writes, writes
                 results.append({'width': width, 'roundtrips': 2, 'tabs': len(context.pages),
-                                'route_notes_saved_retained': True, 'page_errors': errors,
+                                'topic_route_and_recent_retained': True, 'page_errors': errors,
                                 'business_write_requests': writes})
                 context.close()
         finally:

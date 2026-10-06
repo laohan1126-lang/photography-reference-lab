@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import socket
 import threading
@@ -89,102 +90,153 @@ def prototype_site(prototype):
 def open_prototype(page,url):
     assert page.request.post(url+'/api/session',data={'token':TOKEN}).status == 200
     page.goto(url+'/learning')
-    expect(page.locator('#gallery .photo-card')).to_have_count(12)
+    expect(page.locator('#map-view')).to_be_visible()
+    expect(page.locator("#topic-grid a[data-topic]")).to_have_count(10)
 
 
-def test_save_notes_practice_refresh_and_source(prototype_site,browser_page):
-    url,app,_=prototype_site
+def hash_params(page):
+    return page.evaluate("() => Object.fromEntries(new URLSearchParams(location.hash.slice(1)))")
+
+
+def test_map_has_ten_topics_search_filters_and_empty_state(prototype_site,browser_page):
+    url,_,_=prototype_site
     page,_=browser_page
     open_prototype(page,url)
-    writes=[]
-    page.on('request',lambda r:writes.append(r.url) if r.method not in {'GET','HEAD'} else None)
-    page.locator('#gallery [data-open="P1"]').first.click()
-    page.locator('#detail-save').click()
-    page.locator('#study-note').fill('留意边缘的明暗。<img src=x onerror=alert(1)>')
-    page.locator('[data-detail-tab="source"]').click()
-    expect(page.locator('#detail-panel')).to_contain_text('合成像素')
-    page.locator('[data-detail-tab="notes"]').click()
-    expect(page.locator('#study-note')).to_have_value('留意边缘的明暗。<img src=x onerror=alert(1)>')
-    page.locator('#add-practice').click()
-    page.reload()
-    expect(page.locator('#detail-save')).to_have_attribute('aria-pressed','true')
-    expect(page.locator('#study-note')).to_have_value('留意边缘的明暗。<img src=x onerror=alert(1)>')
-    page.locator('#enlarge-photo').click()
-    expect(page.locator('#viewer')).to_be_visible()
+    expect(page.locator("#topic-grid a[data-topic='perspective']")).to_contain_text('机位、焦段与透视')
+
+    search=page.locator('#search')
+    search.fill('透视')
+    expect(page.locator('#map-view')).to_be_visible()
+    expect(page.locator("#topic-grid a[data-topic]")).to_have_count(1)
+    expect(page.locator("#topic-grid a[data-topic='perspective']")).to_be_visible()
+    assert hash_params(page).get('q') == '透视'
+
+    search.fill('没有这个专题')
+    expect(page.locator("#topic-grid a[data-topic]")).to_have_count(0)
+    expect(page.locator('#empty-state')).to_contain_text('没有找到')
+
+
+def test_empty_media_still_allows_topic_learning(prototype,prototype_site,browser_page):
+    _,_,samples=prototype
+    (samples/'manifest.json').unlink()
+    url,_,_=prototype_site
+    page,_=browser_page
+    open_prototype(page,url)
+    page.locator("#topic-grid a[data-topic='perspective']").click()
+    expect(page.locator('#topic-view')).to_be_visible()
+    expect(page.locator('#topic-title')).to_contain_text('机位、焦段与透视')
+
+
+def test_perspective_research_note_and_shared_topic_template(prototype_site,browser_page):
+    url,_,_=prototype_site
+    page,_=browser_page
+    media_requests=[]
+    page.on('request',lambda r:media_requests.append(r.method) if '/api/learning-preview' in r.url else None)
+    open_prototype(page,url)
+    page.locator("#topic-grid a[data-topic='perspective']").click()
+    expect(page.locator('#topic-view')).to_be_visible()
+    expect(page.locator('#topic-title')).to_contain_text('机位、焦段与透视')
+    note=page.locator('#research-note')
+    expect(note.locator("[data-section='question']")).to_contain_text('为什么低机位并不天然产生威严感')
+    rules=note.locator("[data-section='rules']")
+    for rule in (
+        '相机高度与镜头俯仰是两个变量',
+        '广角近距离会强化前后距离差',
+        '仰拍是否产生气势，与人物姿态、画面垂直线、焦段和主体占比共同相关',
+        '低机位不等于必须让相机剧烈上仰',
+    ):
+        expect(rules).to_contain_text(rule)
+    for section in ('problems','conclusion','next'):
+        expect(note.locator(f"[data-section='{section}']")).not_to_be_empty()
+
+    gallery=page.locator('#case-gallery')
+    case_count=gallery.locator('.case-open').count()
+    assert 1 <= case_count <= 9, case_count
+    gallery.locator('img').evaluate_all('imgs => Promise.all(imgs.map(i => {i.loading="eager"; return i.decode();}))')
+    ratios=gallery.locator('img').evaluate_all('imgs => imgs.map(i => i.naturalWidth / i.naturalHeight)')
+    assert len({round(ratio,2) for ratio in ratios if ratio}) > 1, ratios
+    assert gallery.locator('img').evaluate_all('imgs => imgs.every(i => Math.abs(i.getBoundingClientRect().width / i.getBoundingClientRect().height - i.naturalWidth / i.naturalHeight) < .02)')
+
+    for topic in ('composition','pose','props','light','scale','expression','direction','post','motion'):
+        page.locator('#back-to-map').click()
+        page.locator(f"#topic-grid a[data-topic='{topic}']").click()
+        expect(page.locator('#topic-view')).to_be_visible()
+        expect(page.locator('#research-note')).to_contain_text('示例')
+        assert hash_params(page).get('topic') == topic
+    assert 'GET' in media_requests, media_requests
+    assert not [method for method in media_requests if method not in {'GET','HEAD'}], media_requests
+
+
+def test_case_viewer_keyboard_navigation_focus_return_and_route_history(prototype_site,browser_page):
+    url,_,_=prototype_site
+    page,_=browser_page
+    open_prototype(page,url)
+    page.locator("#topic-grid a[data-topic='perspective']").click()
+    opener=page.locator("#case-gallery .case-open[data-case='0']")
+    page.mouse.move(0,0)
+    expect(opener.locator('.case-overlay')).to_have_css('opacity','0')
+    opener.hover()
+    expect(opener.locator('.case-overlay')).to_have_css('opacity','1')
+    page.mouse.move(0,0)
+    opener.focus()
+    # :focus-visible follows keyboard modality, not a programmatic focus after a click.
+    page.keyboard.press('Tab')
+    page.keyboard.press('Shift+Tab')
+    expect(opener).to_be_focused()
+    expect(opener.locator('.case-overlay')).to_have_css('opacity','1')
+    expect(opener.locator('.case-overlay')).to_contain_text('示例')
+    opener.click()
+    dialog=page.locator('#case-viewer')
+    expect(dialog).to_be_visible()
+    expect(page.locator('#viewer-image')).to_be_visible()
+    first_src=page.locator('#viewer-image').get_attribute('src')
+    expect(page.locator('#viewer-title')).not_to_be_empty()
+    expect(page.locator('#viewer-note')).not_to_be_empty()
+    expect(page.locator('#viewer-source')).not_to_be_empty()
+    page.locator('#viewer-next').click()
+    assert page.locator('#viewer-image').get_attribute('src') != first_src
+    page.locator('#viewer-prev').click()
+    assert page.locator('#viewer-image').get_attribute('src') == first_src
     page.keyboard.press('Escape')
-    expect(page.locator('#viewer')).not_to_be_visible()
-    page.locator('#back-to-wall').click()
-    page.locator('.view-tabs [data-view="practice"]').click()
-    expect(page.locator('#gallery .photo-card')).to_have_count(1)
-    page.locator('[data-complete="P1"]').check()
-    expect(page.locator('#gallery')).to_contain_text('这次练过了')
+    expect(dialog).not_to_be_visible()
+    assert opener.evaluate('(e) => document.activeElement === e')
+    assert hash_params(page).get('topic') == 'perspective'
+    assert 'case' not in hash_params(page)
+
+    page.locator("#case-gallery .case-open[data-case='0']").click()
+    assert hash_params(page).get('case') == '0'
+    page.go_back()
+    expect(page.locator('#topic-view')).to_be_visible()
+    page.go_back()
+    expect(page.locator('#map-view')).to_be_visible()
+    expect(page.locator("#topic-grid a[data-topic='perspective']")).to_be_focused()
+
+
+def test_recent_learning_refresh_and_deep_link_priority(prototype_site,browser_page):
+    url,_,_=prototype_site
+    page,_=browser_page
+    open_prototype(page,url)
+    expect(page.locator('#recent-panel [data-recent]')).to_have_count(0)
+    page.locator('#recent-toggle').click()
+    expect(page.locator('#recent-panel')).to_contain_text('还没有最近学习')
+    page.locator('#recent-toggle').click()
+    page.locator("#topic-grid a[data-topic='perspective']").click()
+    assert hash_params(page).get('topic') == 'perspective'
     page.reload()
-    expect(page.locator('[data-complete="P1"]')).to_be_checked()
-    assert not writes, writes
-    assert page.request.get(url+'/api/projects').json() == []
-    assert page.request.get(url+'/api/inspirations').json()['total'] == 0
-
-
-def test_filters_clear_keep_scope_skip_link_and_browser_back(prototype_site,browser_page):
-    url,_,_=prototype_site
-    page,_=browser_page
-    open_prototype(page,url)
-    page.locator('#gallery [data-save="P1"]').click()
-    page.locator('.view-tabs [data-view="saved"]').click()
-    page.locator('#search').fill('nothing-matches')
-    expect(page.locator('#empty-action')).to_have_text('清除筛选')
-    page.locator('#empty-action').click()
-    expect(page.locator('.view-tabs [data-view="saved"]')).to_have_class('active')
-    expect(page.locator('#gallery .photo-card')).to_have_count(1)
-    for detail in (False,True):
-        if detail: page.locator('#gallery [data-open="P1"]').first.click()
-        before=page.url
-        page.locator('.skip-link').focus()
-        page.keyboard.press('Enter')
-        assert page.url == before
-        assert page.evaluate('document.activeElement.id') == 'main'
-    page.locator('#back-to-wall').click()
-    page.locator('.view-tabs [data-view="discover"]').click()
-    page.locator('[data-topic="光影"]').click()
-    expect(page.locator('#gallery .photo-card')).to_have_count(6)
-    page.locator('#gallery [data-open="P1"]').first.click()
-    page.keyboard.press('ArrowRight')
-    expect(page.locator('#detail-title')).to_have_text('合成参考 3')
-    page.go_back()
-    expect(page.locator('#detail-title')).to_have_text('合成参考 1')
-    page.go_back()
-    expect(page.locator('#browse-view')).to_be_visible()
-    expect(page.locator('#gallery .photo-card')).to_have_count(6)
-
-
-def test_mobile_topics_empty_saved_and_layout(prototype_site,browser_page):
-    url,_,_=prototype_site
-    page,_=browser_page
-    open_prototype(page,url)
-    page.set_viewport_size({'width':390,'height':844})
-    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-    assert page.locator('#gallery').evaluate('e=>getComputedStyle(e).columnCount') == '2'
-    page.locator('.rail [data-view="saved"]').click()
-    expect(page.locator('#empty-title')).to_have_text('喜欢的画面，先留在这里')
-    page.locator('#empty-action').click()
-    page.locator('.rail [data-view="topics"]').click()
-    expect(page.locator('.topic-tile')).to_have_count(5)
-    page.locator('.topic-tile[data-topic="构图"]').click()
-    expect(page.locator('#gallery .photo-card')).to_have_count(6)
-    page.locator('#gallery .image-open').first.click()
-    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-    page.locator('#study-note').fill('手机端观察')
-    page.locator('#add-practice').click()
-    page.locator('.rail [data-view="practice"]').click()
-    page.locator('#search').fill('nothing-matches')
-    expect(page.locator('#empty-action')).to_have_text('清除筛选')
-    page.locator('#empty-action').click()
-    expect(page.locator('.view-tabs [data-view="practice"]')).to_have_class('active')
-    expect(page.locator('#gallery .photo-card')).to_have_count(1)
-    page.locator('#prototype-info').click()
-    expect(page.locator('#info-dialog')).to_be_visible()
-    page.locator('#info-done').click()
-    expect(page.locator('#info-dialog')).not_to_be_visible()
+    expect(page.locator('#topic-view')).to_be_visible()
+    expect(page.locator('#topic-title')).to_contain_text('机位、焦段与透视')
+    page.locator('#back-to-map').click()
+    page.locator('#recent-toggle').click()
+    recent=page.locator("#recent-panel [data-recent='perspective']")
+    expect(recent).to_be_visible()
+    recent.click()
+    expect(page.locator('#topic-view')).to_be_visible()
+    page.goto(url+'/learning#topic=composition')
+    expect(page.locator('#topic-title')).to_contain_text('构图与画面组织')
+    page.goto(url+'/learning#q=透视')
+    expect(page.locator('#map-view')).to_be_visible()
+    expect(page.locator('#search')).to_have_value('透视')
+    expect(page.locator("#topic-grid a[data-topic='perspective']")).to_be_visible()
 
 
 @pytest.mark.parametrize('width', [1440, 390])
@@ -193,27 +245,24 @@ def test_workspace_switch_roundtrip_keeps_learning_place(prototype_site, browser
     page, _ = browser_page
     page.set_viewport_size({'width': width, 'height': 900})
     open_prototype(page, url)
-    page.locator('[data-topic="光影"]').click()
-    page.locator('#gallery [data-open="P1"]').first.click()
-    page.locator('#detail-save').click()
-    page.locator('#study-note').fill('切换工作区后继续观察')
-    learning_url = page.url
+    page.locator("#topic-grid a[data-topic='perspective']").click()
+    expect(page.locator('#topic-view')).to_be_visible()
     page.locator('#reference-link').click()
     expect(page.locator('#application')).to_be_visible()
     learning_link = page.get_by_role('link', name='摄影学习', exact=False)
     expect(learning_link).to_be_visible()
-    assert learning_link.get_attribute('target') != '_blank'
+    assert learning_link.get_attribute('target') in (None, '')
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     page.reload()
     page.get_by_role('link', name='摄影学习', exact=False).click()
-    expect(page).to_have_url(learning_url)
-    expect(page.locator('#detail-title')).to_have_text('合成参考 1')
-    expect(page.locator('#detail-save')).to_have_attribute('aria-pressed', 'true')
-    expect(page.locator('#study-note')).to_have_value('切换工作区后继续观察')
+    expect(page).to_have_url(re.compile(r'/learning(?:#.*)?$'))
+    expect(page.locator('#topic-view')).to_be_visible()
+    expect(page.locator('#topic-title')).to_contain_text('机位、焦段与透视')
+    assert hash_params(page).get('topic') == 'perspective'
     assert len(page.context.pages) == 1
-    page.locator('#back-to-wall').click()
-    expect(page.locator('#gallery .photo-card')).to_have_count(6)
-    # A deliberate deep link takes precedence over the remembered location.
-    page.goto(url + '/learning#view=saved')
-    expect(page.locator('.view-tabs [data-view="saved"]')).to_have_class('active')
-    expect(page.locator('#gallery .photo-card')).to_have_count(1)
+    writes=[]
+    page.on('request',lambda r:writes.append(f'{r.method} {r.url}') if r.method not in {'GET','HEAD'} else None)
+    page.locator('#back-to-map').click()
+    expect(page.locator('#map-view')).to_be_visible()
+    assert writes == [], writes
+    assert len(page.context.pages) == 1

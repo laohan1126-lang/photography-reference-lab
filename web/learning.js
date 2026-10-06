@@ -2,306 +2,299 @@
 (() => {
     const $ = id => document.getElementById(id);
     const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const topics = ['全部', '光影', '构图', '姿态', '色彩', '场景'];
-    const descriptions = {
-        光影: ['沿着光的方向看', '画面里最亮的地方在哪里？试着顺着明暗的边界，观察视线怎样被带到人物身上。'],
-        构图: ['先看画面，再看人物', '把目光从主体移到画面边缘。前景、线条与留白，分别给人物留出了怎样的空间？'],
-        姿态: ['从一个小动作开始', '留意手的落点、肩的方向和身体重心。选一个自己想尝试的小动作，不必复刻整张照片。'],
-        色彩: ['找到画面的颜色关系', '先找面积最大的颜色，再找最吸引注意的小色块。它们靠相近的色调连接，还是用反差相互突出？'],
-        场景: ['让环境参与画面', '想一想，如果换掉背景，这张照片的感觉会改变多少？环境是在交代故事，还是在组织构图？']
-    };
-    const views = {
-        discover: ['把喜欢的画面，看懂一点。', '从一张照片出发，慢慢建立自己的拍摄语言。'],
-        topics: ['换一个角度，重新看照片。', '从光影到场景，带着一个问题开始观察。'],
-        saved: ['留住想反复看的画面。', '你的原型收藏，每一张都可以成为下一次观察的起点。'],
-        practice: ['把看见的，试着拍出来。', '一次只练一个小地方，让观察慢慢变成自己的经验。']
-    };
-    const key = 'reference-lab.learning-prototype.v1';
-    let demo = [], icons = {}, storageAvailable = true, toastTimer, searchTimer;
-    let state = {view:'discover', topic:'全部', query:'', spacious:false, active:null, tab:'notes', wallScroll:0, returnFocus:null};
-    let saved = new Set(), practice = {}, notes = {}, lastRoute = '';
+    // Topic content and case annotations are explicit UI examples, not image observations.
+    const topics = [
+        {id:'composition', title:'构图与画面组织', description:'先看画面的秩序，再看人物的位置。', hint:'线条、留白与层次，怎样引导视线？', cover:['P97'], shape:'wide', cases:['P97','P317','P339','P107'],
+            question:'人物之外的空间，怎样成为画面的一部分？', rules:['先找画面里最吸引视线的位置。','比较人物、前景和背景的关系。','试着保留一种清晰的画面秩序。'], problem:'拍摄时只盯着人物，忘记检查画面边缘。', conclusion:'先整理背景与边缘，再决定把人物放在哪里。', next:'在同一个场景里，分别尝试居中、偏置与大量留白。'},
+        {id:'perspective', title:'机位、焦段与透视', description:'把相机放在哪里，比“蹲得多低”更重要。', hint:'把高度、俯仰与距离，分开看。', cover:['P338','P332'], shape:'tall duo', cases:['P338','P94','P104','P97','P332','P336','P359','P339','P92'],
+            question:'为什么低机位并不天然产生威严感，有时反而会让人物出现头大身小、画面倾斜和比例怪异？',
+            rules:['相机高度与镜头俯仰是两个变量。','广角近距离会强化前后距离差。','仰拍是否产生气势，与人物姿态、画面垂直线、焦段和主体占比共同相关。','低机位不等于必须让相机剧烈上仰。'],
+            problem:'想拍出气势时，只顾着降低机位；靠近人物后，没有重新检查脸、身体与道具的前后关系。',
+            conclusion:'先确定人物比例与姿态，再分别调整相机高度、距离和俯仰。',
+            next:'固定姿态，分别拍平视、低机位微仰、低机位明显仰拍；再换远一点的位置，比较人物比例与背景垂直线。'},
+        {id:'pose', title:'人物姿态与重心', description:'让身体有落点，让动作有方向。', hint:'从肩、手与支撑点开始观察。', cover:['P359','P104'], shape:'square duo', cases:['P359','P104','P364','P348'],
+            question:'同样的姿势，为什么有时自然，有时像在用力摆拍？', rules:['先观察支撑身体的落点。','分开看肩、胯与视线的方向。','让手的动作服务于人物正在做的事。'], problem:'只模仿手的位置，没有交代身体重心。', conclusion:'从稳定的站姿或坐姿开始，再添加一个小动作。', next:'保持机位，让人物分别改变支撑腿、肩向与视线，比较差异。'},
+        {id:'props', title:'人物与武器 / 道具空间', description:'道具不是附件，它也参与画面的结构。', hint:'看清手、道具与脸的前后关系。', cover:['P364'], shape:'tall', cases:['P338','P332','P364','P104','P336'],
+            question:'怎样让道具进入画面，又不遮挡人物的表达？', rules:['检查道具和身体的轮廓是否重叠。','观察道具指向哪里。','比较靠近镜头和贴近身体的不同关系。'], problem:'只确认道具入镜，没有留意它与脸部的重叠。', conclusion:'先理清空间关系，再强调道具的存在感。', next:'固定身体姿态，只改变道具方向与前后距离，拍三张对照。'},
+        {id:'light', title:'光线与人物塑形', description:'沿着明暗的边界，读出人物的体积。', hint:'光落在哪里，视线就去哪里。', cover:['P291','P360'], shape:'square duo', cases:['P291','P360','P327','P92'],
+            question:'光已经够亮了，人物为什么还是显得平？', rules:['观察主光从哪一个方向进入。','同时看亮部的形状与阴影的落点。','比较人物与背景的明暗关系。'], problem:'关注亮度多于光的方向与层次。', conclusion:'先找能描述脸部和身体的光，再决定曝光。', next:'在同一扇窗边缓慢转身，比较三个朝向的光影。'},
+        {id:'scale', title:'景别与人物比例', description:'靠近或退后，都在改变故事的重点。', hint:'人物在画面里，应该占多大？', cover:['P336','P317'], shape:'square stack', cases:['P336','P97','P317','P339','P332'],
+            question:'环境值得保留多少，人物才不会被淹没？', rules:['先决定此刻最想让人看见什么。','比较全身、半身和近景的叙述重点。','留意头顶、脚下与画面边缘的空间。'], problem:'每张照片都用相近的主体占比。', conclusion:'让景别回应内容，而不是习惯。', next:'在同一个场景完成环境、全身、半身和细节四张照片。'},
+        {id:'expression', title:'角色表达与气势', description:'让眼神、姿态与环境说同一句话。', hint:'画面里的情绪，是否指向同一个方向？', cover:['P92'], shape:'tall', cases:['P92','P338','P291','P327'],
+            question:'服装与道具都到位后，角色感还来自哪里？', rules:['先说清这张画面里的情绪。','检查视线、肩向与手部动作是否一致。','把背景也纳入角色的情境。'], problem:'动作很多，但情绪并不明确。', conclusion:'先确定一个意图，再让画面元素支持它。', next:'只改变视线与呼吸节奏，尝试安静、警觉、坚定三种表达。'},
+        {id:'direction', title:'现场执行与调度', description:'把脑海里的画面，变成清楚的现场沟通。', hint:'一次只给一个可以执行的动作。', cover:['P363','P94'], shape:'wide stack', cases:['P363','P94','P348','P359'],
+            question:'怎样让对方听懂指令，又保留自然的反应？', rules:['先说明站位与动作的起点。','用具体方向替代模糊的形容词。','每次调整一个地方，并观察反馈。'], problem:'连续给出太多要求，让动作变得僵硬。', conclusion:'减少同时变化的条件，让沟通有节奏。', next:'用三条短指令完成一次站位、视线和手部动作的调整。'},
+        {id:'post', title:'后期与最终呈现', description:'让处理后的画面，仍然服务于最初的意图。', hint:'保留什么，比加上什么更重要。', cover:['P327'], shape:'wide', cases:['P327','P336','P97','P107'],
+            question:'怎样判断一次调整是在强化表达，还是在分散注意？', rules:['先确定希望保留的画面感受。','比较调整前后的视线落点。','在一组照片里检查色彩与明暗关系。'], problem:'对局部反复调整，却忘记回看整体。', conclusion:'每一步处理都应有一个明确的视觉目的。', next:'先写下一句画面意图，再比较两种克制的处理方向。'},
+        {id:'motion', title:'运镜与动态画面', description:'让人物的动作和相机的移动发生关系。', hint:'从动作开始之前，看到动作结束之后。', cover:['P348','P94'], shape:'square duo', cases:['P94','P348','P92','P104'],
+            question:'相机该跟着人物走，还是留在原地等动作发生？', rules:['先观察动作的起点与终点。','分别考虑人物移动和相机移动。','留意进入、经过和离开画面的节奏。'], problem:'追着动作走，却没有预留结束的位置。', conclusion:'先设计一个完整的小动作，再决定相机的路线。', next:'用固定机位和缓慢跟随各拍一次相同动作，比较叙述感。'}
+    ];
+    const byTopic = id => topics.find(topic => topic.id === id);
+    const storageKey = 'reference-lab.learning-map.v2';
+    let assets = [], icons = {}, recent = [], lastRoute = '', activeTopic = null, activeCase = null;
+    let returnTarget = null, returnTopicId = '', mapScroll = 0, searchTimer, ready = false;
+    let ignoreDialogClose = false, initialRoute = true, openedFromTopic = false;
     try {
-        const raw = JSON.parse(sessionStorage.getItem(key) || '{}');
-        saved = new Set(Array.isArray(raw.saved) ? raw.saved.filter(x => typeof x === 'string') : []);
-        practice = raw.practice && typeof raw.practice === 'object' && !Array.isArray(raw.practice) ? raw.practice : {};
-        notes = raw.notes && typeof raw.notes === 'object' && !Array.isArray(raw.notes) ? raw.notes : {};
-        lastRoute = typeof raw.route === 'string' && raw.route.startsWith('#') && raw.route.length < 4096 ? raw.route : '';
-    } catch { storageAvailable = false; }
-
-    function persist() {
-        try { sessionStorage.setItem(key, JSON.stringify({saved:[...saved], practice, notes, route:location.hash})); storageAvailable = true; }
-        catch { storageAvailable = false; }
-    }
-    function icon(name) { return `<span class="icon" aria-hidden="true">${icons[name] || ''}</span>`; }
+        const raw = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+        recent = Array.isArray(raw.recent) ? [...new Set(raw.recent.filter(id => byTopic(id)))].slice(0,5) : [];
+        lastRoute = typeof raw.route === 'string' && raw.route.startsWith('#') && raw.route.length < 1000 ? raw.route : '';
+    } catch { /* The two pages also work when tab storage is unavailable. */ }
+    const icon = name => '<span class="icon" aria-hidden="true">' + (icons[name] || '') + '</span>';
     function hydrate(root = document) {
         root.querySelectorAll('i[data-icon]').forEach(node => { node.outerHTML = icon(node.dataset.icon); });
     }
-    function toast(message) {
-        $('toast').textContent = message;
-        $('toast').hidden = false;
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => $('toast').hidden = true, 2800);
+    function remember() {
+        try { sessionStorage.setItem(storageKey, JSON.stringify({recent, route:location.hash})); }
+        catch { /* No server writes or fake persistent-save confirmation. */ }
     }
-    function safeLink(url) {
-        try { const parsed = new URL(url); return ['http:','https:'].includes(parsed.protocol) ? parsed.href : ''; }
+    function safeSource(value) {
+        try { const url = new URL(value); return ['http:','https:'].includes(url.protocol) ? url.href : ''; }
         catch { return ''; }
     }
-    function matching() {
-        const terms = state.query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
-        return demo.filter(item => {
-            const text = `${item.id} ${item.title} ${item.originalTitle} ${item.topic} ${item.author}`.toLocaleLowerCase();
-            return (state.topic === '全部' || item.topic === state.topic)
-                && (state.view !== 'saved' || saved.has(item.id))
-                && (state.view !== 'practice' || Object.hasOwn(practice,item.id))
-                && terms.every(term => text.includes(term));
+    function topicHash(id) { return '#topic=' + encodeURIComponent(id); }
+    function caseItems(topic) {
+        const preferred = topic.cases.map(id => assets.find(item => item.id === id)).filter(Boolean);
+        return [...preferred, ...assets.filter(item => !preferred.includes(item))].slice(0,9);
+    }
+    function layoutMap() {
+        if ($('map-view').hidden) return;
+        const style = getComputedStyle($('topic-grid'));
+        const unit = parseFloat(style.getPropertyValue('--masonry-unit')) || 4;
+        const gap = parseFloat(style.getPropertyValue('--map-row-gap')) || 32;
+        $('topic-grid').querySelectorAll('.topic-entry').forEach(entry => {
+            const span = Math.ceil((entry.firstElementChild.getBoundingClientRect().height + gap) / unit);
+            const value = 'span ' + span;
+            if (entry.style.gridRowEnd !== value) entry.style.gridRowEnd = value;
         });
     }
-    function storeNote() {
-        const input = $('study-note');
-        if (input && state.active) {
-            notes[state.active] = input.value.slice(0,3000);
-            persist();
-        }
+    function fitStickyNote() {
+        const note = $('research-note');
+        const header = document.querySelector('.site-header').getBoundingClientRect().height;
+        note.classList.toggle('can-stick', innerWidth > 850 && note.scrollHeight < innerHeight - header - 48);
     }
-    function updateCounts() {
-        $('saved-count').textContent = demo.filter(item => saved.has(item.id)).length;
-        $('practice-count').textContent = demo.filter(item => Object.hasOwn(practice,item.id)).length;
+    function renderMap(query) {
+        const matches = topics.filter(topic => (topic.title + topic.description + topic.hint).includes(query.trim()));
+        $('topic-grid').innerHTML = matches.map(topic => {
+            const index = topics.indexOf(topic);
+            const covers = topic.cover.map((id, n) => assets.find(item => item.id === id) || assets[(index * 2 + n) % assets.length]).filter(Boolean);
+            const classes = topic.shape.split(' ').map(shape => 'cover-' + shape).join(' ');
+            return '<article class="topic-entry"><a class="topic-link" data-topic="' + topic.id + '" href="' + topicHash(topic.id) + '" aria-label="' + escape(topic.title) + '"><div class="topic-cover ' + classes + '">' +
+                (covers.length ? covers.map(item => '<img src="' + escape(item.src) + '" alt="" width="' + item.width + '" height="' + item.height + '" loading="' + (index < 4 ? 'eager' : 'lazy') + '">').join('') : '<span class="cover-placeholder">专题封面</span>') +
+                '<span class="cover-hint">' + escape(topic.hint) + '</span></div><div class="topic-label"><h2>' + escape(topic.title) + '</h2>' + icon('arrow-up-right') + '</div></a></article>';
+        }).join('');
+        $('empty-state').hidden = matches.length !== 0;
+        $('topic-grid').hidden = matches.length === 0;
+        requestAnimationFrame(layoutMap);
     }
-    function setView(view) {
-        if (!views[view]) return;
-        storeNote();
-        state.active = null;
-        state.view = view;
-        state.topic = '全部'; state.query = ''; $('search').value = '';
-        renderWall(); updateHistory(); window.scrollTo(0,0);
+    function caseAnnotation(index) {
+        // Mock labels explicitly marked in hover, gallery note and lightbox.
+        const labels = [
+            ['成功案例', '低机位 · 35mm · 人物占比高', '相机高度改变时，人物轮廓与背景垂直线会怎样变化？'],
+            ['失败案例', '镜头俯仰 · 画面倾斜', '画面倾斜是在帮助表达，还是让你忽略了人物比例？'],
+            ['成功案例', '身体方向 · 空间层次', '人物、道具与环境分别处在怎样的前后关系里？'],
+            ['成功案例', '环境比例 · 留白', '如果靠近人物一些，画面的重点会发生什么变化？'],
+            ['失败案例', '近距离 · 透视关系', '靠近镜头的部位是否吸引了过多注意？'],
+            ['成功案例', '人物占比 · 景别', '这张照片保留了多少环境，又让你看见了多少人物？']
+        ];
+        const [kind, tags, question] = labels[index % labels.length];
+        return {kind, tags, question};
     }
-    function updateHistory(replace = false) {
-        const params = new URLSearchParams({view:state.view});
-        if (state.topic !== '全部') params.set('topic', state.topic);
-        if (state.query) params.set('q',state.query);
-        if (state.active) params.set('photo',state.active);
-        const target = '#'+params.toString();
-        if (location.hash !== target) history[replace ? 'replaceState' : 'pushState'](null,'',target);
-        persist();
-    }
-    function setTopic(topic) {
-        state.topic = topics.includes(topic) ? topic : '全部';
-        if (state.view === 'topics') state.view = 'discover';
-        state.active = null;
-        renderWall(); updateHistory(); window.scrollTo(0,0);
-    }
-    function card(item, related = false) {
-        const isSaved = saved.has(item.id);
-        const status = state.view === 'practice' && !related ? `<div class="practice-state"><label><input type="checkbox" data-complete="${escape(item.id)}" ${practice[item.id] ? 'checked' : ''}>${practice[item.id] ? '这次练过了' : '找机会试试'}</label><button data-remove-practice="${escape(item.id)}" aria-label="移出练习 ${escape(item.title)}">移出</button></div>` : '';
-        return `<article class="photo-card ${isSaved?'is-saved':''}" data-card="${escape(item.id)}">
-            <button class="image-open" data-open="${escape(item.id)}" aria-label="打开 ${escape(item.title)}"><img src="${escape(item.src)}" width="${item.width}" height="${item.height}" loading="lazy" decoding="async" alt="${escape(item.originalTitle || item.title)}"></button>
-            <div class="card-actions"><button class="save-btn" data-save="${escape(item.id)}" aria-label="${isSaved?'取消收藏':'收藏'} ${escape(item.title)}" aria-pressed="${isSaved}">${icon('bookmark')}</button></div>
-            <div class="card-caption"><div><button class="card-title" data-open="${escape(item.id)}">${escape(item.title)}</button><div class="card-meta"><span>${escape(item.topic)}</span><span class="separator">·</span><span>摄影参考</span></div></div><button class="icon-btn" data-open="${escape(item.id)}" aria-label="查看笔记 ${escape(item.title)}" title="查看与记录">${icon('arrow-up-right')}</button></div>${status}</article>`;
-    }
-    function bindCards(root) {
-        root.querySelectorAll('[data-open]').forEach(button => button.onclick = () => openDetail(button.dataset.open));
-        root.querySelectorAll('[data-save]').forEach(button => button.onclick = () => toggleSave(button.dataset.save));
-        root.querySelectorAll('[data-complete]').forEach(input => input.onchange = () => {
-            practice[input.dataset.complete] = input.checked; persist();
-            renderWall(); toast(input.checked ? '记下这次练习了' : '已改回待练习');
+    function renderTopic(topic) {
+        $('topic-view').dataset.topic = topic.id;
+        $('research-note').innerHTML = '<header class="note-heading"><h1 id="topic-title" tabindex="-1">' + escape(topic.title) + '</h1><p>' + escape(topic.description) + '</p></header>' +
+            '<section data-section="question"><h2>当前核心问题</h2><p class="core-question">' + escape(topic.question) + '</p></section>' +
+            '<section data-section="rules" class="ruled"><h2>关键规律</h2><ul>' + topic.rules.map(rule => '<li>' + escape(rule) + '</li>').join('') + '</ul></section>' +
+            '<section data-section="problems"><h2>我目前容易出现的问题</h2><p>' + escape(topic.problem) + '</p></section>' +
+            '<section data-section="conclusion" class="conclusion"><h2>当前结论</h2><p>' + escape(topic.conclusion) + '</p></section>' +
+            '<section data-section="next"><h2>下一次实拍需要验证什么</h2><p>' + escape(topic.next) + '</p></section>' +
+            '<p class="note-meta">示例研究笔记 · ' + (topic.id === 'perspective' ? '核心问题与关键规律采用本轮给定内容' : '用于体验同一套专题模板') + '</p>';
+        const items = caseItems(topic);
+        $('case-gallery').innerHTML = items.length ? items.map((item, index) => {
+            const label = caseAnnotation(index);
+            return '<figure class="case-figure"><button class="case-open" data-case="' + index + '" aria-label="查看案例：' + escape(item.originalTitle || item.title) + '"><img src="' + escape(item.src) + '" width="' + item.width + '" height="' + item.height + '" alt="' + escape(item.originalTitle || item.title) + '" loading="' + (index < 4 ? 'eager' : 'lazy') + '"><span class="case-overlay">' + icon('arrows-maximize') + '<strong>' + label.kind + ' · 示例</strong><small>' + label.tags + '</small></span></button></figure>';
+        }).join('') : '<p class="asset-notice">案例图片暂时不可用，研究笔记仍可浏览。</p>';
+        $('case-gallery').querySelectorAll('[data-case]').forEach(button => button.onclick = () => {
+            returnTarget = button;
+            openedFromTopic = true;
+            navigate(topicHash(topic.id) + '&case=' + button.dataset.case, false, false);
         });
-        root.querySelectorAll('[data-remove-practice]').forEach(button => button.onclick = () => {
-            delete practice[button.dataset.removePractice]; persist(); renderWall(); toast('已移出原型练习清单');
-        });
-        root.querySelectorAll('img').forEach(img => img.onerror = () => {
-            img.parentElement.classList.add('media-error');
-            img.replaceWith(Object.assign(document.createElement('span'), {textContent:'图片暂时无法显示'}));
-        });
+        requestAnimationFrame(fitStickyNote);
     }
-    function toggleSave(id) {
-        saved.has(id) ? saved.delete(id) : saved.add(id);
-        persist(); updateCounts();
-        // Update only the affected card, preserving image decode and keyboard focus.
-        document.querySelectorAll('[data-save]').forEach(button => {
-            if (button.dataset.save !== id) return;
-            const yes = saved.has(id), item = demo.find(x => x.id === id);
-            button.setAttribute('aria-pressed',String(yes));
-            button.setAttribute('aria-label',`${yes?'取消收藏':'收藏'} ${item?.title || ''}`);
-            if (button.id === 'detail-save') button.innerHTML = icon('bookmark') + (yes ? '已收藏' : '收藏');
-            button.closest('.photo-card')?.classList.toggle('is-saved',yes);
-        });
-        if (!state.active && state.view === 'saved') renderWall();
-        toast(saved.has(id) ? '已加入原型收藏 · 仅当前标签页' : '已取消原型收藏');
+    function renderRecent() {
+        $('recent-panel').innerHTML = '<h2>最近学习</h2>' + (recent.length ? recent.map(id => '<a data-recent="' + id + '" href="' + topicHash(id) + '">' + escape(byTopic(id).title) + '</a>').join('') : '<p>还没有最近学习。打开一个专题，从这里继续。</p>');
     }
-    function renderWall() {
-        $('browse-view').hidden = false; $('detail-view').hidden = true;
-        $('page-title').textContent = views[state.view][0]; $('page-subtitle').textContent = views[state.view][1];
-        document.querySelectorAll('[data-view]').forEach(button => {
-            button.classList.toggle('active',button.dataset.view === state.view);
-            if (button.dataset.view === state.view) button.setAttribute('aria-current','page'); else button.removeAttribute('aria-current');
-        });
-        $('topic-filters').innerHTML = topics.map(topic => `<button class="topic-chip ${state.topic===topic?'active':''}" data-topic="${topic}" aria-pressed="${state.topic===topic}">${topic==='全部'?'全部灵感':topic}</button>`).join('');
-        $('topic-filters').querySelectorAll('[data-topic]').forEach(button => button.onclick = () => setTopic(button.dataset.topic));
-        const items = matching(), topicView = state.view === 'topics' && !state.query;
-        $('gallery').classList.toggle('spacious',state.spacious);
-        $('gallery').hidden = topicView;
-        $('topic-overview').hidden = !topicView;
-        $('result-count').textContent = `${items.length} 张参考`;
-        if (topicView) {
-            $('topic-overview').innerHTML = `<p class="topic-intro">这里的主题是原型演示分组，你可以先试试这样的学习入口。</p><div class="topic-grid">${topics.slice(1).map(topic => {
-                const group = demo.filter(x => x.topic === topic), first = group[0];
-                return `<button class="topic-tile" data-topic="${topic}" ${first?'':'disabled'}>${first?`<img src="${escape(first.src)}" alt="" loading="lazy">`:''}<span class="topic-title"><strong>${topic}</strong><small>${descriptions[topic][0]} · ${group.length} 张参考</small></span></button>`;
-            }).join('')}</div>`;
-            $('topic-overview').querySelectorAll('[data-topic]').forEach(button => button.onclick = () => setTopic(button.dataset.topic));
+    function closeRecent() {
+        $('recent-panel').hidden = true;
+        $('recent-toggle').setAttribute('aria-expanded', 'false');
+    }
+    function showCase(index) {
+        const items = caseItems(activeTopic);
+        const item = items[index];
+        if (!item) return;
+        activeCase = index;
+        const label = caseAnnotation(index);
+        $('viewer-title').textContent = item.originalTitle || item.title;
+        $('viewer-kind').textContent = label.kind + ' · 示例标注';
+        $('viewer-tags').textContent = label.tags;
+        $('viewer-note').textContent = label.question;
+        $('viewer-author').textContent = item.author || '摄影署名待补充';
+        $('viewer-source').hidden = !safeSource(item.sourceUrl);
+        if (safeSource(item.sourceUrl)) $('viewer-source').href = safeSource(item.sourceUrl);
+        else $('viewer-source').removeAttribute('href');
+        $('viewer-rights').open = false;
+        $('viewer-restrictions').textContent = item.restrictions || '沿用本地素材的原始出处，仅用于私人视觉原型，不代表新增使用许可。';
+        $('viewer-position').textContent = (index + 1) + ' / ' + items.length;
+        $('viewer-prev').disabled = index === 0;
+        $('viewer-next').disabled = index === items.length - 1;
+        $('viewer-image-error').hidden = true;
+        $('viewer-image').alt = item.originalTitle || item.title;
+        $('viewer-image').src = item.src;
+        if (!$('case-viewer').open) $('case-viewer').showModal();
+    }
+    function hideCase() {
+        if (!$('case-viewer').open) return;
+        ignoreDialogClose = true;
+        $('case-viewer').close();
+        activeCase = null;
+        if (returnTarget?.isConnected) returnTarget.focus({preventScroll:true});
+    }
+    function renderRoute(focus = false) {
+        if (!ready) return;
+        const params = new URLSearchParams(location.hash.slice(1));
+        const topic = byTopic(params.get('topic'));
+        const query = (params.get('q') || '').slice(0,100);
+        const changedTopic = activeTopic?.id !== topic?.id;
+        const wasTopic = !!activeTopic;
+        if (changedTopic || !topic) hideCase();
+        activeTopic = topic || null;
+        $('map-view').hidden = !!topic;
+        $('topic-view').hidden = !topic;
+        $('search').value = topic ? '' : query;
+        closeRecent();
+        if (topic) {
+            if (changedTopic) {
+                returnTopicId = topic.id;
+                renderTopic(topic);
+                recent = [topic.id, ...recent.filter(id => id !== topic.id)].slice(0,5);
+            }
+            document.title = topic.title + ' · 摄影学习';
+            const value = params.get('case');
+            const index = value !== null && /^\d+$/.test(value) ? Number(value) : -1;
+            if (index >= 0 && index < caseItems(topic).length) showCase(index);
+            else { hideCase(); activeCase = null; }
+            if (changedTopic) {
+                window.scrollTo(0,0);
+                if (focus) $('topic-title').focus({preventScroll:true});
+            }
         } else {
-            $('gallery').innerHTML = items.map(item => card(item)).join(''); bindCards($('gallery'));
+            document.title = '摄影能力地图 · 摄影学习';
+            renderMap(query);
+            if (wasTopic && focus) {
+                requestAnimationFrame(() => {
+                    window.scrollTo(0,mapScroll);
+                    const target = $('topic-grid').querySelector('[data-topic="' + returnTopicId + '"]');
+                    (target || $('map-title')).focus({preventScroll:true});
+                });
+            } else if (focus) window.scrollTo(0,0);
         }
-        $('empty-state').hidden = topicView ? demo.length > 0 : items.length > 0;
-        $('gallery-footer').hidden = !items.length;
-        $('random-study').disabled = !demo.length;
-        if (!items.length) {
-            const messages = state.query || state.topic !== '全部' ? ['还没找到这样的画面','试试换一个关键词，或回到全部灵感。','清除筛选'] : state.view === 'saved' ? ['喜欢的画面，先留在这里','点击照片上的收藏图标，再回来慢慢看。','去发现'] : state.view === 'practice' ? ['下一次拍摄，从一个小练习开始','打开一张照片，加入练习清单。想练什么，由你决定。','去发现'] : ['还没有载入示例图片','这个原型需要本地私有示例素材；你的正式参考库没有变化。',''];
-            $('empty-title').textContent = messages[0]; $('empty-copy').textContent = messages[1];
-            $('empty-action').textContent = messages[2]; $('empty-action').hidden = !messages[2];
-        }
-        updateCounts();
+        if (initialRoute) { initialRoute = false; openedFromTopic = false; }
+        remember();
     }
-    function detailContent(item) {
-        const [question,prompt] = descriptions[item.topic] || descriptions.构图;
-        if (state.tab === 'source') {
-            const url = safeLink(item.sourceUrl);
-            return `<dl class="source-details"><dt>原素材标题 / 来源标注</dt><dd>${escape(item.originalTitle)}</dd><dt>原记录摄影署名</dt><dd>${escape(item.author || '原记录未注明')}</dd><dt>原记录发布者</dt><dd>${escape(item.publisher || '原记录未注明')}</dd><dt>公开出处</dt><dd>${url?`<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">查看原发布页面 ${icon('external-link')}</a>`:'暂无可打开的来源链接'}</dd><dt>使用范围</dt><dd>${escape(item.restrictions || '仅本地私人参考。')}</dd></dl><p class="source-details source-note">来源信息沿用已有记录，未在这轮重新核验。图片用于 UI 展示，不代表已通过审美筛选；演示主题也不会写入正式分类。</p>`;
-        }
-        const value = typeof notes[item.id] === 'string' ? notes[item.id] : '';
-        return `<div class="observation-prompt"><strong>${icon('focus-2')}${question}</strong><p>${prompt}</p></div>
-            <label class="note-label" for="study-note">我的观察<span>只记录你自己的发现</span></label><textarea class="note-input" id="study-note" maxlength="3000" placeholder="哪里吸引了我？\n下一次拍摄，我想试试什么？">${escape(value)}</textarea><div class="note-footer"><span id="note-state">${storageAvailable?'笔记暂存在当前标签页':'浏览器暂存不可用，仅本次页面内保留'}</span><button id="save-note">记下这一点 ${icon('check')}</button></div>
-            <div class="practice-callout">${icon('checkbox')}<div><strong>从观察，走到一次实践</strong><p>不必复刻整张照片，先试一个小地方。</p></div><button id="add-practice">${Object.hasOwn(practice,item.id)?'已加入练习':'加入练习'}</button></div>`;
+    function navigate(hash, replace = false, focus = true) {
+        clearTimeout(searchTimer);
+        if (location.hash !== hash) history[replace ? 'replaceState' : 'pushState'](null,'',hash);
+        renderRoute(focus);
     }
-    function bindDetailPanel(item) {
-        if ($('study-note')) {
-            $('study-note').oninput = () => {
-                storeNote(); $('note-state').textContent = storageAvailable ? '已暂存 · 仅当前标签页' : '暂存不可用 · 仅本次页面内保留';
-            };
-            $('save-note').onclick = () => { storeNote(); toast(storageAvailable ? '这点观察记下了 · 仅当前标签页' : '浏览器暂存不可用，请先复制笔记'); };
-            $('add-practice').onclick = () => {
-                const exists = Object.hasOwn(practice,item.id);
-                if (exists) delete practice[item.id]; else practice[item.id] = false;
-                persist(); updateCounts(); $('add-practice').textContent = exists ? '加入练习' : '已加入练习';
-                toast(exists ? '已移出原型练习清单' : '已加入练习清单，下次拍摄试试看');
-            };
-        }
+    function closeViewer() {
+        if (!$('case-viewer').open) return;
+        if (openedFromTopic) {
+            openedFromTopic = false;
+            history.back();
+        } else navigate(topicHash(activeTopic.id), true, false);
     }
-    function openDetail(id, historyUpdate = true) {
-        const item = demo.find(x => x.id === id); if (!item) return;
-        storeNote();
-        if (!state.active) { state.wallScroll = window.scrollY; state.returnFocus = document.activeElement; }
-        state.active = id; state.tab = 'notes';
-        $('browse-view').hidden = true; $('detail-view').hidden = false;
-        const sequence = matching().length ? matching() : demo;
-        const index = sequence.findIndex(x => x.id === id);
-        const ordered = [...demo.filter(x => x.id !== id && x.topic === item.topic), ...demo.filter(x => x.id !== id && x.topic !== item.topic)].slice(0,10);
-        const url = safeLink(item.sourceUrl);
-        $('detail-view').innerHTML = `<div class="detail-enter"><div class="detail-top"><button class="back-button" id="back-to-wall">${icon('arrow-left')}返回图片墙</button><div class="detail-position"><span>${index >= 0 ? index+1 : '·'} / ${sequence.length}</span><button class="icon-btn" id="prev-photo" aria-label="上一张" ${index<=0?'disabled':''}>${icon('chevron-left')}</button><button class="icon-btn" id="next-photo" aria-label="下一张" ${index<0||index>=sequence.length-1?'disabled':''}>${icon('chevron-right')}</button></div></div>
-            <div class="detail-layout"><div class="detail-visual"><div class="detail-photo"><button id="enlarge-photo" aria-label="放大完整图片"><img src="${escape(item.src)}" width="${item.width}" height="${item.height}" alt="${escape(item.originalTitle || item.title)}"></button><span class="enlarge-hint">${icon('arrows-maximize')}</span></div><div class="image-foot"><span>${escape(item.id)} · 私有原型素材</span><span>${item.width} × ${item.height} · 完整画面</span></div></div>
-            <div class="detail-copy"><div class="detail-actions"><button class="topic-chip" id="detail-topic">${escape(item.topic)} / 学习参考</button><button class="primary" id="detail-save" data-save="${escape(id)}" aria-label="${saved.has(id)?'取消收藏':'收藏'} ${escape(item.title)}" aria-pressed="${saved.has(id)}">${icon('bookmark')}${saved.has(id)?'已收藏':'收藏'}</button></div><h1 tabindex="-1" id="detail-title">${escape(item.title)}</h1><p class="detail-lead">给自己一点时间，看看这个画面里有哪些值得再看一眼的细节。</p>
-            <div class="source-line"><span class="source-initial">${escape(item.id.replace('P',''))}</span><div><strong>${escape(item.author || '本地已有参考')}</strong><small>摄影署名沿用来源记录</small></div>${url?`<a href="${escape(url)}" target="_blank" rel="noopener noreferrer" aria-label="打开原发布页面" title="打开原发布页面">${icon('external-link')}</a>`:''}</div>
-            <nav class="detail-tabs" aria-label="详情内容"><button data-detail-tab="notes" class="active" aria-current="page">观察与笔记</button><button data-detail-tab="source">素材来源</button></nav><div id="detail-panel">${detailContent(item)}</div></div></div>
-            <div class="related-header"><h2>换一张，接着看</h2><span>同主题优先 · 原型示例</span></div><div id="related-gallery" class="related-gallery">${ordered.map(x => card(x,true)).join('')}</div></div>`;
-        $('back-to-wall').onclick = closeDetail;
-        $('prev-photo').onclick = () => index > 0 && openDetail(sequence[index-1].id);
-        $('next-photo').onclick = () => index >= 0 && index < sequence.length-1 && openDetail(sequence[index+1].id);
-        $('detail-topic').onclick = () => { storeNote(); setTopic(item.topic); };
-        $('detail-save').onclick = () => toggleSave(id);
-        $('enlarge-photo').onclick = () => { $('viewer-image').src = item.src; $('viewer-image').alt = item.originalTitle || item.title; $('viewer').showModal(); };
-        document.querySelectorAll('[data-detail-tab]').forEach(button => button.onclick = () => {
-            storeNote(); state.tab = button.dataset.detailTab;
-            document.querySelectorAll('[data-detail-tab]').forEach(x => {
-                x.classList.toggle('active',x === button);
-                if (x===button) x.setAttribute('aria-current','page'); else x.removeAttribute('aria-current');
-            });
-            $('detail-panel').innerHTML = detailContent(item); bindDetailPanel(item);
-        });
-        bindDetailPanel(item); bindCards($('related-gallery'));
-        const photo = $('enlarge-photo').querySelector('img');
-        photo.onerror = () => { photo.alt = '原图暂时无法显示，请返回图片墙重试'; $('enlarge-photo').disabled = true; };
-        if (historyUpdate) updateHistory();
-        window.scrollTo(0,0); $('detail-title').focus({preventScroll:true});
-    }
-    function closeDetail() {
-        storeNote(); state.active = null; renderWall(); updateHistory();
-        requestAnimationFrame(() => {
-            window.scrollTo(0,state.wallScroll);
-            const id = state.returnFocus?.dataset?.open;
-            const target = id ? [...$('gallery').querySelectorAll('[data-open]')].find(x => x.dataset.open === id) : $('page-title');
-            target?.focus({preventScroll:true});
-        });
-    }
-    function restoreRoute() {
-        storeNote(); const q = new URLSearchParams(location.hash.slice(1));
-        state.view = views[q.get('view')] ? q.get('view') : 'discover';
-        state.topic = topics.includes(q.get('topic')) ? q.get('topic') : '全部';
-        state.query = (q.get('q') || '').slice(0,150); $('search').value = state.query;
-        const photo = q.get('photo'); state.active = null; renderWall();
-        if (photo && demo.some(x => x.id === photo)) openDetail(photo,false);
-        persist();
+    function nextCase(delta) {
+        const next = activeCase + delta;
+        if (activeTopic && next >= 0 && next < caseItems(activeTopic).length)
+            navigate(topicHash(activeTopic.id) + '&case=' + next, true, false);
     }
     function wire() {
-        document.querySelector('.skip-link').onclick = event => {
-            event.preventDefault(); $('main').focus({preventScroll:true}); $('main').scrollIntoView();
-        };
-        document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => setView(button.dataset.view));
-        ['about-prototype','prototype-info'].forEach(id => $(id).onclick = () => $('info-dialog').showModal());
-        ['info-close','info-done'].forEach(id => $(id).onclick = () => $('info-dialog').close());
-        $('viewer-close').onclick = () => $('viewer').close();
-        $('viewer').addEventListener('close',() => $('viewer-image').removeAttribute('src'));
-        $('empty-action').onclick = () => {
-            if (state.query || state.topic !== '全部') {
-                state.query = ''; state.topic = '全部'; $('search').value = '';
-                renderWall(); updateHistory();
-            } else setView('discover');
-        };
-        $('random-study').onclick = () => { const items = matching().length ? matching() : demo; if(items.length) openDetail(items[Math.floor(Math.random()*items.length)].id); };
-        $('density-toggle').onclick = () => {
-            state.spacious = !state.spacious; $('gallery').classList.toggle('spacious',state.spacious);
-            $('density-toggle').setAttribute('aria-label',state.spacious ? '切换为紧凑布局' : '切换为宽松布局');
-        };
+        document.addEventListener('click', event => {
+            const link = event.target.closest('a[href^="#"]');
+            if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) {
+                if (link.classList.contains('skip-link')) {
+                    event.preventDefault(); $('main').focus(); return;
+                }
+                event.preventDefault();
+                if (link.dataset.topic) mapScroll = scrollY;
+                navigate(link.getAttribute('href'));
+            }
+            if (!event.target.closest('.recent-wrap')) closeRecent();
+        });
         $('search').oninput = () => {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(() => {
-                storeNote(); state.active = null; state.query = $('search').value;
-                renderWall(); updateHistory(true); window.scrollTo(0,0);
-            },160);
+                const query = $('search').value.slice(0,100);
+                const hash = query ? '#' + new URLSearchParams({q:query}) : '#map';
+                navigate(hash, !activeTopic, false);
+            },120);
         };
-        document.addEventListener('keydown',event => {
-            if (document.querySelector('dialog[open]') || event.ctrlKey || event.metaKey || event.altKey) return;
-            const editing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName);
-            if (event.key === '/' && !editing) { event.preventDefault(); $('search').focus(); }
-            if (event.key === 'Escape' && state.active) { event.preventDefault(); closeDetail(); }
-            if (!editing && state.active && ['ArrowLeft','ArrowRight'].includes(event.key)) {
-                event.preventDefault(); $(event.key === 'ArrowLeft'?'prev-photo':'next-photo')?.click();
-            }
+        $('clear-search').onclick = () => { navigate('#map'); $('search').focus(); };
+        $('recent-toggle').onclick = () => {
+            renderRecent();
+            const open = $('recent-panel').hidden;
+            $('recent-panel').hidden = !open;
+            $('recent-toggle').setAttribute('aria-expanded', String(open));
+        };
+        $('viewer-close').onclick = closeViewer;
+        $('viewer-prev').onclick = () => nextCase(-1);
+        $('viewer-next').onclick = () => nextCase(1);
+        $('viewer-image').onerror = () => { $('viewer-image-error').hidden = false; };
+        $('case-viewer').addEventListener('cancel', event => { event.preventDefault(); closeViewer(); });
+        $('case-viewer').addEventListener('close', () => {
+            if (ignoreDialogClose) { ignoreDialogClose = false; return; }
+            if (activeCase !== null && activeTopic) navigate(topicHash(activeTopic.id), true, false);
         });
-        window.addEventListener('popstate',restoreRoute);
-        window.addEventListener('pagehide',storeNote);
+        $('case-viewer').onclick = event => { if (event.target === $('case-viewer')) closeViewer(); };
+        document.addEventListener('keydown', event => {
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+            if ($('case-viewer').open) {
+                if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); nextCase(event.key === 'ArrowRight' ? 1 : -1); }
+                return;
+            }
+            if (event.key === 'Escape' && !$('recent-panel').hidden) { closeRecent(); $('recent-toggle').focus(); }
+            if (event.key === '/' && !/INPUT|TEXTAREA/.test(document.activeElement?.tagName)) { event.preventDefault(); $('search').focus(); }
+        });
+        window.addEventListener('popstate', () => renderRoute(true));
+        window.addEventListener('hashchange', () => renderRoute(true));
+        window.addEventListener('pagehide', remember);
+        new ResizeObserver(() => requestAnimationFrame(layoutMap)).observe($('topic-grid'));
+        new ResizeObserver(fitStickyNote).observe($('research-note'));
+        window.addEventListener('resize', fitStickyNote);
     }
     async function boot() {
-        wire(); $('empty-state').hidden = false;
-        try {
-            const result = await fetch('/static/learning-icons.json'); if (!result.ok) throw new Error('icons'); icons = await result.json();
-        } catch { /* Accessible text controls remain usable if decorative icons fail. */ }
+        wire();
+        const results = await Promise.allSettled([
+            fetch('/static/learning-icons.json').then(response => response.ok ? response.json() : {}),
+            fetch('/api/learning-preview', {credentials:'same-origin'}).then(response => {
+                if (!response.ok) throw new Error(response.status === 401 ? '请先在拍摄参考中打开私人工作区，专题文字仍可预览。' : '暂时无法读取本地案例图片，专题文字仍可预览。');
+                return response.json();
+            })
+        ]);
+        if (results[0].status === 'fulfilled') icons = results[0].value;
         hydrate();
-        try {
-            const response = await fetch('/api/learning-preview',{credentials:'same-origin'});
-            if (!response.ok) {
-                if (response.status === 401) throw new Error('请先返回拍摄参考，解锁私人工作区后再打开摄影学习。');
-                throw new Error('示例图片暂时无法读取，请确认本地预览服务仍在运行。');
-            }
-            const payload = await response.json();
-            demo = (Array.isArray(payload.items)?payload.items:[]).filter(item =>
-                typeof item.id==='string' && /^P\d+$/.test(item.id) && typeof item.src==='string'
-                && /^\/api\/learning-preview\/P\d+\.(jpg|jpeg|png|webp|avif)$/.test(item.src)
-                && Number.isFinite(item.width) && item.width>0 && Number.isFinite(item.height) && item.height>0);
-            if (!location.hash && lastRoute) history.replaceState(null,'',lastRoute);
-            restoreRoute(); updateHistory(true);
-        } catch (error) {
-            renderWall(); $('empty-state').hidden=false; $('empty-title').textContent='暂时没能打开图片墙';
-            $('empty-copy').textContent=error.message; $('empty-action').hidden=true;
+        if (results[1].status === 'fulfilled') {
+            const items = results[1].value?.items;
+            assets = (Array.isArray(items) ? items : []).filter(item => typeof item.id === 'string' && /^P\d+$/.test(item.id)
+                && typeof item.src === 'string' && /^\/api\/learning-preview\/P\d+\.(jpg|jpeg|png|webp|avif)$/.test(item.src)
+                && Number.isFinite(item.width) && item.width > 0 && Number.isFinite(item.height) && item.height > 0);
         }
+        if (!assets.length) {
+            $('asset-notice').hidden = false;
+            $('asset-notice').textContent = results[1].status === 'rejected' ? results[1].reason.message : '尚无本地示例图片，先用封面占位预览专题结构。';
+        }
+        if (!location.hash) history.replaceState(null,'',lastRoute || '#map');
+        ready = true;
+        renderRoute();
     }
     boot();
 })();
