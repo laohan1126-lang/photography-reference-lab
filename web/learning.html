@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>摄影学习 · 参考实验室</title>
+  <link rel="stylesheet" href="/static/learning.css?v=1">
+  <script src="/static/learning.js?v=1" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到内容</a>
+  <aside class="rail" aria-label="学习导航">
+    <a class="brand-mark" href="/" aria-label="返回参考实验室">R<span>.</span></a>
+    <nav>
+      <button data-view="discover" class="rail-item active" aria-label="发现" title="发现" aria-current="page"><i data-icon="compass"></i><span>发现</span></button>
+      <button data-view="topics" class="rail-item" aria-label="学习专题" title="学习专题"><i data-icon="layout-grid"></i><span>专题</span></button>
+      <button data-view="saved" class="rail-item" aria-label="我的收藏" title="我的收藏"><i data-icon="bookmark"></i><span>收藏</span></button>
+      <button data-view="practice" class="rail-item" aria-label="练习清单" title="练习清单"><i data-icon="checkbox"></i><span>练习</span></button>
+    </nav>
+    <div class="rail-bottom"><button class="rail-item" id="about-prototype" aria-label="原型说明" title="原型说明"><i data-icon="info-circle"></i><span>说明</span></button><span class="owner-avatar" aria-label="私人工作区">夏</span></div>
+  </aside>
+  <header class="topbar">
+    <div class="workspace-switch"><span class="workspace-label">摄影</span><nav aria-label="摄影工作区"><a href="/" id="reference-link">拍摄参考</a><a href="/learning" aria-current="page">摄影学习</a></nav></div>
+    <label class="search-box"><i data-icon="search"></i><input id="search" type="search" autocomplete="off" maxlength="150" placeholder="搜一个想学的：光影、构图、姿态…" aria-label="搜索学习参考"><kbd>/</kbd></label>
+    <button class="prototype-label" id="prototype-info">UI 原型<i data-icon="info-circle"></i></button>
+  </header>
+  <main id="main" tabindex="-1">
+    <section id="browse-view">
+      <header class="page-heading"><div><div class="eyebrow">YOUR PHOTOGRAPHY NOTEBOOK</div><h1 id="page-title">把喜欢的画面，看懂一点。</h1><p id="page-subtitle">从一张照片出发，慢慢建立自己的拍摄语言。</p></div><button id="random-study" class="primary"><i data-icon="focus-2"></i>今天看一张<i data-icon="arrow-up-right"></i></button></header>
+      <nav class="view-tabs" aria-label="学习视图"><button data-view="discover" class="active">发现</button><button data-view="topics">学习专题</button><button data-view="saved">我的收藏 <span id="saved-count">0</span></button><button data-view="practice">练习清单 <span id="practice-count">0</span></button><span class="view-caption">每次观察，都离想拍的画面近一点。</span></nav>
+      <div class="filter-row"><div id="topic-filters" class="topic-filters" aria-label="按学习主题筛选"></div><div class="display-tools"><span id="result-count" role="status" aria-live="polite"></span><button id="density-toggle" class="icon-btn" aria-label="切换为宽松布局" title="切换图片大小"><i data-icon="layout-grid"></i></button></div></div>
+      <div id="topic-overview" hidden></div>
+      <div id="gallery" class="masonry" aria-label="学习图片墙"></div>
+      <section id="empty-state" class="empty-state" hidden><i data-icon="search"></i><h2 id="empty-title">正在打开图片墙</h2><p id="empty-copy">稍等一下，照片马上就好。</p><button id="empty-action" class="secondary" hidden>回到发现</button></section>
+      <footer class="gallery-footer" id="gallery-footer"><span class="footer-rule"></span><p>看过之后，留下一点自己的发现。</p><span>私有示例素材 · 收藏与笔记仅用于本次原型体验</span></footer>
+    </section>
+    <section id="detail-view" hidden aria-label="学习参考详情"></section>
+  </main>
+  <dialog id="viewer" class="image-viewer" aria-label="查看完整图片"><div class="viewer-toolbar"><span>完整画面</span><button class="icon-btn" id="viewer-close" aria-label="关闭大图"><i data-icon="x"></i></button></div><img id="viewer-image" alt=""><p>按 Esc 返回</p></dialog>
+  <dialog id="info-dialog" class="info-dialog" aria-labelledby="info-title"><div class="dialog-heading"><span class="dialog-mark">R.</span><button class="icon-btn" id="info-close" aria-label="关闭说明"><i data-icon="x"></i></button></div><span class="eyebrow">A PLACE TO LEARN</span><h2 id="info-title">先体验，再一起完善。</h2><p>这是「摄影」工作区下的摄影学习 UI 原型。你可以浏览图片、切换学习主题、收藏、写笔记，以及安排一次小练习。</p><div class="info-note"><strong>你的正式参考库保持原样</strong><p>图片来自本地已有素材，仅作为私有版式示例。学习主题是演示分组，不代表新分类或已通过审核。</p><p>收藏、笔记和练习只暂存在当前标签页，刷新可保留，关闭标签页后不保证保留。完整数据保存与导入将在 UI 验收后设计。</p></div><button id="info-done" class="primary">开始逛逛<i data-icon="arrow-up-right"></i></button></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

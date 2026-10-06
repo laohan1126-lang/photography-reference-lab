@@ -17,6 +17,11 @@
   font-size:14px;
   line-height:1.65
 }
+.photography-branches{display:flex;gap:5px;padding:5px;border:1px solid #ffffff20;border-radius:9px;margin:0 0 22px;font-size:12px}
+.photography-branches>span,.photography-branches>a{flex:1;text-align:center;padding:6px 3px;border-radius:6px;color:#dfe9e3;text-decoration:none}
+.photography-branches>span{background:#ffffff16;color:#fff}
+.photography-branches>a:hover{background:#ffffff16}
+.photography-branches small{display:block;font-size:8px;opacity:.7}
 * {
   box-sizing:border-box
 }
