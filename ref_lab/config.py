@@ -57,7 +57,7 @@ class Settings:
         no_auth_env = os.environ.get("LAB_NO_AUTH", "").strip().lower()
         if no_auth_env and no_auth_env not in {"0", "false", "no", "1", "true", "yes"}:
             raise ValueError("LAB_NO_AUTH must be 0/false/no or 1/true/yes")
-        no_auth = no_auth_env in {"1", "true", "yes"} if no_auth_env else (data_dir / "no-auth").is_file()
+        no_auth = no_auth_env in {"1", "true", "yes"} if no_auth_env else True
         data_dir.mkdir(parents=True, exist_ok=True)
         token = os.environ.get("LAB_ACCESS_TOKEN", "")
         if not token:

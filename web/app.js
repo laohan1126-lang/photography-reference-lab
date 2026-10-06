@@ -1286,7 +1286,6 @@ $('login-form').addEventListener('submit',async e=>{
         const tokenVal = $('login-token').value.trim();
         const session=await api('/api/session',{method:'POST',body:{token:tokenVal}});
         state.csrf=session.csrf;
-        try { localStorage.setItem('ref_lab_token', tokenVal); } catch(_) {}
         $('login-token').value='';
         await boot();
     }
@@ -1297,7 +1296,6 @@ if ($('optimize-skill-btn')) $('optimize-skill-btn').onclick = optimizeSkillFrom
 $('lock-library').onclick=async()=>{
     if (state.noAuth) { toast('当前已开启完全免密模式，无需锁定'); return; }
     if(!safeDiscard())return;
-    try { localStorage.removeItem('ref_lab_token'); } catch(_) {}
     try{await api('/api/session',{method:'DELETE'});lockScreen();}catch(error){showError(error);}
 };
 listen(document,'[data-view]','click',(e,n)=>navigate(n.dataset.view));
@@ -1317,36 +1315,8 @@ document.addEventListener('keydown',event=>{
     }else if(event.key==='ArrowRight'){event.preventDefault();moveImage(1);}
     else if(event.key==='ArrowLeft'){event.preventDefault();moveImage(-1);}
 });
-(async()=>{
-    const searchParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = searchParams.get('token');
-    let savedToken = '';
-    try { savedToken = localStorage.getItem('ref_lab_token') || ''; } catch(_) {}
-    const tokenToUse = tokenFromUrl || savedToken;
-
-    if (tokenFromUrl) {
-        try { localStorage.setItem('ref_lab_token', tokenFromUrl); } catch(_) {}
-        searchParams.delete('token');
-        const newSearch = searchParams.toString() ? '?' + searchParams.toString() : '';
-        window.history.replaceState({}, document.title, window.location.pathname + newSearch + window.location.hash);
-    }
-
-    if (tokenToUse) {
-        try {
-            const session = await api('/api/session', { method: 'POST', body: { token: tokenToUse } });
-            state.csrf = session.csrf;
-        } catch(e) {
-            console.warn('Auto-login with token failed', e);
-            try { localStorage.removeItem('ref_lab_token'); } catch(_) {}
-        }
-    }
-    boot().catch(error => {
-        if (state.noAuth) return;
-        lockScreen();
-        $('login-error').textContent = '无法连接参考库：' + error.message;
-        try {
-            const remembered = localStorage.getItem('ref_lab_token');
-            if (remembered && !$('login-token').value) $('login-token').value = remembered;
-        } catch(_) {}
-    });
-})();
+boot().catch(error => {
+    lockScreen();
+    $('login-form').hidden = true;
+    $('login-error').textContent = '无法连接参考库：' + error.message;
+});

@@ -24,12 +24,19 @@ from test_personal_library import candidate_zip
 
 
 @pytest.fixture
-def live_site(tmp_path, request):
+def live_site(tmp_path, request, monkeypatch):
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     port = sock.getsockname()[1]
-    settings = Settings(tmp_path / "data", TOKEN, public_origin=f"http://127.0.0.1:{port}",
-                        no_auth=getattr(request, "param", False))
+    if getattr(request, "param", False) == "default":
+        monkeypatch.setenv("LAB_DATA_DIR", str(tmp_path / "data"))
+        monkeypatch.setenv("LAB_PUBLIC_ORIGIN", f"http://127.0.0.1:{port}")
+        monkeypatch.setenv("LAB_AUTO_CLASSIFY", "0")
+        monkeypatch.delenv("LAB_NO_AUTH", raising=False)
+        settings = Settings.from_env()
+    else:
+        settings = Settings(tmp_path / "data", TOKEN, public_origin=f"http://127.0.0.1:{port}",
+                            no_auth=getattr(request, "param", False))
     app = create_app(settings)
     library = app.state.library
     project = library.create_project(ProjectInput(character="王昭君", work="王者荣耀", costume="长夜焕生", brief="漫展实用；以站姿、回眸与自然互动为主。"))
@@ -219,13 +226,18 @@ def test_browser_stable_strip_and_recovery(live_site,browser_page,auto):
     exercise_stable_strip(page,library,project,auto)
 
 
-@pytest.mark.parametrize('live_site', [True], indirect=True)
+@pytest.mark.parametrize('live_site', [True, 'default'], indirect=True)
 def test_mobile_no_auth_open_save_reload_and_gallery(live_site, browser_page):
     url, library, project = live_site
     page, _ = browser_page
     page.set_viewport_size({'width': 390, 'height': 844})
+    page.add_init_script("localStorage.setItem('ref_lab_token', 'obsolete-synthetic-token')")
+    login_requests = []
+    page.on('request', lambda request: login_requests.append(request.url)
+            if request.method == 'POST' and request.url.endswith('/api/session') else None)
     page.goto(url)
     expect(page.locator('#application')).to_be_visible()
+    assert not login_requests
     expect(page.locator('#login-screen')).not_to_be_visible()
     expect(page.locator('#lock-library')).not_to_be_visible()
     page.locator('#main-image').wait_for()
@@ -239,4 +251,5 @@ def test_mobile_no_auth_open_save_reload_and_gallery(live_site, browser_page):
     page.get_by_role('button', name='图库 · 跨项目找图', exact=True).click()
     expect(page.locator('.library-tile')).to_have_count(3)
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    assert not login_requests
     artifact(page, 'mobile-no-auth-gallery.png')

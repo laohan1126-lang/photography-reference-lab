@@ -30,6 +30,8 @@ powershell -ExecutionPolicy Bypass -File scripts\doctor-windows-runtime.ps1
 powershell -ExecutionPolicy Bypass -File scripts\configure-windows-runtime.ps1 -DataDir ".local" -InitializeEmpty
 ```
 
+正常双击 `start.bat` 后，打开网页直接进入图库，无需访问口令；重新启动和换浏览器也不需要口令。免口令是默认行为，不依赖资料库中的标记文件。
+
 默认本地端口为 `18765`；可在 gitignored 的 `.local/windows-runtime.json` 中配置，或用环境变量覆盖。停止服务使用 `stop.bat`，它只终止本启动器记录的 Windows 进程树，不会全局杀 Python/WSL。
 
 ### WSL / Linux：兼容与开发路径
@@ -122,7 +124,7 @@ python -m pytest -q tests/test_browser.py tests/test_live_system_regression.py
 
 ## 私人部署边界
 
-FastAPI + SQLite WAL + 原始图片文件 + 无构建步骤的 Web。默认仅监听回环地址，单所有者使用。数据库、登录口令、浏览器档案和新增私人图片不提交 Git。已有公开 Git 历史无法通过私人页面撤回。公网部署前配置 HTTPS、随机 `LAB_ACCESS_TOKEN`、准确 `LAB_PUBLIC_ORIGIN`、持久卷和备份，参见 [部署说明](docs/DEPLOYMENT.md)。本版本不自动部署、不合并 main、不自动操作 PS、不重绘人物。
+FastAPI + SQLite WAL + 原始图片文件 + 无构建步骤的 Web。默认仅监听回环地址，单所有者使用。数据库、登录口令、浏览器档案和新增私人图片不提交 Git。已有公开 Git 历史无法通过私人页面撤回。单独部署时配置 HTTPS、准确 `LAB_PUBLIC_ORIGIN`、持久卷和备份；如需显式启用口令保护，设置 `LAB_NO_AUTH=0` 和随机 `LAB_ACCESS_TOKEN`，参见 [部署说明](docs/DEPLOYMENT.md)。本版本不自动部署、不合并 main、不自动操作 PS、不重绘人物。
 
 详细设计：[架构](docs/ARCHITECTURE.md) · [执行器协议](docs/WORKER_PROTOCOL.md)。
 

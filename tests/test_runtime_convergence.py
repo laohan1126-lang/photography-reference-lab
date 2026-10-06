@@ -67,18 +67,36 @@ def test_relative_config_path_is_relative_to_checkout(isolated_config, monkeypat
     assert config.Settings.from_env().data_dir == isolated_config / "selected-library"
 
 
-def test_no_auth_is_scoped_to_selected_library(isolated_config, monkeypatch):
-    repo = isolated_config
-    for directory in (repo / "data", repo / ".local"):
-        directory.mkdir()
-        (directory / "no-auth").touch()
-    selected = repo.parent / "protected-library"
+def test_runtime_defaults_to_direct_access_without_marker(isolated_config, monkeypatch):
+    selected = isolated_config.parent / "selected-library"
     monkeypatch.setenv("LAB_DATA_DIR", str(selected))
-    assert config.Settings.from_env().no_auth is False
-    (selected / "no-auth").touch()
     assert config.Settings.from_env().no_auth is True
+    assert not (selected / "no-auth").exists()
+    # The default persists on a fresh settings load, without marker state.
+    assert config.Settings.from_env().no_auth is True
+    (selected / "no-auth").touch()
     monkeypatch.setenv("LAB_NO_AUTH", "0")
     assert config.Settings.from_env().no_auth is False
+
+
+def test_default_runtime_reads_and_writes_after_restart_without_login(isolated_config, monkeypatch):
+    from fastapi.testclient import TestClient
+    from ref_lab.api import create_app
+
+    monkeypatch.setenv("LAB_AUTO_CLASSIFY", "0")
+    monkeypatch.setenv("LAB_PUBLIC_ORIGIN", "http://testserver")
+    monkeypatch.delenv("LAB_ACCESS_TOKEN", raising=False)
+    for restart in range(2):
+        app = create_app(config.Settings.from_env())
+        with TestClient(app) as client:
+            assert client.get("/api/projects").status_code == 200
+            session = client.get("/api/session").json()
+            assert session["authenticated"] and session["no_auth"]
+            client.cookies.clear()
+            assert client.post("/api/projects", json={"character": f"Direct {restart}"}).status_code == 201
+            assert len(client.get("/api/projects").json()) == restart + 1
+            assert client.post("/api/projects", json={"character": "Blocked"},
+                               headers={"Origin": "https://evil.example"}).status_code == 403
 
 
 @pytest.mark.parametrize("value", ["false", "no", "0", "true", "yes", "1", "invalid"])
