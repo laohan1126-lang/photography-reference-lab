@@ -185,3 +185,35 @@ def test_mobile_topics_empty_saved_and_layout(prototype_site,browser_page):
     expect(page.locator('#info-dialog')).to_be_visible()
     page.locator('#info-done').click()
     expect(page.locator('#info-dialog')).not_to_be_visible()
+
+
+@pytest.mark.parametrize('width', [1440, 390])
+def test_workspace_switch_roundtrip_keeps_learning_place(prototype_site, browser_page, width):
+    url, _, _ = prototype_site
+    page, _ = browser_page
+    page.set_viewport_size({'width': width, 'height': 900})
+    open_prototype(page, url)
+    page.locator('[data-topic="光影"]').click()
+    page.locator('#gallery [data-open="P1"]').first.click()
+    page.locator('#detail-save').click()
+    page.locator('#study-note').fill('切换工作区后继续观察')
+    learning_url = page.url
+    page.locator('#reference-link').click()
+    expect(page.locator('#application')).to_be_visible()
+    learning_link = page.get_by_role('link', name='摄影学习', exact=False)
+    expect(learning_link).to_be_visible()
+    assert learning_link.get_attribute('target') != '_blank'
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    page.reload()
+    page.get_by_role('link', name='摄影学习', exact=False).click()
+    expect(page).to_have_url(learning_url)
+    expect(page.locator('#detail-title')).to_have_text('合成参考 1')
+    expect(page.locator('#detail-save')).to_have_attribute('aria-pressed', 'true')
+    expect(page.locator('#study-note')).to_have_value('切换工作区后继续观察')
+    assert len(page.context.pages) == 1
+    page.locator('#back-to-wall').click()
+    expect(page.locator('#gallery .photo-card')).to_have_count(6)
+    # A deliberate deep link takes precedence over the remembered location.
+    page.goto(url + '/learning#view=saved')
+    expect(page.locator('.view-tabs [data-view="saved"]')).to_have_class('active')
+    expect(page.locator('#gallery .photo-card')).to_have_count(1)

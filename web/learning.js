@@ -19,16 +19,17 @@
     const key = 'reference-lab.learning-prototype.v1';
     let demo = [], icons = {}, storageAvailable = true, toastTimer, searchTimer;
     let state = {view:'discover', topic:'全部', query:'', spacious:false, active:null, tab:'notes', wallScroll:0, returnFocus:null};
-    let saved = new Set(), practice = {}, notes = {};
+    let saved = new Set(), practice = {}, notes = {}, lastRoute = '';
     try {
         const raw = JSON.parse(sessionStorage.getItem(key) || '{}');
         saved = new Set(Array.isArray(raw.saved) ? raw.saved.filter(x => typeof x === 'string') : []);
         practice = raw.practice && typeof raw.practice === 'object' && !Array.isArray(raw.practice) ? raw.practice : {};
         notes = raw.notes && typeof raw.notes === 'object' && !Array.isArray(raw.notes) ? raw.notes : {};
+        lastRoute = typeof raw.route === 'string' && raw.route.startsWith('#') && raw.route.length < 4096 ? raw.route : '';
     } catch { storageAvailable = false; }
 
     function persist() {
-        try { sessionStorage.setItem(key, JSON.stringify({saved:[...saved], practice, notes})); storageAvailable = true; }
+        try { sessionStorage.setItem(key, JSON.stringify({saved:[...saved], practice, notes, route:location.hash})); storageAvailable = true; }
         catch { storageAvailable = false; }
     }
     function icon(name) { return `<span class="icon" aria-hidden="true">${icons[name] || ''}</span>`; }
@@ -81,6 +82,7 @@
         if (state.active) params.set('photo',state.active);
         const target = '#'+params.toString();
         if (location.hash !== target) history[replace ? 'replaceState' : 'pushState'](null,'',target);
+        persist();
     }
     function setTopic(topic) {
         state.topic = topics.includes(topic) ? topic : '全部';
@@ -236,6 +238,7 @@
         state.query = (q.get('q') || '').slice(0,150); $('search').value = state.query;
         const photo = q.get('photo'); state.active = null; renderWall();
         if (photo && demo.some(x => x.id === photo)) openDetail(photo,false);
+        persist();
     }
     function wire() {
         document.querySelector('.skip-link').onclick = event => {
@@ -274,6 +277,7 @@
             }
         });
         window.addEventListener('popstate',restoreRoute);
+        window.addEventListener('pagehide',storeNote);
     }
     async function boot() {
         wire(); $('empty-state').hidden = false;
@@ -292,6 +296,7 @@
                 typeof item.id==='string' && /^P\d+$/.test(item.id) && typeof item.src==='string'
                 && /^\/api\/learning-preview\/P\d+\.(jpg|jpeg|png|webp|avif)$/.test(item.src)
                 && Number.isFinite(item.width) && item.width>0 && Number.isFinite(item.height) && item.height>0);
+            if (!location.hash && lastRoute) history.replaceState(null,'',lastRoute);
             restoreRoute(); updateHistory(true);
         } catch (error) {
             renderWall(); $('empty-state').hidden=false; $('empty-title').textContent='暂时没能打开图片墙';
