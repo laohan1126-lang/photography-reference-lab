@@ -27,4 +27,3 @@ Touch configuration, browser startup, deployment examples, and focused runtime/b
 - The mobile synthetic workflow saved a keep decision and reloaded successfully. Actual owner data was only read during this verification; its original images and human choices were not changed.
 - Local task branch: `codex/patch-convergence-20261004`. Remote Git/Notion publication deferred because it is outside the authorized request. Phone/public tunnel routing is unverified in this task.
 - Runnable acceptance: double-click this checkout's `start.bat`, open `http://127.0.0.1:18766/#view=library`, then refresh or open a new browser. No passphrase step is required.
-
