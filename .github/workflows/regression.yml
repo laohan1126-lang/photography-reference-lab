@@ -21,8 +21,9 @@ jobs:
         with:
           node-version: '22'
       - run: python -m pip install -e '.[test]'
-      - run: python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_modality_archive.py tests/test_reference_transfer_board.py tests/test_collect_adapter.py tests/test_collection_runner.py tests/test_candidate_pipeline.py tests/test_collection_dispatch.py tests/test_windows_runtime_scripts.py tests/test_data_safety.py
+      - run: python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_modality_archive.py tests/test_reference_transfer_board.py tests/test_collect_adapter.py tests/test_collection_runner.py tests/test_candidate_pipeline.py tests/test_collection_dispatch.py tests/test_windows_runtime_scripts.py tests/test_runtime_convergence.py tests/test_data_safety.py tests/test_confirmed_archive.py tests/test_library_browser.py tests/test_collector_boundary_regressions.py
       - run: node --check web/app.js
+      - run: node --check web/library-browser.js
       - run: python -m compileall -q ref_lab tools
   windows-runtime:
     runs-on: windows-latest
@@ -33,7 +34,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -e ".[test]"
-      - run: python -m pytest -q tests/test_windows_runtime_scripts.py tests/test_collect_adapter.py tests/test_collection_runner.py tests/test_data_safety.py tests/test_imports_jobs.py tests/test_personal_library.py
+      - run: python -m pytest -q tests/test_windows_runtime_scripts.py tests/test_runtime_convergence.py tests/test_collect_adapter.py tests/test_collection_runner.py tests/test_data_safety.py tests/test_imports_jobs.py tests/test_personal_library.py tests/test_library_browser.py tests/test_collector_boundary_regressions.py
       - name: Parse PowerShell runtime scripts
         shell: pwsh
         run: |
@@ -65,7 +66,7 @@ jobs:
           & .\scripts\configure-windows-runtime.ps1 -DataDir ".local\ci-windows-data" -Port 18765 -InitializeEmpty
           & .\scripts\doctor-windows-runtime.ps1
           try {
-            & .\scripts\launch.ps1 -NoOpen -NoWait
+            & .\scripts\launch.ps1 -NoOpen -NoWait -SkipExternalServices
             $health = Invoke-RestMethod -Uri "http://127.0.0.1:18765/health" -TimeoutSec 5
             if ($health.status -ne "ok") {
               throw "Windows launcher health check did not return ok."
@@ -86,7 +87,7 @@ jobs:
       - run: |
           mkdir -p test-results
           git rev-parse HEAD > test-results/commit.txt
-          python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py tests/test_browser.py tests/test_live_system_regression.py --junitxml=test-results/results.xml
+          python -m pytest -q tests/test_ui_components.py tests/test_collection_ui.py tests/test_browser.py tests/test_live_system_regression.py tests/test_library_browser_ui.py tests/test_library_browser_http.py --junitxml=test-results/results.xml
         env:
           LAB_TEST_ARTIFACTS: test-results/browser
           LAB_TEST_REPORTS: test-results/reports

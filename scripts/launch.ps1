@@ -1,7 +1,8 @@
 ﻿
 param(
     [switch]$NoOpen,
-    [switch]$NoWait
+    [switch]$NoWait,
+    [switch]$SkipExternalServices
 )
 
 $ErrorActionPreference = "Stop"
@@ -13,6 +14,8 @@ $Host.UI.RawUI.WindowTitle = "摄影参考库 · Windows 本地控制台"
 $config = Get-ReferenceLabRuntimeConfig -RequireLibrary
 $python = Get-ReferenceLabPython
 Assert-ReferenceLabPythonMatchesRepo -Python $python
+
+$revision = Get-ReferenceLabRevision -RepoRoot $config.RepoRoot
 
 $adapter = Join-Path $config.RepoRoot "tools\collect_adapter.py"
 if (-not (Test-Path $adapter)) {
@@ -41,8 +44,7 @@ function Get-ManagedServerRecord {
     try {
         return (Get-Content -LiteralPath $pidFile -Raw -Encoding UTF8 | ConvertFrom-Json)
     } catch {
-        Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
-        return $null
+        throw "Runtime PID record is invalid. Refusing to replace it; inspect $pidFile."
     }
 }
 
@@ -56,69 +58,24 @@ Write-Host ""
 
 $record = Get-ManagedServerRecord
 $managedProcess = $null
-if ($record -and $record.pid) {
-    $recordMatches = (
-        ([System.IO.Path]::GetFullPath([string]$record.repo_root) -eq $config.RepoRoot) -and
-        ([System.IO.Path]::GetFullPath([string]$record.data_dir) -eq $config.DataDir) -and
-        ([int]$record.port -eq $config.Port)
-    )
-    if (-not $recordMatches) {
-        throw "Runtime PID record belongs to a different checkout/data configuration. Refusing to reuse it; inspect $pidFile."
-    }
-
-    $managedProcess = Get-Process -Id ([int]$record.pid) -ErrorAction SilentlyContinue
+if ($record) {
+    $managedProcess = Get-ReferenceLabManagedProcess -Record $record -Config $config
     if (-not $managedProcess) {
-        Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $pidFile -Force
         $record = $null
-    } elseif ($managedProcess.ProcessName -notmatch "python") {
-        throw "PID $($record.pid) was reused by a different executable ($($managedProcess.ProcessName)). Refusing to treat it as the reference-lab server."
     }
 }
 
 $alreadyHealthy = Test-ReferenceLabHealth
 if ($alreadyHealthy) {
     if (-not $record -or -not $managedProcess) {
-        $orphanConn = Get-NetTCPConnection -LocalPort $config.Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
-        $canAttach = $false
-        if ($orphanConn -and $orphanConn.OwningProcess) {
-            $orphanProc = Get-Process -Id $orphanConn.OwningProcess -ErrorAction SilentlyContinue
-            if ($orphanProc -and ($orphanProc.ProcessName -match "python")) {
-                $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId = $($orphanConn.OwningProcess)" -ErrorAction SilentlyContinue).CommandLine
-                $isSameRepo = ($cmdLine -like "*$($config.RepoRoot)*" -or $cmdLine -like "*ref_lab*")
-                if ($isSameRepo) {
-                    $record = [ordered]@{
-                        pid = $orphanConn.OwningProcess
-                        repo_root = $config.RepoRoot
-                        data_dir = $config.DataDir
-                        port = $config.Port
-                        python = $python
-                        adapter = $adapter
-                        started_at = (Get-Date).ToString("o")
-                    }
-                    $record | ConvertTo-Json | Set-Content -LiteralPath $pidFile -Encoding UTF8
-                    $managedProcess = $orphanProc
-                    $canAttach = $true
-                    Write-Host "[*] 已检测到本地参考库服务正在运行 (PID $($record.pid)，可与手机端/外部隧道同时使用)。" -ForegroundColor Green
-                }
-            }
-        }
-
-        if (-not $canAttach) {
-            $extraHint = "Stop the old WSL service first, then run start.bat again."
-            if ($orphanConn -and $orphanConn.OwningProcess) {
-                $orphanProc = Get-Process -Id $orphanConn.OwningProcess -ErrorAction SilentlyContinue
-                if ($orphanProc) {
-                    $extraHint = "An unmanaged Windows process (PID $($orphanConn.OwningProcess), $($orphanProc.ProcessName)) is occupying port $($config.Port). Run stop.bat to stop it, then run start.bat again."
-                }
-            }
-            $msg = "A healthy reference-lab service already answers at $url, but it was not started by this Windows launcher.`n" +
-                   "Refusing to attach to an unmanaged process because that would make the running code version ambiguous.`n`n" +
-                   "$extraHint"
-            throw $msg
-        }
-    } else {
-        Write-Host "[*] Windows reference-lab service is already running (PID $($record.pid))." -ForegroundColor Green
+        throw "An unmanaged server already answers at $url. Stop it through its owner; this launcher will not adopt or kill it."
     }
+    if ($record.code_revision -ne $revision) {
+        throw "The managed server was started at another Git revision. Stop it with stop.bat, then start this revision."
+    }
+    Assert-ReferenceLabRuntimeIdentity -Runtime (Get-ReferenceLabRuntimeInfo -Config $config) -Config $config -ExpectedPid $managedProcess.Id
+    Write-Host "[*] Windows reference-lab service is already running (PID $($record.pid))." -ForegroundColor Green
 } else {
     if ($managedProcess) {
         throw "Managed Windows process PID $($record.pid) exists but health check failed. Run stop.bat, inspect $stderrLog, then start again."
@@ -139,16 +96,20 @@ if ($alreadyHealthy) {
     }
 
     Write-Host "[*] Starting repo-local Windows backend..." -ForegroundColor Yellow
-    $startArgs = @{
-        FilePath = $python
-        ArgumentList = @("-m", "ref_lab", "serve", "--host", "127.0.0.1", "--port", "$($config.Port)")
-        WorkingDirectory = $config.RepoRoot
-        WindowStyle = "Hidden"
-        RedirectStandardOutput = $stdoutLog
-        RedirectStandardError = $stderrLog
-        PassThru = $true
-    }
-    $process = Start-Process @startArgs
+    # Avoid an inherited console/pipe: the stdlib owns only OS process creation.
+    $spawnCode = @"
+import subprocess, sys
+with open(sys.argv[3], 'ab') as out, open(sys.argv[4], 'ab') as err:
+    proc = subprocess.Popen(
+        [sys.executable, '-m', 'ref_lab', 'serve', '--host', '127.0.0.1', '--port', sys.argv[2]],
+        cwd=sys.argv[1], stdin=subprocess.DEVNULL, stdout=out, stderr=err,
+        creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW,
+    )
+    print(proc.pid)
+"@
+    $spawnedId = & $python -B -c $spawnCode $config.RepoRoot $config.Port $stdoutLog $stderrLog
+    if ($LASTEXITCODE -ne 0 -or -not $spawnedId) { throw "Windows backend process creation failed; inspect runtime logs." }
+    $process = Get-Process -Id ([int]$spawnedId) -ErrorAction Stop
 
     $record = [ordered]@{
         pid = $process.Id
@@ -157,7 +118,10 @@ if ($alreadyHealthy) {
         port = $config.Port
         python = $python
         adapter = $adapter
-        started_at = (Get-Date).ToString("o")
+        code_revision = $revision
+        started_at = $process.StartTime.ToUniversalTime().ToString("o")
+        process_start_ticks = [string]$process.StartTime.ToUniversalTime().Ticks
+        process_path = $process.Path
     }
     $record | ConvertTo-Json | Set-Content -LiteralPath $pidFile -Encoding UTF8
 
@@ -167,67 +131,69 @@ if ($alreadyHealthy) {
         if ($process.HasExited) {
             break
         }
-        if (Test-ReferenceLabHealth) {
-            $ready = $true
+        $runtime = Get-ReferenceLabRuntimeInfo -Config $config
+        if ($runtime) {
+            try {
+                $serverProcess = Get-Process -Id ([int]$runtime.pid) -ErrorAction Stop
+                # Windows venv python.exe wraps the real interpreter in one child process.
+                if ($serverProcess.Id -ne $process.Id) {
+                    $serverParent = (Get-CimInstance Win32_Process -Filter "ProcessId = $($serverProcess.Id)" -ErrorAction Stop).ParentProcessId
+                    if ($serverParent -ne $process.Id) { throw "Endpoint belongs to a process we did not start." }
+                }
+                Assert-ReferenceLabRuntimeIdentity -Runtime $runtime -Config $config -ExpectedPid $serverProcess.Id
+                $record.pid = $serverProcess.Id
+                $record.started_at = $serverProcess.StartTime.ToUniversalTime().ToString("o")
+                $record.process_start_ticks = [string]$serverProcess.StartTime.ToUniversalTime().Ticks
+                $record.process_path = $serverProcess.Path
+                $record | ConvertTo-Json | Set-Content -LiteralPath $pidFile -Encoding UTF8
+                $ready = $true
+            } catch {
+                Write-Host "[!] Backend identity verification failed: $_" -ForegroundColor Yellow
+            }
             break
         }
     }
 
     if (-not $ready) {
         if (-not $process.HasExited) {
-            & taskkill.exe /PID $process.Id /T /F *> $null
+            $ownedProcess = Get-ReferenceLabManagedProcess -Record $record -Config $config
+            if ($ownedProcess) { & taskkill.exe /PID $ownedProcess.Id /T /F *> $null }
         }
         Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
         throw "Windows backend did not become healthy. Inspect $stderrLog and $stdoutLog."
     }
 
-    Write-Host "[OK] Windows backend started (PID $($process.Id))." -ForegroundColor Green
+    Write-Host "[OK] Windows backend started (PID $($record.pid))." -ForegroundColor Green
 }
 
-$servicesHelper = Join-Path $PSScriptRoot "ensure-external-services.ps1"
-if (Test-Path $servicesHelper) {
-    try {
-        . $servicesHelper
-        Ensure-CloudflareTunnel | Out-Null
-        Ensure-BrowserSkillDaemon | Out-Null
-    } catch {
-        Write-Host "[!] 外部访问与采集服务检查异常: $_" -ForegroundColor Yellow
-    }
+$tunnelReady = $false
+$browserReady = $false
+if (-not $SkipExternalServices) {
+    . (Join-Path $PSScriptRoot "ensure-external-services.ps1")
+    $tunnelReady = Ensure-CloudflareTunnel -Config $config -ExpectedPid $record.pid
+    $browserReady = Ensure-BrowserSkillDaemon
 }
 
-$token = ""
-$tokenFile = Join-Path $config.DataDir "access-token"
-if (Test-Path $tokenFile) {
-    try {
-        $token = (Get-Content -LiteralPath $tokenFile -Raw -Encoding UTF8).Trim()
-        if ($token) {
-            Set-Clipboard -Value $token
-        }
-    } catch {
-        Write-Host "[!] Could not copy the access token to clipboard." -ForegroundColor Yellow
-    }
-}
-
-if (-not $NoOpen) {
-    Start-Process $url
-}
+if (-not $NoOpen) { Start-Process $url }
 
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "  Runtime  : Windows Python + Windows BrowserSkill/Edge" -ForegroundColor White
 Write-Host "  电脑访问 : $url" -ForegroundColor White
-$noAuthFile = Join-Path $config.DataDir "no-auth"
-if ((Test-Path $noAuthFile) -or ($env:LAB_NO_AUTH -eq "1")) {
-    Write-Host "  手机访问 : https://ref.koshikorato.top (完全免密模式)" -ForegroundColor Green
-    Write-Host "  模式     : 免密直接进入，无需输入任何口令" -ForegroundColor Cyan
-} else {
+if ($tunnelReady) {
     Write-Host "  手机访问 : https://ref.koshikorato.top" -ForegroundColor Green
-    if ($token) {
-        Write-Host "  手机免密 : https://ref.koshikorato.top/?token=$token" -ForegroundColor Cyan
-        Write-Host "  Token    : $token (已复制到剪贴板)" -ForegroundColor Green
-    } else {
-        Write-Host "  Token    : run .venv\Scripts\python.exe -m ref_lab token" -ForegroundColor Yellow
-    }
+} else {
+    Write-Host "  手机访问 : 未验证连到本资料库，请查看隧道检查结果。" -ForegroundColor Yellow
+}
+if ($browserReady) {
+    Write-Host "  采集浏览器 : Edge 已连接；平台登录仍需正常有效。" -ForegroundColor Green
+} else {
+    Write-Host "  采集浏览器 : 未就绪；请打开 Edge 并检查 BrowserSkill 扩展。" -ForegroundColor Yellow
+}
+$session = Invoke-RestMethod -Uri "$url/api/session" -TimeoutSec 2 -ErrorAction Stop
+if ($session.no_auth) {
+    Write-Host "  模式     : 当前资料库免密访问。" -ForegroundColor Cyan
+} else {
+    Write-Host "  口令     : run .venv\Scripts\python.exe -m ref_lab token locally" -ForegroundColor Gray
 }
 Write-Host "  Stop     : double-click stop.bat" -ForegroundColor Gray
 Write-Host "================================================================" -ForegroundColor Cyan

@@ -101,3 +101,24 @@ def test_notion_sync_idempotency_and_ambiguous_failure(tmp_path, monkeypatch):
     def timeout(request): raise httpx.ReadTimeout("fixture")
     with pytest.raises(ProviderError): sync_task_to_notion(task, tmp_path / "receipts", transport=httpx.MockTransport(timeout))
     with pytest.raises(ProviderError, match="结果未知"): sync_task_to_notion(task, tmp_path / "receipts", transport=transport)
+
+
+@pytest.mark.parametrize("review_override", [
+    {"kind": "equipment"}, {"visible_person": False},
+    {"pose_readable": False}, {"single_image": False}, {"sufficiently_clear": False},
+])
+def test_worker_does_not_resurrect_ineligible_card(client, project, library, review_override):
+    ref = add_reference(client, project)
+    ref = client.patch(f"/api/references/{ref['id']}", json={"expected_revision": ref["revision"], "decision": "keep"}).json()
+    job = library.create_job(project["id"], JobInput(kind="analysis", reference_ids=[ref["id"]]))
+    class SyntheticAnalyzer:
+        producer_name = "synthetic-not-vision"
+        def analyze(self, image, context):
+            review = {**review_data(context["asset_sha"]), **review_override}
+            return AnalysisResult(review=review, card=card_data())
+    finished = run_analysis_job(library, job["id"], SyntheticAnalyzer())
+    actual = library.reference(ref["id"])
+    assert finished["status"] == "succeeded"
+    assert actual["card"] is None
+    assert actual["card_producer"] != "manual"
+    assert actual["review_actor"] == "ai" and not actual["field_ready"]

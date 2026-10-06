@@ -52,7 +52,7 @@ async function api(path, options = {}) {
         return response.blob();
     return response.json();
 }
-function lockScreen() { if (state.noAuth) return; closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
+function lockScreen() { if (state.noAuth) return; LibraryDiscovery.reset(); closeModal(); $('lightbox').close(); $('lightbox-image')?.removeAttribute('src'); state.dirty = false; modalDirty = false; state.csrf = ''; state.projects = []; state.project = null; state.refs = []; state.epoch++; $('application').hidden = true; $('login-screen').hidden = false; $('view').replaceChildren(); $('login-token').focus(); }
 function current() { return state.refs.find(x => x.id === state.activeId) || state.refs[0] || null; }
 function label(text, name, value = '', type = 'text', extra = '') { return `<label>${esc(text)}<input aria-label="${esc(text)}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`; }
 function area(text, name, value = '', extra = '') { return `<label>${esc(text)}<textarea aria-label="${esc(text)}" name="${name}" ${extra}>${esc(value)}</textarea></label>`; }
@@ -114,6 +114,7 @@ const stages = {candidate:'先选出你喜欢的', selected:'角色参考 · 尚
 function scopeKey() { return projectViews.includes(state.view) ? `${state.view}:${state.project?.id || ''}` : state.view; }
 function rememberNavigation() {
     const q = new URLSearchParams({view:state.view, project:state.project?.id || '', ref:state.activeId || '', offset:state.offset, q:state.query, decision:state.decision, kind:state.kind, job:state.jobId || '', recycled:state.recycled?'1':'0'});
+    LibraryDiscovery.navigationParams(q);
     try { history.replaceState(null, '', '#'+q); } catch { /* Sandboxed component tests need no browser history. */ }
 }
 function resetFilters() { state.offset=0; state.query=''; state.decision=''; state.kind=''; state.jobId=''; state.focusId=null; state.recycled=false; state.activeId=null; state.dirty=false; state.selectLast=false; }
@@ -148,7 +149,8 @@ async function boot() {
     }
     state.caps=await api('/api/capabilities');
     const q=new URLSearchParams(location.hash.slice(1));
-    if ([...projectViews,'inspiration','study','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
+    LibraryDiscovery.restore(q);
+    if ([...projectViews,'library','inspiration','study','jobs','notes','profile'].includes(q.get('view'))) state.view=q.get('view');
     state.activeId=q.get('ref'); state.focusId=state.activeId; state.offset=Math.max(0,Number(q.get('offset'))||0);
     state.query=(q.get('q')||'').slice(0,400); state.decision=q.get('decision')||''; state.kind=q.get('kind')||'';
     state.jobId=q.get('job')||''; state.recycled=q.get('recycled')==='1';
@@ -158,19 +160,21 @@ async function loadProjects(preferredId) {
     [state.projects,state.archivedProjects]=await Promise.all([api('/api/projects'),api('/api/projects?archived=true')]);
     state.project=state.projects.find(x=>x.id===(preferredId||state.project?.id))||state.projects[0]||null;
     if (!state.project && projectViews.includes(state.view)) state.view='inspiration';
+    await LibraryDiscovery.init();
     $('login-screen').hidden=true; $('application').hidden=false;
     renderSidebar(); renderHeader(); await refreshView();
 }
-async function navigate(view, projectId=null) {
+async function navigate(view, projectId=null, focusId=null) {
     if (!safeDiscard()) return;
     const before=state.project?.id;
     if (projectId) state.project=state.projects.find(p=>p.id===projectId)||state.project;
     if (projectId&&state.project?.id!==before) state.selection=[];
-    state.view=view; resetFilters(); renderSidebar(); renderHeader(); await refreshView();
+    state.view=view; resetFilters(); state.focusId=focusId; state.activeId=focusId;
+    renderSidebar(); renderHeader(); await refreshView();
+    if(projectId) LibraryDiscovery.visit(projectId).catch(showError);
 }
 function renderSidebar() {
-    $('project-list').innerHTML=state.projects.map(p=>`<button class="project-link ${projectViews.includes(state.view)&&p.id===state.project?.id?'selected':''}" data-id="${esc(p.id)}"><span class="project-avatar">${esc(p.character.slice(0,1))}</span><span><strong>${esc(p.character)}</strong><small>${esc(p.costume||p.work||'拍摄项目')}</small></span></button>`).join('')||'<small>角色名即可建立项目。</small>';
-    listen('project-list','button','click',(e,n)=>navigate('references',n.dataset.id));
+    LibraryDiscovery.renderProjects();
     $('archived-projects').hidden=!state.archivedProjects.length;
     $('archived-projects').onclick=()=>archivedProjectsDialog();
     document.querySelectorAll('#global-nav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
@@ -185,7 +189,7 @@ function renderHeader() {
         $('export-pack').onclick=()=>packDialog(); $('show-events').onclick=()=>navigate('events');
         $('archive-project').onclick=()=>archiveProject(p).catch(showError);
     } else {
-        const titles={study:['PHOTOGRAPHY STUDY QUEUE','待筛摄影参考','Dot 搜集的图片先在这里看原图、核对来源，再由你决定用途和取舍。文案线索不是已核实的图像观察。'],inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','保留人工选择、审美笔记与确认总结；默认和历史权重不是已验证的个人偏好。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
+        const titles={library:['MY PHOTO LIBRARY','图库','不必记得图片在哪个项目。按画面特征找图，再回到项目使用。'],study:['PHOTOGRAPHY STUDY QUEUE','待筛摄影参考','Dot 搜集的图片先在这里看原图、核对来源，再由你决定用途和取舍。文案线索不是已核实的图像观察。'],inspiration:['MY INSPIRATION LIBRARY','我的审美库','不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。'],profile:['AESTHETIC PROFILE','我的审美画像','保留人工选择、审美笔记与确认总结；默认和历史权重不是已验证的个人偏好。'],jobs:['AGENT WORKBENCH','采集任务','网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。'],notes:['PHOTOGRAPHY NOTES','摄影笔记','留下自己的观察、拍摄方法和复盘。']};
         const t=titles[state.view]||titles.inspiration;
         $('project-header').innerHTML=`<div><span class="eyebrow">${t[0]}</span><h1>${t[1]}</h1><p>${t[2]}</p></div>${state.view==='inspiration'?'<div class="header-actions"><button id="add-inspiration" class="primary">＋ 收藏独立图片</button></div>':''}`;
         if ($('add-inspiration')) $('add-inspiration').onclick=()=>importDialog();
@@ -203,7 +207,8 @@ async function refreshView() {
     document.querySelectorAll('#view-tabs [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
     renderStats().catch(showError); rememberNavigation();
     if (projectViews.includes(state.view)&&!state.project) { $('view').innerHTML=empty('建立一个拍摄项目','只需填写角色名。','建立项目','first-project'); $('first-project').onclick=()=>projectEditor(); return; }
-    if (imageViews.includes(state.view)) await loadReferences();
+    if (state.view==='library') await LibraryDiscovery.render();
+    else if (imageViews.includes(state.view)) await loadReferences();
     else if (state.view==='jobs') await renderJobs();
     else if (state.view==='notes') await renderNotes();
     else if (state.view==='profile') await renderProfile();
@@ -571,6 +576,7 @@ function preflightBadge(ref) {
     const status = ref.preflight_status || ref.preflight?.status;
     if (!status) return '';
     const badges = {
+        unreviewed: '<span class="badge">尚未逐图核验</span>',
         passed: '<span class="badge badge-success">预检推断匹配</span>',
         uncertain: '<span class="badge badge-warning">预检身份存疑</span>',
         transferable: '<span class="badge badge-info">可迁移动作</span>',
@@ -586,7 +592,7 @@ function recommendationBadges(ref) {
     const rec = ref.recommendation;
     if (!rec) return '';
     const e = rec.evidence || {}, observation = e.visual_observations || {}, pf = e.preflight || {};
-    const labels = {unreviewed:'尚未逐图核验',human_visual_review:'人工图像判断',ai_visual_inference:'AI 图像推断，待核对',unknown_producer:'来源未核实的历史判断',local_heuristic:'本地规则预检，待核对',agent_prediction:'Agent 预检推断，待核对'};
+    const labels = {unreviewed:'尚未逐图核验',human_visual_review:'人工图像判断',ai_visual_inference:'AI 图像推断，待核对',unknown_producer:'来源未核实的历史判断',local_heuristic:'本地规则线索，不能证明图像内容',deterministic_file_check:'文件与尺寸检查，未做视觉判断',legacy_unverified:'历史预检未核实',stale_context:'项目要求已改变，旧判断待复核',agent_prediction:'Agent 预检推断，待核对'};
     const list = items => (items || []).map(x => `<li>${esc(x)}</li>`).join('');
     return `<div class="recommendation-tags">${(rec.photographic_points || []).map(x => `<span class="tag tag-dim">${esc(x)}</span>`).join('')}</div>
         <details class="evidence-origin"><summary>判断来自哪里</summary>
@@ -604,13 +610,12 @@ function renderDetail(ref) {
     const detached=!!ref.detached_at;
     const recycled=ref.decision==='reject';
     const preflightFiltered=state.view==='filtered'&&ref.preflight_filtered;
-    const pf=ref.preflight;
     const next=ref.analysis_job?'查看制卡任务':ref.card?'检查草稿并确认':'制作现场卡';
     const blockers=(ref.blockers||[]).filter(b=>b.code!=='not_accepted');
     $('detail-panel').innerHTML=`<div class="detail-heading"><span class="eyebrow">${state.view==='field'?'FIELD GUIDE':'YOUR CHOICE'}</span><h2>${esc(ref.title)}</h2><p class="detail-meta">${esc(stage)}${ref.inspiration_id?' · 已有全局收藏':''}</p>${preflightBadge(ref)}${recommendationBadges(ref)}</div>
-    ${pf?`<section class='gate-box'><strong>候选视觉预检 · ${esc(ref.preflight_status||'unreviewed')}</strong><p>${esc(modalities[pf.content_type]||pf.content_type||'未知类型')} · 身份 ${esc(pf.identity_prediction||'uncertain')} · ${esc(pf.confidence||'low')} 置信</p><p>${esc((pf.visual_evidence||[]).join('；'))}</p><p>${esc(pf.reason||'')}</p><small>来自 ${esc(pf.producer||'未记录执行器')}；这是 Agent prediction，不是人工确认。</small></section>`:''}
     ${detached?`<button id="restore-project-use" class="primary">恢复到当前项目</button><p class="muted">这张图只是从当前项目移出，不是 X 淘汰；其他项目和全局收藏不受影响。</p>`:preflightFiltered?`<div class="preflight-actions"><button id="restore-preflight" class="primary">恢复为普通候选</button><button id="make-transferable" class="quiet" style="margin-left:8px;border:1px solid var(--line);">降级为通用灵感</button><p class="muted" style="margin-top:6px;">恢复只解除预检过滤，不自动设为 K/I/M/X；降级直接移入灵感库。</p></div>`:recycled?'<button id="restore-reference" class="primary">恢复这张图片</button><p class="muted">恢复原来的选择，不自动恢复现场卡确认。</p>':`<div class="decision-bar" aria-label="第一轮筛选"><button data-decision="keep" class="${selected?'chosen':''}"><strong>本角色参考</strong><small>K · 值得用于这个项目</small></button><button data-decision="inspiration"><strong>通用灵感</strong><small>I · 归档审美库并移出项目</small></button><button data-decision="maybe" class="${ref.decision==='maybe'?'chosen':''}">待定 <small>M</small></button><button data-decision="reject" class="danger">淘汰 <small>X</small></button></div>`}
     ${!detached&&!recycled&&!selected?'<p class="curation-hint">现在只挑喜欢的。选入项目不等于图中就是这个角色，也不会自动制作现场卡。</p>':''}
+    ${ref.asset_sha?`<section class="guide-section"><h3>摄影分类</h3><p id="reference-classification-summary" role="status">正在读取分类…</p><button id="reference-classification-edit">查看 / 修正摄影分类</button></section>`:''}
     ${selected?`<section class="next-step"><span class="eyebrow">${esc(stage)}</span>${ref.field_ready?'<p>这张卡已由你确认，可从现场卡页或离线包查看。</p>':`<p>${ref.analysis_job?'任务已建立，尚需交给本地 Agent 执行并导回结果。':ref.card?'先看口令、图像判断与来源。确认后才进入现场卡。':ref.review?'分析已有结论；并非每张参考都适合做现场卡。':'只给真正想拍的几张制卡，不必处理全部精选。'}</p><button id="make-card" class="primary" ${!ref.file_available?'disabled':''}>${next}</button>`}</section>`:''}
     ${ref.card?cardMarkup(ref.card,ref.field_ready):ref.review?`<section class="guide-section"><h3>分析结论</h3>${ordered(ref.review.observations)}${ref.review.critical_uncertainties.length?`<p>待确认：${esc(ref.review.critical_uncertainties.join('；'))}</p>`:''}<p>${ref.card?'':'尚未生成资料卡。可保留作审美参考，不强行凑拍摄指令。'}</p></section>`:''}
     ${ref.asset_sha?`<section class="export-share-box">
@@ -621,6 +626,7 @@ function renderDetail(ref) {
         </div>
         ${ref.archive_path?`<div class="file-path-hint archive-success"><strong>📁 已归档至：</strong><code>${esc(ref.archive_path)}</code></div>`:
           `<div class="file-path-hint"><strong>📁 归档目标：</strong><code>${esc(ref.archive_dir||ref.export_dir||'')} (确认后自动归位)</code></div>`}
+        ${ref.archive_error?`<p id="archive-error" class="notice" role="status">选择已保存，归档未完成：${esc(ref.archive_error)}</p>`:''}
         ${ref.local_path?`<div class="file-path-secondary"><small>母本CAS底层：<code>${esc(ref.local_path)}</code></small> ${ref.archive_path?`<button id="reveal-cas-btn" class="tiny-link-btn" title="在资源管理器中查看底层CAS原图">打开母图文件夹</button>`:''}</div>`:''}
         <div id="reveal-status-hint" class="reveal-status-hint" hidden></div>
     </section>`:''}
@@ -630,6 +636,7 @@ function renderDetail(ref) {
     ${selected?`<details class="advanced-panel"><summary>拍摄复盘</summary><button id="add-reflection">＋ 记录实拍经验</button>${(ref.reflections||[]).slice(-3).map(x=>`<p>${esc(x.worked||x.failed||x.next_time||'已记录')}</p>`).join('')}</details>`:''}
     ${ref.source.page_url?`<a class="source-link" href="${esc(ref.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:''}`;
     listen('detail-panel','[data-decision]','click',(e,n)=>triggerDecision(n.dataset.decision, e.shiftKey));
+    if(ref.asset_sha)LibraryDiscovery.mountClassification(ref);
     if($('copy-image-btn'))$('copy-image-btn').onclick=()=>copyImageToClipboard(ref);
     if($('reveal-file-btn'))$('reveal-file-btn').onclick=()=>revealReferenceFile(ref);
     if($('reveal-folder-btn'))$('reveal-folder-btn').onclick=()=>revealProjectExport();
@@ -812,7 +819,7 @@ async function decide(choice, rejectionReason = null, aestheticNegative = false)
             renderReferenceView(); // Reconcile membership without remounting the strip.
         }
         await loadReferences(removed?index:0);await renderStats();
-        toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?'已选为本角色参考，已自动归位至角色已确认文件夹':'已标为待定');
+        toast(choice==='inspiration'?'已直接归档至审美库，不占用角色参考位':choice==='reject'?'已淘汰；可从回收入口恢复':choice==='keep'?(updated.archive_error?'已选为本角色参考；归档未完成：'+updated.archive_error:updated.archive_path?'已选为本角色参考，已归档至角色已确认文件夹':'已选为本角色参考'):'已标为待定');
     } finally {state.busy=false;}
 }
 
@@ -1322,7 +1329,6 @@ $('login-form').addEventListener('submit',async e=>{
         const tokenVal = $('login-token').value.trim();
         const session=await api('/api/session',{method:'POST',body:{token:tokenVal}});
         state.csrf=session.csrf;
-        try { localStorage.setItem('ref_lab_token', tokenVal); } catch(_) {}
         $('login-token').value='';
         await boot();
     }
@@ -1333,7 +1339,6 @@ if ($('optimize-skill-btn')) $('optimize-skill-btn').onclick = optimizeSkillFrom
 $('lock-library').onclick=async()=>{
     if (state.noAuth) { toast('当前已开启完全免密模式，无需锁定'); return; }
     if(!safeDiscard())return;
-    try { localStorage.removeItem('ref_lab_token'); } catch(_) {}
     try{await api('/api/session',{method:'DELETE'});lockScreen();}catch(error){showError(error);}
 };
 listen(document,'[data-view]','click',(e,n)=>navigate(n.dataset.view));
@@ -1353,36 +1358,8 @@ document.addEventListener('keydown',event=>{
     }else if(event.key==='ArrowRight'){event.preventDefault();moveImage(1);}
     else if(event.key==='ArrowLeft'){event.preventDefault();moveImage(-1);}
 });
-(async()=>{
-    const searchParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = searchParams.get('token');
-    let savedToken = '';
-    try { savedToken = localStorage.getItem('ref_lab_token') || ''; } catch(_) {}
-    const tokenToUse = tokenFromUrl || savedToken;
-
-    if (tokenFromUrl) {
-        try { localStorage.setItem('ref_lab_token', tokenFromUrl); } catch(_) {}
-        searchParams.delete('token');
-        const newSearch = searchParams.toString() ? '?' + searchParams.toString() : '';
-        window.history.replaceState({}, document.title, window.location.pathname + newSearch + window.location.hash);
-    }
-
-    if (tokenToUse) {
-        try {
-            const session = await api('/api/session', { method: 'POST', body: { token: tokenToUse } });
-            state.csrf = session.csrf;
-        } catch(e) {
-            console.warn('Auto-login with token failed', e);
-            try { localStorage.removeItem('ref_lab_token'); } catch(_) {}
-        }
-    }
-    boot().catch(error => {
-        if (state.noAuth) return;
-        lockScreen();
-        $('login-error').textContent = '无法连接参考库：' + error.message;
-        try {
-            const remembered = localStorage.getItem('ref_lab_token');
-            if (remembered && !$('login-token').value) $('login-token').value = remembered;
-        } catch(_) {}
-    });
-})();
+boot().catch(error => {
+    lockScreen();
+    $('login-form').hidden = true;
+    $('login-error').textContent = '无法连接参考库：' + error.message;
+});

@@ -33,6 +33,17 @@ def record_discovery(con: sqlite3.Connection, ref: dict, source: dict, *,
     return ident
 
 
+def record_asset_observation(con: sqlite3.Connection, asset_sha: str, facts: dict, *,
+                             actor: str, producer: str, origin_reference_id: str | None = None, ident: str | None = None) -> str:
+    """Store only actually observed fields; a partial observation is not a review."""
+    data = {"facts": {**facts, "asset_sha": asset_sha}, "actor": actor,
+            "producer": producer, "origin_reference_id": origin_reference_id}
+    ident = ident or uuid4().hex
+    data.update(id=ident, created_at=now())
+    con.execute("INSERT OR IGNORE INTO asset_observations VALUES(?,?,?)", (ident, asset_sha, encode(data)))
+    return ident
+
+
 def record_observation(con: sqlite3.Connection, ref: dict) -> str | None:
     review = ref.get("review")
     if not review or not ref.get("asset_sha") or review.get("asset_sha") != ref["asset_sha"]:
@@ -40,11 +51,10 @@ def record_observation(con: sqlite3.Connection, ref: dict) -> str | None:
     # character_match is a project-specific assessment, not a fact about the asset.
     data = {"facts": {k: review[k] for k in FACT_FIELDS}, "actor": ref.get("review_actor", "unknown"),
             "producer": ref.get("review_producer", "unknown"), "origin_reference_id": ref["id"]}
-    ident = hashlib.sha256(encode(data).encode()).hexdigest()
-    data.update(id=ident, created_at=now())
-    con.execute("INSERT OR IGNORE INTO asset_observations VALUES(?,?,?)",
-                (ident, ref["asset_sha"], encode(data)))
-    return ident
+    # Existing review imports retain their content-based idempotency key.
+    return record_asset_observation(con, ref["asset_sha"], data["facts"], actor=data["actor"],
+        producer=data["producer"], origin_reference_id=ref["id"],
+        ident=hashlib.sha256(encode(data).encode()).hexdigest())
 
 
 def keep_inspiration(con: sqlite3.Connection, *, asset_sha: str | None, title: str,

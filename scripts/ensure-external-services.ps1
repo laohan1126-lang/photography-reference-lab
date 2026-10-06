@@ -1,7 +1,7 @@
 ﻿# scripts/ensure-external-services.ps1
 # Ensures Cloudflare Tunnel (for mobile phone access) and BrowserSkill Daemon (for reference collection) are active.
 
-$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Stop"
 
 function Find-CloudflaredExe {
     $candidates = @(
@@ -36,15 +36,24 @@ function Find-CloudflaredConfig {
     return $null
 }
 
-function Ensure-CloudflareTunnel {
-    # 1. Test if public endpoint is already healthy
+function Test-ReferenceLabPublicRuntime {
+    param($Config, [int]$ExpectedPid)
+
     try {
-        $resp = Invoke-RestMethod -Uri "https://ref.koshikorato.top/health" -Method Get -TimeoutSec 2 -ErrorAction Stop
-        if ($resp.status -eq "ok") {
-            Write-Host "[OK] Cloudflare 隧道正常运行中 (https://ref.koshikorato.top)。" -ForegroundColor Green
-            return $true
-        }
+        $runtime = Get-ReferenceLabRuntimeInfo -Config $Config -Origin "https://ref.koshikorato.top"
+        Assert-ReferenceLabRuntimeIdentity -Runtime $runtime -Config $Config -ExpectedPid $ExpectedPid
+        return $true
     } catch {
+        return $false
+    }
+}
+
+function Ensure-CloudflareTunnel {
+    param($Config, [int]$ExpectedPid)
+
+    if (Test-ReferenceLabPublicRuntime -Config $Config -ExpectedPid $ExpectedPid) {
+        Write-Host "[OK] Cloudflare 已连到当前资料库。" -ForegroundColor Green
+        return $true
     }
 
     # 2. Check if cloudflared process is already running
@@ -52,13 +61,9 @@ function Ensure-CloudflareTunnel {
     if ($cfProcesses) {
         for ($i = 0; $i -lt 5; $i++) {
             Start-Sleep -Seconds 1
-            try {
-                $resp = Invoke-RestMethod -Uri "https://ref.koshikorato.top/health" -Method Get -TimeoutSec 2 -ErrorAction Stop
-                if ($resp.status -eq "ok") {
-                    Write-Host "[OK] Cloudflare 隧道已就绪 (https://ref.koshikorato.top)。" -ForegroundColor Green
-                    return $true
-                }
-            } catch {
+            if (Test-ReferenceLabPublicRuntime -Config $Config -ExpectedPid $ExpectedPid) {
+                Write-Host "[OK] Cloudflare 已连到当前资料库。" -ForegroundColor Green
+                return $true
             }
         }
     }
@@ -88,6 +93,9 @@ function Ensure-CloudflareTunnel {
             PassThru = $true
         }
         $null = Start-Process @startArgs
+    } catch {
+        Write-Host "[!] Cloudflare 进程启动失败，手机访问未就绪。" -ForegroundColor Yellow
+        return $false
     } finally {
         $env:HTTP_PROXY = $prevHttp
         $env:HTTPS_PROXY = $prevHttps
@@ -97,13 +105,9 @@ function Ensure-CloudflareTunnel {
     $ready = $false
     for ($i = 0; $i -lt 10; $i++) {
         Start-Sleep -Seconds 1
-        try {
-            $resp = Invoke-RestMethod -Uri "https://ref.koshikorato.top/health" -Method Get -TimeoutSec 2 -ErrorAction Stop
-            if ($resp.status -eq "ok") {
-                $ready = $true
-                break
-            }
-        } catch {
+        if (Test-ReferenceLabPublicRuntime -Config $Config -ExpectedPid $ExpectedPid) {
+            $ready = $true
+            break
         }
     }
 
@@ -161,8 +165,13 @@ function Ensure-BrowserSkillDaemon {
             WindowStyle = "Hidden"
             PassThru = $true
         }
-        $null = Start-Process @startArgs
-        Start-Sleep -Seconds 1
+        try {
+            $null = Start-Process @startArgs
+            Start-Sleep -Seconds 1
+        } catch {
+            Write-Host "[!] BrowserSkill 进程启动失败，采集未就绪。" -ForegroundColor Yellow
+            return $false
+        }
     }
 
     $env:BSK_AUTO_START = "0"
@@ -170,13 +179,13 @@ function Ensure-BrowserSkillDaemon {
         $output = & $bskExe status --json 2>$null
         if ($LASTEXITCODE -eq 0 -and $output) {
             $statusObj = $output | ConvertFrom-Json -ErrorAction SilentlyContinue
-            $edgeBrowser = $statusObj.browsers | Where-Object { $_.browser_name -eq "edge" } | Select-Object -First 1
+            $edgeBrowser = $statusObj.browsers | Where-Object { $_.browser_name -eq "edge" -and $_.instance_id } | Select-Object -First 1
             if ($edgeBrowser) {
                 Write-Host "[OK] BrowserSkill 采集守护已就绪 (已绑定 Edge 浏览器: $($edgeBrowser.instance_id))。" -ForegroundColor Green
-            } else {
-                Write-Host "[*] BrowserSkill 采集守护已就绪 (PID $($statusObj.pid))。" -ForegroundColor Green
+                return $true
             }
-            return $true
+            Write-Host "[!] BrowserSkill 守护已运行，但没有连接 Edge；采集尚不可用。" -ForegroundColor Yellow
+            return $false
         }
     } catch {
     } finally {
@@ -189,6 +198,12 @@ function Ensure-BrowserSkillDaemon {
 
 $isDotSourced = ($MyInvocation.InvocationName -eq '.') -or ($MyInvocation.Line -match '^\s*\.\s+')
 if (-not $isDotSourced) {
-    Ensure-CloudflareTunnel | Out-Null
-    Ensure-BrowserSkillDaemon | Out-Null
+    . (Join-Path $PSScriptRoot "runtime-common.ps1")
+    $config = Get-ReferenceLabRuntimeConfig -RequireLibrary
+    $record = Get-Content -LiteralPath (Get-ReferenceLabPidFile) -Raw -Encoding UTF8 | ConvertFrom-Json
+    $managedProcess = Get-ReferenceLabManagedProcess -Record $record -Config $config
+    if (-not $managedProcess) { throw "Start the managed backend before checking external services." }
+    $tunnelReady = Ensure-CloudflareTunnel -Config $config -ExpectedPid $managedProcess.Id
+    $browserReady = Ensure-BrowserSkillDaemon
+    if (-not ($tunnelReady -and $browserReady)) { exit 1 }
 }

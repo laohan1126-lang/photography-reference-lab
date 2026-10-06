@@ -103,9 +103,10 @@ def component_factory(client, library):
                 });
                 new MutationObserver(replace).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src']});
             }''', fragment)
+            page.add_script_tag(content=(ROOT/'web/library-browser.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/app.js').read_text(encoding='utf-8'))
             page.locator('#application').wait_for(state='visible')
-            page.locator('#filmstrip').wait_for(state='attached')
+            page.locator('#library-grid' if 'view=library' in fragment else '#filmstrip').wait_for(state='attached')
             return page
         yield mount
         browser.close()
@@ -429,3 +430,16 @@ def test_finish_session_persists_only_explicitly_confirmed_feedback(component_fa
     assert profile['dimensions']==before['dimensions']
     assert profile['project_use_exemplars'][0]['asset_sha']==ref['asset_sha']
     assert profile['positive_exemplars']==[]
+
+
+def test_archive_failure_preserves_choice_and_is_visible(ui, monkeypatch):
+    page, library, project = ui
+    monkeypatch.setattr("ref_lab.archiver.export_asset_as_jpeg", lambda *_: False)
+    page.locator('#auto-advance').uncheck()
+    ident = page.locator('#filmstrip [aria-current=true]').get_attribute('data-ref')
+    choose(page, 'keep')
+    assert library.reference(ident)['decision'] == 'keep'
+    expect(page.locator('#archive-error')).to_be_visible()
+    expect(page.locator('#archive-error')).to_contain_text('选择已保存')
+    expect(page.locator('#toast')).to_contain_text('归档未完成')
+    expect(page.locator('#toast')).not_to_contain_text('已自动归位')

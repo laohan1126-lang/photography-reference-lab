@@ -24,11 +24,19 @@ from test_personal_library import candidate_zip
 
 
 @pytest.fixture
-def live_site(tmp_path):
+def live_site(tmp_path, request, monkeypatch):
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     port = sock.getsockname()[1]
-    settings = Settings(tmp_path / "data", TOKEN, public_origin=f"http://127.0.0.1:{port}")
+    if getattr(request, "param", False) == "default":
+        monkeypatch.setenv("LAB_DATA_DIR", str(tmp_path / "data"))
+        monkeypatch.setenv("LAB_PUBLIC_ORIGIN", f"http://127.0.0.1:{port}")
+        monkeypatch.setenv("LAB_AUTO_CLASSIFY", "0")
+        monkeypatch.delenv("LAB_NO_AUTH", raising=False)
+        settings = Settings.from_env()
+    else:
+        settings = Settings(tmp_path / "data", TOKEN, public_origin=f"http://127.0.0.1:{port}",
+                            no_auth=getattr(request, "param", False))
     app = create_app(settings)
     library = app.state.library
     project = library.create_project(ProjectInput(character="王昭君", work="王者荣耀", costume="长夜焕生", brief="漫展实用；以站姿、回眸与自然互动为主。"))
@@ -216,3 +224,53 @@ def test_browser_stable_strip_and_recovery(live_site,browser_page,auto):
         library.add_candidate(project['id'],CandidateInput(asset_sha=asset['id'],title=f'Synthetic {i}'))
     page,errors=browser_page;unlock(page,url)
     exercise_stable_strip(page,library,project,auto)
+
+
+@pytest.mark.parametrize('live_site', [True, 'default'], indirect=True)
+def test_mobile_no_auth_open_save_reload_and_gallery(live_site, browser_page):
+    url, library, project = live_site
+    page, _ = browser_page
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.add_init_script("localStorage.setItem('ref_lab_token', 'obsolete-synthetic-token')")
+    login_requests = []
+    page.on('request', lambda request: login_requests.append(request.url)
+            if request.method == 'POST' and request.url.endswith('/api/session') else None)
+    page.goto(url)
+    expect(page.locator('#application')).to_be_visible()
+    assert not login_requests
+    expect(page.locator('#login-screen')).not_to_be_visible()
+    expect(page.locator('#lock-library')).not_to_be_visible()
+    page.locator('#main-image').wait_for()
+    ident = page.locator('#filmstrip [aria-current=true]').get_attribute('data-ref')
+    choose(page, 'keep')
+    assert library.reference(ident)['decision'] == 'keep'
+    page.reload()
+    page.locator('#stage-prev-btn').click()
+    expect(page.locator('#filmstrip [aria-current=true]')).to_have_attribute('data-ref', ident)
+    expect(page.locator('[data-decision=keep]')).to_have_class('chosen')
+    page.get_by_role('button', name='图库 · 跨项目找图', exact=True).click()
+    expect(page.locator('.library-tile')).to_have_count(3)
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    assert not login_requests
+    artifact(page, 'mobile-no-auth-gallery.png')
+
+
+@pytest.mark.parametrize('width', [1440, 390])
+@pytest.mark.parametrize('live_site', [True], indirect=True)
+def test_photography_workspace_entrance(live_site, browser_page, width):
+    """The live sibling prototype must remain reachable from the reference UI."""
+    url, _, _ = live_site
+    page, _ = browser_page
+    page.set_viewport_size({'width': width, 'height': 900})
+    page.goto(url)
+    expect(page.locator('#application')).to_be_visible()
+    nav = page.get_by_role('navigation', name='摄影工作区')
+    expect(nav.locator('[aria-current="page"]')).to_have_text('拍摄参考')
+    link = nav.get_by_role('link', name='摄影学习', exact=True)
+    expect(link).to_be_visible()
+    expect(link).to_have_attribute('href', 'http://127.0.0.1:18767/learning')
+    assert link.get_attribute('target') != '_blank'
+    assert link.bounding_box()['y'] < 200
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    page.reload()
+    expect(link).to_be_visible()

@@ -13,7 +13,8 @@ from .models import (CandidateInput, ProjectInput, ReferenceEdit, Source, Visual
                      AnalysisResult, NoteInput, JobInput, InspirationInput, InspirationEdit, CollectionReport,
                      CandidatePreflight, ReferenceTransferInput, StudyCandidateEdit)
 from .storage import AssetStore
-from .policy import (MESSAGES, acceptance_digest, blockers, context_digest, digest, state_for)
+from .identity import ensure_identity_context, identity_digest
+from .policy import (preflight_filter_sql, preflight_status_sql, review_kind_sql, project_preflight, review_context_matches, UNTRUSTED_EVIDENCE_PRODUCERS, MESSAGES, acceptance_digest, blockers, context_digest, digest, state_for)
 
 
 class Problem(Exception):
@@ -45,6 +46,9 @@ def ensure_active_project(project: dict) -> None:
         raise Problem(409, "项目已删除到回收区；请先恢复项目再继续修改")
 
 
+# This one predicate defines effective filtering; historical heuristic JSON stays untouched.
+_EFFECTIVE_PREFLIGHT_FILTER = preflight_filter_sql()
+
 _REAL_PERSON_MODALITIES = {"real_person_cosplay", "real_person_portrait"}
 _FILTERED_MODALITIES = {
     "game_screenshot", "anime_screenshot", "official_illustration", "fan_art",
@@ -67,84 +71,41 @@ class Library:
         self.settings = settings
         self.db = Database(settings.data_dir / "library.sqlite3")
         self.assets = AssetStore(settings)
-        if repair_untrusted_preflights:
-            self._repair_untrusted_local_adapter_preflights()
+        # Kept as an import-tool compatibility argument; startup no longer rewrites
+        # historical preflights. Effective evidence is projected by policy queries.
+        self.archive_errors: dict[str, str] = {}
 
-    def _repair_untrusted_local_adapter_preflights(self) -> None:
-        """Replace the known metadata-only local adapter preflight with conservative gates."""
-        from .identity import get_identity_context, build_identity_context, save_identity_context
-        from .preflight import run_candidate_preflight, save_preflight
+    def _schedule_archive(self, con, project: dict) -> None:
+        from .archiver import get_project_archive_dir, sync_project_confirmed_archive
+        folder = get_project_archive_dir(self.settings.data_dir, project)
+        def synchronize():
+            try:
+                result = sync_project_confirmed_archive(self, project["id"], archive_dir=folder)
+                error = "; ".join(result["errors"])
+            except Exception as exc:
+                error = str(exc) or type(exc).__name__
+            if error:
+                self.archive_errors[str(folder)] = error
+                import logging
+                logging.getLogger(__name__).warning("Archive projection failed: %s", error)
+            else:
+                self.archive_errors.pop(str(folder), None)
+        con.after_commit[("archive", str(folder))] = synchronize
 
-        with self.db.transaction() as con:
-            rows = con.execute("SELECT id,data FROM refs").fetchall()
-            for row in rows:
-                ref = json.loads(row["data"])
-                old_preflight = ref.get("preflight") or {}
-                if old_preflight.get("producer") != "local_collection_adapter":
-                    continue
-
-                project = row_data(con, "projects", ref["project_id"])
-                history = list(ref.get("invalidated_preflights") or [])
-                history.append({
-                    **old_preflight,
-                    "invalidated_at": now(),
-                    "invalidated_reason": "metadata_only_adapter_false_positive",
-                })
-                ref["invalidated_preflights"] = history[-5:]
-
-                asset = row_data(con, "assets", ref["asset_sha"]) if ref.get("asset_sha") else None
-                if not asset or not self.assets.path(asset).is_file():
-                    ref.update(
-                        preflight=None,
-                        preflight_status="unreviewed",
-                        preflight_reason="旧本地适配器判断已作废；图片不可用，未重新预检",
-                        preflight_filtered=False,
-                        preflight_override=False,
-                    )
-                    self._save(
-                        con, ref, project, "candidate.preflight_invalidated",
-                        {"old_producer": "local_collection_adapter", "reason": "metadata_only_false_positive"},
-                        "system",
-                    )
-                    continue
-
-                context = get_identity_context(con, project_id=project["id"])
-                if not context:
-                    context = build_identity_context(
-                        project["character"],
-                        project.get("work", ""),
-                        project.get("costume", ""),
-                        project.get("brief", ""),
-                    )
-                    save_identity_context(con, project["id"], context)
-
-                fresh = run_candidate_preflight(
-                    self.assets.path(asset),
-                    metadata=ref,
-                    context=context,
-                    asset_sha=ref["asset_sha"],
-                    project_id=project["id"],
-                    reference_id=ref["id"],
-                )
-                save_preflight(con, fresh)
-                ref.update(
-                    preflight=fresh,
-                    preflight_status=fresh["status"],
-                    preflight_reason=fresh["status_reason"],
-                    preflight_id=fresh["id"],
-                    dhash=fresh.get("dhash", ""),
-                    preflight_filtered=fresh["status"] == "filtered",
-                    preflight_override=False,
-                )
-                self._save(
-                    con, ref, project, "candidate.preflight_repaired",
-                    {
-                        "old_producer": "local_collection_adapter",
-                        "new_status": fresh["status"],
-                        "new_producer": fresh["producer"],
-                    },
-                    "system",
-                )
+    def _invalidate_project_context(self, con, project: dict, previous_project: dict) -> None:
+        previous_identity = identity_digest(previous_project)
+        identity_changed = identity_digest(project) != previous_identity
+        for row in con.execute("SELECT data FROM refs WHERE project_id=?", (project["id"],)).fetchall():
+            ref = json.loads(row[0])
+            if not ref.get("review_identity_context") and review_context_matches(ref, previous_project):
+                ref["review_identity_context"] = previous_identity
+            ref["accepted_fingerprint"] = None
+            if identity_changed:
+                if ref.get("preflight"):
+                    ref.setdefault("preflight_history", []).append({"preflight": ref["preflight"], "context": ref.get("preflight_context", previous_identity), "invalidated_at": now()})
+                ref.update(preflight=None, preflight_status="unreviewed", preflight_filtered=False,
+                           preflight_override=False, preflight_context=None)
+            self._save(con, ref, project, "context.invalidated", {"project_revision": project["revision"]})
 
     def create_project(self, data: ProjectInput, *, ident: str | None = None) -> dict:
         project = {**data.model_dump(), "id": ident or fresh_id(), "revision": 1, "archived_at": None, "created_at": now(), "updated_at": now()}
@@ -170,14 +131,14 @@ class Library:
             ensure_active_project(project)
             check_revision(project, revision)
             before = context_digest(project)
+            previous_project = dict(project)
+            self._schedule_archive(con, previous_project)
             project.update(data.model_dump())
             project.update(revision=revision + 1, updated_at=now())
             con.execute("UPDATE projects SET data=? WHERE id=?", (encode(project), ident))
             if context_digest(project) != before:
-                refs = [json.loads(r[0]) for r in con.execute("SELECT data FROM refs WHERE project_id=?", (ident,))]
-                for ref in refs:
-                    ref["accepted_fingerprint"] = None
-                    self._save(con, ref, project, "context.invalidated", {"project_revision": project["revision"]})
+                self._invalidate_project_context(con, project, previous_project)
+            self._schedule_archive(con, project)
             self.db.event(con, ident, ident, "project.updated", data.model_dump())
             return project
 
@@ -190,6 +151,7 @@ class Library:
             project.update(archived_at=now(), revision=revision + 1, updated_at=now())
             con.execute("UPDATE projects SET data=? WHERE id=?", (encode(project), ident))
             self.db.event(con, ident, ident, "project.archived", {"archived_at": project["archived_at"]})
+            self._schedule_archive(con, project)
             return project
 
     def restore_project(self, ident: str, revision: int) -> dict:
@@ -201,6 +163,7 @@ class Library:
             project.update(archived_at=None, revision=revision + 1, updated_at=now())
             con.execute("UPDATE projects SET data=? WHERE id=?", (encode(project), ident))
             self.db.event(con, ident, ident, "project.restored", {})
+            self._schedule_archive(con, project)
             return project
 
     def ingest_asset(self, content: bytes, filename: str = "") -> dict:
@@ -227,18 +190,37 @@ class Library:
 
     def _save(self, con: sqlite3.Connection, ref: dict, project: dict, action: str,
               payload: object, actor: str = "human") -> dict:
+        if ref.get("review") and not ref.get("review_identity_context"):
+            previous = row_data(con, "refs", ref["id"])
+            if (previous.get("review") == ref["review"] and previous.get("asset_sha") == ref.get("asset_sha")
+                    and review_context_matches(previous, project)):
+                ref["review_identity_context"] = identity_digest(project)
         ref["revision"] += 1
         ref["updated_at"] = now()
         ref["state"] = "detached" if ref.get("detached_at") else state_for(ref, project, self._asset_exists(con, ref))
         con.execute("UPDATE refs SET asset_sha=?,decision=?,state=?,data=? WHERE id=?",
                     (ref["asset_sha"], ref["decision"], ref["state"], encode(ref), ref["id"]))
         self.db.event(con, ref["project_id"], ref["id"], action, payload, actor)
+        self._schedule_archive(con, project)
         return ref
 
     def _decorate(self, con: sqlite3.Connection, ref: dict, project: dict | None = None) -> dict:
         project = project or row_data(con, "projects", ref["project_id"])
         exists = self._asset_exists(con, ref)
         result = dict(ref)
+        if ref.get("review_producer") in UNTRUSTED_EVIDENCE_PRODUCERS:
+            result.update(legacy_review=ref.get("review"), review=None, review_evidence_status="legacy_unverified")
+        result["preflight_current_context"] = False
+        if ref.get("preflight"):
+            projected = project_preflight(ref["preflight"], current_asset_sha=ref.get("asset_sha"), current_context=identity_digest(project))
+            result["preflight_current_context"] = projected["effective"]
+            if not projected["effective"]:
+                result.update(legacy_preflight=ref["preflight"], preflight=None,
+                              preflight_status="unreviewed", preflight_filtered=False,
+                              preflight_reason=projected["reason"],
+                              preflight_evidence_status=projected["evidence_status"],
+                              preflight_warning=projected["reason"])
+        result["review_current_context"] = review_context_matches(ref, project)
         result["asset"] = row_data(con, "assets", ref["asset_sha"]) if ref["asset_sha"] else None
         detached = bool(ref.get("detached_at"))
         result["state"] = "detached" if detached else state_for(ref, project, exists)
@@ -253,14 +235,14 @@ class Library:
         if result.get("asset") and exists:
             result["local_path"] = str(self.assets.path(result["asset"]))
         if project and project.get("character"):
-            from .archiver import get_project_archive_dir, sanitize_filename
+            from .archiver import get_project_archive_dir, get_reference_archive_path
             archive_dir = get_project_archive_dir(self.settings.data_dir, project)
             result["archive_dir"] = str(archive_dir)
             result["export_dir"] = str(archive_dir)
-            if ref.get("decision") == "keep" and not detached and archive_dir.is_dir():
-                safe_title = sanitize_filename(ref.get("title") or "", max_length=30)
-                matched = [p for p in archive_dir.glob("*.jpg") if safe_title and safe_title in p.name]
-                result["archive_path"] = str(matched[0]) if matched else None
+            result["archive_error"] = self.archive_errors.get(str(archive_dir))
+            if ref.get("decision") == "keep" and ref.get("lane") == "field" and not detached and not project.get("archived_at") and archive_dir.is_dir():
+                target = get_reference_archive_path(self.settings.data_dir, project, ref)
+                result["archive_path"] = str(target) if target.is_file() else None
             else:
                 result["archive_path"] = None
         else:
@@ -268,7 +250,16 @@ class Library:
             result["archive_path"] = None
             result["export_dir"] = None
         from .ranking import score_and_rank_candidates
-        return score_and_rank_candidates([result])[0]
+        result = score_and_rank_candidates([result])[0]
+        if con.in_transaction and result.get("archive_dir"):
+            # _decorate may run inside a mutation. Update that same return dict
+            # only after the shared archive projection has consumed committed state.
+            def refresh_projection():
+                target = get_reference_archive_path(self.settings.data_dir, project, ref) if ref.get("asset_sha") else None
+                result["archive_path"] = str(target) if target and ref["decision"] == "keep" and ref.get("lane") == "field" and not detached and not project.get("archived_at") and target.is_file() else None
+                result["archive_error"] = self.archive_errors.get(result["archive_dir"])
+            con.after_commit[("archive_view", id(result))] = refresh_projection
+        return result
 
     def reference(self, ident: str) -> dict:
         with self.db.read() as con:
@@ -292,6 +283,8 @@ class Library:
         con.execute("INSERT INTO refs VALUES(?,?,?,?,?,?)",
                     (ref["id"], project_id, data.asset_sha, decision, ref["state"], encode(ref)))
         self.db.event(con, project_id, ref["id"], "candidate.imported", {"source": data.source.model_dump(), "decision": decision}, actor)
+        if decision == "keep":
+            self._schedule_archive(con, project)
         return ref
 
     def add_candidate(self, project_id: str, data: CandidateInput, *, decision: str = "pending", actor: str = "import", record_context: bool = True, attempt_id: str = "") -> dict:
@@ -334,17 +327,15 @@ class Library:
                 if data.asset_sha and actor not in {"legacy_migration", "import"}:
 
                     try:
-                        from .identity import get_identity_context, build_identity_context, save_identity_context
                         from .preflight import run_candidate_preflight, save_preflight
-                        id_ctx = get_identity_context(con, project_id=project_id)
-                        if not id_ctx:
-                            id_ctx = build_identity_context(project["character"], project.get("work", ""), project.get("costume", ""), project.get("brief", ""))
-                            save_identity_context(con, project_id, id_ctx)
+                        id_ctx = ensure_identity_context(con, project)
                         asset = row_data(con, "assets", data.asset_sha)
                         img_path = self.assets.path(asset)
                         if img_path.exists():
                             pf = run_candidate_preflight(img_path, metadata=ref, context=id_ctx, asset_sha=data.asset_sha, project_id=project_id, reference_id=ref["id"])
+                            pf["project_context"] = identity_digest(project)
                             save_preflight(con, pf)
+                            ref["preflight_context"] = identity_digest(project)
                             ref["preflight_status"] = pf["status"]
                             ref["preflight_reason"] = pf["status_reason"]
                             ref["preflight_id"] = pf["id"]
@@ -378,14 +369,14 @@ class Library:
             clauses.append("(decision='reject' OR json_extract(data,'$.detached_at') IS NOT NULL)")
         elif view_filtered:
             clauses.append("json_extract(data,'$.detached_at') IS NULL")
-            clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=1")
+            clauses.append(_EFFECTIVE_PREFLIGHT_FILTER)
         else:
             clauses.append("json_extract(data,'$.detached_at') IS NULL")
-            clauses.append("COALESCE(json_extract(data,'$.preflight_filtered'),0)=0")
+            clauses.append(f"NOT {_EFFECTIVE_PREFLIGHT_FILTER}")
             if not include_rejected and decision != "reject" and state != "rejected":
                 clauses.append("decision<>'reject'")
         if preflight_status:
-            clauses.append("COALESCE(json_extract(data,'$.preflight_status'),'unreviewed')=?")
+            clauses.append(f"({preflight_status_sql()})=?")
             args.append(preflight_status)
         if job_id:
             job = self.job(job_id)
@@ -397,13 +388,15 @@ class Library:
             if value:
                 clauses.append(f"{column}=?")
                 args.append(value)
+                if column == "state" and value == "ready":
+                    clauses.append(f"({review_kind_sql()}) IN ('cosplay_photo','portrait_photo')")
                 if column == "decision" and value == "keep" and not lane:
                     clauses.append("COALESCE(json_extract(data,'$.lane'),'field')='field'")
         if lane:
             clauses.append("json_extract(data,'$.lane')=?")
             args.append(lane)
         if kind:
-            clauses.append("COALESCE(json_extract(data,'$.review.kind'),'unknown')=?")
+            clauses.append(f"({review_kind_sql()})=?")
             args.append(kind)
         if query:
             clauses.append("(json_extract(data,'$.title') LIKE ? ESCAPE '\\' OR json_extract(data,'$.preference') LIKE ? ESCAPE '\\' OR json_extract(data,'$.source.author') LIKE ? ESCAPE '\\')")
@@ -429,10 +422,10 @@ class Library:
             for row in con.execute(f"SELECT decision,COUNT(*) FROM refs WHERE {active} GROUP BY decision", (project_id,)):
                 result[row[0]] = row[1]
                 result["total"] += row[1]
-            result["ready"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND state='ready' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
-            result["selected"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision='keep' AND json_extract(data,'$.lane')='field' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
-            result["filtered"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=1", (project_id,)).fetchone()[0]
-            result["visible"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision<>'reject' AND COALESCE(json_extract(data,'$.preflight_filtered'),0)=0", (project_id,)).fetchone()[0]
+            result["ready"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND state='ready' AND ({review_kind_sql()}) IN ('cosplay_photo','portrait_photo') AND NOT {_EFFECTIVE_PREFLIGHT_FILTER}", (project_id,)).fetchone()[0]
+            result["selected"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision='keep' AND json_extract(data,'$.lane')='field' AND NOT {_EFFECTIVE_PREFLIGHT_FILTER}", (project_id,)).fetchone()[0]
+            result["filtered"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND {_EFFECTIVE_PREFLIGHT_FILTER}", (project_id,)).fetchone()[0]
+            result["visible"] = con.execute(f"SELECT COUNT(*) FROM refs WHERE {active} AND decision<>'reject' AND NOT {_EFFECTIVE_PREFLIGHT_FILTER}", (project_id,)).fetchone()[0]
             result["detached"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND json_extract(data,'$.detached_at') IS NOT NULL", (project_id,)).fetchone()[0]
             return result
 
@@ -476,13 +469,6 @@ class Library:
                 self._save(con, ref, project, "reference.updated", changes)
                 if any(k in changes for k in ("decision", "lane", "preference", "borrow", "rejection_reason", "is_aesthetic_negative")):
                     self._record_feedback(con, ref, changes)
-        if any(k in changes for k in ("decision", "lane", "title")):
-            try:
-                from .archiver import sync_project_confirmed_archive
-                sync_project_confirmed_archive(self, ref["project_id"])
-            except Exception as e:
-                import logging
-                logging.getLogger(__name__).warning(f"Archive sync error on edit_reference: {e}")
         with self.db.read() as con:
             return self._decorate(con, ref, project)
 
@@ -507,7 +493,8 @@ class Library:
             ensure_active_project(project)
             status = candidate_preflight_status(preflight)
             payload = {**preflight.model_dump(), "asset_sha": ref["asset_sha"], "producer": producer, "created_at": now()}
-            ref.update(preflight=payload, preflight_status=status, preflight_filtered=status == "filtered",
+            payload["project_context"] = identity_digest(project)
+            ref.update(preflight=payload, preflight_context=identity_digest(project), preflight_status=status, preflight_filtered=status == "filtered",
                        preflight_override=False, accepted_fingerprint=None)
             self._save(con, ref, project, "candidate.preflight_saved",
                        {"status": status, "producer": producer, "content_type": preflight.content_type,
@@ -535,7 +522,7 @@ class Library:
                 raise Problem(409, "核验结果对应的不是当前图片")
             project = row_data(con, "projects", ref["project_id"])
             ensure_active_project(project)
-            ref.update(review=review.model_dump(), review_actor="human", review_producer="manual",
+            ref.update(review=review.model_dump(), review_identity_context=identity_digest(project), review_actor="human", review_producer="manual",
                        accepted_fingerprint=None)
             record_observation(con, ref)
             self._save(con, ref, project, "review.saved", review.model_dump())
@@ -575,7 +562,7 @@ class Library:
             review = result.review.model_dump()
             eligible = (review["kind"] in {"cosplay_photo", "portrait_photo"} and review["visible_person"] and
                         review["pose_readable"] and review["single_image"] and review["sufficiently_clear"])
-            ref.update(review=review, review_actor="ai", review_producer=producer,
+            ref.update(review=review, review_identity_context=identity_digest(project), review_actor="ai", review_producer=producer,
                        card=result.card.model_dump() if result.card and eligible else None,
                        card_context=context_digest(project), card_producer=producer, accepted_fingerprint=None)
             record_observation(con, ref)
@@ -814,13 +801,6 @@ class Library:
             ensure_active_project(project)
             self._save(con, ref, project, "reference.restored", {"decision": ref["decision"]})
             self._record_feedback(con, ref, {"decision": ref["decision"]})
-        if ref.get("decision") == "keep":
-            try:
-                from .archiver import sync_project_confirmed_archive
-                sync_project_confirmed_archive(self, ref["project_id"])
-            except Exception as e:
-                import logging
-                logging.getLogger(__name__).warning(f"Archive sync error on restore_reference: {e}")
         with self.db.read() as con:
             return self._decorate(con, ref, project)
 
@@ -1188,46 +1168,42 @@ class Library:
             return self._save_job(con, job, "collection.reported", evidence, "agent")
 
     def identity_context(self, project_id: str) -> dict:
-        from .identity import get_identity_context, build_identity_context, save_identity_context
         with self.db.transaction() as con:
-            ctx = get_identity_context(con, project_id=project_id)
-            if not ctx:
-                project = row_data(con, "projects", project_id)
-                ctx = build_identity_context(
-                    project.get("character", ""),
-                    project.get("work", ""),
-                    project.get("costume", ""),
-                    project.get("brief", ""),
-                )
-                save_identity_context(con, project_id, ctx)
-            return ctx
+            return ensure_identity_context(con, row_data(con, "projects", project_id))
 
     def update_identity_context(self, project_id: str, data: IdentityContextInput) -> dict:
         from .identity import get_identity_context, save_identity_context
         with self.db.transaction() as con:
+            project = row_data(con, "projects", project_id)
+            ensure_active_project(project)
+            previous_project = dict(project)
+            project["identity_context_revision"] = project.get("identity_context_revision", 0) + 1
+            project.update(revision=project["revision"] + 1, updated_at=now())
+            con.execute("UPDATE projects SET data=? WHERE id=?", (encode(project), project_id))
             existing = get_identity_context(con, project_id=project_id)
-            new_version = (existing.get("version", 1) + 1) if existing else 1
             ctx_dict = data.model_dump()
-            ctx_dict["version"] = new_version
-            ctx_dict["updated_at"] = now()
+            ctx_dict.update(version=existing.get("version", 0) + 1 if existing else 1,
+                            updated_at=now(), project_context=identity_digest(project))
             saved = save_identity_context(con, project_id, ctx_dict)
-            self.db.event(con, project_id, saved["id"], "identity_context.updated", {"version": new_version})
+            self._invalidate_project_context(con, project, previous_project)
+            self.db.event(con, project_id, saved["id"], "identity_context.updated", {"version": saved["version"]})
             return saved
 
     def preflights(self, project_id: str, status: str = "") -> list[dict]:
         from .preflight import list_preflights
         with self.db.read() as con:
-            return list_preflights(con, project_id, status=status or None)
+            con.execute("BEGIN")
+            project = row_data(con, "projects", project_id)
+            current_assets = {row["id"]: row["asset_sha"] for row in con.execute("SELECT id,asset_sha FROM refs WHERE project_id=?", (project_id,))}
+            items = [project_preflight(p, current_asset_sha=current_assets.get(p.get("reference_id")), current_context=identity_digest(project)) for p in list_preflights(con, project_id)]
+            return [p for p in items if not status or p["status"] == status]
 
     def scan_project_preflight(self, project_id: str, force: bool = False) -> dict:
-        from .identity import get_identity_context, build_identity_context, save_identity_context
         from .preflight import run_candidate_preflight, save_preflight
         with self.db.transaction() as con:
             project = row_data(con, "projects", project_id)
-            id_ctx = get_identity_context(con, project_id=project_id)
-            if not id_ctx:
-                id_ctx = build_identity_context(project["character"], project.get("work", ""), project.get("costume", ""), project.get("brief", ""))
-                save_identity_context(con, project_id, id_ctx)
+            ensure_active_project(project)
+            id_ctx = ensure_identity_context(con, project)
 
             refs_rows = con.execute("SELECT id, asset_sha, data FROM refs WHERE project_id=? AND json_extract(data,'$.detached_at') IS NULL", (project_id,)).fetchall()
             scanned = 0
@@ -1236,7 +1212,7 @@ class Library:
             uncertain = 0
             for rid, sha, rdata_str in refs_rows:
                 ref = json.loads(rdata_str)
-                if not force and ref.get("preflight_status") and "preflight" in ref:
+                if not force and ref.get("preflight") and ref.get("preflight_context") == identity_digest(project):
                     if ref.get("preflight_filtered"):
                         filtered += 1
                     elif ref.get("preflight_status") == "passed":
@@ -1253,7 +1229,9 @@ class Library:
                     continue
 
                 pf = run_candidate_preflight(img_path, metadata=ref, context=id_ctx, asset_sha=sha, project_id=project_id, reference_id=rid)
+                pf["project_context"] = identity_digest(project)
                 save_preflight(con, pf)
+                ref["preflight_context"] = identity_digest(project)
                 ref["preflight_status"] = pf["status"]
                 ref["preflight_reason"] = pf["status_reason"]
                 ref["preflight_id"] = pf["id"]

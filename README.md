@@ -36,6 +36,8 @@ powershell -ExecutionPolicy Bypass -File scripts\doctor-windows-runtime.ps1
 powershell -ExecutionPolicy Bypass -File scripts\configure-windows-runtime.ps1 -DataDir ".local" -InitializeEmpty
 ```
 
+正常双击 `start.bat` 后，打开网页直接进入图库，无需访问口令；重新启动和换浏览器也不需要口令。免口令是默认行为，不依赖资料库中的标记文件。
+
 默认本地端口为 `18765`；可在 gitignored 的 `.local/windows-runtime.json` 中配置，或用环境变量覆盖。停止服务使用 `stop.bat`，它只终止本启动器记录的 Windows 进程树，不会全局杀 Python/WSL。
 
 ### WSL / Linux：兼容与开发路径
@@ -63,6 +65,8 @@ python -m ref_lab backup --output ../reference-lab-backup.zip
 恢复须停服务，在新的空目录解压完整备份，再用该目录启动并 `doctor`。不要把旧版本代码指向已升级数据库。
 
 ## 下一次打开应该怎么用
+
+**图库 · 跨项目找图**：按视角、景别、动作等条件组合找图；同一资产只显示一次，项目选择不合并。可保存常用查询，搜索/置顶项目；旧图不必先全部补标签。详见 [图库使用与边界](docs/LIBRARY_DISCOVERY.md)。
 
 **拍摄项目 → 挑参考**：角色名必填，作品、服装版本和自由要求选填。独立大图旁只有四个主要选择：本角色参考 **K**、通用灵感 **I**、待定 **M**、淘汰 **X**。左右键切图，可关闭“选择后下一张”。审美笔记、来源纠错、手动编辑藏在次级折叠区。选为本角色参考表示“值得用于这个项目”，并不宣称图中就是目标角色。采集 Agent 的视觉预检会把游戏/动画截图、插画、假人/服装/商品展示、拼图、空场景及高可信错角色从默认真人候选流降到“已过滤候选”；过滤不等于 X，也不删除资产，用户可以恢复。
 
@@ -126,6 +130,13 @@ python -m pytest -q tests/test_browser.py tests/test_live_system_regression.py
 
 ## 私人部署边界
 
-FastAPI + SQLite WAL + 原始图片文件 + 无构建步骤的 Web。默认仅监听回环地址，单所有者使用。数据库、登录口令、浏览器档案和新增私人图片不提交 Git。已有公开 Git 历史无法通过私人页面撤回。公网部署前配置 HTTPS、随机 `LAB_ACCESS_TOKEN`、准确 `LAB_PUBLIC_ORIGIN`、持久卷和备份，参见 [部署说明](docs/DEPLOYMENT.md)。本版本不自动部署、不合并 main、不自动操作 PS、不重绘人物。
+FastAPI + SQLite WAL + 原始图片文件 + 无构建步骤的 Web。默认仅监听回环地址，单所有者使用。数据库、登录口令、浏览器档案和新增私人图片不提交 Git。已有公开 Git 历史无法通过私人页面撤回。单独部署时配置 HTTPS、准确 `LAB_PUBLIC_ORIGIN`、持久卷和备份；如需显式启用口令保护，设置 `LAB_NO_AUTH=0` 和随机 `LAB_ACCESS_TOKEN`，参见 [部署说明](docs/DEPLOYMENT.md)。本版本不自动部署、不合并 main、不自动操作 PS、不重绘人物。
 
 详细设计：[架构](docs/ARCHITECTURE.md) · [执行器协议](docs/WORKER_PROTOCOL.md)。
+
+
+### 已保留图片的自动分类
+
+正常用 start.bat 启动后，整个可浏览图库（含待选图片）会在后台交给已登录的 Antigravity 看图，同时初步填写图片类型、视角、景别、主动作；旧图也会自动补齐。详情中可查看与纠正，人工保存后模型不再覆盖。跨项目图库显示分类队列进度，单图失败留待重试而不拦住其他图片；登录/连接不可用时暂停并提示重试。标签用于找图，不自动代表角色核验或现场卡验收。
+
+这条流程会把图片交给现有 Antigravity 模型服务；项目所有者已授权此行为。需要暂停时，在启动环境设 LAB_AUTO_CLASSIFY=0；.env.example 仅为示例，启动器不会自动加载该文件。关闭网页不停止后台，停止参考库服务才停止处理；下次启动从未完成任务继续。

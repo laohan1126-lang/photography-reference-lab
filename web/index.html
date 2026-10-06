@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#14242e">
   <title>参考实验室 · Photography Reference Lab</title>
-  <link rel="stylesheet" href="/static/styles.css?v=0.3.3">
-  <script src="/static/app.js?v=0.3.3" defer></script>
+  <link rel="stylesheet" href="/static/styles.css?v=20261007-nav">
+  <script src="/static/library-browser.js?v=20261002" defer></script>
+  <script src="/static/app.js?v=20261002" defer></script>
 </head>
 <body>
   <div id="login-screen" class="login-screen" hidden>
@@ -18,16 +19,20 @@
         <label>访问口令<input id="login-token" type="password" autocomplete="current-password" required placeholder="输入本机访问口令"></label>
         <button class="primary" type="submit">进入我的参考库</button>
       </form>
-      <small>首次启动后，在项目目录执行 <code>python -m ref_lab token</code> 查看口令。图片和数据默认不公开。</small>
+      <small>此部署显式启用了口令保护；正常启动直接进入参考库，无需口令。</small>
       <p id="login-error" class="error-text" role="alert"></p>
     </section>
   </div>
   <div id="application" class="app-shell" hidden>
     <aside class="sidebar">
       <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark">R.</span><span>参考实验室<small>REFERENCE LAB</small></span></a>
+      <nav class="photography-branches" aria-label="摄影工作区"><span aria-current="page">拍摄参考</span><a id="learning-link" href="http://127.0.0.1:18767/learning" aria-label="摄影学习">摄影学习 <small>UI 原型</small></a></nav>
       <div class="side-heading"><span>拍摄项目</span><span><button id="archived-projects" class="icon-button" aria-label="查看已删除项目" hidden>↺</button><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></span></div>
+      <label class="project-search-label">搜索项目<input id="project-search" type="search" maxlength="400" placeholder="角色、服装或作品"></label>
+      <small id="project-nav-count" class="project-nav-count"></small>
       <nav id="project-list" aria-label="角色项目"></nav>
-      <nav id="global-nav" aria-label="我的资料"><button data-view="study">◌ 待筛摄影参考</button><button data-view="inspiration">♡ 我的审美库</button><button data-view="profile">审美画像</button><button data-view="jobs">采集任务</button><button data-view="notes">摄影笔记</button></nav>
+      <button id="all-projects" class="quiet">全部项目</button>
+      <nav id="global-nav" aria-label="我的资料"><button data-view="library">图库 · 跨项目找图</button><button data-view="study">◌ 待筛摄影参考</button><button data-view="inspiration">♡ 我的审美库</button><button data-view="profile">审美画像</button><button data-view="jobs">采集任务</button><button data-view="notes">摄影笔记</button></nav>
 
       <div class="side-note"><span class="status-dot"></span><strong>PRIVATE WORKSPACE</strong><p>审美由你决定。<br>图片事实与 AI 推测分开保存。</p></div>
       <button id="lock-library" class="quiet">锁定参考库</button>
