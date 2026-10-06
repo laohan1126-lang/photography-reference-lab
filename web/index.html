@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#14242e">
   <title>参考实验室 · Photography Reference Lab</title>
-  <link rel="stylesheet" href="/static/styles.css?v=20261002">
+  <link rel="stylesheet" href="/static/styles.css?v=20261007-nav">
   <script src="/static/library-browser.js?v=20261002" defer></script>
   <script src="/static/app.js?v=20261002" defer></script>
 </head>
@@ -26,6 +26,7 @@
   <div id="application" class="app-shell" hidden>
     <aside class="sidebar">
       <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark">R.</span><span>参考实验室<small>REFERENCE LAB</small></span></a>
+      <nav class="photography-branches" aria-label="摄影工作区"><span aria-current="page">拍摄参考</span><a id="learning-link" href="http://127.0.0.1:18767/learning" aria-label="摄影学习">摄影学习 <small>UI 原型</small></a></nav>
       <div class="side-heading"><span>拍摄项目</span><span><button id="archived-projects" class="icon-button" aria-label="查看已删除项目" hidden>↺</button><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></span></div>
       <label class="project-search-label">搜索项目<input id="project-search" type="search" maxlength="400" placeholder="角色、服装或作品"></label>
       <small id="project-nav-count" class="project-nav-count"></small>

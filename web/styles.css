@@ -17,6 +17,11 @@
   font-size:14px;
   line-height:1.65
 }
+.sidebar .photography-branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:5px;border:1px solid #ffffff20;border-radius:9px;font-size:12px}
+.photography-branches>span,.photography-branches>a{display:flex;flex-direction:column;justify-content:center;text-align:center;padding:6px 3px;border-radius:6px;color:#dfe9e3;text-decoration:none}
+.photography-branches>span{background:#ffffff16;color:#fff}
+.photography-branches>a:hover{background:#ffffff16}
+.photography-branches small{display:block;font-size:8px;opacity:.7}
 * {
   box-sizing:border-box
 }

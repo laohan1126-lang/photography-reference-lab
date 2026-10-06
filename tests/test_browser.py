@@ -253,3 +253,24 @@ def test_mobile_no_auth_open_save_reload_and_gallery(live_site, browser_page):
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     assert not login_requests
     artifact(page, 'mobile-no-auth-gallery.png')
+
+
+@pytest.mark.parametrize('width', [1440, 390])
+@pytest.mark.parametrize('live_site', [True], indirect=True)
+def test_photography_workspace_entrance(live_site, browser_page, width):
+    """The live sibling prototype must remain reachable from the reference UI."""
+    url, _, _ = live_site
+    page, _ = browser_page
+    page.set_viewport_size({'width': width, 'height': 900})
+    page.goto(url)
+    expect(page.locator('#application')).to_be_visible()
+    nav = page.get_by_role('navigation', name='摄影工作区')
+    expect(nav.locator('[aria-current="page"]')).to_have_text('拍摄参考')
+    link = nav.get_by_role('link', name='摄影学习', exact=True)
+    expect(link).to_be_visible()
+    expect(link).to_have_attribute('href', 'http://127.0.0.1:18767/learning')
+    assert link.get_attribute('target') != '_blank'
+    assert link.bounding_box()['y'] < 200
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    page.reload()
+    expect(link).to_be_visible()
