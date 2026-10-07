@@ -13,7 +13,7 @@ Read README.md, docs/ARCHITECTURE.md, and the relevant docs/tasks entry. For acq
 - Preserve received original bytes. Derived previews are not originals. Never rewrite CDN URLs to guess higher resolution; never bypass access controls, export cookies, use hidden APIs or retry challenges aggressively.
 - Human keep/reject, AI analysis and human card acceptance are separate. Unknown means blocked. New image bytes invalidate review/card/acceptance; changed project constraints invalidate card acceptance. Honor expected_revision conflicts; do not overwrite newer edits.
 - Preserve historical batches, original assets, source provenance, human choices, and intent history. Imports are repeatable and must report failures. Do not delete legacy artifacts merely to make tests green.
-- No automatic publication, multi-user exposure, domain change, external paid API invocation, whole-person image regeneration or main-branch merge. Keep runtime secrets, databases, browser profiles and new reference images out of Git.
+- No automatic production deployment, public release, multi-user exposure, domain change, external paid API invocation, whole-person image regeneration or main-branch merge. Keep runtime secrets, databases, browser profiles and new reference images out of Git.
 
 ## Task and handoff protocol
 1. Before code changes, record the user's intent, boundaries and observable acceptance criteria in `docs/tasks/<task>.md`; preserve key user wording. Append outcomes rather than rewriting the original intention to fit an implementation.
@@ -24,6 +24,12 @@ Read README.md, docs/ARCHITECTURE.md, and the relevant docs/tasks entry. For acq
 6. Final handoff: branch + commit + tested scope + unverified scope + runnable regression instructions. Never call a waiting job completed, or an unrun test passed.
 
 Default regression: `python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py`; `node --check web/app.js`; browser/component tests per docs/CODEX_REGRESSION.md. Every bug fix should add or update a regression that represents the actual failure.
+
+## Standing task publication authorization (2026-10-07)
+- The owner explicitly requires the configured finish-task-publisher workflow after completed changes, including scoped commits and task-branch pushes when `git.push=true`. This is standing authorization; do not ask again or defer merely because Git publication was not repeated in the latest prompt.
+- Verify the remote SHA before claiming a push succeeded. Record tests and unverified visual acceptance honestly. Unrelated cleanup awaiting approval must not defer publication of completed code.
+- Publish the configured task receipt; report failed Notion synchronization as pending without concealing an already successful Git push. Preserve unrelated working-tree files.
+- This authorization does not permit main-branch merges, force pushes, production deployment, or committing private images, databases, browser profiles or secrets.
 
 ## Personal-library invariants (v0.3)
 - Asset identity, discovery intent, actual observations, global inspiration and project use are distinct. Never infer character identity from the search project.
