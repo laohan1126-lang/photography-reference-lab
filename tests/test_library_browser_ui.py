@@ -25,7 +25,7 @@ def test_bounded_project_navigation_search_pin_and_directory(component_factory,c
     assert page.locator('#project-list [data-project-open]').count()==8
     page.locator('#all-projects').click()
     assert page.locator('#project-directory-list [data-project-open]').count()==30
-    assert page.locator('#project-directory-list .project-link strong').first.evaluate('(el)=>getComputedStyle(el).color')=='rgb(24, 48, 57)'
+    assert page.locator('#project-directory-list .project-link strong').first.evaluate('(el)=>getComputedStyle(el).color')=='rgb(236, 230, 218)'
     screenshot(page,'project-directory-synthetic.png')
     page.locator('#project-directory-next').click()
     assert page.locator('#project-directory-list [data-project-open]').count()==5

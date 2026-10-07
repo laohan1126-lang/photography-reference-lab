@@ -179,6 +179,10 @@ function renderSidebar() {
     $('archived-projects').onclick=()=>archivedProjectsDialog();
     document.querySelectorAll('#global-nav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
 }
+document.addEventListener('click', e => {
+    const tools = document.querySelector('.project-tools[open]');
+    if (tools && (!tools.contains(e.target) || e.target.closest('.project-tools>button'))) tools.open = false;
+});
 function renderHeader() {
     const p=state.project, local=projectViews.includes(state.view);
     $('view-tabs').hidden=!local;
@@ -403,13 +407,13 @@ function renderActiveReference() {
             cuePanel.hidden = false;
             let html = '';
             if (card.pose?.verbal_cues?.length) {
-                html += `<div class="cues-title">🗣️ 现场口令</div><ol class="cues-list">${card.pose.verbal_cues.map(c => `<li>${esc(c)}</li>`).join('')}</ol>`;
+                html += `<div class="cues-title">现场口令</div><ol class="cues-list">${card.pose.verbal_cues.map(c => `<li>${esc(c)}</li>`).join('')}</ol>`;
             }
             if (card.pose?.photographer_steps?.length) {
-                html += `<div class="cues-title" style="margin-top:6px;">📸 摄影动作</div><ul class="cues-steps">${card.pose.photographer_steps.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`;
+                html += `<div class="cues-title" style="margin-top:6px;">摄影动作</div><ul class="cues-steps">${card.pose.photographer_steps.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`;
             }
             if (card.pose?.fallback || card.pose?.safety) {
-                html += `<div class="cues-fallback" style="margin-top:6px;">🛡️ ${esc(card.pose.fallback || card.pose.safety)}</div>`;
+                html += `<div class="cues-fallback" style="margin-top:6px;">${esc(card.pose.fallback || card.pose.safety)}</div>`;
             }
             cuePanel.innerHTML = html;
         } else {
@@ -515,22 +519,22 @@ function cardMarkup(card, field = false) {
     if (!card) return '';
     return `<section class="guide-section ${field ? 'field-mode' : ''}">
         <div class="field-card-banner">
-            <h3>${field ? '🎯 现场拍摄指引' : '📋 资料卡草稿'} <small>先沟通，再调整</small></h3>
+            <h3>${field ? '现场拍摄指引' : '资料卡草稿'} <small>先沟通，再调整</small></h3>
         </div>
         ${card.pose.verbal_cues?.length ? `<div class="verbal-cues-card">
-            <span class="cue-label">🗣️ 现场口令（沟通引导词）</span>
+            <span class="cue-label">现场口令（沟通引导词）</span>
             ${ordered(card.pose.verbal_cues)}
         </div>` : ''}
         ${card.pose.photographer_steps?.length ? `<div class="photographer-steps-card">
-            <span class="cue-label">📸 摄影师机位与动作</span>
+            <span class="cue-label">摄影师机位与动作</span>
             ${ordered(card.pose.photographer_steps)}
         </div>` : ''}
         ${card.pose.safety || card.pose.fallback ? `<div class="safety-fallback-card">
-            <span class="cue-label">🛡️ 安全与降级方案</span>
+            <span class="cue-label">安全与降级方案</span>
             ${paragraphs((card.pose.safety ? '【安全】' + card.pose.safety + '\n' : '') + (card.pose.fallback ? '【降级】' + card.pose.fallback : ''))}
         </div>` : ''}
         <details ${field ? '' : 'open'} class="field-tech-details">
-            <summary>📐 静态摆姿、动作引导与布光推测</summary>
+            <summary>静态摆姿、动作引导与布光推测</summary>
             <h4>静态摆姿</h4>${ordered(card.pose.static_steps)}
             ${card.pose.action_directing ? `<h4>动作引导</h4>${paragraphs(card.pose.action_directing)}` : ''}
             <h4>图中光线证据</h4>${ordered(card.lighting.visible_evidence)}
@@ -538,7 +542,7 @@ function cardMarkup(card, field = false) {
             <h4>现有器材可尝试方案</h4>${paragraphs(card.lighting.available_gear_plan)}
         </details>
         <details class="field-tech-details">
-            <summary>🎨 后期路线：${esc(({ none: '不换背景', cleanup: '轻量清理', composite: '明确合成' })[card.retouch.route] || card.retouch.route)}</summary>
+            <summary>后期路线：${esc(({ none: '不换背景', cleanup: '轻量清理', composite: '明确合成' })[card.retouch.route] || card.retouch.route)}</summary>
             ${ordered(card.retouch.steps)}
             ${card.retouch.capture_preparation ? `<h4>拍摄准备</h4>${paragraphs(card.retouch.capture_preparation)}` : ''}
             ${card.retouch.background_prompt ? `<h4>AI 背景需求</h4>${paragraphs(card.retouch.background_prompt)}` : ''}
@@ -620,12 +624,12 @@ function renderDetail(ref) {
     ${ref.card?cardMarkup(ref.card,ref.field_ready):ref.review?`<section class="guide-section"><h3>分析结论</h3>${ordered(ref.review.observations)}${ref.review.critical_uncertainties.length?`<p>待确认：${esc(ref.review.critical_uncertainties.join('；'))}</p>`:''}<p>${ref.card?'':'尚未生成资料卡。可保留作审美参考，不强行凑拍摄指令。'}</p></section>`:''}
     ${ref.asset_sha?`<section class="export-share-box">
         <div class="button-row">
-            ${ref.archive_path?`<button id="reveal-file-btn" class="primary" title="在 Windows 资源管理器中定位此已确认的 JPG 图片">📂 定位归档 JPG</button>`:`<button id="reveal-file-btn" class="quiet" title="定位底层母图文件">📂 打开文件位置</button>`}
-            ${state.projectId?`<button id="reveal-folder-btn" class="${ref.archive_path?'quiet':'primary'}" title="打开此角色已确认文件夹（统一存放所有确认的 JPG 参考图）">📁 打开已确认文件夹</button>`:''}
-            <button id="copy-image-btn" class="quiet" title="将原画复制到系统剪贴板，打开微信按 Ctrl+V 即可直接发送给模特">📋 复制发微信</button>
+            ${ref.archive_path?`<button id="reveal-file-btn" class="primary" title="在 Windows 资源管理器中定位此已确认的 JPG 图片">定位归档 JPG</button>`:`<button id="reveal-file-btn" class="quiet" title="定位底层母图文件">打开文件位置</button>`}
+            ${state.projectId?`<button id="reveal-folder-btn" class="${ref.archive_path?'quiet':'primary'}" title="打开此角色已确认文件夹（统一存放所有确认的 JPG 参考图）">打开已确认文件夹</button>`:''}
+            <button id="copy-image-btn" class="quiet" title="将原画复制到系统剪贴板，打开微信按 Ctrl+V 即可直接发送给模特">复制发微信</button>
         </div>
-        ${ref.archive_path?`<div class="file-path-hint archive-success"><strong>📁 已归档至：</strong><code>${esc(ref.archive_path)}</code></div>`:
-          `<div class="file-path-hint"><strong>📁 归档目标：</strong><code>${esc(ref.archive_dir||ref.export_dir||'')} (确认后自动归位)</code></div>`}
+        ${ref.archive_path?`<div class="file-path-hint archive-success"><strong>已归档至：</strong><code>${esc(ref.archive_path)}</code></div>`:
+          `<div class="file-path-hint"><strong>归档目标：</strong><code>${esc(ref.archive_dir||ref.export_dir||'')} (确认后自动归位)</code></div>`}
         ${ref.archive_error?`<p id="archive-error" class="notice" role="status">选择已保存，归档未完成：${esc(ref.archive_error)}</p>`:''}
         ${ref.local_path?`<div class="file-path-secondary"><small>母本CAS底层：<code>${esc(ref.local_path)}</code></small> ${ref.archive_path?`<button id="reveal-cas-btn" class="tiny-link-btn" title="在资源管理器中查看底层CAS原图">打开母图文件夹</button>`:''}</div>`:''}
         <div id="reveal-status-hint" class="reveal-status-hint" hidden></div>
@@ -730,11 +734,11 @@ async function revealReferenceFile(ref) {
             const hint = $('reveal-status-hint');
             if (hint) {
                 hint.hidden = false;
-                hint.innerHTML = `📂 <strong>已在电脑中打开所在文件夹：</strong><br><code>${esc(res.folder || res.path)}</code><br><small style="color:var(--muted)">目标文件：<code>${esc(res.filename || '')}</code>（完整路径已复制到剪贴板，可随时粘贴）</small>`;
+                hint.innerHTML = `<strong>已在电脑中打开所在文件夹：</strong><br><code>${esc(res.folder || res.path)}</code><br><small style="color:var(--muted)">目标文件：<code>${esc(res.filename || '')}</code>（完整路径已复制到剪贴板，可随时粘贴）</small>`;
             }
-            toast(`📂 已打开文件夹，路径已复制: ${res.path}`);
+            toast(`已打开文件夹，路径已复制: ${res.path}`);
         } else {
-            toast('📂 已在资源管理器中打开该文件夹');
+            toast('已在资源管理器中打开该文件夹');
         }
     } catch (err) {
         showError(err);
@@ -749,11 +753,11 @@ async function revealAssetSha(sha) {
             const hint = $('reveal-status-hint');
             if (hint) {
                 hint.hidden = false;
-                hint.innerHTML = `📂 <strong>已在电脑中打开底层母图文件夹：</strong><br><code>${esc(res.folder || res.path)}</code><br><small style="color:var(--muted)">母图文件：<code>${esc(res.filename || '')}</code>（路径已复制）</small>`;
+                hint.innerHTML = `<strong>已在电脑中打开底层母图文件夹：</strong><br><code>${esc(res.folder || res.path)}</code><br><small style="color:var(--muted)">母图文件：<code>${esc(res.filename || '')}</code>（路径已复制）</small>`;
             }
-            toast(`📂 已打开底层母图文件夹，路径已复制: ${res.path}`);
+            toast(`已打开底层母图文件夹，路径已复制: ${res.path}`);
         } else {
-            toast('📂 已在资源管理器中打开底层母图文件夹');
+            toast('已在资源管理器中打开底层母图文件夹');
         }
     } catch (err) {
         showError(err);
@@ -768,11 +772,11 @@ async function revealProjectExport() {
             const hint = $('reveal-status-hint');
             if (hint) {
                 hint.hidden = false;
-                hint.innerHTML = `📁 <strong>已在电脑中打开已确认文件夹：</strong><br><code>${esc(res.path)}</code><br><small style="color:var(--muted)">（此处汇集了本角色所有已确认的 JPG 参考图，路径已复制）</small>`;
+                hint.innerHTML = `<strong>已在电脑中打开已确认文件夹：</strong><br><code>${esc(res.path)}</code><br><small style="color:var(--muted)">（此处汇集了本角色所有已确认的 JPG 参考图，路径已复制）</small>`;
             }
-            toast(`📁 已打开已确认文件夹，路径已复制: ${res.path}`);
+            toast(`已打开已确认文件夹，路径已复制: ${res.path}`);
         } else {
-            toast('📁 已在资源管理器中打开导出文件夹');
+            toast('已在资源管理器中打开导出文件夹');
         }
     } catch (err) {
         showError(err);
@@ -908,7 +912,7 @@ async function optimizeSkillFromRejectionReasons() {
                 <div class="rules-categories">
                     ${(res.categories || []).map(cat => `
                         <div class="rule-cat-block">
-                            <h4>🏷️ ${esc(cat.category)} <small>(${cat.count}条案例)</small></h4>
+                            <h4>${esc(cat.category)} <small>(${cat.count}条案例)</small></h4>
                             <ul>
                                 ${cat.core_principles.map(p => `<li>${esc(p)}</li>`).join('')}
                             </ul>
@@ -1009,7 +1013,7 @@ function renderStudyDetail(item) {
 }
 
 function renderInspirationDetail(item) {
-    $('detail-panel').innerHTML=`<span class="eyebrow">INSPIRATION · INDEPENDENT ASSET</span><h2>${esc(item.title)}</h2><p class="curation-hint">这是独立收藏，不归属于任何角色。动作、表情、光影或电影画面都可以先留下来。</p><div class="compact-row">${item.active?`<button id="use-inspiration" class="primary" ${!item.file_available?'disabled':''}>引用到拍摄项目</button><button id="remove-inspiration" class="quiet">移出审美库</button>`:'<button id="restore-inspiration" class="primary">恢复收藏</button>'}</div>${item.asset_sha?`<section class="export-share-box"><div class="button-row"><button id="copy-image-btn" class="primary" title="将原画复制到系统剪贴板，打开微信按 Ctrl+V 即可直接发送给模特">📋 复制图片发微信 (Ctrl+V)</button><button id="reveal-file-btn" class="quiet" title="在 Windows 资源管理器中打开此文件夹">📂 打开文件位置</button></div><div id="reveal-status-hint" class="reveal-status-hint" hidden></div></section>`:''}<section class="guide-section"><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',item.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(item.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form></section><section class="guide-section"><h3>已被这些项目选作参考</h3>${item.used_in_projects.map(p=>`<button data-use-project="${esc(p.project_id)}" data-reference="${esc(p.reference_id)}">${esc(p.character)}</button>`).join('')||'<p>还没有角色引用它，也可以一直独立收藏。</p>'}</section><details class="advanced-panel"><summary>来源与收藏上下文</summary>${item.source.page_url?`<a href="${esc(item.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:'<p>未记录原发布页</p>'}<button id="inspiration-source">修改标题与来源</button><button id="context-reference">发现上下文</button>${item.context_notes.map(n=>`<p>${esc(state.projects.find(p=>p.id===n.project_id)?.character||'历史项目')}：${esc(n.preference)} ${esc(n.borrow.join('、'))}</p>`).join('')}</details>`;
+    $('detail-panel').innerHTML=`<span class="eyebrow">INSPIRATION · INDEPENDENT ASSET</span><h2>${esc(item.title)}</h2><p class="curation-hint">这是独立收藏，不归属于任何角色。动作、表情、光影或电影画面都可以先留下来。</p><div class="compact-row">${item.active?`<button id="use-inspiration" class="primary" ${!item.file_available?'disabled':''}>引用到拍摄项目</button><button id="remove-inspiration" class="quiet">移出审美库</button>`:'<button id="restore-inspiration" class="primary">恢复收藏</button>'}</div>${item.asset_sha?`<section class="export-share-box"><div class="button-row"><button id="copy-image-btn" class="primary" title="将原画复制到系统剪贴板，打开微信按 Ctrl+V 即可直接发送给模特">复制图片发微信 (Ctrl+V)</button><button id="reveal-file-btn" class="quiet" title="在 Windows 资源管理器中打开此文件夹">打开文件位置</button></div><div id="reveal-status-hint" class="reveal-status-hint" hidden></div></section>`:''}<section class="guide-section"><form id="preference-form">${area('喜欢什么／准备借鉴什么','preference',item.preference,'maxlength="12000"')}${label('借鉴维度（逗号分隔）','borrow',(item.borrow||[]).join('，'),'text','placeholder="动作、眼神、构图、色彩、光线…"')}<button type="submit">保存审美笔记</button><small id="dirty-indicator"></small></form></section><section class="guide-section"><h3>已被这些项目选作参考</h3>${item.used_in_projects.map(p=>`<button data-use-project="${esc(p.project_id)}" data-reference="${esc(p.reference_id)}">${esc(p.character)}</button>`).join('')||'<p>还没有角色引用它，也可以一直独立收藏。</p>'}</section><details class="advanced-panel"><summary>来源与收藏上下文</summary>${item.source.page_url?`<a href="${esc(item.source.page_url)}" target="_blank" rel="noopener noreferrer">打开来源页 ↗</a>`:'<p>未记录原发布页</p>'}<button id="inspiration-source">修改标题与来源</button><button id="context-reference">发现上下文</button>${item.context_notes.map(n=>`<p>${esc(state.projects.find(p=>p.id===n.project_id)?.character||'历史项目')}：${esc(n.preference)} ${esc(n.borrow.join('、'))}</p>`).join('')}</details>`;
     if($('copy-image-btn'))$('copy-image-btn').onclick=()=>copyImageToClipboard(item);
     if($('reveal-file-btn'))$('reveal-file-btn').onclick=()=>revealReferenceFile(item);
     $('preference-form').oninput=()=>{state.dirty=true;$('dirty-indicator').textContent='尚未保存';};
@@ -1196,7 +1200,7 @@ async function finishScreeningSessionModal() {
                     </label>
                 `).join('') : '<p class="muted">本轮动作量较少，尚未形成显著的统计倾向假说。</p>'}
 
-                <div style="margin:16px 0;padding:12px;background:#f9f9f9;border-radius:8px;border:1px solid var(--line);">
+                <div style="margin:16px 0;padding:12px;background:var(--soft);border-radius:2px;border:1px solid var(--line);">
                     <label class="check">
                         <input type="radio" name="apply_choice" value="true">
                         <span><strong>保存到长期反馈记录</strong>（保留总结与样本，不自动改数值权重）</span>

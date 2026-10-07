@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#14242e">
+  <meta name="theme-color" content="#0f0e0d">
   <title>参考实验室 · Photography Reference Lab</title>
-  <link rel="stylesheet" href="/static/styles.css?v=20261007-nav">
+  <link rel="stylesheet" href="/static/styles.css?v=20261007-contact-sheet">
   <script src="/static/library-browser.js?v=20261002" defer></script>
   <script src="/static/app.js?v=20261002" defer></script>
 </head>
@@ -25,7 +25,7 @@
   </div>
   <div id="application" class="app-shell" hidden>
     <aside class="sidebar">
-      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark">R.</span><span>参考实验室<small>REFERENCE LAB</small></span></a>
+      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark">R<span>.</span></span><span>参考实验室<small>REFERENCE LAB</small></span></a>
       <nav class="photography-branches" aria-label="摄影工作区"><span aria-current="page">拍摄参考</span><a id="learning-link" href="/learning" aria-label="摄影学习">摄影学习 <small>UI 原型</small></a></nav>
       <div class="side-heading"><span>拍摄项目</span><span><button id="archived-projects" class="icon-button" aria-label="查看已删除项目" hidden>↺</button><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></span></div>
       <label class="project-search-label">搜索项目<input id="project-search" type="search" maxlength="400" placeholder="角色、服装或作品"></label>
@@ -57,13 +57,13 @@
       <h3>标记淘汰 · 记录原因（可选）</h3>
       <p class="muted" style="margin:0;font-size:12px;">直接按 <strong>Enter</strong> 快速淘汰（无需填写）；理由保留为你的判断，不自动同步 Skill 或推导摄影事实。</p>
       <div class="quick-tags">
-        <button type="button" class="quick-tag" data-tag="无关角色/非目标角色">🎭 无关角色</button>
-        <button type="button" class="quick-tag" data-tag="背景杂乱/路人多">📷 背景杂乱</button>
-        <button type="button" class="quick-tag" data-tag="打光过曝/面部油光">💡 打光过曝</button>
-        <button type="button" class="quick-tag" data-tag="动作僵硬/无张力">🧍 动作僵硬</button>
-        <button type="button" class="quick-tag" data-tag="C服买家秀/非成片">👗 买家秀/非成片</button>
-        <button type="button" class="quick-tag" data-tag="AI假图/非真人">🤖 AI假图/非真人</button>
-        <button type="button" class="quick-tag" data-tag="无全身姿态参考">👤 缺乏姿态参考</button>
+        <button type="button" class="quick-tag" data-tag="无关角色/非目标角色">无关角色</button>
+        <button type="button" class="quick-tag" data-tag="背景杂乱/路人多">背景杂乱</button>
+        <button type="button" class="quick-tag" data-tag="打光过曝/面部油光">打光过曝</button>
+        <button type="button" class="quick-tag" data-tag="动作僵硬/无张力">动作僵硬</button>
+        <button type="button" class="quick-tag" data-tag="C服买家秀/非成片">买家秀/非成片</button>
+        <button type="button" class="quick-tag" data-tag="AI假图/非真人">AI假图/非真人</button>
+        <button type="button" class="quick-tag" data-tag="无全身姿态参考">缺乏姿态参考</button>
       </div>
       <input id="reject-reason-input" type="text" placeholder="输入排除原因（选填，如：角度重复、过曝）..." autocomplete="off">
       <label class="check"><input type="checkbox" id="reject-aesthetic">这次是审美不喜欢（明确记录为负反馈；质量或错角色不勾选）</label>
