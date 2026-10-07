@@ -47,3 +47,10 @@
 - 缩略条改为 `object-fit: cover` 裁切显示（大图与灯箱仍完整显示）；若希望缩略图也看到完整构图，改回 `contain` 即可。
 - 手机端侧栏仍占首屏约四分之一，照片从首屏中下部开始；若要更激进，可把项目列表收进抽屉，但需要改交互。
 - 回归：在本 worktree 运行上面两条 pytest 和三条 `node --check`；视觉对照可用只读截图脚本把 `/static/*` 指向本 worktree 的 `web/`。
+
+## 应用到主仓库（用户选择「应用到正在用的仓库：先把 Codex 暗房版的改动备份成补丁，再换成这版」）
+
+- Codex 未提交的暗房版改动已备份到 `D:\AI PROJECTS\_backup_codex-darkroom-20261007-203745\`（`codex-darkroom.patch` 对 96a0356 `git apply --check` 通过，另有 5 个 `web/` 原文件副本、任务文档和 `apply_darkroom.py`），之后才在主仓库还原这些文件。恢复方法：在 96a0356 上 `git apply <备份>\codex-darkroom.patch`。
+- 主仓库曾留有一个 0 字节、超过 1 小时无进程持有的 `.git/index.lock`，确认后删除；未删除其他文件。
+- 主仓库已切到 `cursor/ui-redesign-20261007`。切换后发现 18765 上的服务已退出（PID 记录里的 40284 已不存在，日志没有正常关闭记录，原因未查明，不归因于本任务）。用 `scripts\launch.ps1 -NoOpen -NoWait -SkipExternalServices` 重新启动，`/health` 为 ok，`/`、`/learning` 和 `/static/styles.css?v=20261007-contact-sheet` 返回新版文件；用只读截图（拦截所有非 GET）确认真实数据下 1440 宽页面 0 横向溢出、0 JS 错误。
+- 未处理：没有确认 Cloudflare 隧道和 BrowserSkill 状态（跳过了外部服务检查）；未推送、未合并。
