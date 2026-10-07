@@ -1,0 +1,1417 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-08",
+  "scope": "Curated learning companions, not additional formal skill evidence. Project practice prompts are not author-prescribed mastery thresholds.",
+  "resources": [
+    {
+      "id": "tutorial-composition-nikon-guidelines",
+      "title": "五条构图指导：主体、留白与视线",
+      "original_title": "5 Easy Composition Guidelines",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/5-easy-composition-guidelines",
+      "author": "Diane Berkenfeld / Nikon Learn & Explore",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文，尤其 The Rule of Thirds、Lean Into the Frame、Leading Lines、Patterns & Textures 与 Look Carefully。页面内示例图未逐张检查像素。"
+      },
+      "trust_reason": "Nikon 教育页面署名摄影作者，正文配有作者作品和构图说明。",
+      "summary": "以确定主体为起点，讨论三分位置、水平/垂直校准、视线或动作前方留白、引导线及重复图案变化，并提醒这些是可打破的指导。",
+      "start_here": "先读 Lean Into the Frame 和 Leading Lines，再读末段对规则边界的说明。",
+      "study_task": "项目练习：给同一张人像安排视线前方留白与较紧裁切两个版本，记录哪版更符合角色动作；这是本项目练习，不是作者规定的验收法。",
+      "limitations": "示例主要是野生动物和风景，迁移到人像需按动作与场景判断；页面规则不构成硬性构图标准。",
+      "source_id": "composition-nikon-diane-guidelines",
+      "skill_ids": [
+        "composition-gaze-action-room",
+        "composition-leading-line-target",
+        "composition-line-exit-control",
+        "composition-pattern-break"
+      ],
+      "domain_ids": [
+        "composition"
+      ]
+    },
+    {
+      "id": "tutorial-composition-bh-edges",
+      "title": "从画面边缘组织摄影构图",
+      "original_title": "Working the Edges in Photographic Composition",
+      "url": "https://www.bhphotovideo.com/explora/photography/tips-and-solutions/working-edges-photographic-composition",
+      "author": "John R. Harris",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "阅读全文，重点 lines 47–73 的边缘、画外关系、加入或裁去次要信息、负空间与线条出框；页面示例照片仅读文字说明。"
+      },
+      "trust_reason": "由署名摄影师撰写，页面署名其作品并以多个具体构图案例论述边缘如何参与画面意义。",
+      "summary": "说明边缘不仅用于清除干扰，也可让次要线索进入画面、制造画外关系、改变留白和视觉方向；作者明确反对把规则当作通用处方。",
+      "start_here": "从文章中段‘摄影首先是一个框’的论述读起，再看手臂入框、主体压边和线条出框的例子。",
+      "study_task": "项目练习：选一张现场人像，分别做边缘清理版与保留一个有意义边缘线索版，比较画外信息是否更清楚。",
+      "limitations": "作者职业履历未在本次核验中独立确认；文章的街拍、纪实和婚礼例子需谨慎迁移到角色肖像。",
+      "source_id": "composition-john-harris-edges",
+      "skill_ids": [
+        "composition-edge-sweep",
+        "composition-crop-intent",
+        "composition-line-exit-control",
+        "composition-intentional-imbalance"
+      ],
+      "domain_ids": [
+        "composition"
+      ]
+    },
+    {
+      "id": "tutorial-composition-adobe-lines",
+      "title": "摄影引导线：让线条把注意力带向主体",
+      "original_title": "A guide to leading lines in photography",
+      "url": "https://www.adobe.com/creativecloud/photography/technique/leading-lines.html",
+      "author": "Adobe editorial，含摄影师 Lukas Kosslow 与 Felipe Silva 的署名建议",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文中 line types、photographer contributions 与 practice sections；示例图片未逐张像素审查。"
+      },
+      "trust_reason": "Adobe 摄影教育文章引用署名摄影师并区分多种线条走向，提供具体应用和练习说明。",
+      "summary": "讲解直线、对角线、曲线及汇聚线如何产生深度、动势或视觉路径；建议先明确主体，再判断线条能否把视线带到该处。",
+      "start_here": "先读线条类型和‘leading to the subject’的段落，再看练习部分。",
+      "study_task": "项目练习：在一处外景中拍三张同一角色照片，分别让线条指向角色、离开角色或形成曲线环绕，比较注意力路径。",
+      "limitations": "编辑文章与两位摄影师贡献属于同一资源包，不计为多个独立来源；示例偏风景和建筑。",
+      "source_id": "composition-leading-lines-adobe",
+      "skill_ids": [
+        "composition-leading-line-target",
+        "composition-line-exit-control",
+        "composition-line-character"
+      ],
+      "domain_ids": [
+        "composition"
+      ]
+    },
+    {
+      "id": "tutorial-perspective-ppa-angle",
+      "title": "人像视点与角度：机位高度如何改变比例",
+      "original_title": "Photography Certification Guide, Module 3D: Angle of View",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-3d-angle-of-view",
+      "author": "Jessica Avery（页面编辑）；Professional Photographers of America",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文 Module 3D: Angle of View，重点 Perspective、人像高低视点、前倾近远关系及按全身/半身裁切的机位起点；页面配图未逐张像素审查。"
+      },
+      "trust_reason": "PPA 面向职业摄影师的公开认证课程模块，署名页面编辑，提供完整正文和人像相关说明。",
+      "summary": "把机位高度与近远比例联系起来，并以全身和头肩画幅举例讨论机位起点；文中权力感、显高等解释是特定示例而非低机位的普遍效果。",
+      "start_here": "先读 Perspective 部分，再读 full length 与 head-and-shoulders 两种裁切的相机位置说明。",
+      "study_task": "项目练习：固定人物姿势和构图目标，比较低位、眼平、高位视点，再单独改变镜头俯仰；标注人物比例和背景垂直线变化。",
+      "limitations": "同一 PPA 认证课程源家族；起始高度是一般指导，需按人物身形、镜头距离与目标画幅验证，不能从角度直接推定气势。",
+      "source_id": "perspective-ppa-angle-of-view",
+      "skill_ids": [
+        "perspective-skill-angle-comparison",
+        "perspective-skill-height-proportion-diagnosis",
+        "perspective-skill-crop-height",
+        "perspective-skill-lean-depth-control"
+      ],
+      "domain_ids": [
+        "perspective"
+      ]
+    },
+    {
+      "id": "tutorial-perspective-ppa-lens",
+      "title": "镜头选择：焦距、视角和工作距离",
+      "original_title": "Photography Certification Guide, Module 1E: Lens Selection",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-1e-lens-selection",
+      "author": "Jessica Avery（页面编辑）；Professional Photographers of America",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文 Module 1E: Lens Selection，重点 normal/wide/telephoto lens 和透视、近远物体大小段落。"
+      },
+      "trust_reason": "PPA 公开职业摄影认证课程的署名模块，完整讲解不同焦距与画面范围，并提供图表。",
+      "summary": "介绍焦距与传感器画幅、视角范围及近远元素呈现之间的关系，帮助摄影者按现场空间选择可用镜头。",
+      "start_here": "从 Focal Length 与 Wide-angle/Telephoto 部分读起，并将文中透视措辞与相机视点距离区分开来。",
+      "study_task": "项目练习：记录同一人物在可用工作距离下用两档焦段取景的结果，再移动机位匹配人物占幅；分别记录背景范围和比例变化。",
+      "limitations": "正文部分关于长焦压缩和畸变的表述较概括，不能单独用于证明固定机位下焦距会改变几何透视；术语需结合研究论文理解。",
+      "source_id": "perspective-ppa-lens-selection",
+      "skill_ids": [
+        "perspective-skill-focal-length-field-of-view",
+        "perspective-skill-lens-working-distance"
+      ],
+      "domain_ids": [
+        "perspective"
+      ]
+    },
+    {
+      "id": "tutorial-perspective-banks-paper",
+      "title": "相机焦距与照片透视感知：实验研究",
+      "original_title": "Camera Focal Length and the Perception of Pictures",
+      "url": "https://www.princeton.edu/~epiazza/papers/Banks%20et%20al%20%282014%29.pdf",
+      "author": "Martin S. Banks、Emily A. Cooper、Elise A. Piazza",
+      "kind": "paper",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已打开19页全文；阅读摘要、投影/观看几何、实验设置与讨论段落，重点比较相机位置、焦距及观看距离的控制条件。"
+      },
+      "trust_reason": "视觉科学研究者发表于同行评审期刊 Ecological Psychology 的原始研究，合作者大学页面提供完整 PDF。",
+      "summary": "实验分析焦距与拍摄视点、照片观看距离共同如何影响图像中的深度感知；支持把投影几何、拍摄距离与观看条件分开比较，而不是把压缩简单归因于镜头名称。",
+      "start_here": "先读摘要与实验设计，再看讨论中不同观看距离和相机位置控制条件的结果。",
+      "study_task": "项目练习：固定机位拍同一场景不同焦距，再改变机位并匹配画面取景；把两组比较分开记录，这是为理解变量设计的项目实验。",
+      "limitations": "论文研究的是受控图像与观看知觉，不是人像摆姿手册，也不指定通用焦段；不能把其结论简化成焦距完全无影响。",
+      "source_id": "perspective-cooper-banks-pictures",
+      "skill_ids": [
+        "perspective-skill-optical-vs-perspective",
+        "perspective-skill-viewpoint-distance",
+        "perspective-skill-distance-before-focal",
+        "perspective-skill-fixed-position-focal-compare"
+      ],
+      "domain_ids": [
+        "perspective"
+      ]
+    },
+    {
+      "id": "tutorial-focus-ppa-capabilities",
+      "title": "镜头能力：景深、光圈与主体清晰范围",
+      "original_title": "Photography Certification Guide, Module 1F: Capabilities of Lenses",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-1f-capabilities-of-lenses",
+      "author": "Jessica Avery（页面编辑）；Professional Photographers of America",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文 Module 1F，重点 Depth of Field、Three Factors that Influence Depth of Field、F-Stops 与不同清晰范围示例。"
+      },
+      "trust_reason": "PPA 职业摄影认证模块公开全文，按光圈、焦距、拍摄距离等变量分节说明并附例图。",
+      "summary": "解释景深作为可用清晰范围的概念，并讨论光圈、焦距与拍摄距离的控制作用，帮助按主体与背景是否都需辨认来选取景深。",
+      "start_here": "从 Depth of Field 与 Three Factors 部分开始，再读不同光圈对背景清晰程度的对照。",
+      "study_task": "项目练习：人物和机位保持一致，比较两档光圈的眼睛与服装细节清晰度；再安排两人前后站位，检查所需清晰范围。",
+      "limitations": "文中景深前后比例等数字是近似教学简化，受格式、对焦距离和可接受清晰标准影响；不要把例图效果当作通用数值。",
+      "source_id": "perspective-ppa-capabilities",
+      "skill_ids": [
+        "perspective-skill-depth-of-field-control",
+        "perspective-skill-aperture-sharpness-tradeoff"
+      ],
+      "domain_ids": [
+        "focus"
+      ]
+    },
+    {
+      "id": "tutorial-focus-nikon-eye-af",
+      "title": "眼部识别自动对焦在人像中的使用",
+      "original_title": "Eye-Detection Autofocus Makes Taking Portraits Easy",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/eye-detection-autofocus-makes-taking-portraits-easy",
+      "author": "Nikon Learn & Explore 编辑部（页面未署个人作者）",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文关于开启眼部识别、AF区域、选眼和运动主体追踪的操作说明。"
+      },
+      "trust_reason": "Nikon 官方技术教育页面，说明其眼部识别功能的操作方式和识别框反馈。",
+      "summary": "示范如何在支持该功能的相机上启用眼部识别、观察被选中的眼睛并用于人像对焦工作流。",
+      "start_here": "先读功能启用和眼部识别框说明，再看 AF 区域模式与运动主体部分。",
+      "study_task": "项目练习：让人物分别正脸、侧脸和小幅移动，拍后放大确认实际清晰的眼睛；同时保存未启用识别的对照组。",
+      "limitations": "厂商特定功能说明，型号行为存在差异；这是自动对焦工具的操作教程，不代表所有情况下系统都会选中预期眼睛。",
+      "source_id": "perspective-nikon-eye-af",
+      "skill_ids": [
+        "perspective-skill-autofocus-eye-detect",
+        "perspective-skill-near-eye-selection",
+        "perspective-skill-focus-after-movement"
+      ],
+      "domain_ids": [
+        "focus"
+      ]
+    },
+    {
+      "id": "tutorial-dynamic-nikon-panning",
+      "title": "追随摇摄：动作预判、对焦与平顺跟随",
+      "original_title": "10 Tips for Better Camera Panning",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/10-tips-for-better-camera-panning",
+      "author": "Dave Black",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文追随摇摄技巧，重点拍摄前对焦选择、在曝光前后持续跟随、保留清晰锚点和反复练习。"
+      },
+      "trust_reason": "Nikon 页面署名职业运动摄影师 Dave Black，并以其动作摄影方法解释摇摄步骤。",
+      "summary": "讲解先判断动作路线和对焦方式，再在曝光开始前建立跟随并贯穿曝光后继续移动；反复练习以控制主体与背景的相对拖影。",
+      "start_here": "按文章编号顺序读，重点留意运动可预测时预对焦与连续自动对焦的选择，以及曝光前后跟随动作。",
+      "study_task": "项目练习：让模特按固定路线重复走过，逐轮练习预判、平移跟随和曝光后延续动作；记录可辨认主体与背景拖影的比例。",
+      "limitations": "文章以体育/动作摄影为背景，应用到 Cosplay 动作需按空间、安全距离和模特动作速度调整；快门值没有普适处方。",
+      "source_id": "motion-nikon-panning",
+      "skill_ids": [
+        "mot-03",
+        "mot-04",
+        "mot-05",
+        "mot-10",
+        "mot-11",
+        "mot-12"
+      ],
+      "domain_ids": [
+        "dynamic-still",
+        "focus"
+      ]
+    },
+    {
+      "id": "tutorial-dynamic-nikon-slow-shutter",
+      "title": "慢门练习：决定冻结与移动的画面部分",
+      "original_title": "＜スローシャッター＞ブレを生かして、時間の流れを描く写真表現",
+      "url": "https://nij.nikon.com/learn/phototech/atoz/atoz35.html",
+      "author": "鎌田風花（摄影师、Nikon College 讲师）",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文主教程、拍摄要点、拍摄变体及摄影师简介；包括花卉、环绕相机运动和行人慢门案例。"
+      },
+      "trust_reason": "署名职业摄影师页面，提供具体拍摄过程、参数和作者职业简介。",
+      "summary": "建议拍前决定哪些元素冻结、哪些元素移动，并用背景简洁度、曝光时长和动作时机控制拖影；作者示范多种慢门变化。",
+      "start_here": "先读前两段及拍摄时要点，再比较花卉、相机转动和行人三种变体。",
+      "study_task": "项目练习：让角色只移动道具或手臂，分别尝试定住主体与背景、拖动主体与定住背景两种表达，记录可读性变化。",
+      "limitations": "作者示例以花、街头行人和相机运动为主，不提供 Cosplay 姿态规则；文章参数依场景而变。",
+      "source_id": "motion-nikon-jp-slow-shutter",
+      "skill_ids": [
+        "mot-01",
+        "mot-02",
+        "mot-06",
+        "mot-07"
+      ],
+      "domain_ids": [
+        "dynamic-still"
+      ]
+    },
+    {
+      "id": "tutorial-dynamic-nikon-cosgenic-sword",
+      "title": "Cosplay 剑剧动作：姿势、道具与快门表达",
+      "original_title": "Lesson 11: 動きのある剣劇作品を撮る―和装でシャッタースピードを極める―",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson11/",
+      "author": "山本哲也（摄影）；模特 Mahio、Mariko",
+      "kind": "case_study",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文和信用说明；重点和装剑姿、站姿与重心描述、静止/动作拖影和安全说明。示例照片仅按文字说明，未独立检查像素。"
+      },
+      "trust_reason": "Nikon Imaging Japan 的 Cosplay 专题，署名摄影师和模特，正文直接讨论角色动作与快门选择，并说明使用木制模造刀及安全措施。",
+      "summary": "以和装剑剧为限定案例，展示如何把角色风格、持刀姿势、脚步重心和局部拖影结合；并区分主体模糊是否属于预期表达。",
+      "start_here": "先读‘和装剑剧特有的姿势与构图’，再读‘被摄体的一部分模糊’和流动追拍部分。",
+      "study_task": "项目练习：在安全场地用软质道具排演一个慢速挥动动作，拍清晰版与仅道具拖影版；提前与模特确认动作停止点。",
+      "limitations": "站姿和重心建议仅适用于文中的和装剑剧示例；木制模造刀的拍摄案例不代表公共活动允许携带或挥动道具。",
+      "source_id": "posing-nikon-cosgenic-lesson11",
+      "skill_ids": [
+        "cosplay-c07-japanese-sword-character-pose",
+        "field-venue-policy-check",
+        "mot-01",
+        "mot-02",
+        "mot-07",
+        "mot-13",
+        "posing-action-stance-context"
+      ],
+      "domain_ids": [
+        "character",
+        "costume",
+        "dynamic-still",
+        "field"
+      ],
+      "additional_reading_guidance": [
+        {
+          "id": "cosplay-tutorial-nikon-cosgenic-11",
+          "start_here": "先读“姿势与构图”，再读“快门速度与模糊”；将安全注记一并阅读。",
+          "summary": "学习如何把角色动作与姿态意图联系起来，比较快门对刀具运动凝固/残影的影响，并考虑服装时代感与背景。",
+          "limitations": "内容明确针对日本刀/和装，不支持短匕首的内扣外展或躯干关系规则；静态照片姿势也不是武器操作训练。"
+        }
+      ]
+    },
+    {
+      "id": "tutorial-moving-asc-camera-tools",
+      "title": "电影摄影机运动工具：滑轨、云台、稳定器与摇臂",
+      "original_title": "Shot Craft: Tools for Camera Movement",
+      "url": "https://theasc.com/article/shot-craft-camera-movement/",
+      "author": "Jay Holben",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文，重点 handheld、slider、gimbal、stabilizer、crane 和 aerial movement 段落及其适用限制。"
+      },
+      "trust_reason": "American Cinematographer（美国电影摄影师协会出版物）的署名工艺文章，围绕专业片场设备和真实制作案例说明选择。",
+      "summary": "对比不同移动设备在灵活度、平稳度、空间限制和镜头用途上的差异，并强调移动方案从场景目标与制作条件出发。",
+      "start_here": "从文章开头关于镜头意图和工具选择的讨论开始，再对照 gimbal、stabilizer 与 crane 各节。",
+      "study_task": "项目练习：为一段角色入场动作分别设计固定机位、手持跟随和小范围滑移方案，写下每种方案传递的信息与执行风险。",
+      "limitations": "设备指南面向电影片场，部分设备不适合个人漫展拍摄；文章工具介绍不能替代具体场地许可、人员配合或安全判断。",
+      "source_id": "motion-asc-camera-movement",
+      "skill_ids": [
+        "mot-18",
+        "mot-25",
+        "mot-27"
+      ],
+      "domain_ids": [
+        "moving-image"
+      ]
+    },
+    {
+      "id": "tutorial-moving-acmi-film-it",
+      "title": "ACMI 电影摄影在线课程：景别、角度、运动与构图练习",
+      "original_title": "Cinematography: Film It online learning",
+      "url": "https://www.acmi.net.au/education/school-program-and-resources/film-it-cinematography/",
+      "author": "Australian Centre for the Moving Image 教育团队",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读课程页正文中 shot types、camera angles、camera movement、composition 和 activities；嵌入视频只核对页面标题和简介，未观看。"
+      },
+      "trust_reason": "澳大利亚电影与移动影像中心提供的结构化公共影像教育课程，有文字说明和可执行活动。",
+      "summary": "从常见景别和视角讲到固定、摇摄与跟移的观众感受，并安排拍摄对照和回看讨论；也介绍对称构图和焦点转移等基础影像语言。",
+      "start_here": "先读 shot types 与 camera movement，再按 camera movement activity 拍同一行走动作的固定、摇摄和跟移版本。",
+      "study_task": "项目练习：用同一角色动作拍远景、中景、近景，再以静止机位、固定轴摇摄和跟移重拍，回看每版新增的信息。",
+      "limitations": "课程面向学校初学者；低角度威严、荷兰角等文字描述是入门概括，需结合具体姿态和场景，不是普遍表达法。嵌入视频未观看。",
+      "source_id": "motion-acmi-cinematography",
+      "skill_ids": [
+        "perspective-skill-shot-scale-vocabulary",
+        "perspective-skill-coverage-variation",
+        "mot-18",
+        "mot-21",
+        "mot-17"
+      ],
+      "domain_ids": [
+        "moving-image",
+        "perspective"
+      ]
+    },
+    {
+      "id": "tutorial-moving-lubezki-birdman",
+      "title": "《鸟人》长镜头：演员调度、预演与摄影机提示",
+      "original_title": "Emmanuel Lubezki ASC, AMC on Birdman",
+      "url": "https://www.arri.com/news-en/emmanuel-lubezki-asc-amc-on-birdman-",
+      "author": "Emmanuel Lubezki, ASC, AMC（访谈对象）；ARRI 编辑",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "阅读全文中关于主观机位、演员走位、长镜头协同、摄影机操作者提示和预演的问答；页面影片图未作像素审查。"
+      },
+      "trust_reason": "奥斯卡获奖摄影指导 Emmanuel Lubezki 在 ARRI 访谈中复盘本人电影《鸟人》的拍摄与现场协作。",
+      "summary": "通过电影案例说明长镜头要求演员、摄影、灯光和道具部门共同排演；摄影机操作者需要记提示并同时检查取景，镜头移动和主体路径需协同。",
+      "start_here": "先读采访开头关于长镜头与制作选择的问答，再读演员调度、操作者记提示及反复排练的段落。",
+      "study_task": "项目练习：把一段 10 秒角色动作拆成演员路径和摄影机路径，先不移动拍一次，再排练一次同步跟随；这是低复杂度项目适配。",
+      "limitations": "电影长镜头的人员、设备和排练条件远高于个人拍摄；适合作为协作案例，不构成必须使用长镜头的建议。",
+      "source_id": "motion-arri-birdman-lubezki",
+      "skill_ids": [
+        "mot-24",
+        "mot-26",
+        "mot-25"
+      ],
+      "domain_ids": [
+        "moving-image"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-01",
+      "title": "COSGENIC 01：先明确画面意图，再安排角色、姿势与机位",
+      "original_title": "Lesson1 コツを覚えてコスジェニックな１枚を!!",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson1/",
+      "author": "摄影与后期：井上依子（YOL）、渡邉（yakul）；Nikon Imaging Japan / COSPLAY MODE",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读第1–3节：明确情绪/场景意图、角色动作、视线高度与空间使用；读到署名。"
+      },
+      "trust_reason": "Nikon Imaging Japan 与 COSPLAY MODE 合作的专业 Cosplay 摄影课程；页面署名摄影师，并以文字讲解示例方法。",
+      "summary": "学习先把希望表达的角色状态或场景说清，再选择人物动作、相机高度和空间关系；比较同一姿态在不同机位与动作幅度下的变化。",
+      "start_here": "从“明确影像”与“角色和动作”两节开始，再读不同视线高度的例子。",
+      "study_task": "项目练习：为一个角色写下两种画面意图；固定服装和背景，只改变姿态幅度或相机高度，拍摄并记录意图是否可读。",
+      "limitations": "教学示例带有角色类型与角度效果的简化分类，应当按角色、模特舒适度及实际画面验证；不是固定性格映射。未检查页面示例图片像素。",
+      "source_id": "posing-nikon-cosgenic-lesson1",
+      "skill_ids": [
+        "field-brief-purpose",
+        "posing-intent-elicitation",
+        "posing-character-appropriate-action",
+        "posing-body-angle-to-camera"
+      ],
+      "domain_ids": [
+        "character",
+        "field",
+        "posing"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-03",
+      "title": "COSGENIC 03：从角色特点做姿态、表情与画面变化",
+      "original_title": "Lesson3 可愛いもシリアスも思い通り！女性キャラ撮影のコツ！",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson3/",
+      "author": "摄影与后期：井上依子（YOL）、渡邉（yakul）；Nikon Imaging Japan / COSPLAY MODE",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读第1–3节及署名：共同确定成片方向、姿势/表情/相机角度变体、手部动作与视线示例。"
+      },
+      "trust_reason": "Nikon Imaging Japan 与 Cosplay 专题媒体合作课程，展示由摄影师署名的角色肖像案例和文字分析。",
+      "summary": "通过先讨论成片目标，再对同一角色改变手部位置、视线、表情和拍摄角度，观察画面情绪如何改变；也讨论现场用前景调整画面氛围。",
+      "start_here": "先读“成片效果”和“共同讨论画面意图”，再看同衣装的表情与姿态对照。",
+      "study_task": "项目练习：保持同一景别，拍摄同一角色两种状态；每版只调整一组身体/表情变量，并让扮演者确认意图。",
+      "limitations": "示例主要是女性角色肖像与特定时代的审美表达；不应套用其性别化称谓或角色语义到所有扮演者。没有检查示例图片像素。",
+      "source_id": "posing-nikon-cosgenic-lesson3",
+      "skill_ids": [
+        "posing-intent-elicitation",
+        "posing-body-face-expression-alignment",
+        "posing-character-mood-variation",
+        "posing-purposeful-hand-placement"
+      ],
+      "domain_ids": [
+        "character",
+        "posing"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-04",
+      "title": "COSGENIC 04：和扮演者协作设计角色轮廓与拍摄场景",
+      "original_title": "Lesson4 カッコイイもセクシーも思いのまま!?男装撮影HowTo編",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson4/",
+      "author": "摄影与后期：井上依子（YOL）、渡邉（yakul）；Nikon Imaging Japan / COSPLAY MODE",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读意图协商、角色轮廓/场景、全身镜预演与自我拍摄建议（第1–3节及Tips）。"
+      },
+      "trust_reason": "Nikon/COSPLAY MODE 专业课程，页面标明摄影师与协作模特，并提供逐段拍摄指导。",
+      "summary": "课程展示摄影者和扮演者如何先对齐画面想法，再用姿势、服装轮廓、场景道具及镜前预演调整角色呈现。",
+      "start_here": "先读团队协作和场景设计，再读使用全身镜/相机预演姿态的 Tips。",
+      "study_task": "项目练习：请扮演者先提出想呈现的角色特征；共同选一个可见轮廓变量，镜前预演后从相机机位复查。",
+      "limitations": "文章把男装效果描述为压低女性化曲线等，带有明显二元性别审美；只取其共同设计、预演和视觉检查方法，不把身体标准当作普遍要求。",
+      "source_id": "posing-nikon-cosgenic-lesson4",
+      "skill_ids": [
+        "posing-intent-elicitation",
+        "posing-costume-representation-choice",
+        "posing-self-recording-review",
+        "posing-instruction-clarity"
+      ],
+      "domain_ids": [
+        "character",
+        "costume",
+        "posing"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-05",
+      "title": "COSGENIC 05：把多人角色关系组织成共同画面",
+      "original_title": "Lesson5 “合わせ”にチャレンジしてみよう！",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson5/",
+      "author": "Nikon Imaging Japan / COSPLAY MODE；系列摄影师井上依子（YOL）与渡邉（yakul）",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读多人组照的摄影者职责、平面排列与前后层次对照（第1–2节）；未检查图片像素。"
+      },
+      "trust_reason": "Nikon/COSPLAY MODE Cosplay 教学系列的完整一课，以四人角色组照的文字示例说明安排方法。",
+      "summary": "学习由摄影者把共同情境落实为画面安排，再通过人物前后位置、间距、动作与表情避免组照退化成平行站队。",
+      "start_here": "先读“组照的指挥者”与“不是普通合影”，关注人物排列和角色状态说明。",
+      "study_task": "项目练习：与每位参与者简短对齐共同情境，再只改变一人的站位或朝向，比较两版人物关系是否更明确。",
+      "limitations": "课程以四人室内角色组照为例，不等同于漫展拥挤人流中的调度流程，也不适用于需要快速轮换的摄影墙场景。",
+      "source_id": "cosplay-nikon-cosgenic-lesson5",
+      "skill_ids": [
+        "cosplay-c13-group-character-arrangement",
+        "field-group-sequence",
+        "field-group-assistant"
+      ],
+      "domain_ids": [
+        "costume",
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-rpg-weapons",
+      "title": "RPG 仿制道具姿态图鉴：按道具类别设计静态画面",
+      "original_title": "〖ポージング〗コスプレ撮影で使える！RPG風武器持ちポージング図鑑",
+      "url": "https://cosplaymode.net/howto/34432/",
+      "author": "指导/文字：まめまよ；摄影：涼子、大関敦",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读适用范围、教师资历、安全说明及按武器类别组织的姿态目录前段（lines 53–126）；未检查示例图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志文章，由有 World Cosplay Summit 获奖经历及动作姿态教学经验的指导者提供文字说明，并署名摄影师。",
+      "summary": "按剑、大型道具、长柄道具与弓等类别查找多种静态持物姿势；同时先看规则、安全和周围空间条件。",
+      "start_here": "先读适用范围及安全说明，再按自己持有的道具类别查看姿态目录。",
+      "study_task": "项目练习：选择合规的轻质钝头仿制道具和空旷区域，与扮演者确认一种静态画面姿势；拍摄前后各检查画面可读性与周边净空。",
+      "limitations": "文章声明这些是 Cosplay 静态画面姿势，不是武术训练；公开教学覆盖的类别不能代替短匕首特定镜头关系或宽袖规则。",
+      "source_id": "cosplay-cosplaymode-rpg-weapons",
+      "skill_ids": [
+        "cosplay-c06-large-prop-pose-variants",
+        "posing-outfit-prop-limit-negotiation",
+        "field-venue-policy-check"
+      ],
+      "domain_ids": [
+        "costume",
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-katana",
+      "title": "日本刀 Cosplay 姿态：动作顾问与摄影师示例",
+      "original_title": "コスプレで学ぶ日本刀 ポージング",
+      "url": "https://cosplaymode.net/howto/1680/",
+      "author": "文字：まめまよ；顾问：龍村自斎；摄影：涼子、大関敦；插画：あまね",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读文章范围、器具部位共享术语、基础姿态与刀身/刀鞘方向部分（lines 53–108）；未检查示例图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志教程，由兼任杀阵师的 Cosplayer 与动作顾问提供建议，并署名摄影师。",
+      "summary": "学习如何先统一日本刀部位名称，再用清晰的部位提示指导姿势；文章也说明日本刀姿态、持握和刀身方向的专用示例。",
+      "start_here": "先读部位名称共享，再读基础姿态；按角色动作需要选读刀具姿势示例。",
+      "study_task": "项目练习：与扮演者先确认日本刀仿制道具的部位叫法和角色姿态意图，再给一个部位明确的口头提示并复查画面。",
+      "limitations": "内容针对日本刀及其历史/动作语境，文章中的持刀规范不等于摄影普遍规则，也不能外推至短匕首、西洋剑或实际武器操作。",
+      "source_id": "cosplay-cosplaymode-katana",
+      "skill_ids": [
+        "cosplay-c07-japanese-sword-character-pose",
+        "posing-instruction-clarity"
+      ],
+      "domain_ids": [
+        "character",
+        "costume"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-verbal-cues",
+      "title": "摄影师与 Cosplayer 的现场口令：把目标说成具体动作",
+      "original_title": "コスプレカメラマンとコスプレイヤー 声かけ指示のポイント",
+      "url": "https://cosplaymode.net/howto/184/",
+      "author": "COSPLAY MODE 编辑部；页面未见个人作者署名",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读文章中手臂与躯干间距、机位高度及对应摄影师/模特口令示例（lines 63–109），并浏览沟通总结。"
+      },
+      "trust_reason": "专业 Cosplay 杂志的全文实用案例，以摄影者与扮演者的对话展示口令和动作对应关系。",
+      "summary": "把“更好看”换成可执行的小指令，例如调整上身角度、手的位置或拍摄高度，并观察对应的轮廓变化。",
+      "start_here": "先看手臂与躯干留白的前后示例，再读明确机位高度的双向口令。",
+      "study_task": "项目练习：从同一张测试照中选一个可观察问题，只给一个明确短提示；与扮演者一起确认指令和变化是否清楚。",
+      "limitations": "页面未署名个人作者，属于单一杂志编辑体系；示例包含性别化身形措辞，提取时只使用画面间距和具体提示，不复用身体评判。它没有测量中国漫展的人流速度。",
+      "source_id": "cosplay-gap-cosplaymode-cues",
+      "skill_ids": [
+        "posing-instruction-clarity",
+        "posing-small-adjustments",
+        "posing-arm-torso-separation",
+        "posing-body-angle-to-camera"
+      ],
+      "domain_ids": [
+        "character",
+        "posing"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-pose-options",
+      "title": "Cosplay 姿态变化参考：手势、道具、服装轮廓与舒适范围",
+      "original_title": "簡単テクから魅せワザまで！困ったときのコスプレ撮影ポージング",
+      "url": "https://cosplaymode.net/howto/556/",
+      "author": "COSPLAY MODE 编辑部；页面列出示例模特，未列个人作者",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读扭转/动作、手和小道具、裙摆展开、回头姿势舒适度等正文（lines 80–127、190–206）；未检查图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志以全文给出可变姿势的操作和限制条件，并标出原刊期号及示例模特。",
+      "summary": "从躯干扭转、手部位置、普通小道具、裙摆展开和可承受的回头幅度寻找姿势变化；留意动作是否进入画框、服装是否仍清楚。",
+      "start_here": "按当前问题选读：姿态变化、普通小道具、裙摆/裙装轮廓或舒适范围；不必照搬整篇姿势目录。",
+      "study_task": "项目练习：与扮演者选择一个已同意的服装或普通道具重点，拍摄两种不同摆位；比较轮廓、面部可读性和扮演者舒适度。",
+      "limitations": "裙摆示例不能证明宽袖的整理方法；普通道具例子不提供匕首内扣/外展规则。页面有一些身材评价措辞，不作为身体审美标准。",
+      "source_id": "cosplay-gap-cosplaymode-prop-posing",
+      "skill_ids": [
+        "posing-directed-small-movement",
+        "posing-purposeful-hand-placement",
+        "cosplay-c11-costume-visibility-check",
+        "cosplay-gap-c01-small-prop-face-outline",
+        "field-direction-comfort"
+      ],
+      "domain_ids": [
+        "character",
+        "costume",
+        "posing"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-wig-fabric-motion",
+      "title": "Cosplay 肖像中的姿态、假发/衣摆运动与现场沟通",
+      "original_title": "アイドル風コスプレポートレート かわいいコスプレイヤーを可愛く撮るには",
+      "url": "https://cosplaymode.net/howto/245/",
+      "author": "COSPLAY MODE 编辑部；署名摄影/后期为井上依子（YOL）、渡邉（yakul）",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读实拍方法中的姿态/服装与头发运动、助手协作、目线沟通与背景位置段落（lines 159–209）及署名；未检查图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志摄影专题，提供可读的拍摄说明、摄影/后期署名和现场协作建议。",
+      "summary": "学习如何把姿态、头发/衣摆运动和角色状态联系起来；衣摆需要帮助时由助手或摄影者遥控协助，并通过现场交流对齐画面感受。",
+      "start_here": "从“姿态和运动”读起，再看如何让被摄者与相机保持眼平沟通、调整人与背景关系。",
+      "study_task": "项目练习：在固定站姿下，由扮演者和助手共同选定轻质衣摆运动方向，拍摄并复查人物是否稳定、服装重点是否可读。",
+      "limitations": "文章示例是轻盈裙摆/发丝和偶像风 Cosplay；不能推导合成假发的整理、固定或反光控制，也不支持宽袖具体规则。只学习已说明的轻质衣料/头发运动和协作。",
+      "source_id": "cosplay-cosplaymode-gesture-motion",
+      "skill_ids": [
+        "cosplay-c09-assisted-fabric-motion",
+        "cosplay-c10-wig-costume-flow",
+        "posing-character-appropriate-action"
+      ],
+      "domain_ids": [
+        "character",
+        "costume"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-muncy-convention-portrait",
+      "title": "C.S. Muncy：漫展 Cosplay 肖像的准备、勘景与场地协商",
+      "original_title": "C.S. Muncy on How to Shoot Cosplay Portraits",
+      "url": "https://www.adorama.com/alc/c-s-muncy-on-how-to-shoot-cosplay-portraits/",
+      "author": "C.S. Muncy",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读漫展计划、主办方许可、现场预勘、避让人流、备机备灯和参与者沟通部分（正文约 138–159 行）。"
+      },
+      "trust_reason": "作者为纽约自由摄影记者，有《纽约时报》《华尔街日报》等媒体客户及摄影奖/工作坊经历；以本人长期漫展肖像项目描述操作。",
+      "summary": "学习在漫展前确认拍摄计划与场地许可，先勘查人流和设备摆位，选择不妨碍通行的地点，并准备备份设备、尊重参与者时间。",
+      "start_here": "先读作者的漫展工作背景，再读计划/许可、场地预勘和设备准备。",
+      "study_task": "项目练习：为一个已获准的漫展拍摄点画出站位和设备占地示意，并预选不阻碍人流的邻近背景作为备选。",
+      "limitations": "案例来自美国大型漫展、经许可布景的新闻/商业肖像流程，不等于中国漫展规章或快速场照方法；需核对本地活动要求。",
+      "source_id": "root-muncy-convention-location",
+      "skill_ids": [
+        "field-brief-purpose",
+        "field-location-time-scout",
+        "field-venue-policy-check",
+        "field-location-feasibility",
+        "field-mobile-kit",
+        "field-cosplay-collaboration"
+      ],
+      "domain_ids": [
+        "character",
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-erlien-one-light-con",
+      "title": "Jon Erlien：Comic Con 人像的一灯移动实拍案例",
+      "original_title": "How to Shoot Cosplay Portraits at Comic Con with Just One Light",
+      "url": "https://petapixel.com/2017/04/18/shoot-cosplay-portraits-comic-con-just-one-light/",
+      "author": "Jon Erlien",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读作者描述、出发前单灯方案、助手协作、设备/曝光设置和现场肖像流程（lines 21–43）。"
+      },
+      "trust_reason": "作者介绍为人像摄影师，专注戏剧化肖像并有商业修图经验；文章是本人一次 Comic Con 移动拍摄的完整方法记录。",
+      "summary": "观察摄影者如何为拥挤场馆预先规划轻便单灯、由同伴持灯、控制环境曝光，并根据现场光线调整快门。",
+      "start_here": "先读场馆限制与单灯构想，再看器材布置和固定曝光变量。",
+      "study_task": "项目练习：在允许的开放空间用一盏便携灯和一名助手做短肖像测试；分别记录环境曝光与人物光线的变化。",
+      "limitations": "这是一个摄影师的美国漫展案例，不证明单灯适用于所有展馆，也不提供中国现场的排队、审批或角色指导规则。附图没有进行像素级分析。",
+      "source_id": null,
+      "skill_ids": [
+        "field-mobile-kit",
+        "field-group-assistant",
+        "field-background-priority"
+      ],
+      "domain_ids": [
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-jeff-jenkins-collaboration",
+      "title": "Jeff Jenkins：把 Cosplayer 当作共同创作者来规划拍摄",
+      "original_title": "Cosplay & Convention Photographer: How I Work",
+      "url": "https://www.jeffjenkinsphotography.com/?p=534",
+      "author": "Jeff Jenkins",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读其拍摄流程、角色/服装/舒适度规划、沟通与同意、与扮演者共同设计姿势等章节（lines 28–57）。"
+      },
+      "trust_reason": "Cosplay 与创意人像摄影师的第一人称工作流程，页面展示其漫展服务、作品与客户合作方式。",
+      "summary": "学习拍前围绕角色、服装、被摄者舒适度和成片表达规划；姿势由双方讨论，碰触/调整假发前先征求同意。",
+      "start_here": "从“Cosplayer 是合作者”开始，继续读如何沟通、确认边界和安排姿势。",
+      "study_task": "项目练习：拍前用两三个问题询问扮演者希望呈现的角色信息和服装重点，再提出一个可选择的姿势想法，由对方决定是否尝试。",
+      "limitations": "这是个人工作方法与自述，不能当作多摄影师共识或场照快速流程；相关成片不作为未经检查的视觉证据。",
+      "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+      "skill_ids": [
+        "field-cosplay-collaboration",
+        "posing-intent-elicitation",
+        "posing-demonstrate-without-contact"
+      ],
+      "domain_ids": [
+        "character"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-keane-photowall",
+      "title": "Keane：摄影墙排队场景中的快速姿态准备",
+      "original_title": "At the Convention Photowall",
+      "url": "https://capturingcosplay.com/at-the-convention-photowall/",
+      "author": "Keane",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读摄影墙快速贴士全文：繁忙时拍摄节奏、预备姿态、单变量小变化、灯位已预设与不占用背景区（lines 7–19）。"
+      },
+      "trust_reason": "作者以第一人称说明其漫展摄影墙及场照工作经验，并明确表示这些是个人建议而非通用规则。",
+      "summary": "摄影墙繁忙时先带着数个已想好的姿态；即兴变化时一次只动身体一个部位，并考虑队列时间和预设灯位。",
+      "start_here": "从“准备三个姿态”读起，再读站姿范围与灯光已设定的限制。",
+      "study_task": "项目练习：在模拟短时拍摄中先写出三个扮演者认可的姿势版本；每次只改变一个身体部位，记录实际用时和可读性。",
+      "limitations": "这是个人摄影墙经验，适用于该作者描述的排队式灯光区；不证明所有漫展都有相同布光或队列约定，也不是中国漫展专业共识。",
+      "source_id": "field-cosplay-keane-photowall",
+      "skill_ids": [
+        "field-photowall-pose-ready",
+        "field-small-pose-variation",
+        "field-short-slot-priorities"
+      ],
+      "domain_ids": [
+        "field"
+      ]
+    },
+    {
+      "id": "tutorial-light-fuji-portrait-lighting",
+      "title": "富士人像用光指南：辨认硬光、柔光、色温与方向",
+      "original_title": "A Guide to Portrait Lighting",
+      "url": "https://www.fujifilm-x.com/en-gb/learning-centre/a-guide-to-portrait-lighting/",
+      "author": "FUJIFILM X Series & GFX Learning Centre; examples credited to named photographers",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "文章正文：光线硬度与软度、光源尺寸/距离/扩散、色温、方向和人像阴影，约 lines 182–225；只读文字和图注，未检查图片像素。"
+      },
+      "trust_reason": "富士官方教育站的人像专题，正文用不同摄影师署名的照片说明硬度、颜色与方向变量；作者未明确署名，品牌立场需保留。",
+      "summary": "从阴影边缘、反光和反差辨认光质；理解相对光源尺寸、距离与扩散如何改变过渡；观察色温和来光方向如何影响人像，并把硬光/柔光选择放回表达意图。",
+      "start_here": "先读“Understanding Light Hardness and Softness”与“What Makes Light Hard or Soft?”，再读色温和方向两节。",
+      "study_task": "项目练习：在可控的自然光或连续光下记录脸部阴影边缘、反光点和阴影反差；只移动人物或调整扩散条件做对照，再描述变化。不是富士课程布置的作业。",
+      "limitations": "“肖像通常偏好柔光”是厂商教育文中的概括，不作为审美规则；实例照片像素未单独检查。",
+      "source_id": "light-fuji-portrait-guide",
+      "skill_ids": [
+        "light-003",
+        "light-004",
+        "light-005",
+        "light-013"
+      ],
+      "domain_ids": [
+        "exposure-color",
+        "natural-light"
+      ]
+    },
+    {
+      "id": "tutorial-light-cambridge-portrait-lighting",
+      "title": "单灯人像用光入门：方向、相对尺寸、反射与扩散",
+      "original_title": "Introduction to Portrait Lighting",
+      "url": "https://www.cambridgeincolour.com/tutorials/portrait-lighting.htm",
+      "author": "Cambridge in Colour editorial team; individual author not identified on page",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "正文单光源概览、硬光/柔光、反射与扩散及距离/方向相关部分，约 lines 50–100；交互示意图和样例像素未检查。"
+      },
+      "trust_reason": "独立摄影教育网站的完整单光源教学，按方向、表观尺寸、阴影与高光组织内容，并说明扩散/反射的代价。",
+      "summary": "用来光方向判断阴影和高光落点，用相对光源尺寸判断硬软过渡；学习透过扩散物或反射面改变光质，同时注意光量会下降。",
+      "start_here": "从“Overview: One Light Source”读到“Size: Hard vs. Soft”，再看柔化光线的两种做法及其光量代价。",
+      "study_task": "项目练习：固定人物和相机，比较直射光、扩散光、墙面/窗帘反射光，分别记录阴影边缘、皮肤反光和脸部亮度变化。不要把互动示意图当作真人皮肤的完整替代。",
+      "limitations": "页面是入门型概括，且建议柔光的文字带有一般化倾向；具体审美要按人物、场景和表达目标判断。",
+      "source_id": "light-cambridge-portrait",
+      "skill_ids": [
+        "light-001",
+        "light-003",
+        "light-005",
+        "light-007",
+        "light-010"
+      ],
+      "domain_ids": [
+        "natural-light"
+      ]
+    },
+    {
+      "id": "tutorial-light-mautner-window-shadows",
+      "title": "用窗光和阴影塑造人像：Cliff Mautner 的现场提示",
+      "original_title": "Using Shadows and Light in Your Photographs",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/using-shadows-and-light-in-your-photographs",
+      "author": "Cliff Mautner, Nikon Ambassador",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "页面全部教学文字为一条署名提示，lines 27–31；嵌入 Vimeo 视频未观看。"
+      },
+      "trust_reason": "Nikon 标明作者为职业婚礼/人像摄影师及 Nikon Ambassador；页面直接呈现作者的窗光方法。",
+      "summary": "作者建议室内人像用窗光时关闭顶灯，并以窗光为曝光参照，让阴影参与画面层次。",
+      "start_here": "阅读页面顶部 Cliff Mautner 的单条提示即可；页面下方关联内容不是本条教学正文。",
+      "study_task": "项目练习：在安全且允许拍摄的室内，比较仅窗光与窗光加顶灯两种结果，记录脸部亮暗和颜色差异；让被摄者参与选择。",
+      "limitations": "这是一则极短提示，没有完整测光流程、设备参数或场景案例；关联视频未观看，不能从其标题推断额外技法。",
+      "source_id": "field-nikon-window-portrait",
+      "skill_ids": [
+        "light-010",
+        "light-017"
+      ],
+      "domain_ids": [
+        "exposure-color",
+        "natural-light"
+      ]
+    },
+    {
+      "id": "tutorial-flash-vitale-location",
+      "title": "外景单灯闪光：高反差测光与保留环境气氛",
+      "original_title": "Flash Photography on Location",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/flash-photography-on-location",
+      "author": "Ami Vitale, Nikon Ambassador and photojournalist",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "正文 spot metering、off-camera flash 与 TTL/回看部分，约 lines 27–46；文字及页面说明已读，未检验样图像素。"
+      },
+      "trust_reason": "Nikon 页面署名并介绍 Ami Vitale；摄影师以第一人称说明高反差环境如何测高光、使用侧向离机闪光和回看调整。",
+      "summary": "通过高反差场景的高光点测决定要保留的亮部；在外景用侧向离机闪光做少量补光，并通过相机预览检查 TTL 输出，尽量保留环境气氛。",
+      "start_here": "从“Spot Metering”读到“Off-Camera Flash”及“how do I meter for the flash?”段。",
+      "study_task": "项目练习：在有亮窗或逆光的静态人像场景，分别拍环境光基准、侧向闪光和不同 TTL 补偿版本；检查脸部阴影与背景气氛。此为项目练习，不代表作者提供了统一曝光值。",
+      "limitations": "作者的高光优先和深黑阴影是她的创作方法，不是每个逆光场景都应照搬；设备范例以 Nikon Speedlight 为主。",
+      "source_id": "light-nikon-vitale",
+      "skill_ids": [
+        "light-017",
+        "light-018",
+        "light-021",
+        "light-022",
+        "light-025",
+        "light-029"
+      ],
+      "domain_ids": [
+        "exposure-color",
+        "flash",
+        "natural-light"
+      ]
+    },
+    {
+      "id": "tutorial-flash-couzens-ambient",
+      "title": "外景闪光与环境光混合：先设背景，再塑造人物",
+      "original_title": "How to mix ambient light with flash",
+      "url": "https://www.profoto.com/us/en/still-photography/tips-tricks/how-to-mix-ambient-light-with-flash",
+      "author": "Hannah Couzens; published by Profoto",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "页面全部教学正文：先设背景曝光、布置并转向闪光/伞、再设人物曝光及相对主体尺寸的柔光提示，lines 5–24；未检查示例图片像素。"
+      },
+      "trust_reason": "Profoto 明确署名摄影师 Hannah Couzens，并以简洁步骤说明外景肖像的背景、人物和柔光修饰顺序。",
+      "summary": "先用相机曝光决定背景，再安置并转向闪光灯，最后调人物曝光；修饰附件的相对主体尺寸会影响光质。",
+      "start_here": "按页面 Step 1–3 阅读，再看“大型附件相对主体尺寸”的提示；不要把页面的短流程延伸成未写出的测光规则。",
+      "study_task": "项目练习：固定背景与人物位置，先做无闪光环境曝光，再逐步加入侧向闪光并调整角度/附件；记录人物和背景分别发生什么变化。",
+      "limitations": "内容很短且使用 Profoto A1X 与特定伞具；原图和布光图仅有页面文字/说明核验，未做像素审阅。",
+      "source_id": "light-profoto-couzens",
+      "skill_ids": [
+        "light-021",
+        "light-025",
+        "light-026",
+        "light-028",
+        "light-030"
+      ],
+      "domain_ids": [
+        "flash"
+      ]
+    },
+    {
+      "id": "tutorial-flash-kubota-hss",
+      "title": "HSS 外景人像案例：补阴影、保留快门选择并测试功率边界",
+      "original_title": "High Speed Sync: A Flash Technique To Add a Pro Touch to Your Photographs",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/high-speed-sync-a-flash-technique-to-add-a-pro-touch-to-your-photographs",
+      "author": "Kevin Kubota, photographer and educator; Nikon USA feature",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "署名案例与 HSS 工作方式/练习段，约 lines 27–60、209–241；只读正文与图注，未检查照片像素。"
+      },
+      "trust_reason": "Nikon 全文署名 Kevin Kubota，提供多种户外/室内案例参数，并解释快速脉冲的功率代价及逐档测试方法。",
+      "summary": "阅读 HSS 如何支持高于常规同步的快门，在明亮背景或动作场景保持闪光；了解快门越快可用输出越少，并用自己的设备做测试。",
+      "start_here": "先读前部环境光/闪光案例，再读“How It Works”和“Practice to Perfect”；机身菜单和兼容性需查自己相机及闪灯说明书。",
+      "study_task": "项目练习：按设备说明开启 HSS，在逆光人像场景比较常规同步与设备支持的数个快门速度，逐张检查补光和闪光可达范围。",
+      "limitations": "旧 Nikon D3/SB-910 案例不能直接当作当前机型的设置说明；输出损耗受设备、距离、灯位和附件共同影响，文章没有给所有组合通用的定量表。",
+      "source_id": "light-nikon-kubota-hss",
+      "skill_ids": [
+        "light-022",
+        "light-032",
+        "light-033",
+        "light-034",
+        "light-035"
+      ],
+      "domain_ids": [
+        "flash",
+        "natural-light"
+      ]
+    },
+    {
+      "id": "tutorial-exposure-ppa-metering",
+      "title": "反射式与入射式测光：理解读数参照与人像测光位置",
+      "original_title": "Module 4C: Using a Light Meter",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-4c-using-a-light-meter",
+      "author": "Professional Photographers of America; page history credits Jessica Avery as creator/editor",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "公开章节读数标定、机内反射表、环境/入射测光、点测与反射率限制，约 lines 54–129；章节文字已读。"
+      },
+      "trust_reason": "PPA 公开职业摄影认证指南章节，提供反射表/入射表区别、18%灰参照及人像/闪光测光说明；作者身份主要是机构/编辑，非独立署名教师。",
+      "summary": "区分相机反射测光和在人物位置测量入射光；理解测光表以中间灰为标定参照，读数居中并不自动等于人物目标曝光。",
+      "start_here": "先看“Light Meters”与“Which Meter Should You Use?”，再读“In-Camera Meter”及反射率限制。",
+      "study_task": "项目练习：对同一人物分别记录机内反射读数和人物脸部位置的入射读数，再按人物与背景细节目标选择结果；记录设备、测光模式和判断理由。",
+      "limitations": "PPA 指南是机构级材料，不能视为多个独立摄影师的共识；章节仍把某些入射测光用途描述得较宽泛，必须结合场景和设备能力。",
+      "source_id": "light-ppa-metering",
+      "skill_ids": [
+        "light-017",
+        "light-018",
+        "light-019",
+        "light-020"
+      ],
+      "domain_ids": [
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-exposure-gress-skin-tones",
+      "title": "多人不同肤色曝光与布光：John Gress 的商业人像方法",
+      "original_title": "Light to Dark: How to light differing skin tones in the same image",
+      "url": "https://www.ppa.com/ppmag/articles/light-to-dark",
+      "author": "John Gress; reported by Professional Photographer magazine",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文人物曝光说明与 positioning、grids、多灯位置部分，约 lines 87–130；读了正文和图注，未打开图像像素或文中关联视频。"
+      },
+      "trust_reason": "PPA 杂志以职业商业摄影师 John Gress 的第一人称经验为核心，明确讨论多人不同肤色、测光回看、灯位与网格。",
+      "summary": "学习 Gress 如何通过相对灯距、人物顺序、网格和多灯位置管理多人脸部亮度，并阅读他给出的特定曝光建议作为个人工作方法。",
+      "start_here": "先读“Exposure”和“Positioning”，再读后续 grids/multiple-light sections；把作者给出的比例与档数标记为他的经验方法。",
+      "study_task": "项目练习：在模特同意且场景允许时，为两位不同肤色人物拍摄共同入镜测试；先核对每个人脸部的细节与表达意图，再微调相对光位并比较。不要预设统一补偿值。",
+      "limitations": "Gress 提出的 50% / 约三分之二档建议属于个人布光方法，不能当成按肤色套用的普遍曝光定律；真实人物的妆面、光源和目标呈现都不同。",
+      "source_id": "light-ppa-skin-tones",
+      "skill_ids": [
+        "light-039",
+        "light-040"
+      ],
+      "domain_ids": [
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-exposure-mcnamee-led-colour",
+      "title": "LED 摄影灯的显色与色温：为何相同 K 值仍可能不同色",
+      "original_title": "LED Lighting for Photography: Colour Quality, CRI and Continuous Light",
+      "url": "https://thesocieties.net/blog/2023/09/28/led-lighting-for-photography-colour-quality-cri-and-continuous-light/",
+      "author": "Mike McNamee, imaging-technology writer and photographer; The Society of Photographers",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "显色、CRI 限制、色温与光谱差异、同色温灯具表现差异及混合光影响，约 lines 62–127；阅读相关正文，未检查页面图像。"
+      },
+      "trust_reason": "作者简介列出其工程与摄影组织背景；文章以显色科学和摄影现场材料/肤色举例，并提醒完整规格与真人测试的重要性。",
+      "summary": "理解色温只描述总体暖冷外观，不能完整说明光谱或颜色还原；了解 CRI 的局限，并比较 LED 对肤色、服装和混合光色彩的影响。",
+      "start_here": "阅读“Why lighting technology matters to photographers”、“What is colour rendering?”与“Colour temperature is only part of the story”。",
+      "study_task": "项目练习：在同一相机白平衡下，用两种不同 LED 或 LED 与闪光灯分别照一块白/灰参考物及有色服装，记录色温标称值、材料颜色差异和最终选择。",
+      "limitations": "文章偏连续光技术与选灯教育，不是漫展舞台 LED 与闪光混合的专项流程；其仪器/标准结论不能替代现场对具体灯具和相机的测试。",
+      "source_id": "light-mcnamee-led-quality",
+      "skill_ids": [
+        "light-013",
+        "light-014",
+        "light-016"
+      ],
+      "domain_ids": [
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-lightroom-compare-survey",
+      "title": "用比较视图筛选近似帧",
+      "original_title": "Browse and compare photos",
+      "url": "https://helpx.adobe.com/lightroom-classic/desktop/viewing-photos/browse-compare-photos.html",
+      "author": "Adobe Help team",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读筛选、Compare 与 Survey 章节：并排/平铺预览、候选缩小、同步缩放及给照片加旗标/评分。"
+      },
+      "trust_reason": "Adobe 官方 Lightroom Classic 帮助文档，直接说明软件比较视图和筛选控件的行为。",
+      "summary": "学习在 Lightroom Classic 中用 Compare 并排比较两张照片、用 Survey 同时查看多张候选，并在比较中缩小选择、评分或标记。",
+      "start_here": "从“Compare photos in the Library module”开始，再看“Compare photos in the Compare view”和“Compare photos in the Survey view”。",
+      "study_task": "项目练习：选一组同动作连拍，用 Compare 检查两张近似帧，再用 Survey 查看最终候选；记录每次选择的画面理由。",
+      "limitations": "这是软件操作说明，不替学习者决定表情、姿势或叙事哪一张更好；大量候选同时放入 Survey 会缩小预览。",
+      "source_id": null,
+      "skill_ids": [
+        "post-cull-near-duplicates",
+        "post-cull-separate-passes"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-ppa-photomechanic-culling",
+      "title": "用快速浏览与标记分轮筛片",
+      "original_title": "Power tips for Photo Mechanic",
+      "url": "https://www.ppa.com/ppmag/articles/photo-mechanic-power-tips",
+      "author": "Lisa Mark",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读正文的速度、Culling、Culling in action、元数据与发送文件部分；内含工作婚礼摄影师第一人称经验。"
+      },
+      "trust_reason": "PPA《Professional Photographer》刊载的具名工作摄影师流程文章，介绍快速选片、比较、标记和后续交接。",
+      "summary": "了解用联系表快速翻看和比较照片、以键盘分级标记并筛选候选，以及把选片与像素编辑分成不同步骤。作者也描述了客户参与相册选片的流程。",
+      "start_here": "先读“Culling”和“Culling in action”，再看“Sending files to clients”了解选择完成后的交接方式。",
+      "study_task": "项目练习：对自己的小型照片集只做 keep-in 标记与一轮复查，再把选中照片另存为工作集合；记录这套步骤是否减少重复查看。",
+      "limitations": "这是 Lisa Mark 在婚礼和相册业务中的个人工作方法；文章中关于软件速度、客户选片与销售的经验不是通用效率保证，也不要求永久删除原片。",
+      "source_id": "post-ppa-lisa-mark-culling",
+      "skill_ids": [
+        "post-cull-near-duplicates",
+        "post-cull-separate-passes"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-fstoppers-three-pass-culling",
+      "title": "三轮筛选并回看整组照片",
+      "original_title": "A Simple Three-Step Culling Process for Attractive Final Images",
+      "url": "https://fstoppers.com/photojournalistic/simple-three-step-culling-process-attractive-final-images-646493",
+      "author": "Zhen Siang Yang",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读全文的粗筛、候选帧比较、最终整理、Survey 视图与延迟复查章节；没有打开项目照片做视觉评判。"
+      },
+      "trust_reason": "具名工作摄影师以自己的个人项目说明三轮筛选，并解释如何查看系列的差异、整体情绪与叙事关系。",
+      "summary": "作者先标出明显失败帧并保留候选，再比较近似帧，最后在 Survey 视图中查看系列的重复、变化、整体气氛与叙事；作者也建议隔一段时间复查后再永久删除。",
+      "start_here": "按 Part 1“Rough Selection”、Part 2“Framing Selection”、Part 3“Curation Process”顺序阅读，最后看“Bonus Tips”。",
+      "study_task": "项目练习：对一组连拍做三轮标记，最后把缩略图并列，写出组照共同主题、至少两种有意保留的差异，以及一项可删的重复；原片保留到复查完成。",
+      "limitations": "这是作者根据个人项目给出的流程，不是唯一筛片标准；作者的“严格删除”表述不作为本项目的删除要求，具体选择仍取决于拍摄目的和本人偏好。",
+      "source_id": "post-fstoppers-zhen-culling",
+      "skill_ids": [
+        "post-cull-technical-rejects",
+        "post-cull-near-duplicates",
+        "post-cull-separate-passes",
+        "post-cull-set-variety",
+        "post-cull-cohesion",
+        "post-cull-review-before-delete"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-xitek-wang-portrait-post-workflow",
+      "title": "王小宁的人像后期流程示例",
+      "original_title": "王小宁聊人像摄影第六期｜人像摄影的后期流程",
+      "url": "https://info.xitek.com/allpage/favorites/201808/16-324591.html",
+      "author": "王小宁",
+      "kind": "article",
+      "language": "中文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读全文；覆盖 RAW 基础、曝光、清理、观察层、中性灰明暗调整、局部颜色、背景与输出收尾。"
+      },
+      "trust_reason": "中文摄影媒体刊载的具名摄影师第一人称流程；作者明确说明这是自己工作习惯与偏好的简略示例。",
+      "summary": "观察一个人像项目如何从 RAW 曝光调整进入 Photoshop，分别处理皮肤清理、黑白观察下的明暗不匀、低不透明度加深减淡、局部颜色、背景压暗，以及最后的噪点和锐化。",
+      "start_here": "先读第 23–33 行的 RAW 阶段，再依次读第 38–58 行的 Photoshop 操作；注意对照作者强调的“个人偏好”。",
+      "study_task": "项目练习：挑一张本人愿意修饰的人像，先列出可见问题，再试做基础曝光、局部明暗与颜色调整；每一步保留前后版本并在缩小视图复查。",
+      "limitations": "文章发表于 2018 年，作者明确称其为简略的个人流程；不应照搬具体工具顺序或数值为普适规则，也没有讨论 Cosplay 服装/道具的修改边界。",
+      "source_id": "post-xitek-wangxiaoning",
+      "skill_ids": [
+        "post-raw-exposure-detail",
+        "post-skin-local-dodge-burn",
+        "post-local-light-emphasis",
+        "post-skin-edit-subtle-opacity",
+        "post-skin-mask-color-correction",
+        "post-clean-distraction-tool",
+        "post-output-sharpening"
+      ],
+      "domain_ids": [
+        "color-retouch",
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-adobe-point-color-skin",
+      "title": "用 Point Color 局部调整肤色差异",
+      "original_title": "Make precise adjustments to specific colors in Lightroom",
+      "url": "https://www.adobe.com/learn/lightroom-cc/web/precise-color-adjustments",
+      "author": "Seán Duggan",
+      "kind": "video",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "transcript",
+        "locator": "已读 Adobe 页面完整文字转录，重点为 Minimize redness and create natural, even skin tones in a portrait；没有以观看视频作为依据。"
+      },
+      "trust_reason": "Adobe Learn 具名摄影师教学，页面提供可读转录；演示 Lightroom 取样、蒙版与 Variance 的软件操作。",
+      "summary": "学习先建立面部皮肤蒙版，再从较暗与较亮肤色之间取样，使用 Point Color 的 Variance、Luminance 与 Saturation 细调；转录明确提醒不要把肤色压得过度均匀。",
+      "start_here": "从“Minimize redness and create natural, even skin tones in a portrait”阅读，再回看“Select a specific color with the Point Color eyedropper”理解取样方式。",
+      "study_task": "项目练习：在一张本人选择的人像上建立肤色蒙版，试做轻微的偏色修正；保存前后版本并检查是否还保留自然的明暗和肤色变化。",
+      "limitations": "演示的是 Lightroom 控件和一个人的日晒泛红案例；Adobe 没有给出适用于所有人的目标肤色，也不应为了统一而消除自然差异。",
+      "source_id": "post-adobe-color-variance",
+      "skill_ids": [
+        "post-color-point-range",
+        "post-color-preserve-variation",
+        "post-skin-mask-color-correction"
+      ],
+      "domain_ids": [
+        "color-retouch"
+      ]
+    },
+    {
+      "id": "tutorial-retouching-academy-patchy-skin",
+      "title": "诊断并局部修正不均匀肤色",
+      "original_title": "How to Fix Patchy Skin With Capture One and Photoshop",
+      "url": "https://retouchingacademy.com/how-to-fix-patchy-skin-with-capture-one-and-photoshop/",
+      "author": "Kendra Paige；页面介绍的教师为 Michael Woloszynowicz",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读文章中对局部遮罩、Color Tab 的 Uniformity 滑块、亮度/饱和度/色相及转入 Photoshop 的文字说明；嵌入视频未观看。"
+      },
+      "trust_reason": "Retouching Academy 的专业修图教学文章具名介绍教师，并以正文解释局部肤色问题的流程和速度/质量取舍。",
+      "summary": "正文建议先圈选发生花斑或变色的区域，再通过采样健康肤色、调节 Lightness、Saturation 与 Hue 减轻色差；文章称传统加深减淡配合颜色修正质量高但更耗时，随后正文仅概述转入 Photoshop 的纹理/明暗处理。",
+      "start_here": "先读标题下的流程说明，再读关于 Capture One 遮罩、Uniformity Sliders 和转入 Photoshop 的第 156–164 行；视频内容不在本条总结范围内。",
+      "study_task": "项目练习：在一张有人像肤色不匀问题的照片上只圈选一小块，比较修正前后颜色和明暗；保留图层或版本，确认没有把周围肤色一起拉平。",
+      "limitations": "页面正文没有展开嵌入视频的完整步骤；文中提到的 Dodge & Burn 仅作为后续环节概述，不能据此声称读到了具体视频示范。文章是一个针对性方法，不是每张人像都需要统一肤色。",
+      "source_id": "post-retouch-academy-patchy-skin",
+      "skill_ids": [
+        "post-skin-patch-diagnosis",
+        "post-skin-mask-color-correction"
+      ],
+      "domain_ids": [
+        "color-retouch"
+      ]
+    },
+    {
+      "id": "tutorial-phlearn-frequency-separation",
+      "title": "分层处理肤色与皮肤纹理",
+      "original_title": "Skin Retouching in Photoshop: 4 Easy Frequency Steps",
+      "url": "https://phlearn.com/tutorial/30-days-photoshop-day-24/",
+      "author": "Aaron Nace / PHLEARN",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读完整页面文字教程，含先修瑕疵、8/16 位匹配、分离层、低流量涂抹、独立图层、回退与停止检查。"
+      },
+      "trust_reason": "具名 Photoshop 教师的完整文字步骤，页面给出具体图层、安全操作和过度修饰的失败模式。",
+      "summary": "学习把颜色/明暗与纹理分开处理：先在独立图层修个别瑕疵，按位深选择匹配动作，在纹理与颜色层之间新建空白层，用低流量逐步融合，再通过降低不透明度或擦除回退。文章强调真实皮肤保留变化，并建议定期缩小视图检查。",
+      "start_here": "先读“Clear the Individual Blemishes First”，接着按“Run the Frequency Separation Action”和“Blend the Tones on a Layer of Their Own”顺序实践，最后阅读“When Skin Retouching Goes Wrong”。",
+      "study_task": "项目练习：在一张练习人像副本上做一次非破坏性局部修正；保留原图和分层文件，在 100% 与适屏视图间切换，记录哪一步开始显得不自然并回退。",
+      "limitations": "这是 PHLEARN 的一种 Photoshop 频率分离工作法，不是所有皮肤问题都应使用此方法；页面提供的样片/动作下载可能要求免费账号，本任务不下载文件或创建账号。",
+      "source_id": "post-phlearn-frequency-separation",
+      "skill_ids": [
+        "post-skin-frequency-separation",
+        "post-skin-patch-diagnosis",
+        "post-color-preserve-variation",
+        "post-skin-edit-subtle-opacity",
+        "post-edit-layer-preservation"
+      ],
+      "domain_ids": [
+        "color-retouch"
+      ]
+    },
+    {
+      "id": "tutorial-adobe-composite-principles",
+      "title": "合成前检查光线、视角与画面安排",
+      "original_title": "What makes amazing creative compositing",
+      "url": "https://www.adobe.com/learn/photoshop/web/photography-effects",
+      "author": "Adobe Learn tutorial team",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读页面正文 Direction of light and shadow、Quality of light、Perspective and scale、Composition and framing 四节。"
+      },
+      "trust_reason": "Adobe 官方 Photoshop 学习页面以文字说明合成前素材匹配的检查维度。",
+      "summary": "学习在开始合成前检查光线方向和阴影、光质与色温、视角及主体比例，并预先安排元素位置、视觉焦点与留白。",
+      "start_here": "依次读 Direction of light and shadow、Quality of light、Perspective and scale、Composition and framing。",
+      "study_task": "项目练习：选择本人拥有使用权的两张练习素材，先写下光线方向、光质/色温、视角比例和焦点安排，再尝试小型合成并记录哪些不匹配最显眼。",
+      "limitations": "这是 Photoshop 的创意合成准备建议，不是摄影现场的统一准则；页面没有教授完整蒙版或边缘融合流程，也不能据此主张合成真实人物或场景已获许可。",
+      "source_id": "post-adobe-composite-principles",
+      "skill_ids": [
+        "post-composite-light-match",
+        "post-composite-perspective-scale",
+        "post-composite-framing"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-adobe-lightroom-export",
+      "title": "按用途设置尺寸、色彩空间与输出锐化",
+      "original_title": "How to export Lightroom Classic files to disk or CD",
+      "url": "https://helpx.adobe.com/lightroom-classic/desktop/export-photos/export-files-disk-or-cd.html",
+      "author": "Adobe Help team",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读 File settings、Color Space、Image sizing、Resolution、Output sharpening 及元数据段落。"
+      },
+      "trust_reason": "Adobe 官方 Lightroom Classic 说明文件，列出导出设置及对应行为。",
+      "summary": "学习根据接收用途设置格式、质量和像素尺寸，了解 sRGB/Adobe RGB/ProPhoto RGB 的导出配置，以及按屏幕或纸张介质应用输出锐化。",
+      "start_here": "从 File settings 读到 Color Space，再看 Image sizing、Resolution 和 Output sharpening。",
+      "study_task": "项目练习：按一个明确假设（屏幕分享或印刷）导出一张照片副本，核对尺寸、格式、嵌入的色彩配置和输出锐化设置，并与编辑主文件分开保存。",
+      "limitations": "这是软件设置说明；它不替代接收平台、打印实验室或客户的实际文件规格。文中的建议范围也不应脱离具体打印服务商要求直接套用。",
+      "source_id": "post-adobe-lr-export",
+      "skill_ids": [
+        "post-master-resolution",
+        "post-output-sharpening",
+        "post-output-color-profile",
+        "post-output-file-spec"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-adorama-hoey-one-light-headshots",
+      "title": "一盏灯的人像实拍：光位、沟通与手部安排",
+      "original_title": "Easy One Light Headshots | Take and Make Great Photography with Gavin Hoey",
+      "url": "https://www.youtube.com/watch?v=G95axag1gMA",
+      "author": "Gavin Hoey / Adorama 官方频道",
+      "kind": "video",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "page_and_description",
+        "locator": "Edge/BrowserSkill 核对官方搜索结果的频道、标题与章节；公开视频页读取超时，会话随后已结束。再用公开网页搜索核对官方描述与章节表；未观看画面或读取字幕。"
+      },
+      "trust_reason": "职业摄影讲师 Gavin Hoey 的 Adorama 官方节目；推荐依据是实名作者、官方发布与明确的实拍章节，不是观看量。",
+      "summary": "官方简介说明课程演示三种单灯头像方案，并讨论人物沟通、手部安排和反光板；适合与图文材料配合观看。",
+      "start_here": "按官方章节：1:08 拍前安排；2:09 光源尺寸与位置；5:35 顶光方案；7:25 手部安排。全片约 12 分钟。",
+      "study_task": "项目练习：观看后只选一种光位拍摄，在相同曝光与构图下改变一个变量，记录你看到的面部阴影变化。",
+      "limitations": "仅核对官方简介与章节，未对视频内容逐段核验；不作为技能结论的新证据。偏室内头像，不能直接套用到拥挤漫展。中国大陆网络可达性依环境而定。",
+      "source_id": null,
+      "skill_ids": [
+        "light-025",
+        "light-028",
+        "posing-purposeful-hand-placement"
+      ],
+      "domain_ids": [
+        "flash",
+        "posing"
+      ]
+    }
+  ],
+  "merge_decisions": [
+    {
+      "kept": "tutorial-dynamic-nikon-cosgenic-sword",
+      "merged": "cosplay-tutorial-nikon-cosgenic-11",
+      "reason": "Same actual original lesson URL; preserve skill mappings and additional reading guidance."
+    }
+  ]
+}

@@ -19,6 +19,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import __version__
 from .config import Settings
 from .learning_preview import STATIC_FILES as LEARNING_STATIC_FILES, preview_router
+from .learning_state import router as learning_state_router
 from .export import build_job_pack, build_pack, build_contact_board
 from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
 from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardInput, JobInput, JobResult,
@@ -602,4 +603,5 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         return FileResponse(settings.web_dir / filename, headers={"Cache-Control": "no-cache, must-revalidate"})
 
     app.include_router(preview_router(settings.web_dir))
+    app.include_router(learning_state_router(settings.web_dir, settings.data_dir))
     return app

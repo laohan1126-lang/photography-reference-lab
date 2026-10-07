@@ -1,0 +1,1480 @@
+{
+  "scope": "motion",
+  "candidates": [
+    {
+      "id": "mot-01",
+      "skill_name": "选择冻结动作或保留拖影",
+      "capability": "依据画面想表达的动作状态，选择足以冻结主体或允许部分动作拖影的快门策略。",
+      "why_it_matters": "决定动作在照片中读作定格、速度还是时间痕迹。",
+      "module_hint": "动作记录方式",
+      "domain_hint": "静态照片",
+      "prerequisites": [],
+      "failure_modes": [
+        "主体不清、动作被无意冻结或全画面糊成相机抖动"
+      ],
+      "practice": "同一名合作者做一段可重复的小动作；拍一组快门较快和较慢的对照，标注预期停住或拖影的部分。",
+      "acceptance": [
+        "每组照片能指出预设的静止/运动元素；结果与拍摄前意图一致。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-panasonic-shutter",
+          "locator": "§「シャッター速度の変化による表現の違い」",
+          "support": "说明低速能保留运动模糊，高速能定格动作。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-jp-slow-shutter",
+          "locator": "§ 拍摄前决定「何を止めて、何を動かすか」",
+          "support": "建议先选定要固定与要移动的画面部分。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "运动冻结",
+        "拖影",
+        "快门速度 动作"
+      ]
+    },
+    {
+      "id": "mot-02",
+      "skill_name": "按主体速度与想要的拖影量调整快门",
+      "capability": "通过试拍和回看，把快门时间与主体速度、拍摄距离及预期运动痕迹相匹配。",
+      "why_it_matters": "避免照搬固定快门数值造成动作读不出或拖影过量。",
+      "module_hint": "动作记录方式",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-01"
+      ],
+      "failure_modes": [
+        "相同快门用于不同速度动作而效果失控；拖影完全不可辨"
+      ],
+      "practice": "让合作者按慢、中、快三个节奏重复同一路径，逐档调整快门并记录每张照片的主体清晰度与背景拖影。",
+      "acceptance": [
+        "三档动作都能得到可解释的快门选择；回看能说明为何更快/更慢。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ Choosing the Shutter Speed; lines 75–78",
+          "support": "Dave Black把快门选择与主体速度和希望显现的运动量联系起来，并以试拍校准。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-panasonic-shutter",
+          "locator": "lines 21–50",
+          "support": "Panasonic说明快门同时控制曝光和动作呈现，高低速对应拖影/冻结。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-peter-llewellyn-blur",
+          "locator": "§ lines 41–48",
+          "support": "作者指出快门取决于主体运动速度。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": {
+        "source_id": "motion-nikon-panning",
+        "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/10-tips-for-better-camera-panning",
+        "description": "Dave Black的动作照片案例附快门数据。（来源页链接了示例；未进行像素级目视审查。）"
+      },
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "快门与动作速度",
+        "拖影量"
+      ]
+    },
+    {
+      "id": "mot-03",
+      "skill_name": "用追随摇摄控制主体与背景的相对运动",
+      "capability": "主体横向或沿可预判路径移动时，让相机追随主体，使主体较清晰而背景呈现相对运动。",
+      "why_it_matters": "相对拖影能传达速度，同时保持角色或动作主体可辨。",
+      "module_hint": "动作记录方式",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-01"
+      ],
+      "failure_modes": [
+        "主体和背景同时全糊；追随方向与主体路径不一致"
+      ],
+      "practice": "合作者以恒定速度沿固定路径通过；先固定机位，再用慢快门追随拍摄，比较主体与背景清晰度。",
+      "acceptance": [
+        "至少一张照片主体关键部位可辨且背景运动可见；追随方向与主体轨迹一致。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 36–38, 75–86, 218–228",
+          "support": "Dave Black说明追随主体并通过快门控制运动表现，且保留锐利元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-peter-llewellyn-blur",
+          "locator": "§ lines 41–48",
+          "support": "Llewellyn区分固定机位下主体移动与相机追随主体两种相对运动方式。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": {
+        "source_id": "motion-nikon-panning",
+        "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/10-tips-for-better-camera-panning",
+        "description": "来源页含运动主体追随示例，未审阅原始像素。（来源页链接了示例；未进行像素级目视审查。）"
+      },
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "追随摇摄",
+        "panning subject background blur"
+      ]
+    },
+    {
+      "id": "mot-04",
+      "skill_name": "让追随动作跨过曝光起止点",
+      "capability": "开始曝光前先跟上主体，并在曝光结束后继续平顺追随，避免运动中途突然启动或刹停。",
+      "why_it_matters": "减少因相机速度骤变造成的主体糊片。",
+      "module_hint": "追随操作",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-03"
+      ],
+      "failure_modes": [
+        "摇摄起步或收尾的突然顿挫把主体拖糊"
+      ],
+      "practice": "用步行者做同一路径的三次试拍：一次曝光前不预跟、一次预跟但立即停、一次完整跟随；比较主体清晰度。",
+      "acceptance": [
+        "完整跟随组中主体清晰样片比例高于前两组，并能稳定复现动作。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 75–78",
+          "support": "Dave Black明确建议曝光前开始追随，曝光后继续跟随完成动作。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "摇摄 follow-through",
+        "追随启动与收尾"
+      ]
+    },
+    {
+      "id": "mot-05",
+      "skill_name": "在拖影画面中保留锐利视觉锚点",
+      "capability": "设计运动模糊时，至少保留能辨认角色/动作的锐利部位或轮廓。",
+      "why_it_matters": "锚点让观众读懂画面，而不是把全部模糊误判为失焦或抖动。",
+      "module_hint": "动作记录方式",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-01"
+      ],
+      "failure_modes": [
+        "所有元素均模糊，动作与角色身份都无法辨认"
+      ],
+      "practice": "同一路径拍摄两版：一版主体尽量整体拖影，另一版让脸、手或关键道具至少一个区域较清楚。",
+      "acceptance": [
+        "第二版可明确辨认角色和动作，且拖影仍然可见。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 85–86, 218–224",
+          "support": "Dave Black强调运动照片应保留一个或多个锐利元素作为视觉支点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 101–118",
+          "support": "Cristina Pascu-Tulbure说明长快门与闪光可使动态织物模糊，同时留下较锐利主体。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": {
+        "source_id": "motion-society-flowing-fabric",
+        "url": "https://thesocieties.net/blog/2022/08/23/creating-movement-in-the-studio-photographing-flowing-fabric/",
+        "description": "作者的布料运动人像案例；只依据文字说明。（来源页链接了示例；未进行像素级目视审查。）"
+      },
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "运动照片锐利锚点",
+        "sharp anchor motion portrait"
+      ]
+    },
+    {
+      "id": "mot-06",
+      "skill_name": "分别安排静止部分与运动部分",
+      "capability": "拍摄长曝光时，事先决定人物、肢体、发丝、服装或背景中哪些保持静止、哪些产生运动。",
+      "why_it_matters": "不同部分的运动分工会改变动作读法和角色轮廓。",
+      "module_hint": "动作编排",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-01"
+      ],
+      "failure_modes": [
+        "没有预设运动分工，画面整体混乱；所有部分都动或都静"
+      ],
+      "practice": "挑一个简单动作，每次只让一个身体或服装部分移动，其他部分保持静止，完成后交换运动部分。",
+      "acceptance": [
+        "成片中预定的运动部分与静止部分可被辨认；不同安排呈现出可描述的差异。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-jp-slow-shutter",
+          "locator": "§ 拍摄前决定静止/运动对象及例图说明",
+          "support": "Nikon课程要求预先决定固定与运动对象。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 94–100",
+          "support": "Cristina将静止模特、结构性布料和动态薄纱作为不同运动层处理。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "人物与服装分动",
+        "stillness motion choreography"
+      ]
+    },
+    {
+      "id": "mot-07",
+      "skill_name": "把动作阶段放进曝光时间窗",
+      "capability": "调整动作开始、停留与运动阶段相对于快门开启时间的先后，让需要辨认的轮廓保留在照片里。",
+      "why_it_matters": "动作时序决定轮廓清晰度、拖影方向与视觉重心。",
+      "module_hint": "动作编排",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-06"
+      ],
+      "failure_modes": [
+        "动作在曝光全程持续，缺少可辨轮廓；停留阶段错过快门"
+      ],
+      "practice": "长曝光中让合作者先短暂停留，再沿指定方向移动；分别比较“先静后动”和“全程移动”。",
+      "acceptance": [
+        "能稳定拍到一张保留清晰起始或结束轮廓、并记录动作轨迹的照片。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-jp-slow-shutter",
+          "locator": "§ 例图步骤：先固定约0.5秒再移动",
+          "support": "Nikon摄影师以曝光内短暂停留保留轮廓，再移动主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 101–118",
+          "support": "作者比较不同快门下的运动模糊与主体清晰度，并说明两者平衡。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "长曝光 动作时序",
+        "运动阶段 曝光"
+      ]
+    },
+    {
+      "id": "mot-08",
+      "skill_name": "选择闪光同步时机控制拖影尾向",
+      "capability": "在长曝光加闪光的人像中，根据想让锐利主体处于运动轨迹前端还是后端，选择相应的同步时机。",
+      "why_it_matters": "闪光定格点相对于环境光拖影的位置会改变动作方向感。",
+      "module_hint": "动作记录方式",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-01"
+      ],
+      "failure_modes": [
+        "轨迹方向与动作读法相反；闪光定格与环境光拖影重叠成双影"
+      ],
+      "practice": "使用缓慢摆臂的可重复动作，分别试前帘和后帘同步；只比较闪光定格点相对拖影的位置。",
+      "acceptance": [
+        "能指出两种同步产生的拖影方向差别，并在目标方向上稳定复现。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-flash-sync",
+          "locator": "§ lines 69–84",
+          "support": "Nikon说明后帘同步先记录环境运动轨迹，随后闪光定格主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 94–96",
+          "support": "Dave Black以低速快门配后帘同步记录运动尾迹并在曝光末端定格主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 101–118",
+          "support": "职业人像案例说明闪光与长快门结合可同时记录清晰主体和运动布料。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "后帘同步 运动人像",
+        "拖影方向"
+      ]
+    },
+    {
+      "id": "mot-09",
+      "skill_name": "按动作可预测性选择预对焦或连续追焦",
+      "capability": "对重复、可预测的路径可预先锁定焦点区域；路径或距离变化不可预测时使用连续追焦并检查追焦结果。",
+      "why_it_matters": "对焦策略需要匹配主体运动模式，避免焦点追错或漏焦。",
+      "module_hint": "运动对焦",
+      "domain_hint": "静态照片",
+      "prerequisites": [],
+      "failure_modes": [
+        "主体到达位置时焦点仍在背景；持续变化使焦点来不及追上"
+      ],
+      "practice": "让合作者先重复一个固定点位，再改为自由走动；分别试预对焦和连续追焦，回看焦点命中率。",
+      "acceptance": [
+        "能为两种运动条件分别选出有效对焦方法，并指出失焦发生在哪一阶段。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 132–135, 218–225",
+          "support": "Dave Black用预对焦处理可预测路径，用连续AF-C处理不可预测运动。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "预对焦 连续追焦 动作"
+      ]
+    },
+    {
+      "id": "mot-10",
+      "skill_name": "在重复路径上预对焦并锁定焦区",
+      "capability": "主体将反复经过已知区域时，先对该区域对焦并锁定，再在主体经过焦区时释放快门。",
+      "why_it_matters": "预对焦可以让摄影者把注意力留给构图与时机。",
+      "module_hint": "运动对焦",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-09"
+      ],
+      "failure_modes": [
+        "每次重新追焦导致错过重复动作；焦点锁在错误距离"
+      ],
+      "practice": "用地面标记一个动作终点，先对标记处对焦，再让合作者重复通过该点并连拍验证。",
+      "acceptance": [
+        "主体在标记点经过时焦点命中；合作者改变距离后能意识到需要重设焦区。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 110–111, 132–135",
+          "support": "Dave Black观察多次通过后将焦点锁在轮胎轨迹附近，再拍可重复跳跃动作。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "zone focus",
+        "预对焦 动作重复"
+      ]
+    },
+    {
+      "id": "mot-11",
+      "skill_name": "根据主体运动是否可预测选择连续追焦",
+      "capability": "主体方向或距离持续变化时，采用相机的连续对焦/追踪设置，并在回看时确认目标主体而非近处遮挡物获得焦点。",
+      "why_it_matters": "持续移动主体的焦点会变化，静态单次对焦可能无法保持清晰。",
+      "module_hint": "运动对焦",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-09"
+      ],
+      "failure_modes": [
+        "主体运动时焦点停留在原位置；近处道具或遮挡物抢焦"
+      ],
+      "practice": "拍摄一段迎面接近与横向移动的动作，分别试单次对焦和连续追焦，检查眼/动作主体焦点。",
+      "acceptance": [
+        "连续追焦组中目标主体清晰率更高；误追时能指出遮挡/重选焦区的原因。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 54, 133–135",
+          "support": "Dave Black在无法预测运动位置时使用连续伺服AF。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 56–58",
+          "support": "摄影师将演出者眼睛作为清晰焦点，并描述Eye AF在其工作中的作用。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": {
+        "source_id": "motion-nikon-versace-dancer",
+        "url": "https://www.nikonusa.com/learn-and-explore/c/ideas-and-inspiration/vincent-versace-nikon-zf-plena",
+        "description": "摄影师的舞者人像和对焦说明；像素未作审查。（来源页链接了示例；未进行像素级目视审查。）"
+      },
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "连续追焦",
+        "AF-C performer portrait"
+      ]
+    },
+    {
+      "id": "mot-12",
+      "skill_name": "提前判断动作将从哪里开始",
+      "capability": "识别动作的准备姿态、重复节奏或触发线索，在动作开始前完成取景与对焦准备。",
+      "why_it_matters": "摄影者若等动作完全发生后才反应，可能错过关键阶段。",
+      "module_hint": "动作预判",
+      "domain_hint": "静态照片",
+      "prerequisites": [],
+      "failure_modes": [
+        "快门晚于动作起点；在寻找构图时错过准备和表情"
+      ],
+      "practice": "合作者重复一个简单动作三次；摄影者先只观察不拍，再在每次动作前指出触发线索并于起点拍摄。",
+      "acceptance": [
+        "连续三次能在动作开始/关键变化时完成对焦和构图，而非只记录动作尾声。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 85–100",
+          "support": "运动摄影师指出投球前准备态更容易预判动作起点，并展示释放前的专注表情。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 54, 74–78",
+          "support": "Dave Black用可重复波浪路径预测动作，并要求曝光前开始追随。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 57–64",
+          "support": "Versace说明舞者的想法会即时反映在脸上，并通过互相反应得到表情。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "动作预判 摄影",
+        "动作触发线索 人像"
+      ]
+    },
+    {
+      "id": "mot-13",
+      "skill_name": "在动作中抓取可辨认的手势或关键局部",
+      "capability": "从角色动作中识别最能表达行为的部位或道具接触点，并通过对焦与构图让该手势可读。",
+      "why_it_matters": "动作含义有时由手、手指或道具交互表达，而非只靠脸部。",
+      "module_hint": "动作视觉重点",
+      "domain_hint": "静态照片",
+      "prerequisites": [],
+      "failure_modes": [
+        "脸清楚但关键动作被遮挡或未进入画面；手势没有视觉重点"
+      ],
+      "practice": "让合作者做一段简单的持物/演奏/挥手动作，拍脸部主导版和关键手部主导版，比较动作能否被读出。",
+      "acceptance": [
+        "观看者能从照片指出正在发生的关键动作；关键部位没有被裁切或遮挡。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 129–159",
+          "support": "Versace把小号手的手指动作视为动作/意义焦点，并以连续三个动作瞬间记录表演。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 44–49",
+          "support": "运动案例以跑动中球杆与球作为可辨动作局部。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": {
+        "source_id": "motion-nikon-versace-dancer",
+        "url": "https://www.nikonusa.com/learn-and-explore/c/ideas-and-inspiration/vincent-versace-nikon-zf-plena",
+        "description": "演奏手势的照片案例及摄影师说明；未检查图像像素。（来源页链接了示例；未进行像素级目视审查。）"
+      },
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "动作手势 对焦",
+        "关键道具动作 静态摄影"
+      ]
+    },
+    {
+      "id": "mot-14",
+      "skill_name": "留出主体运动方向的画面空间",
+      "capability": "主体朝画面一侧运动或凝视时，在该方向保留可读空间，并根据运动方向选择横/竖构图。",
+      "why_it_matters": "画面留白能让运动有去向，避免动作即将撞出画框的感觉。",
+      "module_hint": "动作构图",
+      "domain_hint": "静态照片",
+      "prerequisites": [],
+      "failure_modes": [
+        "人物贴边、运动方向空间不足、动作显得受阻"
+      ],
+      "practice": "用同一动作拍两张：主体前方留空间与主体前方不留空间；保持其他构图条件尽量一致。",
+      "acceptance": [
+        "能指出运动方向；至少一张画面在该方向留有明确空间且主体不被边缘挤压。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 56–63, 144–151",
+          "support": "摄影师明确建议运动前方留负空间，并展示横向/纵向取景变化。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": {
+        "source_id": "motion-nikon-sports-photographers",
+        "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/photographing-sports-indoors-and-out",
+        "description": "作者页面提供动作照片与构图说明；未对像素作审查。（来源页链接了示例；未进行像素级目视审查。）"
+      },
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "运动方向留白",
+        "negative space direction of travel"
+      ]
+    },
+    {
+      "id": "mot-15",
+      "skill_name": "在动作高潮之外记录准备态与反应态",
+      "capability": "为动态组照有意识地记录动作前的专注/准备，以及动作发生后的表情或互动反应。",
+      "why_it_matters": "只拍动作顶点可能丢失角色意图与情绪转变。",
+      "module_hint": "动态组照变化",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-12"
+      ],
+      "failure_modes": [
+        "组照只有动作而无情绪；表情变化或互动没有留下记录"
+      ],
+      "practice": "为同一段动作分别设置“准备、发生、反应”三次释放窗口，拍后按时间顺序回看。",
+      "acceptance": [
+        "至少能从照片组辨认准备与动作/反应之间的状态变化；未将此当成所有项目的固定公式。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 81–114",
+          "support": "摄影师同时记录投掷前专注、动作释放和运动员庆祝反应。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 57–64, 151",
+          "support": "Versace关注表情与动作相连的瞬间，并记录连续演奏和笑的变化。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "准备动作反应 组照",
+        "动态人像过程情绪"
+      ]
+    },
+    {
+      "id": "mot-16",
+      "skill_name": "用短连拍覆盖不可预测的表情变化",
+      "capability": "当表演瞬间持续很短且无法精确预测时，在预期动作窗口内短暂连拍，再筛选实际达到的表情/手势。",
+      "why_it_matters": "瞬间表演会在连续动作中迅速变化，单帧释放可能错过更清楚的瞬间。",
+      "module_hint": "动态组照变化",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-12"
+      ],
+      "failure_modes": [
+        "连拍时机过早/过晚；大量重复帧却没有覆盖动作变化"
+      ],
+      "practice": "先观察动作节奏，再在动作窗口进行短连拍；标记每帧动作阶段和清晰度。",
+      "acceptance": [
+        "连拍帧能覆盖至少两个不同动作阶段；能说明短连拍窗口为何放在那里。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 133–135",
+          "support": "Dave Black按焦区/连续追焦分别采用两帧或五帧连拍处理运动通过。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 145–159",
+          "support": "摄影师在音乐表演过程中快速连续拍三张并按发生顺序组合。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "动态连拍 窗口",
+        "burst timing portraits"
+      ]
+    },
+    {
+      "id": "mot-17",
+      "skill_name": "先用静态镜头建立移动基准",
+      "capability": "在安排移动镜头前，能先拍一条稳定静态版本作为动作与构图基准，再判断是否需要移动相机。",
+      "why_it_matters": "静态基准可帮助分辨镜头移动究竟增加了信息还是只增加晃动。",
+      "module_hint": "基础镜头语言",
+      "domain_hint": "动态影像",
+      "prerequisites": [],
+      "failure_modes": [
+        "默认手持导致所有镜头都晃；移动没有带来新的观看信息"
+      ],
+      "practice": "拍人物横穿空间的同一动作：固定机位拍一遍，再增加一个有目的的移动版本，回看信息差别。",
+      "acceptance": [
+        "能明确指出移动版揭示/强调了什么；若无新增信息，能保留静态版。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement；Activity",
+          "support": "ACMI先定义静态机位，再要求同一动作分别静态、摇摄和跟拍，比较信息与感受。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle / Camcorder moves",
+          "support": "Canon说明镜头移动应有明确目的，避免无必要移动。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "静态镜头基准",
+        "camera movement purpose"
+      ]
+    },
+    {
+      "id": "mot-18",
+      "skill_name": "区分固定轴摇摄与机位跟移",
+      "capability": "辨别机位不变、相机在轴上转动的pan，与相机位置沿路径移动的tracking，并按要展示的空间关系选择。",
+      "why_it_matters": "移动方式决定观众看到的是视线转向还是穿行于空间。",
+      "module_hint": "基础镜头语言",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-17"
+      ],
+      "failure_modes": [
+        "把pan与tracking混为一谈；镜头方向变化但主体空间关系不清"
+      ],
+      "practice": "同一人物横穿空间，固定机位分别pan跟随和持机跟随，回看主体大小、背景视差和空间移动感。",
+      "acceptance": [
+        "可用口头说明两段片的相机位置是否改变；每个版本的空间作用可辨。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement；Activity",
+          "support": "ACMI让同一动作分别拍静态、原地pan和手持tracking并对比效果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-camera-movement",
+          "locator": "§ stabilizer use and movement types",
+          "support": "ASC说明稳定器用于跟随、长镜头和复杂的人物/相机编排。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "pan versus tracking",
+        "原地摇摄 跟拍"
+      ]
+    },
+    {
+      "id": "mot-19",
+      "skill_name": "移动前设定镜头起点、覆盖范围与终点",
+      "capability": "开机前确定pan需要扫过的区域和结束画面，并把身体/脚步预置到能够顺畅完成的方向。",
+      "why_it_matters": "预先设定终点可以减少镜头移动中途临时找画面。",
+      "module_hint": "基础镜头语言",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-18"
+      ],
+      "failure_modes": [
+        "镜头扫到无关区域；结束构图没有主体或被迫急停"
+      ],
+      "practice": "在拍摄开始前标记pan起点和终点，先空机位走一遍动作路径，再录制人物通过。",
+      "acceptance": [
+        "所有试拍都覆盖预定范围；最后停在明确主体上且无突然反向修正。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Camcorder moves; PDF p.38",
+          "support": "Canon要求先决定pan覆盖范围、面向结束角度，再回转到起点执行。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "pan end point",
+        "摇摄范围 终点"
+      ]
+    },
+    {
+      "id": "mot-20",
+      "skill_name": "在移动前后留出稳定的起止画面",
+      "capability": "每次相机移动前和停止后都保留短暂稳定画面，再结束录制或剪辑。",
+      "why_it_matters": "起止停留让观众建立场景、读清终点，也给剪辑留出余量。",
+      "module_hint": "基础镜头语言",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-18"
+      ],
+      "failure_modes": [
+        "录制一开始就移动；停止时马上结束导致画面突兀"
+      ],
+      "practice": "同一pan拍两版：连续移动无停留；开始前与结束后各保持约两秒，再比较剪辑边界。",
+      "acceptance": [
+        "至少一版拥有清晰稳定的起点和终点，剪辑时可在移动前后切入/切出。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Camcorder moves; PDF p.38",
+          "support": "Canon建议pan前先录数秒、动作后保持最终画面数秒再停止。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "pan hold start end",
+        "镜头运动起止停留"
+      ]
+    },
+    {
+      "id": "mot-21",
+      "skill_name": "按展示任务选用远、中、近景",
+      "capability": "为一个简单动作选择能交代场地的远景、看清动作过程的中景和呈现关键细节的近景。",
+      "why_it_matters": "不同景别承载环境、全身动作和细节信息，单一景别难以兼顾。",
+      "module_hint": "景别与覆盖",
+      "domain_hint": "动态影像",
+      "prerequisites": [],
+      "failure_modes": [
+        "环境或动作范围交代不清；关键细节无法看清"
+      ],
+      "practice": "记录同一动作的远景、中景、近景三条片段，保持动作目标一致，并标注各自回答的问题。",
+      "acceptance": [
+        "每种景别都能说明其展示的信息；远景可定位动作，中景/近景补充人物或细节。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议以远景建立情境，再用中景和特写展现细节。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera shots activity",
+          "support": "ACMI以wide/mid/close景别练习并要求解释为何选择。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "远中近景动作覆盖",
+        "wide medium close action"
+      ]
+    },
+    {
+      "id": "mot-22",
+      "skill_name": "改变景别或视点前先说明信息目的",
+      "capability": "连续拍多个片段时，改变景别或角度应带来动作细节、情绪或空间信息的变化。",
+      "why_it_matters": "无意义的相似镜头切换会打断动作阅读且增加剪辑困难。",
+      "module_hint": "景别与覆盖",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-21"
+      ],
+      "failure_modes": [
+        "不同片段取景几乎相同却强行切换；变化导致空间跳跃"
+      ],
+      "practice": "围绕一段挥手/转身动作拍三种视点；回看后删除无法带来新信息的重复角度。",
+      "acceptance": [
+        "保留镜头间至少有一项可说明的信息差；动作接续方向仍能理解。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议每个shot改变视点，并令镜头动作有目的。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera shots activity",
+          "support": "ACMI活动要求为不同景别说明选择原因及其所捕捉内容。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "shot variation purpose",
+        "镜头视点变化"
+      ]
+    },
+    {
+      "id": "mot-23",
+      "skill_name": "按动作节拍规划景别和移动变化",
+      "capability": "把一段短表演拆成可观察的节拍，在关键变化处考虑是否切换景别、机位或镜头移动。",
+      "why_it_matters": "镜头变化若与表演节拍无关，可能显得随机或削弱动作重点。",
+      "module_hint": "动作预演与覆盖",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-21"
+      ],
+      "failure_modes": [
+        "镜头在动作毫无变化处切换；重要变化没有视觉响应"
+      ],
+      "practice": "为10秒短表演写出两个可见动作节拍，预先划分每条镜头覆盖的片段与景别。",
+      "acceptance": [
+        "回看时每次景别/运动变化能对应动作或情绪变化；覆盖计划能复现。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 211–216",
+          "support": "Jay Holben描述在脚本上标出节拍变化，并规划宽景主镜头、半场中景和节拍后的近景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 260–265",
+          "support": "M. David Mullen建议先明确故事如何结束以决定如何开始。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "beat based shot planning",
+        "节拍 景别 移动"
+      ]
+    },
+    {
+      "id": "mot-24",
+      "skill_name": "把短动作片段拆成起始、动作过程与结束状态",
+      "capability": "拍摄一段简单角色动作时，先确定可识别的开始状态、过程动作和结束状态，再设计对应覆盖。",
+      "why_it_matters": "片段有明确完成点，观众才能理解动作发生了什么。",
+      "module_hint": "动作预演与覆盖",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-21"
+      ],
+      "failure_modes": [
+        "片段从动作中途开始或未等动作完成就结束；动作目标难以识别"
+      ],
+      "practice": "让合作者完成一个简单动作（如举起道具并转身）；分别拍动作前姿态、连续过程、结束定格。",
+      "acceptance": [
+        "三段素材能按顺序讲清动作目标与结束姿态；结束状态稳定可辨。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle / Camcorder moves; PDF p.38",
+          "support": "Canon强调从建立情境到细节、移动前后保持画面。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement activity",
+          "support": "ACMI以完整人物穿越空间的简单场景练习静态、pan与tracking。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "动作起承转合 视频",
+        "start process end action shot"
+      ]
+    },
+    {
+      "id": "mot-25",
+      "skill_name": "让镜头移动回应角色动作或情绪变化",
+      "capability": "只有当角色行动、情绪或叙事重点提供理由时，才设计跟随、推进、拉开或绕行的镜头移动。",
+      "why_it_matters": "移动会改变观看者与角色的关系，任意移动容易变成装饰。",
+      "module_hint": "镜头意图",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-17"
+      ],
+      "failure_modes": [
+        "镜头无明确对象地游移；移动和角色状态不一致"
+      ],
+      "practice": "为同一段动作各拍一个静态版本、一个跟随版本和一个回应情绪的移动版本，让观看者说明差异。",
+      "acceptance": [
+        "选定移动能指出对应动作/情绪依据；无动机的版本被舍弃。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-arri-birdman-lubezki",
+          "locator": "§ lines 30–41",
+          "support": "Lubezki描述移动与人物能量、主观视点和故事之间的关系，并称团队提前设计blocking。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-arri-room-next-door-grau",
+          "locator": "§ lines 77–78",
+          "support": "Grau说明每个镜头移动应服务叙事且保持一致流畅。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 229–232",
+          "support": "ASC文章将移动与演员动作、感受、排练中的自然路径联系起来。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "motivated camera movement",
+        "叙事动机 运镜"
+      ]
+    },
+    {
+      "id": "mot-26",
+      "skill_name": "在预演中同步演员路径与相机路径",
+      "capability": "通过排练或走位预演，确认人物何时进入、转向、停留，以及摄影者如何跟随或改变位置。",
+      "why_it_matters": "相机和人物路径互相影响；未经预演容易挡位、丢焦或错失构图。",
+      "module_hint": "动作预演与覆盖",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-25"
+      ],
+      "failure_modes": [
+        "人物突然离开构图；摄影者撞到障碍或在关键动作时错位"
+      ],
+      "practice": "在空地画出人物路径与摄影者路径，先空走，再带相机走一遍，最后录制。",
+      "acceptance": [
+        "人物与相机不会互相阻挡；预定动作点都能进入画框。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-arri-birdman-lubezki",
+          "locator": "§ lines 34–46",
+          "support": "Lubezki讲述用stand-in排练数月、规划blocking/镜头移动/提示，并记下演员提示。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 229–230",
+          "support": "ASC作者排练时跟随演员走位并预想机位与dolly变化。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 56–64",
+          "support": "Versace提到表演者会击中标记、懂得动作，也通过互动得到反应。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": {
+        "source_id": "motion-arri-birdman-lubezki",
+        "url": "https://www.arri.com/news-en/emmanuel-lubezki-asc-amc-on-birdman-",
+        "description": "摄影师说明长镜头排练和演员提示；页面照片未检查。（来源页链接了示例；未进行像素级目视审查。）"
+      },
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "actor camera blocking rehearsal",
+        "人物机位路径 排练"
+      ]
+    },
+    {
+      "id": "mot-27",
+      "skill_name": "用广景和跟随路线保留空间方向感",
+      "capability": "让动作片段至少包含足以定位人物和场地的空间信息，并在跟随移动时保持观众理解运动方向。",
+      "why_it_matters": "观众失去方向感会把注意力从角色动作转移到空间困惑。",
+      "module_hint": "空间连续性",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-21",
+        "mot-18"
+      ],
+      "failure_modes": [
+        "看不出人物从哪来、往哪去；跟拍过程中场地关系无法追踪"
+      ],
+      "practice": "先拍稳定广景建立人物/场景位置，再拍跟随镜头，检查动作方向是否仍清楚。",
+      "acceptance": [
+        "独立观看者能指出人物起点、运动方向和终点；跟随版没有造成空间迷失。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 231–232",
+          "support": "ASC作者称广景建立/提醒场景地理，跟随人物穿越空间也可描绘地理。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议用long shot交代情境，再用更紧的景别给细节。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "镜头空间地理",
+        "screen geography moving shot"
+      ]
+    },
+    {
+      "id": "mot-28",
+      "skill_name": "根据观看关系选择主观或客观机位",
+      "capability": "决定镜头要让观众像角色一样置身动作之中，还是从较远的位置观察，再选择机位距离和跟随程度。",
+      "why_it_matters": "主客观观看距离影响观众与人物的情绪关系。",
+      "module_hint": "镜头意图",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-25"
+      ],
+      "failure_modes": [
+        "近距离晃动却意在冷静旁观；远景观察却想强调角色即时体验"
+      ],
+      "practice": "同一动作拍近距离跟随与远距离稳定观察两版，先写下想让观众感受到的观看关系，再比较成片。",
+      "acceptance": [
+        "拍前意图与观看者感受到的接近/旁观关系大致一致。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 219, 229–232",
+          "support": "ASC文章区分客观远观和贴近动作的视点，并把机位选择与角色心理关联。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 195–198, 260–265",
+          "support": "Jay Holben和M. David Mullen讨论以角色体验或客观距离作为视觉叙事选择。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "主观机位 客观机位",
+        "subjective objective camera"
+      ]
+    },
+    {
+      "id": "mot-29",
+      "skill_name": "在一条镜头中用焦点转移引导注意",
+      "capability": "当画面中近处动作细节和远处反应都重要时，在预定时刻把焦点从一个距离面转移到另一个。",
+      "why_it_matters": "焦点改变可让观众在不中断连续镜头的情况下转向新信息。",
+      "module_hint": "运动对焦",
+      "domain_hint": "动态影像",
+      "prerequisites": [],
+      "failure_modes": [
+        "焦点转移太早/太晚；没有新的可读信息；两处同时失焦过久"
+      ],
+      "practice": "摆放两个相距明确的对象，一近一远；分别练习近到远和远到近的焦点转移，并按动作提示启动。",
+      "acceptance": [
+        "焦点转移完成后目标对象清晰；观众能指出注意力从哪转向哪。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Focus pull activity",
+          "support": "ACMI说明焦点转移能引导观众注意，并用近物到远人反应作活动例子。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-shining-steadicam",
+          "locator": "§ lines 293–297",
+          "support": "电影摄影案例讨论移动机位中摄影助理从非正对镜头位置控制焦点。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "focus pull attention",
+        "焦点转移 运动镜头"
+      ]
+    },
+    {
+      "id": "mot-30",
+      "skill_name": "为手动拉焦设定两个可重复的焦点标记",
+      "capability": "需要手动焦点变化时，先记录两个不同距离对象的镜头焦距刻度并练习按动作时机转换。",
+      "why_it_matters": "焦点标记有助于让多次练习的转换距离和节奏可比较。",
+      "module_hint": "运动对焦",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-29"
+      ],
+      "failure_modes": [
+        "依靠临场猜焦；转换未到位或速度与反应时机不合"
+      ],
+      "practice": "将两个对象放在不同距离，记录每个对象清晰时的镜头刻度，练习固定提示下的焦点转换。",
+      "acceptance": [
+        "能按提示至少连续三次将焦点从对象A移至B；两个刻度均能复现。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Focus pull activity",
+          "support": "ACMI练习记录两个焦点刻度，并指出要让演员不移动、配合转换时机。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-shining-steadicam",
+          "locator": "§ lines 293–297",
+          "support": "ASC案例描述摄影助理在移动和窄空间中训练不同位置的拉焦能力。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "rack focus marks",
+        "拉焦刻度 练习"
+      ]
+    },
+    {
+      "id": "mot-31",
+      "skill_name": "先判断被摄者变化是否足以支撑手动拉焦",
+      "capability": "只在画面中有可识别的距离变化或注意力转移目标时，设计焦点从近到远、远到近或由虚到实的变化。",
+      "why_it_matters": "没有距离/注意变化时拉焦会变成无意义的技术展示。",
+      "module_hint": "运动对焦",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-29"
+      ],
+      "failure_modes": [
+        "焦点变化无明确对象；两个目标处在相近平面而无法体现转换"
+      ],
+      "practice": "使用两个明显不同距离的目标，先固定焦点拍摄，再按角色反应提示切换焦点。",
+      "acceptance": [
+        "观看者能指出焦点转换对应的对象和信息变化；固定焦点版本也作为对照。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Focus pull description/activity",
+          "support": "ACMI指出不同焦点目标需处于不同距离，且焦点变化应有场景原因。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "motivated focus pull",
+        "拉焦动机"
+      ]
+    },
+    {
+      "id": "mot-32",
+      "skill_name": "保持追随镜头的移动平顺并有视觉控制",
+      "capability": "追随主体时保持稳定支撑、明确身体转动路径，并避免途中反复修正构图。",
+      "why_it_matters": "不受控制的抖动会盖过角色动作，并使主体脱离画框。",
+      "module_hint": "追随操作",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-18"
+      ],
+      "failure_modes": [
+        "镜头突然抖动、水平线倾斜或人物频繁出画"
+      ],
+      "practice": "沿地面标记的短路径先空机位练三遍，再让人物低速通过；回看水平、主体位置和顿挫点。",
+      "acceptance": [
+        "最终一条镜头能连续跟住主体，水平与主要构图变化可控，无明显方向反复。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 142–143, 218–232",
+          "support": "Dave Black描述稳定站姿、平顺身体摆动以及按路径可预测性选择支撑方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement activity",
+          "support": "ACMI让同一动作比较静态、pan和tracking的观感与信息。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "平顺跟拍",
+        "camera follow smooth movement"
+      ]
+    },
+    {
+      "id": "mot-33",
+      "skill_name": "以同一动作对比横向、竖向和斜向轨迹",
+      "capability": "观察动作主要沿哪个方向发展，再选择与该轨迹匹配的追随轴或固定机位构图。",
+      "why_it_matters": "不同运动方向会改变追随难度和画面中的运动形状。",
+      "module_hint": "追随操作",
+      "domain_hint": "静态照片",
+      "prerequisites": [
+        "mot-03"
+      ],
+      "failure_modes": [
+        "相机追随轴与动作方向不符；人物动作被压成难以辨认的位移"
+      ],
+      "practice": "同一合作者沿横向、纵向/接近镜头和斜向移动，分别用固定快门追随并比较清晰度。",
+      "acceptance": [
+        "能指出最易追随的轨迹与运动平面；各方向的主体清晰度可测量比较。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 35–38, 47–48",
+          "support": "Dave Black指出追随通常沿主体运动平面，并讨论横向、纵向与迎向镜头的差别。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-peter-llewellyn-blur",
+          "locator": "§ lines 41–48",
+          "support": "Llewellyn说明相机追随主体、主体移动和背景拖影的关系。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "运动平面 摇摄",
+        "movement vector panning"
+      ]
+    },
+    {
+      "id": "mot-34",
+      "skill_name": "以简单覆盖交代动作并补充细节",
+      "capability": "为短动作先拍能看完整行动的主镜头，再选择少量能补充关键细节/反应的镜头，而不是收集无关角度。",
+      "why_it_matters": "基础覆盖保留动作整体关系，细节镜头补充动作中值得注意的信息。",
+      "module_hint": "景别与覆盖",
+      "domain_hint": "动态影像",
+      "prerequisites": [
+        "mot-21",
+        "mot-24"
+      ],
+      "failure_modes": [
+        "只拍细节导致动作不知所云；拍太多角度增加剪辑冲突"
+      ],
+      "practice": "拍一段5秒动作：一条完整wide master，再加一条中景或近景细节；尝试按顺序剪接回看。",
+      "acceptance": [
+        "主镜头本身能交代完整动作，补充镜头清楚增加一项动作信息。"
+      ],
+      "evidence": [
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 211–216",
+          "support": "Jay Holben描述为整段动作画出wide master，再在节拍处补近景/中景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议由建立情境的long shot转向细节镜头。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "wide master coverage",
+        "动作主镜头 细节覆盖"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "静态照片里追随摇摄与固定机位长曝光都能表现运动",
+      "positions": [
+        {
+          "basis": "professional_method",
+          "summary": "Dave Black及Peter Llewellyn讨论跟随相机配合主体轨迹，以背景相对模糊强化速度。",
+          "source_ids": [
+            "motion-nikon-panning",
+            "motion-peter-llewellyn-blur"
+          ]
+        },
+        {
+          "basis": "professional_method",
+          "summary": "Nikon Japan与Cristina Pascu-Tulbure用固定相机和主体/服装运动记录拖影，同时保留锐利元素。",
+          "source_ids": [
+            "motion-nikon-jp-slow-shutter",
+            "motion-society-flowing-fabric"
+          ]
+        }
+      ],
+      "resolution": "保留两种工作模式，按希望的主体/背景运动关系选择，不将其中一种作为普遍更优。"
+    },
+    {
+      "topic": "相机运动要服务叙事，但自由移动也可能是明确风格",
+      "positions": [
+        {
+          "basis": "professional_method",
+          "summary": "Edu Grau与Lubezki都强调目的与故事/人物能量关联，但Grau强调稳定一致，Lubezki项目采用更持续的手持/稳定器移动。",
+          "source_ids": [
+            "motion-arri-room-next-door-grau",
+            "motion-arri-birdman-lubezki"
+          ]
+        }
+      ],
+      "resolution": "按项目意图和动作需要判断，记录为条件差异；不把“总要移动”或“总要稳定”固化成规则。"
+    }
+  ],
+  "gaps": [
+    "Cosplay专属的武器、假发、宽袖、裙摆动作路径与安全限制缺少可验证的专业教学；相关候选仅作为一般人物/服装动作的项目适配，不声称支持特定道具规则。",
+    "手动拉焦技能证据主要来自ACMI教育页和ASC电影案例，尚缺专业短视频/人像摄影师针对单人低成本移动镜头的细化教学。",
+    "移动相机时自动眼部追焦的精确设置依赖机型；Sony官方页面可作为后续核查线索，但本轮搜索摘要不作技能证据。",
+    "仍缺中文专业电影摄影教学和日文基础运镜实践页的完整阅读；目前日文证据主要是静态照片动作控制。",
+    "漫展空间/拥挤场地里的安全跟拍距离、相机轨迹避人、获得被摄者同意的现场动作练习尚未找到足够专业来源。"
+  ]
+}

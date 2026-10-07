@@ -1,0 +1,162 @@
+{
+  "scope": "field_gap",
+  "queries": [
+    "中国 Cos摄影师 漫展 摄影 教程 人流 站位 拍摄 采访",
+    "资深 cosplay 摄影师 漫展 拍摄 现场 经验 人流 快速沟通 教程",
+    "site:canon.com.cn 漫展摄影 场照 人像 摄影师 现场",
+    "国内摄影师 漫展场照 选位 人流 摄影 灯具",
+    "professional photographer on location review images after each setup pose check LCD immediately retake expression",
+    "photographer Alex Cooke stop checking every photo LCD review interval position light change",
+    "cosplay photographer convention crowd move subject nearby less cluttered background Mark Rigsby"
+  ],
+  "sources": [
+    {
+      "id": "field_gap-rigsby-crowd-background",
+      "title": "How to Improve your Cosplay Photography in 4 easy steps",
+      "author": "Mark Rigsby",
+      "identity": "作者自述为商业与广告摄影师，专长创意人像；文章提供其本人在 convention/event 环境中的摄影方法。",
+      "kind": "professional photographer first-party article",
+      "tier": "A",
+      "language": "English",
+      "url": "https://www.spekture.com/how-to-improve-your-cosplay-photography-in-4-easy-steps/",
+      "coverage": [
+        "拥挤展会背景",
+        "就近移动主体",
+        "拍前建立交流",
+        "移动中延续沟通",
+        "现场方向与光线"
+      ],
+      "trust_reason": "原始署名文章，直接描述作者的展会拍摄办法；页面列出其商业/广告摄影与创意人像身份。该单一作者方法仅支持 medium，不代表中国漫展标准。",
+      "independence_key": "Mark Rigsby",
+      "access": "full_text",
+      "read_depth": "opened_full_article_and_author_bio",
+      "worth_deep_read": true,
+      "notes": "核心原文：在拥挤活动中先建立交流，预选附近较少杂乱的位置，征询后请被摄者移步，并在走动时保持交流。文章没有说明中国场馆规则、人流组织或通道许可。页面文字已读；未把文中图片当作视觉审查证据。",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "field_gap-cooke-review-rhythm",
+      "title": "Why You Should Stop Checking Every Photo on the LCD and What You Should Do Instead",
+      "author": "Alex Cooke",
+      "identity": "Fstoppers 作者简介称其为摄影师和气象学家；文章署名本人，讨论拍摄过程中的回看节奏。",
+      "kind": "photographer education article",
+      "tier": "A",
+      "language": "English",
+      "url": "https://fstoppers.com/education/why-should-stop-checking-every-photo-lcd-and-what-should-instead-902050",
+      "coverage": [
+        "有目的的现场回看",
+        "新环境/条件变化时校准",
+        "回看对人物和决定性瞬间的时间成本",
+        "EVF直方图"
+      ],
+      "trust_reason": "作者署名并有摄影师简介，全文直接提出其工作建议；观点明确限定于相机、拍摄条件和训练阶段。",
+      "independence_key": "Alex Cooke",
+      "access": "full_text",
+      "read_depth": "opened_full_article_and_author_bio",
+      "worth_deep_read": true,
+      "notes": "支持在新环境、光线/站位变化或技术性拍摄后进行有问题意识的检查，同时反对每张照片机械回看。它没有给出漫展专用失败项清单，也不是中国展馆流程。",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "field_gap-glatzer-tethered-review",
+      "title": "The Benefits of Photographing Tethered Headshots",
+      "author": "Mike Glatzer",
+      "identity": "作者简介称其为全国发表的亚特兰大创意人像摄影师；文章是本人棚内/人像工作流说明。",
+      "kind": "professional portrait photographer first-party article",
+      "tier": "A",
+      "language": "English",
+      "url": "https://mikeglatzerphotos.com/blog/benefits-of-photographing-tethered-headshots/",
+      "coverage": [
+        "大屏幕回看",
+        "姿势/表情/服装细节复核",
+        "及时补拍",
+        "摄影师与客户协作"
+      ],
+      "trust_reason": "摄影师自有网站上的完整一手工作流说明；身份由作者简介支持。情境是 tethered headshot，不是拥挤漫展。",
+      "independence_key": "Mike Glatzer",
+      "access": "full_text",
+      "read_depth": "opened_full_article_and_author_bio",
+      "worth_deep_read": true,
+      "notes": "直接支持受控人像现场通过大屏幕回看细节并及时调整/重拍；由于固定机位、连线大屏和时间条件不同，仅作为回看情境的对照，未泛化成场馆快速工作法。",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "field_gap-carpenter-client-review",
+      "title": "Do You Share Images With Clients on Set?",
+      "author": "Jeff Carpenter",
+      "identity": "Fstoppers 作者简介称其为纳什维尔人像与生活方式摄影师；正文为其本人拍摄经验和观点。",
+      "kind": "photographer opinion / workflow article",
+      "tier": "A",
+      "language": "English",
+      "url": "https://fstoppers.com/originals/do-you-share-images-clients-set-175671",
+      "coverage": [
+        "协作拍摄中适时回看",
+        "客户调整姿势或表情",
+        "run-and-gun 情境下相机屏幕回看",
+        "不必每张都展示"
+      ],
+      "trust_reason": "署名摄影师的一手观点和案例；文章明确说展示频率依客户和工作情境决定。",
+      "independence_key": "Jeff Carpenter",
+      "access": "full_text",
+      "read_depth": "opened_full_article_and_author_bio",
+      "worth_deep_read": true,
+      "notes": "提供客户协作回看的另一种目的，与 Alex Cooke 的连续观察/少回看建议并不矛盾：前者是委托协作，后者提醒勿因机械回看丢失人物与光线变化。两者都不能独立构成高密场照的标准节奏。",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "field_gap-canon-con-workshop",
+      "title": "线下分享：漫展摄影新手入门攻略",
+      "author": "佳能影像乐天地 / 展厅讲师陈梓祺（不同场次页面）",
+      "identity": "佳能中国官方线下摄影课程活动介绍；活动页列出器材选择和如何拍摄漫展场照等主题。",
+      "kind": "official manufacturer event listing / syllabus",
+      "tier": "A",
+      "language": "Chinese",
+      "url": "https://www.canon.com.cn/purchase/show/guangzhou/event33.html",
+      "coverage": [
+        "漫展场照课程主题",
+        "器材选择"
+      ],
+      "trust_reason": "厂商官方课程页可证明成熟机构曾开设该主题，但不公开教学内容，因此仅支持课程范围，不支持任何具体摄影方法。",
+      "independence_key": "Canon China Imaging Center",
+      "access": "index_only",
+      "read_depth": "opened_event_listing_only",
+      "worth_deep_read": true,
+      "notes": "已搜索并打开官方活动页；没有可读讲义/回放/逐字稿。仅记录为后续追索原讲义的线索，未作为候选技能证据。",
+      "accessed_at": "2026-10-08"
+    }
+  ],
+  "gaps": [
+    "高密中国漫展的职业摄影师完整第一方流程仍未找到：快速沟通、就近换位、避开行人和其他摄影者入镜、位置轮转及结束检查没有被一份合格来源连成工作法。Mark Rigsby 只支持其中‘预选附近低杂背景点并维持交流’这一窄动作。",
+    "现有树已包含 field-convention-approved-footprint（Muncy 的已许可固定点案例）。本轮候选与之区分为移动式、就近背景清理；Rigsby 的海外文章不能提供或替代中国当次场馆许可、人流规则和安全判断。现场资格必须独立按活动实际规则确认。",
+    "中文搜索找到佳能中国漫展摄影课程活动页，但只是大纲；未找到可核验的完整讲义或回放。B站第一视角/教学视频有发现线索，但未取得可读的完整内容和稳定职业资历证据，未将片段标题或搜索摘要当成教学证据。",
+    "现场回看节奏没有单一通用答案：Alex Cooke 反对机械逐张回看，主张在新环境/条件变化及困难技术镜头后做目标明确的检查；Mike Glatzer 说明棚内联机人像可即时回看并及时补拍；Jeff Carpenter 则支持run-and-gun下适时展示。设备、主体能否重拍、是否协作和时效性构成边界。现有高密漫展失败检查仍缺直接专业清单。",
+    "不把同意拍摄、现场构图或避免挡路等摄影建议泛化成任何展馆的法律或许可规则；规则只能来自本次活动的官方政策/许可。"
+  ],
+  "excluded": [
+    {
+      "title": "从0到2：五一酷狗蘑菇×萤火虫场照拍摄思路分享_单灯",
+      "url": "https://www.sohu.com/a/316014593_632972",
+      "reason": "文章作者自称基础差、经验分享定位；虽有有用的场景/灯位观察和不占其他摄影者空间细节，但不满足本任务对成熟职业摄影师方法的资格门槛。只作发现线索。"
+    },
+    {
+      "title": "漫展场照太难选？资深 Cosplay 摄影师教你用绚篇在线选片，实现极速交片！",
+      "url": "https://www.xuanpian.com/update/140.html",
+      "reason": "全文主要推广在线选片产品，作者/所谓资深摄影师身份不清，不能支持现场摄影技能。"
+    },
+    {
+      "title": "Cosplay convention first-person/tutorial videos (Bilibili search results)",
+      "url": "https://www.bilibili.com/",
+      "reason": "本轮未读完整视频或可靠字幕，且多项为自我描述未核实的个人频道；标题与简介仅当作后续检索线索。"
+    },
+    {
+      "title": "EPBOT convention-floor report by Jen",
+      "url": "https://www.epbot.com/2019/05/megacon-orlando-2019-black-out.html",
+      "reason": "详细案例提及忙场5秒口令、有限尝试和被道具挡住后再补拍，但作者缺少本轮可核验的职业摄影方法资格，按父任务要求不纳入正式候选证据。"
+    },
+    {
+      "title": "SonyStyle 人像入门：扫街拍摄后在液晶屏回看",
+      "url": "https://www.sonystyle.com.cn/smallapp/lecture/offline/lecture/lecture13.htm",
+      "reason": "搜索摘要提示回看未显出问题，但打开全文返回403；摘要不能支持详细技能。"
+    }
+  ]
+}

@@ -1,0 +1,1282 @@
+{
+  "audit": "source_quality_pass2",
+  "as_of": "2026-10-08",
+  "summary": {
+    "primary_scopes": [
+      "composition",
+      "cosplay",
+      "field",
+      "light",
+      "motion",
+      "perspective",
+      "posing",
+      "post"
+    ],
+    "extra_scopes": [
+      "cosplay_gap",
+      "perspective_gap"
+    ],
+    "source_rows_reviewed": 192,
+    "candidate_rows_reviewed": 258,
+    "access_counts": {
+      "full_text": 154,
+      "partial": 26,
+      "index_only": 10,
+      "blocked": 2
+    },
+    "tier_counts": {
+      "A": 170,
+      "B": 21,
+      "C": 1
+    },
+    "confidence_counts": {
+      "high": 133,
+      "medium": 125
+    },
+    "duplicate_url_groups": [
+      {
+        "url": "https://www.fujiya-camera.co.jp/blog/detail/pro/20230522/",
+        "records": [
+          {
+            "scope": "composition",
+            "source_id": "composition-ukawa-fujiya-jp"
+          },
+          {
+            "scope": "perspective",
+            "source_id": "perspective-ukawa-portrait-composition"
+          }
+        ]
+      },
+      {
+        "url": "https://nij.nikon.com/cms/sp/cosgenic/about.html",
+        "records": [
+          {
+            "scope": "cosplay",
+            "source_id": "cosplay-nikon-cosgenic"
+          },
+          {
+            "scope": "posing",
+            "source_id": "posing-nikon-cosgenic-index"
+          }
+        ]
+      },
+      {
+        "url": "https://cosplaymode.net/howto/556/",
+        "records": [
+          {
+            "scope": "cosplay",
+            "source_id": "cosplay-cosplaymode-posing-variations"
+          },
+          {
+            "scope": "cosplay_gap",
+            "source_id": "cosplay-gap-cosplaymode-prop-posing"
+          }
+        ]
+      },
+      {
+        "url": "https://cosplaymode.net/howto/184/",
+        "records": [
+          {
+            "scope": "cosplay",
+            "source_id": "cosplay-cosplaymode-direction-cues"
+          },
+          {
+            "scope": "cosplay_gap",
+            "source_id": "cosplay-gap-cosplaymode-cues"
+          }
+        ]
+      },
+      {
+        "url": "https://www.usa.canon.com/learning/training-articles/training-articles-list/posing-tips-for-successful-portraits",
+        "records": [
+          {
+            "scope": "field",
+            "source_id": "field-canon-posing-background"
+          },
+          {
+            "scope": "perspective",
+            "source_id": "perspective-canon-portrait-posing"
+          },
+          {
+            "scope": "posing",
+            "source_id": "posing-canon-laura-tillinghast"
+          }
+        ]
+      },
+      {
+        "url": "https://learn.lindsayadlerphotography.com/product/the-posing-series/",
+        "records": [
+          {
+            "scope": "perspective",
+            "source_id": "perspective-adler-course"
+          },
+          {
+            "scope": "posing",
+            "source_id": "posing-lindsay-adler-series"
+          }
+        ]
+      },
+      {
+        "url": "https://nerd.wwnorton.com/ebooks/epub/movies8/EPUB/content/7.4-chapter07.xhtml",
+        "records": [
+          {
+            "scope": "perspective",
+            "source_id": "perspective-norton-framing"
+          },
+          {
+            "scope": "perspective_gap",
+            "source_id": "perspective-gap-norton-camera-angle"
+          }
+        ]
+      },
+      {
+        "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
+        "records": [
+          {
+            "scope": "perspective",
+            "source_id": "perspective-ppa-fauld-corrective"
+          },
+          {
+            "scope": "perspective_gap",
+            "source_id": "perspective-ppa-fauld-corrective"
+          }
+        ]
+      }
+    ],
+    "missing_evidence_source_ids": [],
+    "metadata_check": "All required source metadata keys present and all candidate source IDs resolve. Structural checks are not semantic verification.",
+    "field_scope_status": "Field source/candidate files were last modified 2026-10-07 23:56 local and did not change during this pass; this is only file currency, not semantic verification.",
+    "structural_and_metadata_checks": "All required source metadata fields were present in all 192 reviewed source rows; all 258 candidate evidence source IDs resolved. These are structural checks only, not semantic or professional-qualification verification.",
+    "non_photo_source_groups": "Reviewed and flagged film/cinematography textbooks, ACMI educational curriculum, Canon camcorder manual, sword-museum editorial, and peer-reviewed picture-perception research. Their use may be valid for adapted or technical claims but does not make still-portrait professional consensus."
+  },
+  "reopened_primary_pages": [
+    {
+      "source_id": "cosplay-nikon-cosgenic",
+      "page": "https://nij.nikon.com/cms/sp/cosgenic/about.html",
+      "scope": "about/index and instructor biographies",
+      "finding": "navigation points to lessons; this page itself contains no lesson details"
+    },
+    {
+      "source_id": "posing-nikon-cosgenic-lesson3",
+      "page": "https://nij.nikon.com/cms/sp/cosgenic/lesson3/",
+      "scope": "lines 35–97 and credits",
+      "finding": "direct text supports goal alignment and changes to posing/expression/camera angle; no pixels inspected"
+    },
+    {
+      "source_id": "cosplay-gap-cosplaymode-prop-posing",
+      "page": "https://cosplaymode.net/howto/556/",
+      "scope": "risk sample from added cosplay gap",
+      "finding": "page available; candidate is medium and cites only it; add source-specific teaching limitation"
+    },
+    {
+      "source_id": "cosplay-nikon-cosgenic-lesson5 (source row missing)",
+      "page": "https://nij.nikon.com/cms/sp/cosgenic/lesson5/",
+      "scope": "lines 35–122 and credits",
+      "finding": "supports group placement, poses/expressions and spacing; exact source record must be added"
+    },
+    {
+      "source_id": "posing-nikon-cosgenic-lesson11",
+      "page": "https://nij.nikon.com/cms/sp/cosgenic/lesson11/",
+      "scope": "lines 30–114",
+      "finding": "direct text supports Japanese sword cosplay stance and shutter choices; keep its weapon/costume limits"
+    },
+    {
+      "source_id": "cosplay-cosplaymode-katana",
+      "page": "https://cosplaymode.net/howto/1680/",
+      "scope": "article lines 53–124 and credits",
+      "finding": "supports Japanese sword-specific stance/character variation; not general weapon training"
+    },
+    {
+      "source_id": "post-phlearn-frequency-separation",
+      "page": "https://phlearn.com/tutorial/30-days-photoshop-day-24/",
+      "scope": "full lesson around lines 131–178 and FAQ",
+      "finding": "directly describes texture/color separation, gradual blending and over-retouching risks as Aaron Nace method"
+    },
+    {
+      "source_id": "post-fstoppers-grimes",
+      "page": "https://fstoppers.com/education/quick-guide-effective-skin-retouching-photoshop-286479",
+      "scope": "open attempted; no article body returned; search result points to Joel Grimes video",
+      "finding": "unwatched video cannot be independent direct evidence; page content not verified in this pass"
+    },
+    {
+      "source_id": "cosplay-note-kujira-posing",
+      "page": "https://note.com/whalephoto/n/nbf92656ca20f",
+      "scope": "free section and profile; paid chapters not accessed",
+      "finding": "profile self-reports 10 years and 300+ shoots; credential is not independently corroborated and detailed teaching is gated"
+    },
+    {
+      "source_id": "cosplay-note-sutten-motion",
+      "page": "https://note.com/sutten7mukuri8/n/n10dc779119c0",
+      "scope": "full written still-photo cosplay example",
+      "finding": "useful first-person method; external professional teaching qualification not established"
+    },
+    {
+      "source_id": "cosplay-note-background-overlap",
+      "page": "https://note.com/hia0814/n/n9b993f529554",
+      "scope": "full single-shoot case and profile",
+      "finding": "author self-reports cosplay photography and work; one case only, no independent source for candidate"
+    },
+    {
+      "source_id": "posing-animek-coaching",
+      "page": "https://animek.jp/posing/",
+      "scope": "event description and instructor listing",
+      "finding": "marketing/listing only, not actual lesson content"
+    },
+    {
+      "source_id": "perspective-gap-photofacts-roll",
+      "page": "https://photofacts.nl/portretfotografie/portretfotografie-tip-draai-de-camera",
+      "scope": "full article and profile",
+      "finding": "portrait tip says 30–45° appears intentional and slight 5–10° may appear accidental; conflicts with Nikon Europe slight-tilt advice"
+    },
+    {
+      "source_id": "motion-asc-camera-placement",
+      "page": "https://theasc.com/article/shot-craft-where-do-you-put-the-camera/",
+      "scope": "full article and byline; lines 195–240",
+      "finding": "Jay Holben describes choices as filmmaking and story; evidence is dynamic film craft, not static-portrait norm"
+    },
+    {
+      "source_id": "motion-asc-script-analysis",
+      "page": "https://theasc.com/article/shot-craft-analyzing-a-script/",
+      "scope": "lines 211–216, 260–265 and bylines",
+      "finding": "coverage/beat breakdown is film production; passage-specific contributor identity matters"
+    },
+    {
+      "source_id": "motion-asc-camera-movement",
+      "page": "https://theasc.com/article/shot-craft-camera-movement/",
+      "scope": "page and opening returned; not all candidate passages surfaced in this tool response",
+      "finding": "limited re-open; not blanket verified"
+    },
+    {
+      "source_id": "motion-acmi-cinematography",
+      "page": "https://www.acmi.net.au/education/school-program-and-resources/film-it-cinematography/",
+      "scope": "page title/education resource surfaced; detailed lesson text not fully surfaced",
+      "finding": "museum curriculum, not professional photographer byline"
+    },
+    {
+      "source_id": "motion-canon-camcorder-manual",
+      "page": "https://files.canon-europe.com/files/soft29721/Manual/MV550i_530i_En.pdf",
+      "scope": "open failed to return PDF body",
+      "finding": "specific PDF locators not revalidated here"
+    },
+    {
+      "source_id": "cosplay-gap-cosplaymode-prop-posing",
+      "page": "https://cosplaymode.net/howto/556/",
+      "scope": "actual full article lines 53–127, byline/model identification lines 63–67",
+      "finding": "supports varied prop uses and says hand placement may express character or partly obscure facial outline/mouth; one magazine article only, consistent with medium confidence; no image pixels reviewed"
+    }
+  ],
+  "source_corrections": [
+    {
+      "source_id": "composition-john-harris-edges",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is photographer-authored composition essay (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "composition-todd-vorenkamp-framing",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is photographer-authored educational article (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "composition-malwitz-portrait",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is retailer education article with portrait examples (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "composition-bh-basics",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is photography education article (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "composition-bobby-kenney-portrait",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is manufacturer portrait case study / photographer interview (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "composition-nikon-diane-guidelines",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is professional_tutorial (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "cosplay-note-sutten-motion",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is first_person_photographer_blog (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "cosplay-note-kujira-posing",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "cosplay-note-kujira-posing",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is first_person_photographer_blog (access partial); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "cosplay-meihaku-sword",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is museum_adjacent_cosplay_reference (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "cosplay-note-background-overlap",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is first_person_photographer_case_note (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "field-ppa-photo-essay",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "field-wcs-rules",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "field-ppa-location-video",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "field-cosplay-keane-photowall",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is niche photographer method note (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "light-strobist-ambient",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "blocked"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "light-neilvn-balance",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "light-profoto-adler-freeze",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-nikon-motion",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-sony-panning",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-sony-academy-dance",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-dcw-portrait-blur",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is practical portrait tutorial (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "motion-hawaii-sequence-coverage",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-arri-academy-course",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-sundance-shot-camera",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-hollywood-camerawork-syllabus",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "motion-hollywood-camerawork-syllabus",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is course syllabus (access partial); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "perspective-adler-posing-book",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "perspective-canon-perspective",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "perspective-canon-dof",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "perspective-nikon-college-course",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "perspective-cambridge-tilt-shift",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "blocked"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "perspective-tamron-portrait-guide",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is manufacturer portrait guide (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "perspective-hasselblad-position-guide",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is manufacturer portrait guide (access full_text); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "posing-sue-bryce-pose-series",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-lindsay-adler-series",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-lindsay-adler-hands",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-peter-hurley-expression",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-chris-orwig-bh-video",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-chris-orwig-bh-video",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is professional video masterclass / live event recording (access partial); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "posing-jerry-ghionis-bh-video",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "index_only"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-jerry-ghionis-bh-video",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is professional short instructional video (access index_only); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "posing-hacostudio-pechiko",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-animek-coaching",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-animek-coaching",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is event/workshop description (access partial); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "posing-sue-bryce-hands-course",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-chinese-cosplay-photo-interview",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "posing-chinese-cosplay-photo-interview",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is Chinese photography-site interview (access partial); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "post-adobe-portrait",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-adobe-local-light",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-adobe-cleanup",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-captureone-portrait-edit",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-retouch-academy-dodge-burn",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-retouch-academy-patchy-skin",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-fstoppers-grimes",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-fstoppers-grimes",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is photography education article pointing to a professional video lesson (access partial); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "post-fstoppers-needham-skin-color",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "post-fstoppers-needham-skin-color",
+      "targetfields": {
+        "tier": "remove Tier B; reserve B for professional video actually watched"
+      },
+      "reason": "Current record is photography education article pointing to a professional video lesson (access partial); no actually watched professional video is documented."
+    },
+    {
+      "source_id": "post-smiljanic-course-outline",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only",
+        "access": "partial"
+      },
+      "reason": "Partial/index/blocked source is a discovery lead, not support for detailed lesson claims."
+    },
+    {
+      "source_id": "cosplay-nikon-cosgenic",
+      "targetfields": {
+        "title": "about/index only",
+        "access": "index_only for lesson-content eligibility",
+        "read_depth": "about/instructor profiles only; lessons require separate records",
+        "url": "create lesson-specific records; do not cite about.html for lessons"
+      },
+      "reason": "Reopened about.html has lesson navigation and instructor biographies, not Lesson 3/5/11 text. Current record bundles lesson claims behind the wrong URL."
+    },
+    {
+      "source_id": "posing-nikon-cosgenic-index",
+      "targetfields": {
+        "access": "index_only for lesson-content evidence",
+        "formal_evidence_eligibility": "discovery_only",
+        "independence_key": "same about-page URL as cosplay-nikon-cosgenic"
+      },
+      "reason": "Exact duplicate about.html URL; do not double count it or treat bios/index as lesson instruction."
+    },
+    {
+      "source_id": "posing-nikon-cosgenic-lesson3",
+      "targetfields": {
+        "independence_key": "Yoriko Inoue / YOL, Cosgenic Lesson 3"
+      },
+      "reason": "Use exact lesson record; distinguish from lesson 11 author, but do not infer image-pixel review."
+    },
+    {
+      "source_id": "posing-nikon-cosgenic-lesson11",
+      "targetfields": {
+        "independence_key": "Tetsuya Yamamoto / Cosgenic Lesson 11"
+      },
+      "reason": "Use exact lesson record; constrain sword advice to Japanese sword cosplay."
+    },
+    {
+      "source_id": "composition-ukawa-fujiya-jp",
+      "targetfields": {
+        "duplicate_of": "perspective-ukawa-portrait-composition",
+        "independence_key": "Mayuko Ukawa / one Fujiya URL"
+      },
+      "reason": "Same exact article URL/byline duplicated across scopes; one source instance."
+    },
+    {
+      "source_id": "perspective-ukawa-portrait-composition",
+      "targetfields": {
+        "duplicate_of": "composition-ukawa-fujiya-jp",
+        "independence_key": "Mayuko Ukawa / one Fujiya URL"
+      },
+      "reason": "Same exact article URL/byline duplicated across scopes; one source instance."
+    },
+    {
+      "source_id": "posing-canon-laura-tillinghast",
+      "targetfields": {
+        "duplicate_of": [
+          "field-canon-posing-background",
+          "perspective-canon-portrait-posing"
+        ],
+        "independence_key": "Laura Tillinghast / same Canon URL"
+      },
+      "reason": "Three rows share the same URL and byline; one source for triangulation."
+    },
+    {
+      "source_id": "field-canon-posing-background",
+      "targetfields": {
+        "duplicate_of": "posing-canon-laura-tillinghast",
+        "independence_key": "Laura Tillinghast / same Canon URL"
+      },
+      "reason": "Three rows share the same URL and byline; one source for triangulation."
+    },
+    {
+      "source_id": "perspective-canon-portrait-posing",
+      "targetfields": {
+        "duplicate_of": "posing-canon-laura-tillinghast",
+        "independence_key": "Laura Tillinghast / same Canon URL"
+      },
+      "reason": "Three rows share the same URL and byline; one source for triangulation."
+    },
+    {
+      "source_id": "posing-lindsay-adler-series",
+      "targetfields": {
+        "duplicate_of": "perspective-adler-course",
+        "content_boundary": "public overview/lesson titles only; paid lessons not viewed",
+        "formal_evidence_eligibility": "discovery-only for lesson-specific claims"
+      },
+      "reason": "Same instructor and exact course overview across scopes; not evidence of unseen paid lessons."
+    },
+    {
+      "source_id": "perspective-adler-course",
+      "targetfields": {
+        "duplicate_of": "posing-lindsay-adler-series",
+        "content_boundary": "public overview/lesson titles only; paid lessons not viewed",
+        "formal_evidence_eligibility": "discovery-only for lesson-specific claims"
+      },
+      "reason": "Same instructor and exact course overview across scopes; not evidence of unseen paid lessons."
+    },
+    {
+      "source_id": "cosplay-note-kujira-posing",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Self-published note/profile claim professional status, 10 years and 300 shoots; independent teaching qualification is unverified; chapters are partly paywalled."
+    },
+    {
+      "source_id": "cosplay-note-sutten-motion",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Full first-person cosplay/photo case, but independent professional teaching identity was not established."
+    },
+    {
+      "source_id": "cosplay-note-background-overlap",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Single self-published commissioned-shoot account and self-reported career history; no independent second source."
+    },
+    {
+      "source_id": "cosplay-meihaku-sword",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Museum-adjacent sword editorial, not photography teaching/pro video; keep only as non-photo subject discovery."
+    },
+    {
+      "source_id": "field-cosplay-keane-photowall",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Written first-person practitioner method, not Tier B; one attributed method at medium pending byline qualification."
+    },
+    {
+      "source_id": "posing-animek-coaching",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Event listing advertises instruction but contains no actual lesson; discovery-only."
+    },
+    {
+      "source_id": "posing-chris-orwig-bh-video",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Video description/chapter page only; video not watched."
+    },
+    {
+      "source_id": "posing-jerry-ghionis-bh-video",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Search-result/index description only; video not watched."
+    },
+    {
+      "source_id": "motion-hollywood-camerawork-syllabus",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Syllabus/course outline only, not watched video lesson."
+    },
+    {
+      "source_id": "motion-arri-academy-course",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Course catalog description, lessons unwatched."
+    },
+    {
+      "source_id": "motion-sundance-shot-camera",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Course listing with unresolved instructor; lesson not accessed."
+    },
+    {
+      "source_id": "motion-hawaii-sequence-coverage",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Search excerpt only; source page not opened."
+    },
+    {
+      "source_id": "post-fstoppers-grimes",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Secondary article page reopened with no usable article body; search listing points to unwatched Joel Grimes video."
+    },
+    {
+      "source_id": "post-fstoppers-needham-skin-color",
+      "targetfields": {
+        "formal_evidence_eligibility": "discovery_only or unranked practitioner lead; not formal evidence",
+        "identity": "retain only independently verified byline/credential; otherwise mark unverified"
+      },
+      "reason": "Partial article plus unwatched Gerard Needham video; not detailed lesson evidence."
+    },
+    {
+      "source_id": "perspective-adler-course",
+      "targetfields": {
+        "source_lineage": "same course overview as posing-lindsay-adler-series",
+        "content_boundary": "public course overview only; no paid lesson content"
+      },
+      "reason": "Do not treat fully readable marketing/course outline as instruction from unseen paid lessons."
+    },
+    {
+      "source_id": "cosplay-gap-shobserver-chinajoy-field",
+      "targetfields": {
+        "kind": "journalistic field report, not professional photographer-authored teaching"
+      },
+      "reason": "Relevant scene observation, but journalistic reporting is secondary and does not establish detailed photographic method."
+    },
+    {
+      "source_id": "perspective-okstate-cinematography",
+      "targetfields": {
+        "kind": "film/cinematography textbook, not still-photography professional teaching",
+        "formal_evidence_eligibility": "direct only for film vocabulary; adapted for static portrait use"
+      },
+      "reason": "Use it for camera height/angle and shot-scale definitions in cinematography; do not count as a still portrait professional source."
+    },
+    {
+      "source_id": "perspective-norton-framing",
+      "targetfields": {
+        "kind": "film textbook chapter, not still-photography professional teaching",
+        "formal_evidence_eligibility": "direct for film framing language; adapted for static portrait use"
+      },
+      "reason": "Film media scope only; not independent portrait-photographer evidence."
+    },
+    {
+      "source_id": "perspective-gap-norton-camera-angle",
+      "targetfields": {
+        "kind": "film textbook chapter",
+        "formal_evidence_eligibility": "adapted only for portrait claims"
+      },
+      "reason": "Its Dutch-angle narrative function does not establish portrait angle numbers or photography consensus."
+    },
+    {
+      "source_id": "perspective-cooper-banks-pictures",
+      "targetfields": {
+        "kind": "peer-reviewed psychophysics/visual-perception research, not photographer teaching",
+        "independence_key": "research authors/group; do not classify as professional-photographer lineage"
+      },
+      "reason": "Useful first-party experimental evidence for projection/viewpoint claims, but not professional photography instruction; keep that distinction in source lineage."
+    }
+  ],
+  "candidate_corrections": [
+    {
+      "id": "cosplay-c01-character-pose-translation",
+      "disposition": "retain after source-ID/locator repair",
+      "requirededit": {
+        "evidence[cosplay-nikon-cosgenic]": "Lesson 3 lines 35–55 and Lesson 11 lines 42–59"
+      },
+      "confidence": "high after repair",
+      "basis": "professional_consensus",
+      "reason": "about.html is an index, while lesson pages directly support character/scene-specific pose changes."
+    },
+    {
+      "id": "cosplay-c02-align-shot-intent",
+      "disposition": "retain after source-ID/locator repair",
+      "requirededit": {
+        "evidence[cosplay-nikon-cosgenic]": "Lesson 3 section 2, lines 50–60"
+      },
+      "confidence": "high after repair",
+      "basis": "professional_consensus",
+      "reason": "same index/lesson mismatch; Lesson 3 explicitly supports photographer-cosplayer alignment."
+    },
+    {
+      "id": "cosplay-c07-japanese-sword-character-pose",
+      "disposition": "retain after source-ID/locator repair",
+      "requirededit": {
+        "evidence[cosplay-nikon-cosgenic]": "Lesson 11 lines 42–59"
+      },
+      "confidence": "high after repair",
+      "basis": "professional_consensus",
+      "reason": "same mismatch; keep Japanese-sword-specific scope."
+    },
+    {
+      "id": "cosplay-c08-action-shutter-choice",
+      "disposition": "retain after source-ID/locator repair",
+      "requirededit": {
+        "evidence[cosplay-nikon-cosgenic]": "Lesson 11 lines 84–106"
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "same mismatch; keep medium because one direct lesson supports a photographer method."
+    },
+    {
+      "id": "cosplay-c13-group-character-arrangement",
+      "disposition": "retain after source-ID/locator repair",
+      "requirededit": {
+        "evidence[cosplay-nikon-cosgenic]": "Add cosplay-nikon-cosgenic-lesson5 source row for /lesson5/ and cite lines 41–51, 63–101"
+      },
+      "confidence": "high after repair",
+      "basis": "professional_consensus",
+      "reason": "Lesson 5 page independently re-opened; it supports photographer-led placement and variation, but the source row is missing."
+    },
+    {
+      "id": "cosplay-c14-expression-message-match",
+      "disposition": "retain after source-ID/locator repair",
+      "requirededit": {
+        "evidence[cosplay-nikon-cosgenic]": "Lesson 3 lines 69–97"
+      },
+      "confidence": "high after repair",
+      "basis": "professional_consensus",
+      "reason": "same index/lesson mismatch; cite exact lesson and keep PPA source marked adapted."
+    },
+    {
+      "id": "cosplay-c03-specific-pose-cues",
+      "disposition": "remove partial note; cite full COSPLAY MODE direction-cues only for its exact examples; remain medium",
+      "requirededit": {
+        "evidence": "exclude cosplay-note-kujira-posing from formal evidence; paid content is inaccessible and credentials unverified"
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "Current support includes partly paywalled self-published note. Full specialist-magazine text is stronger, but not sufficient for an inflated consensus claim."
+    },
+    {
+      "id": "cosplay-c10-wig-costume-flow",
+      "disposition": "narrow or hold as discovery until qualified direct evidence is added",
+      "requirededit": {
+        "evidence": "remove cosplay-note-sutten-motion from formal evidence; retain COSPLAY MODE only for explicitly supported role-consistent costume/hair movement; mark remaining gaze-flow detail adapted"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "First-person source is full text but teaching qualification is unverified; remaining source may not support the full capability wording."
+    },
+    {
+      "id": "cosplay-c12-subject-set-overlap",
+      "disposition": "hold as discovery/single-practitioner method pending independent corroboration",
+      "requirededit": {
+        "evidence": "do not present note.com case as professional consensus; add a full-text qualified source or move to gaps"
+      },
+      "confidence": "medium if explicitly attributed; otherwise omit",
+      "basis": "photographer_method",
+      "reason": "One self-published shoot report supports only its author’s method and self-reported result."
+    },
+    {
+      "id": "post-raw-whitebalance-diagnosis",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove post-fstoppers-needham-skin-color; retain/narrow to the full PPA workflow passage."
+      },
+      "confidence": "retain current (medium)",
+      "basis": "current basis pending exact locators",
+      "reason": "Linked video was not watched and article remained partial; one full source remains."
+    },
+    {
+      "id": "post-color-mask-boundary",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove post-captureone-portrait-edit; retain only exact Adobe color-variance transcript support."
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "Capture One page provided learning objectives, not the unwatched lesson; downgrade high to medium."
+    },
+    {
+      "id": "post-skin-patch-diagnosis",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove partial retouch-academy tutorial support or cite only its accessible prose; narrow to the full Xitek passage."
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "After excluding partial content, one qualified full-text source remains; lower high to medium."
+    },
+    {
+      "id": "post-skin-mask-color-correction",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove partial retouch-academy source; do not claim Capture One H/S/L workflow without an accessible full lesson."
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "Adobe full text supports mask boundary more narrowly; lower high to medium."
+    },
+    {
+      "id": "post-skin-frequency-separation",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove Fstoppers; cite PHLEARN only for the stated texture/color split and cautions."
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "Fstoppers is secondary and unwatched; reopened page supplied no article text. PHLEARN supports Aaron Nace’s own method. Lower high to medium."
+    },
+    {
+      "id": "post-skin-local-dodge-burn",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove partial retouch-academy material; retain exact accessible Xitek and label PPA adapted."
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "High currently counts partial/unwatched tutorial detail; only one direct full-text teacher remains."
+    },
+    {
+      "id": "post-skin-dodge-burn-scope",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove partial Retouch Academy and Fstoppers secondary summary."
+      },
+      "confidence": "retain current (medium)",
+      "basis": "current basis pending exact locators",
+      "reason": "Evidence left is not sufficient for broader scope claim; stay medium and narrow."
+    },
+    {
+      "id": "post-local-light-emphasis",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove post-adobe-local-light search-index description; retain PPA plus only explicitly adapted Adobe evidence."
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "An index excerpt is not lesson evidence; downgrade high to medium."
+    },
+    {
+      "id": "post-clean-distraction-tool",
+      "disposition": "revise evidence and narrow to accessible full-text support",
+      "requirededit": {
+        "evidence": "Remove post-adobe-cleanup search-index citation; keep PPA/PHLEARN full-text passages only."
+      },
+      "confidence": "retain current (medium)",
+      "basis": "current basis pending exact locators",
+      "reason": "Discovery snippet cannot substantiate detailed tool behavior."
+    },
+    {
+      "id": "mot-17",
+      "disposition": "keep in dynamic-video domain; downgrade professional-consensus framing",
+      "requirededit": {
+        "domain_hint": "动态影像 only",
+        "confidence": "medium",
+        "basis": "project_adaptation or educational method",
+        "required": "do not transfer to still portrait consensus"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "Citations are ACMI curriculum plus Canon camcorder instruction, useful for video practice but not two independent named professional-photographer sources."
+    },
+    {
+      "id": "mot-21",
+      "disposition": "keep in dynamic-video domain; downgrade professional-consensus framing",
+      "requirededit": {
+        "domain_hint": "动态影像 only",
+        "confidence": "medium",
+        "basis": "project_adaptation or educational method",
+        "required": "do not transfer to still portrait consensus"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "Citations are ACMI curriculum plus Canon camcorder instruction, useful for video practice but not two independent named professional-photographer sources."
+    },
+    {
+      "id": "mot-22",
+      "disposition": "keep in dynamic-video domain; downgrade professional-consensus framing",
+      "requirededit": {
+        "domain_hint": "动态影像 only",
+        "confidence": "medium",
+        "basis": "project_adaptation or educational method",
+        "required": "do not transfer to still portrait consensus"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "Citations are ACMI curriculum plus Canon camcorder instruction, useful for video practice but not two independent named professional-photographer sources."
+    },
+    {
+      "id": "mot-18",
+      "disposition": "keep video-only; lower to medium",
+      "requirededit": {
+        "evidence": "one direct ACMI teaching source plus one adapted ASC source; do not call two direct photography sources",
+        "confidence": "medium",
+        "basis": "project_adaptation"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "The second source is explicitly adapted cinema craft; candidate is dynamic-video scope and not static portrait consensus."
+    },
+    {
+      "id": "mot-27",
+      "disposition": "keep video-only; lower to medium unless second independent cinematographer source supports exact claim",
+      "requirededit": {
+        "confidence": "medium",
+        "basis": "photographer_method or project_adaptation",
+        "domain_hint": "动态影像 only"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "ASC craft page is professional cinematography; Canon camcorder manual is instructional documentation rather than independent photographer testimony."
+    },
+    {
+      "id": "mot-34",
+      "disposition": "keep video-only; lower to medium unless second independent cinematographer source supports exact claim",
+      "requirededit": {
+        "confidence": "medium",
+        "basis": "photographer_method or project_adaptation",
+        "domain_hint": "动态影像 only"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "ASC craft page is professional cinematography; Canon camcorder manual is instructional documentation rather than independent photographer testimony."
+    },
+    {
+      "id": "mot-28",
+      "disposition": "retain only as film-domain professional method or verify distinct passage authorship before high",
+      "requirededit": {
+        "evidence": "cite passage-specific authors for the two ASC articles; keep objective/subjective camera viewpoint explicitly film-language; do not generalize to still-portrait consensus"
+      },
+      "confidence": "medium pending author-level check",
+      "basis": "photographer_method",
+      "reason": "Both sources are ASC film-craft pages and the candidate’s claimed transfer is cinematic viewpoint; institution and article bylines need lineage-aware attribution."
+    },
+    {
+      "id": "mot-23",
+      "disposition": "combine repeated same-article citations into one evidence row",
+      "requirededit": {
+        "evidence": "two locators cite motion-asc-script-analysis; one article/source is one source, not triangulation"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "Two passages from one source ID do not create independent corroboration."
+    },
+    {
+      "id": "perspective-gap-skill-intentional-roll",
+      "disposition": "lower to medium and retain the conflict; remove universal angle numbers",
+      "requirededit": {
+        "capability": "train deliberate camera roll and assess whether it reads intentional",
+        "conflicts": "Photofacts suggests 30–45°, Nikon Europe suggests slight 5–10°; preserve disagreement",
+        "evidence": "Norton movie textbook remains adapted, not portrait consensus"
+      },
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "reason": "Reopened full-text portrait sources conflict on numeric tilt; no defensible universal still-portrait threshold."
+    },
+    {
+      "id": "perspective-skill-shot-scale-vocabulary",
+      "disposition": "reclass as adapted film vocabulary; downgrade to medium unless still-photo-specific source added",
+      "requirededit": {
+        "domain_hint": "photographic framing vocabulary with film-textbook provenance disclosed",
+        "confidence": "medium",
+        "basis": "project_adaptation",
+        "evidence": "keep both textbook locators as adapted terminology, not professional still-portrait consensus"
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "Current support consists only of two film textbooks (OSU film chapter and Barsam/Monahan); no still-photography source directly supports the high consensus label."
+    }
+  ],
+  "limitations": [
+    "Risk-weighted page sample only; not all 192 pages or all 258 candidate claims reopened.",
+    "No embedded image pixels visually reviewed.",
+    "Field source/candidate files remain at the last observed timestamp; reconcile against canonical tree before final integration.",
+    "Some editorial/practitioner qualification remains unverified and is explicitly marked for discovery/unranked status."
+  ]
+}

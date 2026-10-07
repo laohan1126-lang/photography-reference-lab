@@ -1,0 +1,31 @@
+{
+  "scope": "purpose_based_post_boundaries",
+  "queries": [
+    "site:ppa.com portrait compositing competition rules"
+  ],
+  "sources": [
+    {
+      "id": "parent-ppa-delivery-boundaries",
+      "title": "International Photographic Competition: category and post-production boundaries",
+      "author": "Professional Photographers of America",
+      "identity": "Professional photographers association; published competition rules",
+      "kind": "professional_association_rules",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.ppa.com/events/photo-competitions",
+      "coverage": [
+        "post-production purpose",
+        "illustrative portrait versus natural portrait versus reportage",
+        "source image preservation"
+      ],
+      "trust_reason": "Primary PPA official category rules specify differing editing constraints; rules support task-specific scope, not universal cosplay ethics.",
+      "independence_key": "ppa-competition-rules",
+      "access": "full_text",
+      "read_depth": "Opened official full public rules on 2026-10-08; read categories lines172–180 and eligibility lines131–143; no videos or gallery pixels inspected.",
+      "worth_deep_read": true,
+      "notes": "Competition-specific conditions; use only as a model of purpose-dependent editing limits. Do not import competition output specs as default library rules.",
+      "accessed_at": "2026-10-08"
+    }
+  ],
+  "gaps": []
+}

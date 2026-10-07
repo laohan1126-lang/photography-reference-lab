@@ -1,0 +1,5071 @@
+{
+  "scope": "Included-source agreement only, not universal professional consensus. Exercises and acceptance are project-designed unless explicitly attributed.",
+  "rows": [
+    {
+      "skill_id": "composition-edge-sweep",
+      "name": "四边缘扫视",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "‘Working the Edges’正文",
+          "support": "作者将边缘视为画面的一部分，主张给边缘内容以明确意义。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "background and composition examples",
+          "support": "Gary Small指出背景线杆/枝条穿过人物头部，以及画框、天花板和沙发从边缘进入会形成问题。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "‘Composing Photographs’ opening comparison",
+          "support": "作者以改变拍摄角度来减少竞争背景，并解释画面含入过多细节造成分心。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-crop-intent",
+      "name": "有意截断与完整保留",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "‘Working the Edges’正文",
+          "support": "作者讨论边缘如何参与意义，并举出只留下局部人物/动物仍可传递关系的构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "brick-wall before/after captions",
+          "support": "摄影师改成紧凑竖幅裁切，以减少无效空间并让砖墙成为构图元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "caption comparing wide and tight marsh frames",
+          "support": "作者用广景和紧景表现不同信息范围。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-tangent-check",
+      "name": "头身背景切线检查",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "opening background example",
+          "support": "Gary Small明确将杆/枝穿过主体头部作为背景问题。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-frame-orientation",
+      "name": "画幅方向与长宽比选择",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "portrait orientation before/after captions",
+          "support": "Gary Small指出竖幅紧裁可改变画面结构并使背景成为动态元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "composition element overview",
+          "support": "Ukawa将选择纵/横方向列为构图组成选择。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "‘shape of the photograph’ section",
+          "support": "Lenton说明同一图像在宽幅、方幅、竖幅下会产生不同感受，且需考虑最终用途。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-gap-skill-knee-crop-choice",
+      "name": "判断膝部关节附近的裁切是否显得意外",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-gap-lessner-joints",
+          "locator": "正文 lines 67–98, especially captions at 92–98",
+          "support": "Lessner展示膝部/脚踝关节裁切与大腿/小腿中段备选，并解释她认为前者会分散注意；作为一位家庭肖像摄影师的方法，不是普遍禁令。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-gap-milicia-crop",
+          "locator": "sections “If it bends, don’t crop it” lines 71–84 and “Make your crops deliberate” lines 116–134; author bio line 681",
+          "support": "Milicia解释关节附近裁切可能造成肢体缺失感，也提供膝部与大腿中段例子；随后明确建议按个案判断并允许有意打破规则。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-remove-bg-distractions",
+      "name": "背景减法与机位清理",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "center portrait case captions",
+          "support": "摄影师把分心长椅移出画外并清理地面杂物，以控制醒目背景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "paired clutter/background examples",
+          "support": "摄影师移动主体并收紧取景以消除分散注意的架子、百叶和画框边缘。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "same subject with alternate camera angle",
+          "support": "摄影师改变角度减少竞争背景，并提出靠近/收窄视野/模糊背景等手段。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-background-density",
+      "name": "背景信息密度控制",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "negative-space section",
+          "support": "摄影师指出增加空白会让环境信息和故事性更明显。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-malwitz-portrait",
+          "locator": "environmental portrait section",
+          "support": "文章建议退后纳入周围环境，以传递人物相关信息。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "opening and alternate-background examples",
+          "support": "作者区分想表达的主体与干扰背景，并以角度和距离重组信息。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "composition guidance",
+          "support": "人像摄影师说明人物以外的空间和背景会影响主体表达。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-center-subject",
+      "name": "有条件的中央构图",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "opening and numbered conditions",
+          "support": "Tamara Lackey说明中心构图在主体足以支撑画面、背景简洁且组合其他视觉手段时可以成立。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "center composition section",
+          "support": "Sakai说明居中能强化主体印象，但需注意单调并可用动作/空白调整。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "subject placement section",
+          "support": "Wilkinson指出中心能强调对称主体，也可能使其他人像较快失去兴趣。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-offcenter-negative-space",
+      "name": "偏置主体与负空间比例",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "negative-space and composition-combination sections",
+          "support": "摄影师示范通过缩小人物和扩展天空改变清爽感与尺度感。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "subject placement and balance sections",
+          "support": "职业人像教学讨论人物位置、背景空间与画面平衡。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "negative-space captions",
+          "support": "作者以水面空白包围主体，并描述空白和反射在整体构图中的作用。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "subject placement section",
+          "support": "职业人像教育讨论偏置主体与负空间的平衡关系。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-gaze-action-room",
+      "name": "视线与动作前方空间",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "‘Lean Into the Frame’ section",
+          "support": "Diane Berkenfeld的Nikon指南明确针对人物和动物建议朝画内看，并在动作前方留空间；例图为野生动物，cosplay服装/道具情境仍未被直接覆盖。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 56–63, 144–151",
+          "support": "摄影师明确建议运动前方留负空间，并展示横向/纵向取景变化。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-subject-context-scale",
+      "name": "人物占幅与环境尺度",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "negative-space section",
+          "support": "Sakai以小人物和大面积天空表达环境尺度。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-malwitz-portrait",
+          "locator": "environmental portrait section",
+          "support": "文章建议退后纳入周围环境并留意人物姿态信息。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-dazhuang-cn",
+          "locator": "portrait technique interview answer",
+          "support": "摄影师建议兼顾远、中、近、特写，避免作品平淡。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, field-of-view and portrait examples (lines 25–42, 90–111)",
+          "support": "连接焦段/视角与画面范围及肖像工作距离。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "Thinking about portrait composition, 18mm and 100mm example passages (lines 1076–1104)",
+          "support": "摄影师用不同焦段讨论人物与环境的画面表达；对照图像像素未检视。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, shot-scale and framing definitions (around line 45 onward)",
+          "support": "教材定义从远景到特写的景别词汇。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-internal-frame",
+      "name": "内部框景识别与应用",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "natural/artificial frames and partial frames sections",
+          "support": "框景可由自然、建筑、光影、质感或散景形成，不一定围住四边。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "natural framing section",
+          "support": "摄影师说明自然框景可将重点从环境中隔离出来。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "portrait composition examples",
+          "support": "摄影师以服装弧线与背景元素配合主体构图。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-frame-purpose",
+      "name": "框景有效性判断",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "‘Forced Framing’ and closing sections",
+          "support": "作者明确提醒框景不是所有照片的必要元素，可能带来伤害。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "natural framing and clean-frame conditions",
+          "support": "摄影师将框景作为可选的注意力工具，并同时强调清洁画面。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-layer-depth",
+      "name": "前景—主体—背景层次组织",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "‘Depth, Layers, Context’ section",
+          "support": "作者讨论前景、中景、背景的层次及其提供的深度和情境。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "‘The Next Dimension’ section",
+          "support": "作者建议用层次和消失点来提示二维照片中的空间。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-tamron-basics-jp",
+          "locator": "layering section",
+          "support": "Tamron将レイヤリング作为独立构图要素，并讨论前后景关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "foreground reflection caption",
+          "support": "作者描述前景反射与背景空白共同组织画面。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-foreground-control",
+      "name": "前景形状与遮挡控制",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "foreground frame and depth section",
+          "support": "内部框景可处于前景并增加层次，但不是必需。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "foreground reflection caption",
+          "support": "前景倒影与主体、负空间共同构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bobby-kenney-portrait",
+          "locator": "foreground bokeh/reflection case",
+          "support": "摄影师描述用前景散景、玻璃和反射增加人像的图形效果。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-focus-background-separation",
+      "name": "景深分离与主体可读性",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-malwitz-portrait",
+          "locator": "depth and focus section",
+          "support": "文章讨论用景深控制来弱化背景，同时提醒动态人物可能需要更多景深。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "subject/background separation example",
+          "support": "摄影师以较浅景深加强主体与背景分离。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "paired portrait examples",
+          "support": "摄影师以取景和背景变化减少干扰，而不是盲目追求虚化。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-tonal-figure-ground",
+      "name": "明暗轮廓分离",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "separation captions",
+          "support": "摄影师建议让较亮主体对较暗背景，或使用不同色调分开主体与背景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "contrast and silhouette sections",
+          "support": "Joe Lenton说明亮暗对比加强形状，并讨论深色人物对亮背景的简化轮廓。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "background separation case",
+          "support": "摄影师分离人物和强色/强光背景以突出主体。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-color-separation",
+      "name": "色彩差异分离主体",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "color counterbalance case",
+          "support": "摄影师说明背景颜色与衣服色块之间可以形成视觉补偿关系，同时要求控制压迫性背景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "‘Composing Photographs’ separation guidance",
+          "support": "作者建议使用不同颜色或色调的背景分离主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "visual weight section",
+          "support": "作者将颜色列为改变视觉重量的因素；对人物与背景的边界分离仅作补充推导，不计为直接证据。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-leading-line-target",
+      "name": "引导线落点控制",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-leading-lines-adobe",
+          "locator": "‘Focus on your subject’ section",
+          "support": "Adobe引用摄影师建议将主体放在线条指向或汇聚的位置。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "‘Leading lines’ section",
+          "support": "Nikon指南区分线条作为主体与用于带向画面焦点两种方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "vanishing-point section",
+          "support": "Tom Bol说明线条汇聚点形成空间深度提示。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-line-exit-control",
+      "name": "画面线条进出方向",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-leading-lines-adobe",
+          "locator": "horizontal/converging lines sections",
+          "support": "摄影师建议留意水平线把视线完全带出画面，也解释线条可用于重新引导焦点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "lines meeting/exiting frame discussion",
+          "support": "作者讨论平行、垂直或斜向穿出边缘的线如何形成运动或将视线带入/带出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "leading-lines section",
+          "support": "Nikon指南说明线条有时可将视线带出画面，方向需结合目标选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-line-character",
+      "name": "线条方向与画面动势",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-leading-lines-adobe",
+          "locator": "horizontal, vertical, diagonal, converging and curved sections",
+          "support": "Adobe文章汇集摄影师对不同线条方向常见效果的描述，并指出这些效应取决于构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "frame-edge line discussion",
+          "support": "作者说明平行或斜向出框线条会影响运动感及视线进出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "line and vanishing point sections",
+          "support": "Tom Bol讨论线条、形状、光影如何提示二维照片的空间。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-shape-reduction",
+      "name": "画面简化为几何形状",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "‘Look for shapes’ and simple-shape exercise",
+          "support": "Joe Lenton建议忽略对象身份、识别主形状，并用少数几何形状重画照片。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "monochrome graphic design section",
+          "support": "Tom Bol建议以黑白观察线、形、形式、纹理与图案。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-silhouette-readability",
+      "name": "人物剪影可读性",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "silhouette and portrait monochrome sections",
+          "support": "作者建议用明暗轮廓描述人物，并在黑白人像中依靠光影、轮廓和对比完成分离。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "subject/background separation case",
+          "support": "Tamara Lackey说明强背景可能压过主体，需通过分离使人物显著。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "subject/background tone examples",
+          "support": "Diane Berkenfeld用不同明度背景说明主体边界分离。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-monochrome-audit",
+      "name": "黑白图形结构复核",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "monochrome and shape-analysis sections",
+          "support": "Joe Lenton说明去色后可更直接观察明度、反差、形状和形式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "‘Vintage B&W’ section",
+          "support": "Tom Bol将黑白拍摄作为显露图案、阴影和图形关系的练习。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-pattern-break",
+      "name": "重复形状与节奏变化",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "‘Patterns & Textures’ section",
+          "support": "Nikon指南讨论重复形状形成图案以及单个不同元素可产生焦点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "graphic design/B&W sections",
+          "support": "Tom Bol把图案、阴影和形状列为可被主动观察的图形要素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "shape-analysis exercise",
+          "support": "作者建议忽略对象名称，观察主形状及其关系。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-visual-weight-diagnosis",
+      "name": "视觉重量诊断",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-visual-weight-rackham",
+          "locator": "‘Concept of Visual Weight’ and factor sections",
+          "support": "Rackham将视觉重量解释为元素吸引注意的感知效应，并分别讨论尺寸、颜色、深度、方向等变量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "visual weight section",
+          "support": "Wilkinson列出反差、大小、深色和位置作为重量因素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bh-balance",
+          "locator": "balance examples and variables",
+          "support": "B&H教程用大小、亮度、颜色、质感和孤立程度示意重量变化。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-asymmetric-balance",
+      "name": "不对称元素平衡",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "visual weight and placement sections",
+          "support": "职业人像教育讨论以不同权重元素或负空间平衡偏置主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-weight-rackham",
+          "locator": "balance section",
+          "support": "Rackham区分对称平衡与依赖不同权重元素的非对称平衡。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bh-balance",
+          "locator": "balance examples",
+          "support": "B&H文章演示不同大小/亮度/颜色的对象如何平衡。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-intentional-imbalance",
+      "name": "表达性失衡控制",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "composition-visual-weight-rackham",
+          "locator": "balance and delayed-reveal sections",
+          "support": "Rackham指出摄影师可在需要时主动避免平衡，也讨论让次要元素暂时压过主体的表达方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "edge placement discussion",
+          "support": "Harris讨论把主体放在边缘以制造意外、空虚或特定情绪的选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "composition-symmetry-alignment",
+      "name": "对称构图校准",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "composition-bh-balance",
+          "locator": "symmetry and alignment section",
+          "support": "B&H文章说明对称要求接近中心和垂直视角，轻微错位也可能分散注意。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bobby-kenney-portrait",
+          "locator": "reflection portrait case",
+          "support": "摄影师用镜面反射形成对称视觉；该作者经验有限，作为个案参考。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "center composition section",
+          "support": "Sakai说明中心构图能强调主体存在感，但需结合其他元素避免单调。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-height-vs-pitch",
+      "name": "区分相机高度与镜头俯仰",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, framing dimensions; paragraph distinguishing height and angle (around line 104)",
+          "support": "教材明确把camera height与camera angle作为不同取景维度；眼平角度可以由接近地面的机位拍出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, camera position and convergence passages (lines 124–147)",
+          "support": "PPA将相机位置与镜头朝向/地平线讨论分开，并按人像裁切给机位建议。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-crop-height",
+      "name": "按人物裁切选择相机起始高度",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, portrait crop camera-position guidance (lines 133–147)",
+          "support": "列出全身、三分之二身和头肩照的不同相机高度起点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Portrait posing, camera position passages (lines 624–670)",
+          "support": "摄影师给出全身腰部附近和头部肖像略高于眼位等不同拍摄位置。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, camera height by portrait type (lines 18–24)",
+          "support": "训练手册按全身与头肩肖像说明相机高度和镜头轴线。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-lens-axis-level",
+      "name": "控制全身照的镜头轴线",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, lens level to ground for full-length portraits (lines 133–147)",
+          "support": "建议全身人像在腰部附近机位并保持镜头轴线接近水平。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, full-length camera height and lens parallelism (lines 18–24)",
+          "support": "说明全身拍摄的腰部高度/镜头水平起点及错误高度的可见比例问题。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-angle-comparison",
+      "name": "比较高位、眼平与低位视点",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D: Angle of View → Perspective, lower/higher camera-angle discussion and portrait camera placement (lines 59–64, rechecked 2026-10-08)",
+          "support": "给出低视点显高、高视点压缩的条件性比例说明。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds interview, contrasting posing goals (lines 87–104)",
+          "support": "摄影师针对不同主体目标分别使用较高或较低机位，体现效果取决于对象和目标。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, visible high/low angle results (lines 18–24)",
+          "support": "提供俯拍和仰拍对身体部位显著度的具体描述。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-pitch-vs-roll",
+      "name": "区分俯仰与滚转倾斜",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, angle types: eye-level/high/low/overhead/canted",
+          "support": "教材把canted framing与高低/俯仰类角度分别列出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, camera tilt and vertical convergence (lines 124–129)",
+          "support": "说明俯仰相机时建筑垂直线发生收敛。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-gap-skill-intentional-roll",
+      "name": "有意控制画面滚转并判断它是否服务构图",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-gap-photofacts-roll",
+          "locator": "Dutch original, paragraphs 28–35",
+          "support": "Elja Trum讨论人像中旋转相机使背景线条斜置，并把清楚的旋转与看似错误的轻微旋转作比较；角度数值是他的个人方法。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-gap-nikon-tilt",
+          "locator": "“Tilt the camera” section, around line 187",
+          "support": "Nikon编辑建议轻微滚转可给人像增加动态感，同时提出与Elja Trum不同的角度上限。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-gap-norton-camera-angle",
+          "locator": "“Dutch Angle” section, lines 144–155",
+          "support": "电影教材说明滚转会令水平/垂直线成为对角线，并在电影语境中用于失衡/混乱场景；对静态人像属于迁移证据。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-gap-skill-low-view-expression-context",
+      "name": "按人物姿态与场景判断低视点的表达效果",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "perspective-gap-norton-camera-angle",
+          "locator": "“High Angle” and “Low Angle” sections, lines 115–141",
+          "support": "教材给出高/低角度常见表达含义，并明确上下文可改变含义、举出低角度反而加强脆弱感的例子；属于电影案例。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "perspective-gap-nikon-tilt",
+          "locator": "“Viewpoint and perspective” section, around line 192",
+          "support": "Nikon人像教育说明视点可改变人物的大小感，并给出从下方向上拍强调身高的建议；这支持变量测试，不证明威严感。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds interview, lines 87–104",
+          "support": "人像摄影师针对不同主体呈现目标改变机位和身体关系，说明机位选择需结合人物目标。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-height-proportion-diagnosis",
+      "name": "诊断机位高度造成的身体比例偏差",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, portrait angle and perspective passages (lines 94–101)",
+          "support": "说明低视点可能使人物显高、高视点可能压缩人物，并提醒近处身体部分显大。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, high/low camera examples (lines 18–24)",
+          "support": "列出过低和过高机位造成的全身照比例问题。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Portrait posing, camera height examples (lines 624–670)",
+          "support": "腰部附近的全身拍摄位置作为控制变形的实践起点。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-optical-vs-perspective",
+      "name": "区分镜头光学畸变与透视比例变化",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-cooper-banks-pictures",
+          "locator": "Paper discussion separating picture projection and perceived expansion/compression (PDF lines 80–92)",
+          "support": "研究区分几何投影与观看者感知的扩张/压缩。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-bh-perspective",
+          "locator": "Perspective article, optical versus perspective distortion section",
+          "support": "文章区分镜头光学畸变与拍摄距离造成的透视效果。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-viewpoint-distance",
+      "name": "用相机距离控制透视关系",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-cooper-banks-pictures",
+          "locator": "Experimental methods and discussion (PDF lines 80–92, 110 onward)",
+          "support": "研究控制视点与焦段、保持眼间距等条件比较人脸外观，证明感知效果须结合相机位置和观看条件理解。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-bh-perspective",
+          "locator": "Perspective article, proximity and near/far size (lines 62–66)",
+          "support": "指出相机到主体的接近程度影响近远物体在画面中的相对大小；同文的压缩措辞需结合研究结果谨慎理解。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-distance-before-focal",
+      "name": "先选视点距离，再用焦段完成取景",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "perspective-cooper-banks-pictures",
+          "locator": "Controlled focal-length/distance conditions (PDF lines 80–92)",
+          "support": "研究展示需区分视点距离与焦段，且不同控制条件会得到不同感知结果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, focal-length and working-distance sections (lines 25–42, 90–111)",
+          "support": "说明焦段影响视角/放大率并与工作距离的使用情境相关。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-focal-length-field-of-view",
+      "name": "用焦段控制视角与取景范围",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length (lines 25–42)",
+          "support": "解释焦距、视角与放大率关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-lens-selection",
+          "locator": "Module 1E, lens selection and field-of-view content",
+          "support": "PPA课程覆盖镜头焦距、视角及不同镜头的取景变化。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-fixed-position-focal-compare",
+      "name": "在固定机位比较不同焦段的背景呈现",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-ukawa-focal-length",
+          "locator": "焦点距系列及拍摄条件说明 (lines 891–903; 911–981)",
+          "support": "摄影师描述固定位置和光圈下更换焦段的比较及背景表现。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-lens-working-distance",
+      "name": "按拍摄空间选择焦段与工作距离",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, portrait and working-distance sections (lines 90–111)",
+          "support": "把焦段推荐放在工作距离和题材情境中讨论。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-dixie-portrait-lens",
+          "locator": "Lens Choice for Great Portraits, photographer’s long-lens method (lines 27–31)",
+          "support": "Dixie Dixon说明个人肖像镜头选择方法；属其方法，不能外推成漫展通则。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-lens-selection",
+          "locator": "Module 1E, lens selection and portrait focal-length examples",
+          "support": "专业课程讨论焦段、视角及人像使用情境。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-shot-scale-vocabulary",
+      "name": "识别并命名常用景别",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, shot-scale definitions (around line 45 onward)",
+          "support": "教材给出远景、全景、中景、近景、特写等景别术语。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-gap-norton-camera-angle",
+          "locator": "Framing of the Shot, opening framing variables (paragraphs 1–3)",
+          "support": "电影教材把距离、景深、角度、高度和视点列为构图/框景决策。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-coverage-variation",
+      "name": "为同一主体拍出景别变化组",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-tamron-portrait-guide",
+          "locator": "Portrait guide, session shot-variety passages",
+          "support": "Tamron指南建议拍摄多种构图和细节，但该无署名厂商指南仅算单一弱共识来源。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ukawa-focal-length",
+          "locator": "Focal-length portrait examples and framing discussion (lines 911–981)",
+          "support": "摄影师展示多种焦段/构图的人像方法；示例像素未检视。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-wide-near-depth",
+      "name": "控制近距离广角的人物前后夸张",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "Photographer’s wide-angle portrait recommendation (lines 1076–1084)",
+          "support": "摄影师讨论近距离广角在人像中的透视表现和适用表达。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, near/far apparent-size and portrait angle (lines 94–101)",
+          "support": "PPA指出靠近相机的身体部分会显得更大。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-bh-perspective",
+          "locator": "Perspective article, camera proximity and scale (lines 62–64)",
+          "support": "说明相机靠近主体会改变近远相对尺寸。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-adobe-seated-proximity",
+          "locator": "Hand and sitting poses, nearest-object scale and camera viewpoint (lines 130–132)",
+          "support": "摄影师解释近处物体/身体部位会显大，并讨论通过相机位置和姿势减小距离差。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, closer body parts appear larger (lines 94–101)",
+          "support": "PPA明确指出靠近相机的身体部分在画面中显大。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, camera position and near/far body scale (lines 18–24)",
+          "support": "训练手册描述机位造成脚、头部等身体部分相对显著。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-lean-depth-control",
+      "name": "把前倾作为可控的身体前后关系",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, body lean and near-part perspective passages (lines 94–101)",
+          "support": "PPA提及身体前倾与靠近相机部位显大之间的关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds corrective posing examples (lines 87–104)",
+          "support": "摄影师说明前倾使头部靠近相机、臀部后移的具体修姿方法，并按人物目标作相反选择。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds interview, contrasting goals and opposite camera/body choices (lines 87–104)",
+          "support": "该摄影师针对不同主体呈现目标使用不同前后身体关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, lean and perspective examples (lines 94–101)",
+          "support": "PPA给出前倾会改变相机与身体部分距离的例子。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-depth-of-field-control",
+      "name": "用光圈、焦距和对焦距离管理景深",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, factors affecting depth of field (lines 79–115)",
+          "support": "PPA说明景深与光圈、焦距和主体距离等条件有关。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, focal-length and magnification discussion (lines 25–42)",
+          "support": "官方教育解释焦距对视角/放大率影响；结合PPA景深因素理解而不单独过度归因。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Portrait posing, group portrait depth of field (line 689)",
+          "support": "摄影师针对多人肖像提出增加清晰范围的光圈处理建议。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-aperture-sharpness-tradeoff",
+      "name": "根据主体清晰范围选择光圈",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips, shallow-aperture caution and focus checks (lines 41, 56–67)",
+          "support": "摄影师提醒大光圈可能使整个人物清晰范围不足，并建议检查对焦。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Portrait posing, group portrait depth-of-field passage (line 689)",
+          "support": "指出多人肖像需要增加景深以覆盖不同位置的人物。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, depth-of-field factors (lines 79–115)",
+          "support": "课程说明景深因素及光圈调整。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-group-focus-plane",
+      "name": "为不同深度的人物安排清晰范围",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Portrait posing, group portrait aperture advice (line 689)",
+          "support": "Canon摄影师明确讨论多人合影的景深需求。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, distance/aperture depth-of-field factors (lines 79–115)",
+          "support": "PPA课程解释景深随对焦距离和光圈改变。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-eye-focus-priority",
+      "name": "以眼睛清晰度作为人像对焦检查点",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips for Taking Better Portraits, eye-focus instruction and focus review (lines 41, 56–67)",
+          "support": "Gary Small强调眼睛作为人像最清晰处并指导检查对焦。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-versace-focus",
+          "locator": "The Lens Is the Brush, focus-point selection for close portrait (lines 52–67)",
+          "support": "Vincent Versace说明在近距离浅景深拍摄时选最近眼睛作为对焦目标。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-near-eye-selection",
+      "name": "在侧转脸部时选择靠镜头一侧的眼睛",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-versace-focus",
+          "locator": "The Lens Is the Brush, near-eye focus point example (lines 52–67)",
+          "support": "摄影师说明近距离浅景深肖像中将最近眼睛选作焦点的实例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips, eye-focus priority (lines 56–67)",
+          "support": "摄影师把眼睛作为人像关键清晰部位；没有为所有转脸情境规定固定眼睛。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-autofocus-eye-detect",
+      "name": "使用眼部识别自动对焦并核实选择结果",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-eye-af",
+          "locator": "Eye-Detection Autofocus, use cases and tracking explanation (lines 26–53)",
+          "support": "Nikon说明眼部识别在移动人像中的功能及操作方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips, photographer’s focus checks (lines 56–67)",
+          "support": "摄影师建议回看焦点是否落在眼睛；该来源使用较早期相机系统，流程需按当前机身验证。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "perspective-skill-focus-after-movement",
+      "name": "主体移动后重新确认焦点",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-versace-focus",
+          "locator": "The Lens Is the Brush, moving infant and shallow-DoF focus example (lines 52–67)",
+          "support": "Versace描述主体运动、近距离浅景深与焦点保持之间的实际问题。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-eye-af",
+          "locator": "Eye-Detection Autofocus, moving-subject tracking guidance (lines 26–53)",
+          "support": "Nikon说明眼部AF追踪移动主体的用途。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-10",
+      "name": "在重复路径上预对焦并锁定焦区",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 110–111, 132–135",
+          "support": "Dave Black观察多次通过后将焦点锁在轮胎轨迹附近，再拍可重复跳跃动作。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-11",
+      "name": "根据主体运动是否可预测选择连续追焦",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 54, 133–135",
+          "support": "Dave Black在无法预测运动位置时使用连续伺服AF。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 56–58",
+          "support": "摄影师将演出者眼睛作为清晰焦点，并描述Eye AF在其工作中的作用。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-current-natural-position",
+      "name": "从被摄者已有的自然姿势开始修整",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Start with what looks right",
+          "support": "作者建议等待被摄者放松并观察自然侧倾或手部位置，然后以小幅调整为起点。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-photographer-check-and-correct",
+      "name": "持续复看姿态并给出针对性修正",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-peter-hurley-jawline",
+          "locator": "Why getting your jawline right in photos takes more than one try",
+          "support": "Hurley指出特定面部姿势通常需重复提示并在整个拍摄过程中持续观察和修正。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Confidence comes from practice",
+          "support": "作者指出练习能让摄影者更快识别姿势何处失效，并想到合适的小幅调整。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-weight-transfer",
+      "name": "有意改变双腿间的承重分配",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Build the pose from the feet upwards",
+          "support": "建议在舒适站姿上尝试将重心从一条腿转到另一条腿，并指出髋、肩和手臂会随之响应。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 648–651",
+          "support": "描述直面镜头的站姿僵硬时转身并将重心置于前腿，再移至后腿形成替代姿势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-front-back-weight-variation",
+      "name": "用前后腿承重切换姿态版本",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 648–651",
+          "support": "作者先示范前腿承重，再转至后腿承重作为另一版本。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson11",
+          "locator": "section 1, 和装を美しく表現できる構図",
+          "support": "和装剑剧示例建议略宽于肩的站距和后倾重心，以表现该特定服装与角色气质。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-shoulder-line-check",
+      "name": "重心变化后复查肩线与躯干",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Build the pose from the feet upwards",
+          "support": "说明重心改变会带动髋与肩等身体区域变化。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 648–649",
+          "support": "将承重调整与靠近镜头一侧肩膀的角度变化联系起来。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-body-angle-to-camera",
+      "name": "控制躯干相对镜头的转向",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 648–669",
+          "support": "建议在正面站姿显得僵硬时轻微转离镜头；全身姿势一节也提出约四十五度作为一种可试用的摆位。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Use the shape of the body",
+          "support": "建议尝试小幅旋转肩膀或身体，避免身体成为平面正对镜头的形状。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Portrait posing, body angle and full-body advice (lines 624–670)",
+          "support": "摄影师给出全身姿势身体相对镜头约45度等指导示例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, turning the body and lens perspective (lines 18–24)",
+          "support": "训练材料讨论身体转向与相机位置对肖像形态的影响。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-supported-lean",
+      "name": "用可用支撑面构造倚靠姿势",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 643–645",
+          "support": "作者称紧张或姿势不自然时让被摄者靠墙或栏杆，通常更舒适且传达较放松的身体语言。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-seated-entry",
+      "name": "为紧张对象选择坐姿作为起始状态",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 643–645",
+          "support": "作者习惯以坐姿开始，理由是很多人坐下时较不紧张，并可逐渐过渡到其他姿势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-purposeful-hand-placement",
+      "name": "为手安排与画面意图相关的动作",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Don’t forget the hands",
+          "support": "建议给手具体任务，如轻触衣物或拿物件，并指出需要避免紧张与无目的摆放。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "section 3, ポージングや表情、カメラアングルでイメージに変化を",
+          "support": "说明手部动作能改变画面情绪，并通过手朝向镜头或偏离镜头比较角色印象。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-hand-orientation",
+      "name": "调整手掌与指尖朝向以改变手势读感",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "sections 3, 元気▶シリアス and ミステリアス▶クール",
+          "support": "原文在同一套装和接近的构图内把手朝向与指尖姿势列为影响气质的变量。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-relaxed-hand-shape",
+      "name": "观察并放松手部紧张",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Don’t forget the hands",
+          "support": "文章提醒避免因摆手方式产生紧张，并建议给手具体、舒适的动作。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, line 645",
+          "support": "列举轻松放入口袋或自然交叠的手臂作为可用手势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-arm-torso-separation",
+      "name": "根据造型意图控制手臂与躯干的间距",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Finding Flattering Compositions, lines 663–669",
+          "support": "作者以特定的轮廓塑造目的建议让手臂稍离开躯干，避免视觉上紧贴。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-gap-cosplaymode-cues",
+          "locator": "lines 68–85",
+          "support": "文章指出手臂贴住身体会与身体视觉合并，并给出增加间隙的提示。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-ppa-body-language",
+          "locator": "lines 117–122",
+          "support": "一般肖像摄影会根据想传达的姿态信息调整交叉手臂；只将其用于确认姿势语义依赖目标的适配，不能推出固定审美规则。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-mirror-rehearsal",
+      "name": "用镜子预演姿势并检查指令是否自然",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Learn by posing yourself",
+          "support": "建议摄影者在镜前移动脚、重心、肩、手和头，观察动作对全身的影响。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson4",
+          "locator": "Tips, 上手なポージングは練習あるのみ",
+          "support": "建议在全身镜前练习，并用相机拍下姿势进行回看。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-self-recording-review",
+      "name": "用全身自拍复核角色姿势的镜头呈现",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson4",
+          "locator": "Tips, 上手なポージングは練習あるのみ",
+          "support": "原文建议设置三脚架、让全身进入画面并拍摄自己，检查如何贴近所想象的角色姿态。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-between-pose-capture",
+      "name": "在姿势转换过程中持续观察并捕捉画面",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Make posing feel less like posing",
+          "support": "作者建议引导小幅移动并拍摄转换过程，而不仅是姿势终点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 648–651",
+          "support": "作者观察被摄者在姿势间移动时自然出现的替代位置。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-directed-small-movement",
+      "name": "用短距离移动或转身制造姿势变化",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Make posing feel less like posing",
+          "support": "作者列举转身、短距离步行和转移重心作为姿势间的动作变化。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 648–651",
+          "support": "说明引导姿势过程中自然出现的替代位置可提供更多变化。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-gesture-task",
+      "name": "用真实小任务取代空泛的手势摆放",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Don’t forget the hands",
+          "support": "作者建议让手轻触衣物或持有物件，以提供具体任务。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-intent-elicitation",
+      "name": "拍前询问角色理解与照片意图",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "section 2, どんなイメージかよく話し合おう",
+          "support": "建议摄影者与被摄者讨论并协调彼此对同一角色的不同图像想象。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "How I Work; photographer biography, lines 41–45 and 197–198",
+          "support": "摄影者说明会讨论角色、服装、动作限制、姿势、表情和目标成片表达，并把 cosplayer 作为合作方。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "Lesson 3, lines 50–55",
+          "support": "文章指出同一角色的双方可能有不同想象，建议在拍摄前讨论并对齐。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-mirror-check",
+          "locator": "lines 87–104, 168–178",
+          "support": "现场报道描述摄影师与模特在镜前核对服装可见度、沟通立姿并协作完成作品。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-cosplay-collaboration",
+      "name": "把 Cosplayer 的角色与服装知识纳入共同决策",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-jeff-jenkins-cosplay",
+          "locator": "‘Collaboration over direction’ and ‘Consent and comfort’; lines 39–60",
+          "support": "Jenkins 与 Cosplayer 商量角色、制作、姿势、舒适边界和灯光选择。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "collaborate and explain; lines 143–146",
+          "support": "MacGregor 建议解释摄影决定并询问意见、回应顾虑。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-head-gaze-selection",
+      "name": "分别选择头部方向与眼神方向",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "section 3, 元気▶シリアス",
+          "support": "原文说明从笑容转向严肃时，视线离开镜头是一个可控制的变化。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-bh-eyes-portrait",
+          "locator": "Direct gaze versus off-camera gaze sections",
+          "support": "文章讨论镜头内与镜头外视线可按人物关系和画面意图选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-hurley-squinch",
+      "name": "练习 Hurley 的下眼睑收紧法并判断适用情境",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-peter-hurley-squinch",
+          "locator": "Squinch definition, mirror practice, and when not to use it",
+          "support": "Hurley解释上、下眼睑的不同作用，建议练习下眼睑收紧，并列出不适用的笑、惊讶和动作情境。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-jawline-forward-method",
+      "name": "按目标试调下颌前伸幅度",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-peter-hurley-jawline",
+          "locator": "Why your jawline is the first thing I look at; same light, same setup, same camera",
+          "support": "Hurley把下颌位置作为其头部肖像流程中的一个可调变量，并解释其与主光阴影边缘的关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Finding Flattering Compositions, lines 663–669",
+          "support": "Tillinghast建议在特定轮廓塑造目标下让面部向相机前移以拉长颈部线条。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-purposeful-gaze-target",
+      "name": "为画外视线指定明确目标",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "section 3, 元気▶シリアス",
+          "support": "课程将视线离开镜头作为改变情绪印象的一项控制变量。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "posing-bh-eyes-portrait",
+          "locator": "Direct gaze versus off-camera gaze sections",
+          "support": "文章讨论直视和画外视线应按人物关系和照片目标选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-body-face-expression-alignment",
+      "name": "检查面部表达与身体语言是否讲同一个情绪",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Don’t pose only the body",
+          "support": "作者指出身体放松但表情紧张会产生相互矛盾的讯息，指导时应观察眼、口和下颌。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "sections 3 and まとめ",
+          "support": "课程用角色情绪对照展示表情、视线和手势共同改变画面情绪。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-ppa-body-language",
+          "locator": "lines 97–134",
+          "support": "专业肖像案例按目标信息调整头部倾斜、手臂姿势和笑容，并说明姿势含义依语境而异。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "Lesson 3, lines 35–55; Lesson 11, lines 44–46",
+          "support": "Cosplay拍摄以角色/场景意图为起点，动作和锐利视线随角色状态设计。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-mirror-check",
+          "locator": "lines 106–112, 125–141",
+          "support": "被观察的拍摄方法通过相机方向的交流与扮演者自行调整视线捕捉表情变化。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-expression-range",
+      "name": "为同一角色拍出可区分的表情版本",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "section 3, 元気▶シリアス and まとめ",
+          "support": "课程将笑容与严肃表情作为角色气质的可变控制项，并说明同一服装可用动作等变化产生不同印象。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-character-appropriate-action",
+      "name": "使动作幅度与角色性格和场景相符",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson11",
+          "locator": "section 1, 刀を使った躍動感のある動き",
+          "support": "原文建议豪快角色采用更动态的刀姿，并按角色和作品特性决定动作。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "photographer biography, lines 197–198",
+          "support": "摄影师会围绕角色和目标表达讨论姿势与表情。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-character-mood-variation",
+      "name": "用姿势、眼神和表情组合表达角色情绪版本",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "sections 3, 元気▶シリアス; キュート▶派手; ミステリアス▶クール",
+          "support": "课程通过相同服装下的不同手势、视线、表情与姿势示例说明角色印象可被这些变量改变。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "photographer biography, lines 197–198",
+          "support": "摄影师把角色表达、姿势和表情共同纳入拍前讨论。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-action-stance-context",
+      "name": "把站姿重心放进特定角色动作语境判断",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson11",
+          "locator": "section 1, 和装を美しく表現できる構図; safety note",
+          "support": "摄影者为特定和装剑剧示例提出较宽站距和后倾重心，并说明使用木制仿刀、注意安全。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-question-led-expression",
+      "name": "用自然对话引出目标表情",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "Posing for Babies, Children & Teens, lines 679–681",
+          "support": "作者谈到与被摄者讨论其兴趣，借此捕捉自然出现的微笑和投入表情。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Start with what looks right; Don’t pose only the body",
+          "support": "建议先让被摄者放松，并在有时暂停指令、交谈以便面部松弛。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-demonstrate-without-contact",
+      "name": "以示范和口头指令代替未经同意的身体摆位",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "How I Work, lines 41–45; process statement, lines 197–198",
+          "support": "摄影师说不会未经许可触碰 cosplayer，通常通过示范姿势而非直接摆放对方来引导。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-small-adjustments",
+      "name": "用小幅指令逐步修正姿势",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Start with what looks right; Headshots: small changes make a big difference",
+          "support": "建议在自然姿态基础上做少量调整，并用简单指令产生所需动作。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-posing-background",
+          "locator": "How to Direct Your Subject, lines 648–651",
+          "support": "作者通过轻微转身和承重调整变换站姿，而非一次重建整个身体姿势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-instruction-clarity",
+      "name": "把身体目标翻译为简单可执行的口令",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "locator": "Headshots: small changes make a big difference; Make posing feel less like posing",
+          "support": "作者建议用简单指令产生动作，而非持续逐个摆放身体部位，并指出摄影者应给清楚指令。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "How I Work, lines 41–45",
+          "support": "摄影师把角色与画面目标的讨论作为引导的一部分，并以示范协助姿势。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "cosplay-gap-cosplaymode-cues",
+          "locator": "lines 68–93, 99–124, 161–202",
+          "support": "文章用摄影师/扮演者对话示例，把躯干、手、下巴、重心和机位要求转成具体动作提示。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-long-distance-direction",
+      "name": "拍摄距离限制语言交流时改用可见提示",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "distance/communication trade-off; lines 99–107",
+          "support": "远距拍摄难以语言交流，文章指出可通过手势和身体语言沟通。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-direction-comfort",
+      "name": "根据被摄者舒适度调整起始姿势和指导量",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "direction/freedom answer; lines 166–172",
+          "support": "Pugoffka 依据被摄者舒适度调整自由度，对紧张者从放松姿势开始。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-jeff-jenkins-cosplay",
+          "locator": "collaboration/consent; lines 39–53",
+          "support": "Jenkins 将角色知识、清晰边界、舒适度和拍摄中 check-in 纳入协作方式。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-movement-limits-check",
+      "name": "摆姿前确认服装与动作活动限制",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "photographer biography, line 197; How I Work, line 41",
+          "support": "摄影师明确表示会讨论服装细节和动作限制，并围绕舒适度与服装工艺规划姿势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-costume-representation-choice",
+      "name": "按成片意图决定姿势是否展示服装特征",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "How I Work, lines 41–45; process statement, lines 197–198",
+          "support": "摄影师说会讨论服装细节与想传达的成片内容，并据此安排照明和姿势。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "sections 1–3",
+          "support": "课程建议先确认最终图像意图，再选择角色姿势、背景和表情。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "posing-outfit-prop-limit-negotiation",
+      "name": "在服装与道具限制下协商动作替代方案",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+          "locator": "photographer biography, lines 197–198",
+          "support": "摄影师表示会讨论服装细节、动作限制和目标表达后再规划姿势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-c11-costume-visibility-check",
+      "name": "拍前检查服装在全身姿态中的可见度",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "cosplay-cosplaymode-mirror-check",
+          "locator": "lines 84–96",
+          "support": "被观察的Cosplay拍摄流程用全身镜和摄影者共同确认裙长/服装可见度；文章的直接触碰建议不纳入此技能。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-c06-large-prop-pose-variants",
+      "name": "为大型仿制道具设计多种静态画面姿势",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "cosplay-cosplaymode-rpg-weapons",
+          "locator": "lines 249–303",
+          "support": "文章按大型剑姿势给出双手、低身位、蹲姿和单手等静态变化示例。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-c07-japanese-sword-character-pose",
+      "name": "让日本刀仿制道具姿态符合角色与参考场景",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson11",
+          "locator": "Lesson 11, lines 42–59",
+          "support": "摄影指导建议使刀具姿势与角色/作品特性相符，并调整姿态组织和构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-katana",
+          "locator": "lines 69–71, 110–124",
+          "support": "指导者建议团队共享刀具部位名称以便清晰指导，并按角色性格区分姿势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-c09-assisted-fabric-motion",
+      "name": "协同助手控制衣料运动的拍摄时机",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "cosplay-cosplaymode-gesture-motion",
+          "locator": "lines 160–178",
+          "support": "Cosplay专题建议由他人或摄影师遥控协助形成裙摆运动。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-ppa-fabric-motion",
+          "locator": "lines 96–105",
+          "support": "舞蹈摄影师使用风扇和助手抛裙摆，让被摄者专注姿势/表情，并预先构想大裙摆构图。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-c10-wig-costume-flow",
+      "name": "设计假发与衣料在画面中的运动方向",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "cosplay-cosplaymode-gesture-motion",
+          "locator": "lines 160–178",
+          "support": "Cosplay专题建议让假发和衣服的运动符合角色会做的动作。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-c13-group-character-arrangement",
+      "name": "安排多人角色姿势形成一张共同画面",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "cosplay-nikon-cosgenic-lesson5",
+          "locator": "Lesson5, group placement and variation, lines41–51,63–101",
+          "support": "摄影者被描述为多人组照构图的组织者，负责把共同想法落实为画面构图和指示。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-group-mame",
+          "locator": "lines 72–97",
+          "support": "Mame Mayo 的Cosplay多人拍摄文章按人数提供姿势/构图方案；其简介说明她教授动作与姿势工作坊。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-c15-styled-hair-light-separation",
+      "name": "为造型假发预留轮廓光与背景关系",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "cosplay-profoto-adler-hairlight",
+          "locator": "lines 13–25",
+          "support": "Lindsay Adler 指出高位主光可照亮头发，人物背向主光时可形成发丝光；反光板用于保留脸部和服装阴影细节，并建议拍前规划头发、服装和姿势。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-joe-edelman-styled-wig-portrait",
+          "locator": "lines 49–67",
+          "support": "Joe Edelman 的实际肖像布光案例把造型假发、头肩布料、暗背景和有色后灯作为整体画面元素进行规划；不支持合成纤维专门结论。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "cosplay-gap-c01-small-prop-face-outline",
+      "name": "用小道具持握位置表达角色并控制面部轮廓遮挡",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "cosplay-gap-cosplaymode-prop-posing",
+          "locator": "lines 121–127",
+          "support": "COSPLAY MODE称角色特有或普通小道具均可用于拍摄，并指出持握方式可以表现性格，也可轻微遮住轮廓或嘴部。原文没有给出短匕首的持握方向规则。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-001",
+      "name": "辨认人脸上的主光方向",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Properties of Light, lines 98–105; Lighting Design, lines 220–243",
+          "support": "说明入射角、反射方向与光线方向如何改变高光、阴影和脸部明暗。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-cambridge-portrait",
+          "locator": "§ Direction: Sense of Depth, lines 114–123",
+          "support": "比较正面、侧面和前上侧光对脸部深度感的影响。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-fuji-portrait-guide",
+          "locator": "§ How Does the Direction of Light Impact Portrait Photography, lines 217–219",
+          "support": "将光源相对人物的位置作为影响肖像外观的独立变量。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-002",
+      "name": "估计主体与背景的明暗差",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-nikon-vitale",
+          "locator": "§ Spot Metering, lines 37–40; Off-Camera Flash, lines 43–45",
+          "support": "作者在高反差场景选择亮部测光并主动决定让阴影变暗，另以天空作为背景曝光参照。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Backlighting, lines 166–189",
+          "support": "指出背景与人物之间的曝光差，并列出补光、反光板、遮挡和允许背景过曝等不同处理。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-society-carlino",
+          "locator": "§ Consider the quantity of light, lines 96–112",
+          "support": "要求先判断可用光量和现有氛围，再决定补光或压低环境光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-003",
+      "name": "用阴影边界判断光线硬度",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Size of the Light, lines 109–121; Quality of Light, lines 190–206",
+          "support": "把小相对光源与强高光、急剧阴影过渡相连，把较大或扩散光源与柔和过渡相连。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-fuji-portrait-guide",
+          "locator": "§ Understanding Light Hardness and Softness, lines 189–196",
+          "support": "用阴影边缘、镜面高光和明暗反差识别硬度。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-cambridge-portrait",
+          "locator": "§ Size: Hard vs. Soft Light, lines 68–90",
+          "support": "以光源表观大小解释阴影和高光从突然到渐变的变化。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-004",
+      "name": "按画面意图选择硬光或柔光",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-fuji-portrait-guide",
+          "locator": "§ How Does Hard and Soft Light Affect a Portrait?, lines 204–207",
+          "support": "说明常见柔光用途，同时指出硬光可用于戏剧效果，选择依赖人物与想要的审美。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-society-carlino",
+          "locator": "§ Look at the quality of the light, lines 83–95",
+          "support": "指出硬光可能带来强阴影，也可服务于时尚、运动或戏剧肖像。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Hard Light Sources, lines 222–225",
+          "support": "描述硬光用于强化纹理和形体，并不将其限于失败或不适用场景。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-005",
+      "name": "通过相对光源尺寸与扩散改变硬度",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Size of the Light and Soft Light Sources, lines 109–121, 229–238",
+          "support": "说明相对尺寸与距离决定光质，伞和柔光箱可扩大或扩散闪光源。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-cambridge-portrait",
+          "locator": "§ Size: Hard vs. Soft Light; Tips for achieving softer light, lines 68–94",
+          "support": "解释大光源、漫射、反射如何产生较柔阴影过渡。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-fuji-portrait-guide",
+          "locator": "§ What Makes Light Hard or Soft?, lines 197–203",
+          "support": "把相对尺寸、距离和扩散列为硬度变量。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-007",
+      "name": "控制光源造成的主体到背景衰减",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ The Inverse Square Law and Depth of Light, lines 147–155",
+          "support": "将近灯与快速衰减、远灯与较均匀的主体到背景曝光联系起来。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-cambridge-portrait",
+          "locator": "§ Distance & Apparent Light Size, lines 111–113",
+          "support": "指出近灯可增加主体相对背景的亮度，也可能使已足够的分离变得过强。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-008",
+      "name": "在强日光下寻找开放阴影",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Controlling Natural Light, lines 61–79",
+          "support": "建议在强日光下寻找开放阴影或创造扩散的定向光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "Five Tips for Better Outdoor Portraits, § Get Edgy, lines 638–640",
+          "support": "作者建议将人物置于开放阴影并留意阴影边缘的环境反射。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-society-carlino",
+          "locator": "§ Look at the quality of the light, lines 87–95",
+          "support": "将开放阴影作为减弱正午强光阴影的选择，同时保留硬光的创作可能。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-009",
+      "name": "在阴影边缘调节环境反射补光",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "Five Tips for Better Outdoor Portraits, § Get Edgy, lines 638–640",
+          "support": "Tillinghast把人物放在阴影边缘，以让外侧环境光反射进入阴影。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-010",
+      "name": "用窗光方向和扩散塑造室内人像",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Controlling Natural Light, lines 73–78",
+          "support": "建议避免直射阳光的柔窗光，也可用半透明布扩散并以反光板减小过强反差。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-cambridge-portrait",
+          "locator": "§ Tips for achieving softer light, lines 92–94",
+          "support": "将窗帘扩散或将人物置于直射窗光以外的反射区域作为柔化方式。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-light-quality-outdoors",
+      "name": "辨认户外人像的均匀遮阴与斑驳光",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "‘LIGHT’; lines 127–136",
+          "support": "MacGregor 建议检查主体受光一致，避免斑驳和眩光，并指出树墙遮挡的开放阴影常提供高质量光线。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-move-face-light",
+      "name": "优先移动人物解决不理想的脸部光线",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "face light; lines 136–137",
+          "support": "若面部光线不好，MacGregor 建议移动人物；无法移动时再用闪光覆盖环境光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-window-light",
+      "name": "用窗光控制室内人物与阴影的关系",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-nikon-window-portrait",
+          "locator": "Cliff Mautner tip; lines 26–31",
+          "support": "Mautner 的一种肖像方法是仅使用窗光、关闭顶灯，并按窗光曝光以保留阴影。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-nikon-todd-window",
+          "locator": "window-light case study; lines 44–48",
+          "support": "Owyoung 描述在朝南窗户的自然光中拍摄人物，并以人物风格为目标。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "‘Lighting and location’; lines 228–232",
+          "support": "室内可把人物放到窗边或引入另一光源，并考虑地点对光线的影响。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-011",
+      "name": "用遮挡削弱不需要的自然光",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Controlling Natural Light, lines 68–79",
+          "support": "将减光、挡光与扩散并列为自然光控制手段。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Backlighting, lines 177–187",
+          "support": "将用gobo或scrim降低背景入光列为处理逆光的选项。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-012",
+      "name": "用反光板提升脸部阴影侧",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Backlighting, lines 177–182",
+          "support": "将反光板列为逆光人物补光方案。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Soft Light Sources, lines 229–238",
+          "support": "说明大面积填充光可减少主光阴影而不额外制造明显新阴影。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-022",
+      "name": "按亮部背景补足逆光人物的脸部",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-nikon-vitale",
+          "locator": "§ Off-Camera Flash, lines 41–46",
+          "support": "Vitale在日落逆光下先测环境并决定天空亮度，再以离机闪光补人物。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Backlighting, lines 166–182",
+          "support": "列出背景先曝光后用闪光或反光板提高人物照度的方案。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-profoto-couzens",
+          "locator": "lines 13–22",
+          "support": "以背景作为第一步曝光参照，再为人物设闪光曝光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-023",
+      "name": "决定强逆光是否保留背景或呈现剪影",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Quantity of Light, lines 173–186",
+          "support": "说明可以让人物剪影，并以天空而非人物作为曝光依据。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Backlighting, lines 177–189",
+          "support": "把允许背景过曝列作一种有意的创作选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-021",
+      "name": "先设环境光再添加闪光",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-profoto-couzens",
+          "locator": "steps 1–3, lines 13–22",
+          "support": "Couzens明示先设背景，再摆放并打开闪光，最后调整人物曝光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-nikon-vitale",
+          "locator": "§ Off-Camera Flash, lines 43–45",
+          "support": "Vitale先测环境背景，再用TTL闪光增加人物补光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Backlighting, lines 166–182",
+          "support": "建议先以背景为参照，再用闪光匹配人物曝光或使用反光板。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-024",
+      "name": "用闪光补硬光阴影而不完全抹平",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-flash-shutter",
+          "locator": "§ Fill Flash and The Sunny 16 Rule, lines 97–108",
+          "support": "PPA示例建议补光低于主日光曝光以填阴影，并指出完全匹配日光会变平。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "Photographing Senior Portraits, lines 678–680",
+          "support": "Tillinghast降低TTL闪光补偿以轻微填充脸部阴影并避免过闪感。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-029",
+      "name": "通过TTL闪光补偿微调人物曝光",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-nikon-vitale",
+          "locator": "§ Off-Camera Flash, lines 45–46",
+          "support": "建议使用TTL计算初始输出，再根据相机LCD预览上调或下调闪光功率。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "Photographing Senior Portraits, lines 678–680",
+          "support": "Tillinghast用闪光曝光补偿降低E-TTL输出，避免闪光感过强。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-030",
+      "name": "在常规同步范围内用快门改变环境光背景",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-flash-shutter",
+          "locator": "lines 61–82",
+          "support": "说明常规闪光曝光不受快门影响，而环境光会随快门改变；快门可控制背景亮度。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-nikon-kubota-hss",
+          "locator": "§ How High Speed Sync Works and Why, lines 234–236",
+          "support": "描述高于同步速度后闪光工作方式改变并损失输出，提供常规同步的边界条件。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-031",
+      "name": "用慢门闪光保留现场环境光",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-flash-shutter",
+          "locator": "§ Dragging the Shutter, lines 86–96",
+          "support": "定义慢于同步速度的快门记录环境光，并给出人物闪光与背景环境同时曝光的步骤。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-aldred-freeze",
+          "locator": "lines 1051–1055",
+          "support": "指出环境光仍照到人物时可在闪光清晰之外叠加运动模糊，并将这种效果作为可选择的表达。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-match-flash-ambient",
+      "name": "根据环境反差与色温决定闪光和环境光的关系",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "‘Go electric’; lines 134–137",
+          "support": "闪光质感应与场景反差相协调，晴天硬光和阴天柔和反差对应不同闪光处理。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "ambient/flash method; lines 102–121",
+          "support": "Harris 将环境曝光、颜色和人造光位置列为现场闪光的控制变量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-nikon-kanayo-location",
+          "locator": "architecture/night captions; lines 89–110",
+          "support": "Adibe 在建筑暮光环境中用适量离机闪光保留场景氛围。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "lightgap-manual-flash-power",
+      "name": "固定相机与灯位后用手动功率调整闪光主体亮度",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-gap-nikon-tejada",
+          "locator": "§ A Note on Metering, lines 71–82",
+          "support": "David Tejada先按景深/环境/手持条件设置相机，再用手动闪光功率和测试拍摄校正结果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-neil-manual-controls",
+          "locator": "§ A few observations, lines 126–142",
+          "support": "Neil van Niekerk把功率列为手动闪光曝光控制项，并说明常规同步范围内快门不改闪光输出。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "lightgap-flash-distance-power",
+      "name": "用灯距或功率补偿维持手动闪光曝光",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-gap-neil-manual-controls",
+          "locator": "§ The scenario, lines 69–75, 113–123",
+          "support": "明确指出靠近灯会增加落在主体上的光量，移远会减少，且距离/光圈/ISO改变后需用其他控制（包括功率）补偿。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ The Inverse Square Law and Depth of Light, lines 127–155",
+          "support": "PPA章节说明闪光或其他受控近距离光源随距离变化导致照度与前后景衰减；此来源只补充光量/衰减背景，不独立验证手动功率公式。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "lightgap-shared-aperture-iso-flash-ambient",
+      "name": "改变光圈或ISO后同时复核闪光与环境曝光",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "light-gap-neil-manual-controls",
+          "locator": "lines 118–142",
+          "support": "说明光圈/ISO与距离、功率共同决定手动闪光，常规同步范围内快门不直接改变闪光输出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-nikon-stilllife",
+          "locator": "§ Putting theory into practice, lines 55–57",
+          "support": "将画面拆为闪光与环境两次曝光，并明确在其常规条件下光圈影响闪光、快门控制环境光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-025",
+      "name": "用闪光方向塑造脸部而非只增加亮度",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-nikon-vitale",
+          "locator": "§ Off-Camera Flash, lines 41–43",
+          "support": "Vitale偏好从侧面提供少量离机光以保留现场氛围和环境信息。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-hughes-speedlite",
+          "locator": "lines 670–677",
+          "support": "Hughes描述用伞控闪光强化现有自然光方向，而非压过自然光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-cambridge-portrait",
+          "locator": "§ Direction: Sense of Depth, lines 114–123",
+          "support": "说明光线从侧上方入射能建立脸部深度。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-026",
+      "name": "让补光方向与现场主光形成合理关系",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "light-canon-hughes-speedlite",
+          "locator": "lines 670–677",
+          "support": "Hughes用伞闪光增强可用自然光方向与对比。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-profoto-couzens",
+          "locator": "steps 1–3, lines 13–22",
+          "support": "要求摆放并调整闪光位置，以获得预想的光型。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-027",
+      "name": "在脸部自然受光良好时把闪光用于其他区域",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-canon-hughes-speedlite",
+          "locator": "lines 670–677",
+          "support": "Hughes说明自然光已合适时可不用闪光照脸，或将其用于边缘、背景和阴影。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-028",
+      "name": "用相对人物尺寸选择闪光柔光附件",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-profoto-couzens",
+          "locator": "Tip, lines 20–22",
+          "support": "建议选相对人物较大的修饰器，使闪光更柔并接近自然环境光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "Tips for a Successful Engagement Photography Session, lines 658–661",
+          "support": "Canon文章建议离机Speedlite配合伞、柔光箱或扩散材料软化输出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Soft Light Sources, lines 229–238",
+          "support": "以相对大尺寸及近距离解释柔光工具如何改变光质。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-032",
+      "name": "辨认相机的常规闪光同步上限",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "§ Shutter Speed & ISO, lines 638–641",
+          "support": "解释常规同步上限及使用HSS的条件。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-nikon-kubota-hss",
+          "locator": "§ Set and Confirm, lines 112–118",
+          "support": "说明不同机身同步速度与进入FP/HSS模式的检查方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-flash-shutter",
+          "locator": "lines 76–89",
+          "support": "提示室外测光要为同步速度保留空间，并界定慢门用法。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-033",
+      "name": "用HSS在常规同步速度以上保留闪光",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-nikon-kubota-hss",
+          "locator": "§ Set and Confirm, lines 112–118",
+          "support": "说明FP/HSS以快速脉冲照亮快门帘移动，可使用高于常规同步的快门。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "lines 638–641",
+          "support": "说明HSS让闪光在人像中配合更快快门及大光圈。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-034",
+      "name": "预判提高HSS快门后闪光功率下降",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-nikon-kubota-hss",
+          "locator": "§ How It Works, lines 234–236",
+          "support": "解释HSS脉冲消耗功率，快门越快可用闪光越少。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "lines 640–641",
+          "support": "指出启用HSS时快门越快闪光输出逐渐降低。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-035",
+      "name": "在HSS下用快门速度控制动作模糊",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "lines 622, 638–641",
+          "support": "把高速快门用于冻结人物动作，并描述HSS可在同步以上速度配合动态肖像。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-nikon-kubota-hss",
+          "locator": "lines 58–60, 158–167",
+          "support": "作者用更快快门避免跳跃动作模糊，并将HSS用于高速动作和环境补光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-036",
+      "name": "用短闪光持续时间冻结动作",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-carpenter-duration",
+          "locator": "lines 34–36",
+          "support": "Carpenter说明在环境光可控时闪光持续时间可以决定有效曝光时间并冻结动作。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-aldred-freeze",
+          "locator": "lines 1051–1057",
+          "support": "Aldred说明压低环境光时由闪光持续时间而非快门冻结动作，并提醒短持续时间会减少输出。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-037",
+      "name": "区分短闪光冻结与HSS高速快门",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-aldred-freeze",
+          "locator": "lines 1051–1055",
+          "support": "明确区分短持续时间的高速闪光与高速同步，并讨论环境光造成的残余模糊。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-nikon-kubota-hss",
+          "locator": "lines 234–236",
+          "support": "解释HSS以连续快速脉冲覆盖快门帘移动，并产生功率损失。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-carpenter-duration",
+          "locator": "lines 34–36",
+          "support": "以压低环境光后由闪光持续时间冻结动作解释常规同步场景。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-038",
+      "name": "检查闪光与环境光叠加造成的重影",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-aldred-freeze",
+          "locator": "lines 1054–1056",
+          "support": "指出环境光仍落在主体上时会在闪光清晰影像之外造成模糊，可压低环境或有意混合。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-flash-shutter",
+          "locator": "§ Dragging the Shutter, lines 86–96",
+          "support": "说明长曝光记录环境光并与闪光同时形成画面。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-017",
+      "name": "按画面意图选择曝光参照区域",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Quantity of Light, lines 157–186",
+          "support": "说明曝光常以主体为基础，但摄影师也可以依据天空或其他画面元素决定曝光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-nikon-vitale",
+          "locator": "§ Spot Metering, lines 37–40; Off-Camera Flash, lines 43–44",
+          "support": "Vitale在高反差场景以选定亮部为参照并主动压暗天空。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-profoto-couzens",
+          "locator": "steps 1–3, lines 13–22",
+          "support": "Couzens先设背景曝光，再开启闪光控制人物曝光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-018",
+      "name": "在强反差场景用点测光保护选定高光",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-nikon-vitale",
+          "locator": "§ Spot Metering, lines 37–40",
+          "support": "Vitale在高反差环境用点测选中亮部，并让其他区域进入深阴影以保留戏剧性。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-019",
+      "name": "解释反射式测光的平均化限制",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-ppa-metering",
+          "locator": "§ Light Meters and Understanding the In-Camera Meter, lines 63–82, 127–145",
+          "support": "解释反射式测光平均反射值且需摄影师解释，测光居中并不保证主体曝光正确。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-020",
+      "name": "在人物位置读取入射光",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-ppa-metering",
+          "locator": "§ Which Meter Should You Use?, lines 86–91; Measuring Ambient Light, lines 83–85",
+          "support": "将入射测光描述为适合人像与闪光测量，并说明其测量到达主体的光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "lightgap-exposure-aperture-iso-tradeoff",
+      "name": "在既定景深与快门下选择ISO并核查噪点代价",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-gap-ppa-exposure-4b",
+          "locator": "Equivalent exposure choices lines 84–114; ISO adjustment lines 140–143",
+          "support": "展示同等曝光下为景深或冻结动作改变光圈/快门组合，并提醒慢门可能带来手持抖动。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "§ Shutter Speed & ISO, lines 667–672",
+          "support": "人像教育文建议根据低光/移动人物提高ISO以换取更快快门，同时说明噪点代价。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "lightgap-histogram-highlight-check",
+      "name": "用RGB直方图核查单色高光通道剪切风险",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "light-gap-nikon-histogram",
+          "locator": "lines 47, 75–86, 95–105",
+          "support": "Nikon教育文指出部分机型可显示RGB通道，并可在支持机型上放大局部查看；可作为具体型号能力的检查项。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-nikon-tom-bol",
+          "locator": "§ Maybe the Moon, lines 58–60",
+          "support": "Tom Bol说明整体图可能看似安全但绿色通道已过曝，并用RGB图检查北极光；将此作为彩色高光场景的通道诊断实例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-canon-snow",
+          "locator": "§ Histograms and Highlight Alert, lines 694–705",
+          "support": "Canon将直方图解释为场景像素亮度分布并示范使用右边缘判断高光风险；仅作为厂商界面的一般使用线索，不外推其具体菜单/RAW行为。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-039",
+      "name": "先确认脸部受光，再评估肤色是否达到表达目标",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "light-ppa-skin-tones",
+          "locator": "lines 95–100, 138",
+          "support": "Gress强调准确呈现不同肤色，并指出将浅肤色压暗或将深肤色提亮会改变人物外观；其数值方案仅作为作者方法。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-jade-dark-skin",
+          "locator": "lines 97–110",
+          "support": "Gordon提醒不要因深肤色而默认欠曝，并描述需要平衡灯光与妆面；没有给出固定曝光偏移。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-metering",
+          "locator": "lines 127–145",
+          "support": "说明反射测光对不同反射率的读数需要摄影师解释，不能直接视为主体的正确曝光。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-040",
+      "name": "用光位和光线衰减平衡多人肤色亮度",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-ppa-skin-tones",
+          "locator": "§ Positioning and Grids, lines 106–130",
+          "support": "Gress介绍以位置、距离、网格和灯向控制多人受光差异，并给出自己的具体比例建议。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-013",
+      "name": "判断自然光与人造光的色温变化",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ Color Temperature and Color Shifts, lines 65–87",
+          "support": "说明不同来源会改变记录颜色，单一相机白平衡只能近似匹配。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-fuji-portrait-guide",
+          "locator": "§ Colour Temperature in Photography, lines 209–213",
+          "support": "描述日出日落、蓝调时刻、云层和白平衡对画面色温的影响。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-society-carlino",
+          "locator": "§ Learn to read the colour of light, lines 113–139",
+          "support": "指出自然光随时段变化，场馆可有多个色温来源且白平衡不能同时中和所有色光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-014",
+      "name": "区分LED色温与显色能力",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "light-mcnamee-led-quality",
+          "locator": "§ What is colour rendering? and Colour temperature, lines 99–127",
+          "support": "说明色温相同仍可能呈现不同颜色，CRI也不是完整的颜色质量说明。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-mixed-whitebalance",
+      "name": "在混合光室内确定白平衡参考",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "field-nikon-whitebalance",
+          "locator": "PRE/custom white balance and LCD review; lines 145–155",
+          "support": "Nikon 说明不同灯种可选预设或 Kelvin；示例将 PRE 白卡用于窗光与荧光灯混合场景，并要求回看调整。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "field color balance; lines 111–121",
+          "support": "Harris 说明环境光色温会随时段和天气变化，并以 CTO/CTB 调整闪光使其与环境匹配。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-015",
+      "name": "用校色片协调闪光与环境光",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Mixing Light Sources, lines 94–127; CTO, lines 151–155",
+          "support": "以钨丝灯与日光色闪光为例，介绍色温匹配与校色片方案。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-society-carlino",
+          "locator": "§ Correcting mixed or unwanted colour, lines 127–139",
+          "support": "建议在保留混合环境光时用色片调整闪光颜色，并说明色偏也可能是有意表达。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "light-016",
+      "name": "选择要保留的环境色光并处理其余色偏",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "light-ppa-techniques",
+          "locator": "§ Mixing Light Sources, lines 94–127",
+          "support": "针对多色温环境提出校色和RAW分阶段修正等不同路线。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-society-carlino",
+          "locator": "§ Correcting mixed or unwanted colour, lines 127–139",
+          "support": "指出混合色可被校正，也可能是画面氛围的一部分。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-correct-mixed-color",
+      "name": "识别混合光的局部色偏并选择修正方式",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-ppa-mixed-light",
+          "locator": "mixed window/incandescent example and color-range masks; lines 102–105, 139–158",
+          "support": "Furchgott 用局部颜色范围遮罩分别处理中性区域的蓝窗光和橙色灯光。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-brief-purpose",
+      "name": "把拍摄用途转成可执行的视觉意图",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-ppa-consult",
+          "locator": "‘Understanding Client Goals’; lines 96–99",
+          "support": "拍前讨论客户目标和照片用途，并据此调整拍摄方式和场景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-session-prep",
+          "locator": "sections on planning and client preferences; lines 631–632",
+          "support": "先讨论偏好、创意想法和安排，并把个人经历纳入拍摄概念。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-subject-context",
+      "name": "拍前查明人物与场景的真实关联",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "‘Know the background to your subject’; lines 57–60",
+          "support": "背景研究帮助摄影师注意日常环境中的故事元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "‘Before: Location Research & Gear Prep’; lines 200–202",
+          "support": "Block 先研究人物与地点背景，再安排当地协作和器材。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-scene-story-fit",
+      "name": "判断地点是否能支持人物故事",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "‘COMPOSITION’ and ‘Relate people to the scene’; lines 103–120",
+          "support": "人物仍是主兴趣点，需考虑人物编排及其与场景的关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "‘Choosing your sitter’ and composition sections; lines 178–180, 343–347",
+          "support": "先决定想让观者理解人物什么，再组织框内人物、物件和空间。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-location-time-scout",
+      "name": "按拍摄时段评估地点的光线与可行性",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-ppa-vet-location",
+          "locator": "‘AESTHETIC’; lines 124–129",
+          "support": "侦察时需考虑不同时间和季节的日照与阴影。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-session-prep",
+          "locator": "‘Scout your location’; lines 633–637",
+          "support": "拍前实地侦察，并核对场地日程和许可。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "creative process answer; lines 131–136",
+          "support": "Pugoffka 先选地点，再按室外日光、日落或暮光决定拍摄时间。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-location-feasibility",
+      "name": "预判地点的安全、通行和设备条件",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-ppa-vet-location",
+          "locator": "‘FEASIBILITY’ and ‘PRACTICALITY’; lines 102–120",
+          "support": "PPA 列出许可、干扰、人身风险、移动能力、停车、地形、换鞋、供电与个人物品等侦察项。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-background-first",
+      "name": "先选背景再等待人物进入合适位置",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "‘During: Waiting For The Perfect Moment’; lines 210–218",
+          "support": "Block 先选择符合故事的背景，再等待能丰富故事的动作进入。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-background-priority",
+      "name": "在环境画面中维持人物视觉优先级",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "composition and scene relation; lines 103–120",
+          "support": "人物应为主兴趣点，摄影师应安排人物并处理人物与场景的关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "background color balance; lines 70–79",
+          "support": "头部与背景色应分开，并检查重复图案和人物边缘附近的干扰。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-architecture-frame",
+      "name": "把人物放入建筑框架而保留环境层次",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "field-nikon-kanayo-location",
+          "locator": "framing subjects in doorway/arch; lines 136–140",
+          "support": "Adibe 把人物放进门洞或拱门等框架，并通过形状和线条减少干扰。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "‘Framing’; lines 343–347",
+          "support": "取景框内细节应帮助讲述人物故事。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-venue-policy-check",
+      "name": "到场前核对本次活动的摄影规则",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "field-manga-comiccon-rules",
+          "locator": "official rules; lines 22–29",
+          "support": "该活动要求先征得同意、不得妨碍客流，并规定其发布和设备限制。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-vet-location",
+          "locator": "‘FEASIBILITY’; lines 102–109",
+          "support": "专业地点侦察要核对许可、非拍摄人员干扰和场地风险。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-weather-contingency",
+      "name": "按天气和现场不确定性准备拍摄备选",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "‘Check your kit before every shoot’; lines 52–56",
+          "support": "Holt 查看天气并为雨天和未知室内光线准备防护与补光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "gear prep; lines 207–209",
+          "support": "Block 按天气变化备雨具，并根据地点决定携带或当地租用设备。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-mobile-kit",
+      "name": "按任务控制外拍器材体积并保留关键备份",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "gear preparation and on-location carry; lines 203–211",
+          "support": "Block 按任务选焦段和低光镜头，携带备份机身、卡、电池并考虑当地租灯。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "weather and kit checklist; lines 52–56",
+          "support": "器材选择要回应预期场景和天气，而非固定清单。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-convention-approved-footprint",
+      "name": "选择不阻碍人流的已获准拍点",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "root-muncy-convention-location",
+          "locator": "lines147–154",
+          "support": "作者先沟通许可并核对保安，再勘察略离主流线、不阻人流的位置；案例为有授权的固定肖像拍点。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-gap-nearby-background-reposition",
+      "name": "在人流场景预选邻近的低杂背景点",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field_gap-rigsby-crowd-background",
+          "locator": "‘Remove the surrounding clutter by Isolating your subject’; lines 37–45",
+          "support": "Rigsby 在拥挤展会中先建立交流，预选附近较少杂乱的点，征询后请被摄者移步，并建议在走动中继续交流。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-story-coverage-plan",
+      "name": "预先安排人物与环境的画面覆盖",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "‘Cover all bases’; lines 62–64",
+          "support": "Holt 拍摄肖像与情境画面，并在室内和室外取不同光线和日常元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "creative process answer; lines 131–136",
+          "support": "先拍预想的主要画面，再补人物肖像。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-short-slot-priorities",
+      "name": "短时拍摄先完成核心画面",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "planning and large group answers; lines 131–136, 153–160",
+          "support": "她先想好三四张主要画面并先完成，之后再拍肖像；大型组照也强调预备。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-short-slot-prelight",
+      "name": "短时人像拍摄前完成布光测试",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-nikon-test-run",
+          "locator": "Dave Black tip; lines 26–31",
+          "support": "当重要肖像只给几分钟时，先搭灯、用替身测试并定好曝光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "field lighting practice; lines 127–133",
+          "support": "Harris 指出复杂闪光效果应提前练习，不应在重要委托中首次试验。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-photowall-pose-ready",
+      "name": "排队式拍摄前准备可快速执行的姿势",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-cosplay-keane-photowall",
+          "locator": "items 1–3; lines 11–17",
+          "support": "Keane 建议繁忙 photowall 提前准备三种姿势，并按灯位和队列速度进行调整。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-small-pose-variation",
+      "name": "用小幅动作变化快速获得姿势版本",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-cosplay-keane-photowall",
+          "locator": "item 1; lines 11–13",
+          "support": "Keane 建议即兴时每次移动一个身体部位以避免长时间想姿势。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "direction/freedom answer; lines 170–172",
+          "support": "Pugoffka 建议姿势转换不要太快，小幅变化就足以改变照片。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-group-sequence",
+      "name": "按单人、对子和组合逐步组织群体拍摄",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "large-group workflow; lines 153–160",
+          "support": "Pugoffka 的大组顺序是先每人单拍，再全组，然后对子和三人组合。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-group-assistant",
+      "name": "多人复杂拍摄时分配灯光协助职责",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "large-group workflow; lines 153–160",
+          "support": "Pugoffka 表示大型拍摄需要更多助理管理相机闪灯。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-frame-edge-audit",
+      "name": "拍前检查画面边缘与人物重叠关系",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "background inspection and Live View; lines 70–72, 94–98",
+          "support": "检查人物周围的深色背景、广告和多余物体，并用实时显示确认构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-nikon-kanayo-location",
+          "locator": "direction and distraction control; lines 136–140",
+          "support": "Adibe 把人物放进建筑框架并选择减少竞争元素的位置。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-location-liveview-check",
+      "name": "用实时取景确认环境人像的实际构图",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "Live View section; lines 94–98",
+          "support": "Canon 说明大屏实时显示便于确认构图、额外物件以及人物与背景的重叠关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "framing; lines 343–347",
+          "support": "构图检查应关注整个画框内的细节是否帮助表达。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-focus-check",
+      "name": "在离开当前站位前复核记录焦点",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "field-nikon-focus-playback",
+          "locator": "playback focus-point check; lines 27–34",
+          "support": "Nikon 说明回放显示焦点框以确认选择焦点是否位于预想处。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-critique-seeking",
+      "name": "主动寻求针对具体照片的专业反馈",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "field-ppa-critique-derryberry",
+          "locator": "critique reflection; lines 101–127",
+          "support": "Derryberry 长期寻求照片评审、记录意见并据此尝试新的技术。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-jeff-jenkins-cosplay",
+          "locator": "portfolio critique section; lines 171–176",
+          "support": "Jenkins 提供逐图、边拍边讲的作品反馈方式，涉及光线、姿势和后期。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-feedback-to-experiment",
+      "name": "根据照片反馈确定下一次要尝试的调整",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "field-ppa-critique-derryberry",
+          "locator": "lines 102, 124–127",
+          "support": "Kira Derryberry明确把建设性反馈用于再次拍摄、尝试新技术与改变；原文没有给出单变量实验规程。项目练习才将它组织为可记录的对照。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "practice before assignments; lines 127–133",
+          "support": "Harris 说明先练新技术，再在实际任务中检验和调整。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-intent-result-review",
+      "name": "对照照片检查画面意图是否达成",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "root-duchemin-intent-review",
+          "locator": "lines24–38,42,55–61",
+          "support": "作者直接提出先确认想表达什么，再问是否实现，并依据缺口考虑取景、视点、时机或光线；未知意图时先探索。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "field-test-failure-hypothesis",
+      "name": "把失败原因写成可复拍的假设",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "root-mcnally-portrait-error",
+          "locator": "Ballerina setup, error and flagging/feathering correction, lines 74–80",
+          "support": "McNally在舞者肖像中识别背景亮斑、说明光源贴近背景的原因，并用遮光与灯向修正后比较；这是具体人像案例中的诊断—干预链。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "root-duchemin-intent-review",
+          "locator": "lines38,42",
+          "support": "作者由未实现的意图提出更换视点、取景、时机或光线等后续选择。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-raw-group-lighting",
+      "name": "按相同光线条件分组做白平衡",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Working with Images in RAW—White Balance",
+          "support": "PPA建议把相同照明条件下的图像分组批量校正白平衡以保持颜色统一。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "RAW流程与局部颜色统一",
+          "support": "王小宁把组照颜色一致与局部颜色修正列入其个人后期流程。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-raw-whitebalance-diagnosis",
+      "name": "在创意调色前校正明显白平衡偏差",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Working with Images in RAW—White Balance",
+          "support": "PPA说明RAW编辑阶段可处理拍摄时的白平衡偏差。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-raw-exposure-detail",
+      "name": "检查主体高光与阴影细节",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Exposure",
+          "support": "PPA建议先评估曝光，再独立检查高光和阴影细节并调整。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-capture-fixes",
+          "locator": "Digital Noise and White Balance",
+          "support": "PPA指出RAW与校准显示器提供更大的后期校色余地，但严重捕捉错误可能难以修复。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-raw-contrast-control",
+      "name": "增加反差时保留暗部与高光层次",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Contrast",
+          "support": "PPA提醒反差调整会同时压暗和提亮，过度会堵塞暗部并吹掉亮部细节。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-color-saturation-control",
+      "name": "控制全局饱和度而不过度增艳",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Saturation",
+          "support": "PPA说明饱和度可提升颜色强度，也提醒过度会显得人工、不自然。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "portrait example, lines 265–275",
+          "support": "Adobe教师演示了肤色调整过度时会变得过于均匀或不自然。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-color-point-range",
+      "name": "限定目标颜色范围后再微调",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Select a specific color; portrait example",
+          "support": "Seán Duggan演示取样颜色、色相/饱和度/明度和色域范围控制。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-color-mask-boundary",
+      "name": "用蒙版把颜色修正限制在目标区域",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Use Variance with a mask; portrait example",
+          "support": "Adobe教师建议用蒙版控制颜色变化影响范围，并使用人物皮肤选择作为示例。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-color-preserve-variation",
+      "name": "均匀局部肤色时保留自然变化",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Minimize redness and create natural, even skin tones",
+          "support": "Adobe教师示范减弱日晒红，并明确提醒过度会令肤色太均匀、不自然。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "皮肤色调与颜色统一",
+          "support": "王小宁描述局部统一颜色和整体肤色处理作为其流程步骤。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-skin-patch-diagnosis",
+      "name": "区分肤色斑驳中的颜色差与明暗差",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "观察层与皮肤颜色统一",
+          "support": "作者通过黑白观察层检查皮肤明暗，并把颜色统一作为独立步骤。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-skin-mask-color-correction",
+      "name": "只修正局部肤色斑驳区域",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Use Variance with a mask",
+          "support": "Adobe教学文字说明蒙版能限制颜色范围调整影响到的画面区域。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-skin-frequency-separation",
+      "name": "分辨频率分离中的颜色层与纹理层",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-phlearn-frequency-separation",
+          "locator": "Blend Skin Tones Without Touching the Texture; Clear Blemishes First; Where Skin Retouching Goes Wrong",
+          "support": "Aaron Nace直接解释高频纹理层与低频颜色/明度层的分离、先处理瑕疵、低流量混色，并提醒肤色过度均匀会显得像人偶。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-skin-local-dodge-burn",
+      "name": "用局部加深减淡控制皮肤明暗过渡",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "观察层与柔光层",
+          "support": "作者将黑白观察与柔光层低不透明度的加深减淡用于肤色均匀和立体感。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Local Adjustments",
+          "support": "PPA说明D&B可局部提亮或压暗，以减少干扰或强调主体。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-local-light-emphasis",
+      "name": "用局部明暗把注意力引向主体",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Local Adjustments",
+          "support": "PPA说明局部D&B可减少干扰或增加主体强调。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Use Variance with a mask",
+          "support": "Adobe教学将蒙版作为让调整只作用于指定画面部分的控制方式。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-skin-edit-subtle-opacity",
+      "name": "用可调不透明度控制修饰力度",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Using Layers",
+          "support": "PPA指出新建图层可以保留原层，并用不透明度混合来减弱效果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "Dodge and burn workflow",
+          "support": "王小宁示范用低不透明度柔光层做局部肤色和立体感调整。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-edit-layer-preservation",
+      "name": "保留可返回的原始与分层编辑版本",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "File Formats for Editing; Using Layers",
+          "support": "PPA说明PSD/TIFF可保留层供以后继续编辑，并建议用新层保留原图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Match Perspective and Blur; clipped Levels",
+          "support": "PHLEARN教程用Smart Object和调整层保留可回改的模糊与光影修正。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-cull-technical-rejects",
+      "name": "先剔除明确技术失败帧",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling; image-to-image comparison",
+          "support": "作者用快速浏览、焦点/清晰度比较和标记缩短初筛。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 1: The Rough Selection, Step One",
+          "support": "作者把明显失焦、曝光错误和构图失败列为初筛拒绝条件。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-cull-near-duplicates",
+      "name": "比较近似帧并选出更强的一张",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling; Culling in action",
+          "support": "作者使用快速翻看和双图比较，在焦点和清晰度上挑选帧。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-andrew-faulds-variety",
+          "locator": "Produce",
+          "support": "Faulds避免保留本质相同的多张照片，并以姿势、表情、视线等差异筛选。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 2–3 and Bonus Tips",
+          "support": "作者逐轮缩小候选并以Survey View研究整组选片。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-cull-separate-passes",
+      "name": "把初筛与组照精筛分开进行",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 1–3",
+          "support": "作者明确分成粗筛、候选比较和最终挑选。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling",
+          "support": "作者先标喜欢的照片，再进一步缩小选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-cull-set-variety",
+      "name": "让交付组照包含有意义的变化",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-ppa-andrew-faulds-variety",
+          "locator": "Produce",
+          "support": "Faulds以横竖、姿势、服装、背景、道具、光型、光质、光比、表情和视线识别变化。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Final selected images",
+          "support": "作者要求最终集合既有区别，又共同讲述同一故事。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-cull-cohesion",
+      "name": "从全组检查情绪与叙事连贯性",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Final selected images; Bonus Tips",
+          "support": "作者在调查视图中检查整组的情绪、感觉、构图，并强调变化与同一故事并存。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-andrew-faulds-variety",
+          "locator": "Produce",
+          "support": "作者以多种可见差异形成不同照片，而非近似重复。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-cull-review-before-delete",
+      "name": "永久删除前复查拒绝帧",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Bonus Tips",
+          "support": "作者建议先保留原始图像，稍后再运行筛选流程，避免立即永久删除。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling",
+          "support": "作者以旗标和星级管理候选状态；本文并未要求立即删除原片。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-clean-distraction-tool",
+      "name": "按干扰物与周边纹理选择清理工具",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Additional Editing; Item Removal; Clone/Healing/Content-Aware",
+          "support": "PPA分别描述仿制、融合式修复和内容感知填充的用途。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "complex backgrounds section",
+          "support": "PHLEARN指出若没有合适的相似区域可供采样，复杂背景中的移除会失败。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-clean-source-texture",
+      "name": "清理时检查采样区域是否适合替换",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "when Generative Fill works and fails",
+          "support": "PHLEARN明确说明干净、相似的邻近区域便于移除，而复杂多纹理背景可能没有可采样的好区域。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Clone Tool and Healing Brush",
+          "support": "PPA解释仿制复制所选来源像素、修复笔刷会融合来源和目标区域像素。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-clean-scene-judgment",
+      "name": "判断画面元素是干扰还是必要场景信息",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Item Removal",
+          "support": "PPA将垃圾桶、标志、垃圾和路人列为可能移除的干扰物，但也说明是否改善需结合画面判断。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 3 discussion of context",
+          "support": "作者指出紧裁人物可加强眼神，也可能失去解释人物与环境关系的上下文。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "Knowing What to Remove",
+          "support": "Aaron Nace区分吸引视线的背景干扰与会改变人物本身的特征，并建议不确定时先询问。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-capture-fix-boundary",
+      "name": "判断缺陷能否安全后期修复",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-capture-fixes",
+          "locator": "Diagnosing Problems with Image Capture",
+          "support": "PPA指出拍摄缺陷若未现场发现，后期可能更费时甚至无法修复。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "RAW workflow; Item Removal",
+          "support": "PPA将拍摄调整、RAW转换和后续追加修整区分为连续工作阶段。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-clean-near-face-selection",
+      "name": "靠近面部特征时收紧清理选区",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "Making the Selection—Tight is essential, near the face",
+          "support": "PHLEARN指出靠近面部时选区应紧贴目标，因为选区内的眼、眉、唇等会被重建。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-clean-person-feature-consent",
+      "name": "修改人物自身特征前确认当事人意愿",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "Knowing What to Remove—Things that are part of the person",
+          "support": "Aaron Nace将皮肤纹理、标记和特征视为与背景干扰不同的一类，并建议不确定时询问本人。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-purpose-edit-boundary",
+      "name": "按用途确认后期与合成边界",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "parent-ppa-delivery-boundaries",
+          "locator": "Illustrative Portrait / Natural Portrait / Reportage categories, lines172–180; Eligibility lines131–143",
+          "support": "PPA对三类作品设不同后期边界；示例说明作品用途及具体规则会改变允许的操作，不构成普遍Cosplay规范。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-composite-light-match",
+      "name": "让合成元素的光线方向与质量相符",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Direction of light and shadow; Quality of light",
+          "support": "Adobe建议元素光向、影向和光质相似，以减少拼接迹象。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "analyzing highlight and shadow mismatch",
+          "support": "PHLEARN通过主体与背景的高光、阴影水平比较来诊断光线不匹配。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-composite-perspective-scale",
+      "name": "让合成元素的视角与比例相符",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Perspective and scale",
+          "support": "Adobe建议选择相同视点且尺度接近的合成元素，减少后期大幅缩放。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Match Perspective and Blur the Background",
+          "support": "PHLEARN把透视调整安排在其他合成修正之前。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-composite-depth-of-field",
+      "name": "检查合成主体与背景的景深关系",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Match Perspective and Blur the Background",
+          "support": "PHLEARN示例把背景转换为Smart Object后轻微模糊，以匹配主体景深并保留可编辑性。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-composite-tone-check",
+      "name": "检查合成主体的高光与阴影层次",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Threshold layer; compare highlights and shadows",
+          "support": "PHLEARN用阈值层比较主体与背景的亮暗位置，并指出示例建立在户外单一主光源假设上。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Direction of light and shadow",
+          "support": "Adobe建议合成元素的光向和影向彼此匹配。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-composite-luminosity-correction",
+      "name": "校正合成亮度时避免无意改变颜色",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Switch the Levels Layer to Luminosity",
+          "support": "PHLEARN说明Normal模式的Levels会影响颜色饱和度，Luminosity可把调整限制到亮度。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-composite-framing",
+      "name": "让合成元素共同指向画面焦点",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Composition and framing",
+          "support": "Adobe建议预先安排元素位置和框架，让视线通过合成画面到达焦点。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-master-resolution",
+      "name": "保留高分辨率可编辑主文件",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "RAW Conversion; Final Edits Before Delivery",
+          "support": "PPA建议从RAW导出最大原生分辨率，之后按具体用途定尺寸。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Image Sizing and export workflow",
+          "support": "Adobe文档区分导出尺寸与用途，并保留以原图为基础的输出设置。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-output-crop-variants",
+      "name": "为不同画幅输出建立独立裁切版本",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Final Edits Before Delivery—Cropping",
+          "support": "PPA建议可先完成图像编辑，再为横竖等交付裁切准备版本。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Image Sizing",
+          "support": "Adobe导出控件支持按输出文件设置具体像素尺寸。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-output-sharpening",
+      "name": "根据最终介质与尺寸应用输出锐化",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Final Edits Before Delivery—Sharpening",
+          "support": "PPA要求把锐化与最终用途、尺寸和观看距离结合，并警告过度锐化会降低质量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Output sharpening",
+          "support": "Adobe说明导出锐化可按Screen、Matte Paper或Glossy Paper与分辨率设置。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-output-color-profile",
+      "name": "按交付目标转换并标记色彩配置文件",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Color Space",
+          "support": "Adobe说明导出可转换到sRGB、AdobeRGB、ProPhotoRGB等空间并标记配置文件。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-ps-colorprofiles",
+          "locator": "Convert between profiles",
+          "support": "Adobe区分目标配置文件转换与工作色域，并说明转换会映射超出目标空间的颜色。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "post-output-file-spec",
+      "name": "核对交付文件格式与像素规格",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "export options and Image Sizing",
+          "support": "Adobe文档列出格式、像素尺寸、分辨率、颜色空间、质量和锐化等导出变量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "File Formats for Editing; Final Edits Before Delivery",
+          "support": "PPA区分分层编辑格式和最终交付格式，并建议按用途调整尺寸。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-01",
+      "name": "选择冻结动作或保留拖影",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-panasonic-shutter",
+          "locator": "§「シャッター速度の変化による表現の違い」",
+          "support": "说明低速能保留运动模糊，高速能定格动作。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-jp-slow-shutter",
+          "locator": "§ 拍摄前决定「何を止めて、何を動かすか」",
+          "support": "建议先选定要固定与要移动的画面部分。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson11",
+          "locator": "Lesson 11, lines 84–106, 142–158; lines 187–188",
+          "support": "摄影师使用快门速度呈现刀的凝固/残影差异，也演示局部运动模糊；该课程以木制模造刀在适当环境中拍摄并强调安全。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-02",
+      "name": "按主体速度与想要的拖影量调整快门",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ Choosing the Shutter Speed; lines 75–78",
+          "support": "Dave Black把快门选择与主体速度和希望显现的运动量联系起来，并以试拍校准。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-panasonic-shutter",
+          "locator": "lines 21–50",
+          "support": "Panasonic说明快门同时控制曝光和动作呈现，高低速对应拖影/冻结。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-peter-llewellyn-blur",
+          "locator": "§ lines 41–48",
+          "support": "作者指出快门取决于主体运动速度。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-05",
+      "name": "在拖影画面中保留锐利视觉锚点",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 85–86, 218–224",
+          "support": "Dave Black强调运动照片应保留一个或多个锐利元素作为视觉支点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 101–118",
+          "support": "Cristina Pascu-Tulbure说明长快门与闪光可使动态织物模糊，同时留下较锐利主体。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-08",
+      "name": "选择闪光同步时机控制拖影尾向",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-flash-sync",
+          "locator": "§ lines 69–84",
+          "support": "Nikon说明后帘同步先记录环境运动轨迹，随后闪光定格主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 94–96",
+          "support": "Dave Black以低速快门配后帘同步记录运动尾迹并在曝光末端定格主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 101–118",
+          "support": "职业人像案例说明闪光与长快门结合可同时记录清晰主体和运动布料。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-03",
+      "name": "用追随摇摄控制主体与背景的相对运动",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 36–38, 75–86, 218–228",
+          "support": "Dave Black说明追随主体并通过快门控制运动表现，且保留锐利元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-peter-llewellyn-blur",
+          "locator": "§ lines 41–48",
+          "support": "Llewellyn区分固定机位下主体移动与相机追随主体两种相对运动方式。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-04",
+      "name": "让追随动作跨过曝光起止点",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 75–78",
+          "support": "Dave Black明确建议曝光前开始追随，曝光后继续跟随完成动作。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-06",
+      "name": "分别安排静止部分与运动部分",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-jp-slow-shutter",
+          "locator": "§ 拍摄前决定静止/运动对象及例图说明",
+          "support": "Nikon课程要求预先决定固定与运动对象。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 94–100",
+          "support": "Cristina将静止模特、结构性布料和动态薄纱作为不同运动层处理。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-07",
+      "name": "把动作阶段放进曝光时间窗",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-jp-slow-shutter",
+          "locator": "§ 例图步骤：先固定约0.5秒再移动",
+          "support": "Nikon摄影师以曝光内短暂停留保留轮廓，再移动主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-society-flowing-fabric",
+          "locator": "§ lines 101–118",
+          "support": "作者比较不同快门下的运动模糊与主体清晰度，并说明两者平衡。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-32",
+      "name": "保持追随镜头的移动平顺并有视觉控制",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 142–143, 218–232",
+          "support": "Dave Black描述稳定站姿、平顺身体摆动以及按路径可预测性选择支撑方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement activity",
+          "support": "ACMI让同一动作比较静态、pan和tracking的观感与信息。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-33",
+      "name": "以同一动作对比横向、竖向和斜向轨迹",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 35–38, 47–48",
+          "support": "Dave Black指出追随通常沿主体运动平面，并讨论横向、纵向与迎向镜头的差别。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-peter-llewellyn-blur",
+          "locator": "§ lines 41–48",
+          "support": "Llewellyn说明相机追随主体、主体移动和背景拖影的关系。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-12",
+      "name": "提前判断动作将从哪里开始",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 85–100",
+          "support": "运动摄影师指出投球前准备态更容易预判动作起点，并展示释放前的专注表情。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 54, 74–78",
+          "support": "Dave Black用可重复波浪路径预测动作，并要求曝光前开始追随。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 57–64",
+          "support": "Versace说明舞者的想法会即时反映在脸上，并通过互相反应得到表情。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-13",
+      "name": "在动作中抓取可辨认的手势或关键局部",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 129–159",
+          "support": "Versace把小号手的手指动作视为动作/意义焦点，并以连续三个动作瞬间记录表演。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 44–49",
+          "support": "运动案例以跑动中球杆与球作为可辨动作局部。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-15",
+      "name": "在动作高潮之外记录准备态与反应态",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-sports-photographers",
+          "locator": "§ lines 81–114",
+          "support": "摄影师同时记录投掷前专注、动作释放和运动员庆祝反应。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 57–64, 151",
+          "support": "Versace关注表情与动作相连的瞬间，并记录连续演奏和笑的变化。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-16",
+      "name": "用短连拍覆盖不可预测的表情变化",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-nikon-panning",
+          "locator": "§ lines 133–135",
+          "support": "Dave Black按焦区/连续追焦分别采用两帧或五帧连拍处理运动通过。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 145–159",
+          "support": "摄影师在音乐表演过程中快速连续拍三张并按发生顺序组合。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-17",
+      "name": "先用静态镜头建立移动基准",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement；Activity",
+          "support": "ACMI先定义静态机位，再要求同一动作分别静态、摇摄和跟拍，比较信息与感受。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle / Camcorder moves",
+          "support": "Canon说明镜头移动应有明确目的，避免无必要移动。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-18",
+      "name": "区分固定轴摇摄与机位跟移",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement；Activity",
+          "support": "ACMI让同一动作分别拍静态、原地pan和手持tracking并对比效果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-camera-movement",
+          "locator": "§ stabilizer use and movement types",
+          "support": "ASC说明稳定器用于跟随、长镜头和复杂的人物/相机编排。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-19",
+      "name": "移动前设定镜头起点、覆盖范围与终点",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Camcorder moves; PDF p.38",
+          "support": "Canon要求先决定pan覆盖范围、面向结束角度，再回转到起点执行。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-20",
+      "name": "在移动前后留出稳定的起止画面",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Camcorder moves; PDF p.38",
+          "support": "Canon建议pan前先录数秒、动作后保持最终画面数秒再停止。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-21",
+      "name": "按展示任务选用远、中、近景",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议以远景建立情境，再用中景和特写展现细节。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera shots activity",
+          "support": "ACMI以wide/mid/close景别练习并要求解释为何选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-22",
+      "name": "改变景别或视点前先说明信息目的",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议每个shot改变视点，并令镜头动作有目的。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera shots activity",
+          "support": "ACMI活动要求为不同景别说明选择原因及其所捕捉内容。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-34",
+      "name": "以简单覆盖交代动作并补充细节",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 211–216",
+          "support": "Jay Holben描述为整段动作画出wide master，再在节拍处补近景/中景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议由建立情境的long shot转向细节镜头。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-23",
+      "name": "按动作节拍规划景别和移动变化",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 211–216",
+          "support": "Jay Holben描述在脚本上标出节拍变化，并规划宽景主镜头、半场中景和节拍后的近景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 260–265",
+          "support": "M. David Mullen建议先明确故事如何结束以决定如何开始。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-24",
+      "name": "把短动作片段拆成起始、动作过程与结束状态",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle / Camcorder moves; PDF p.38",
+          "support": "Canon强调从建立情境到细节、移动前后保持画面。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Camera movement activity",
+          "support": "ACMI以完整人物穿越空间的简单场景练习静态、pan与tracking。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-26",
+      "name": "在预演中同步演员路径与相机路径",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-arri-birdman-lubezki",
+          "locator": "§ lines 34–46",
+          "support": "Lubezki讲述用stand-in排练数月、规划blocking/镜头移动/提示，并记下演员提示。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 229–230",
+          "support": "ASC作者排练时跟随演员走位并预想机位与dolly变化。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-nikon-versace-dancer",
+          "locator": "§ lines 56–64",
+          "support": "Versace提到表演者会击中标记、懂得动作，也通过互动得到反应。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-25",
+      "name": "让镜头移动回应角色动作或情绪变化",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "evidence": [
+        {
+          "source_id": "motion-arri-birdman-lubezki",
+          "locator": "§ lines 30–41",
+          "support": "Lubezki描述移动与人物能量、主观视点和故事之间的关系，并称团队提前设计blocking。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-arri-room-next-door-grau",
+          "locator": "§ lines 77–78",
+          "support": "Grau说明每个镜头移动应服务叙事且保持一致流畅。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 229–232",
+          "support": "ASC文章将移动与演员动作、感受、排练中的自然路径联系起来。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-27",
+      "name": "用广景和跟随路线保留空间方向感",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "evidence": [
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 231–232",
+          "support": "ASC作者称广景建立/提醒场景地理，跟随人物穿越空间也可描绘地理。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-canon-camcorder-manual",
+          "locator": "§ Picture angle; PDF p.38",
+          "support": "Canon建议用long shot交代情境，再用更紧的景别给细节。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-28",
+      "name": "根据观看关系选择主观或客观机位",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-asc-camera-placement",
+          "locator": "§ lines 219, 229–232",
+          "support": "ASC文章区分客观远观和贴近动作的视点，并把机位选择与角色心理关联。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-script-analysis",
+          "locator": "§ lines 195–198, 260–265",
+          "support": "Jay Holben和M. David Mullen讨论以角色体验或客观距离作为视觉叙事选择。",
+          "scope": "direct"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-29",
+      "name": "在一条镜头中用焦点转移引导注意",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Focus pull activity",
+          "support": "ACMI说明焦点转移能引导观众注意，并用近物到远人反应作活动例子。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-shining-steadicam",
+          "locator": "§ lines 293–297",
+          "support": "电影摄影案例讨论移动机位中摄影助理从非正对镜头位置控制焦点。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-30",
+      "name": "为手动拉焦设定两个可重复的焦点标记",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Focus pull activity",
+          "support": "ACMI练习记录两个焦点刻度，并指出要让演员不移动、配合转换时机。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "motion-asc-shining-steadicam",
+          "locator": "§ lines 293–297",
+          "support": "ASC案例描述摄影助理在移动和窄空间中训练不同位置的拉焦能力。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    {
+      "skill_id": "mot-31",
+      "name": "先判断被摄者变化是否足以支撑手动拉焦",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "evidence": [
+        {
+          "source_id": "motion-acmi-cinematography",
+          "locator": "§ Focus pull description/activity",
+          "support": "ACMI指出不同焦点目标需处于不同距离，且焦点变化应有场景原因。",
+          "scope": "direct"
+        }
+      ]
+    }
+  ]
+}

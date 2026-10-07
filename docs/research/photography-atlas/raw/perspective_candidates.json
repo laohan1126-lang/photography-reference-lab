@@ -1,0 +1,1252 @@
+{
+  "scope": "perspective",
+  "candidates": [
+    {
+      "id": "perspective-skill-height-vs-pitch",
+      "skill_name": "区分相机高度与镜头俯仰",
+      "capability": "能分别设定相机机身高度和镜头轴线俯仰角，并预测两者对画面中人物比例及垂直线的不同影响。",
+      "why_it_matters": "把“低机位”误当成“向上仰镜头”会同时改变人物比例和背景收敛，失败时难以定位原因。",
+      "module_hint": "机位与透视",
+      "domain_hint": "still_portrait_geometry",
+      "prerequisites": [],
+      "failure_modes": [
+        "相机降低时镜头也跟着仰起，两个变量混在一起",
+        "误把低相机高度等同于仰拍"
+      ],
+      "practice": "固定人物、焦段与距离，分别只改变机身高度或只改变俯仰；对照头脚比例和背景竖线。",
+      "acceptance": [
+        "两组对照能指出改变的变量",
+        "能描述人物比例与竖线分别如何变化"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, framing dimensions; paragraph distinguishing height and angle (around line 104)",
+          "support": "教材明确把camera height与camera angle作为不同取景维度；眼平角度可以由接近地面的机位拍出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, camera position and convergence passages (lines 124–147)",
+          "support": "PPA将相机位置与镜头朝向/地平线讨论分开，并按人像裁切给机位建议。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "区分相机高度与镜头俯仰"
+      ]
+    },
+    {
+      "id": "perspective-skill-crop-height",
+      "skill_name": "按人物裁切选择相机起始高度",
+      "capability": "能依据全身、约三分之二身和头肩裁切选择可测试的相机高度起点，并按人物比例微调。",
+      "why_it_matters": "相机高度会改变近远身体部分的显著程度；同一高度不适用于所有裁切和主体。",
+      "module_hint": "机位与透视",
+      "domain_hint": "portrait_framing",
+      "prerequisites": [
+        "perspective-skill-height-vs-pitch"
+      ],
+      "failure_modes": [
+        "全身照机位过高或过低导致头脚比例偏离意图",
+        "照搬固定高度忽略主体身形和画面裁切"
+      ],
+      "practice": "同一人物依次拍全身、三分之二身、头肩照；每次先尝试来源给出的高度起点，再比较主体比例。",
+      "acceptance": [
+        "能说明所选高度是起点而非定律",
+        "系列里头脚比例变化可追溯到高度调整"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, portrait crop camera-position guidance (lines 133–147)",
+          "support": "列出全身、三分之二身和头肩照的不同相机高度起点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-canon-portrait-posing",
+          "locator": "Portrait posing, camera position passages (lines 624–670)",
+          "support": "摄影师给出全身腰部附近和头部肖像略高于眼位等不同拍摄位置。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, camera height by portrait type (lines 18–24)",
+          "support": "训练手册按全身与头肩肖像说明相机高度和镜头轴线。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "按人物裁切选择相机起始高度"
+      ]
+    },
+    {
+      "id": "perspective-skill-lens-axis-level",
+      "skill_name": "控制全身照的镜头轴线",
+      "capability": "能决定全身照中镜头是否保持近似水平/与地面平行，并观察俯仰对垂直线和身体比例的影响。",
+      "why_it_matters": "镜头大幅向上或向下会引入不必要的收敛或近远比例差异。",
+      "module_hint": "机位与透视",
+      "domain_hint": "portrait_framing",
+      "prerequisites": [
+        "perspective-skill-height-vs-pitch"
+      ],
+      "failure_modes": [
+        "降低相机时无意仰拍导致脚大头小",
+        "高位俯拍导致头肩显大或人物压扁"
+      ],
+      "practice": "保持高度和距离不变，拍摄水平、轻微上仰、轻微下俯三张全身照。",
+      "acceptance": [
+        "能辨认三张中的垂直线及头脚比例变化",
+        "选择的倾角可用画面目标解释"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, lens level to ground for full-length portraits (lines 133–147)",
+          "support": "建议全身人像在腰部附近机位并保持镜头轴线接近水平。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, full-length camera height and lens parallelism (lines 18–24)",
+          "support": "说明全身拍摄的腰部高度/镜头水平起点及错误高度的可见比例问题。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "控制全身照的镜头轴线"
+      ]
+    },
+    {
+      "id": "perspective-skill-height-proportion-diagnosis",
+      "skill_name": "诊断机位高度造成的身体比例偏差",
+      "capability": "能从照片中判断人物显高/显矮、头脚大小变化是否与相机高度及俯仰有关。",
+      "why_it_matters": "现场可快速区分是姿势问题还是透视/机位问题。",
+      "module_hint": "比例诊断",
+      "domain_hint": "portrait_geometry",
+      "prerequisites": [
+        "perspective-skill-height-vs-pitch"
+      ],
+      "failure_modes": [
+        "只改姿势却保留造成比例失衡的机位",
+        "把透视比例变化误认为人物真实比例"
+      ],
+      "practice": "固定姿势与焦段，逐级改变机位高度，标注每张的头、躯干、脚相对显著度。",
+      "acceptance": [
+        "能把可见变化对应到高度/俯仰变量",
+        "不把某种比例自动判成错误，能按意图选择"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, portrait angle and perspective passages (lines 94–101)",
+          "support": "说明低视点可能使人物显高、高视点可能压缩人物，并提醒近处身体部分显大。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, high/low camera examples (lines 18–24)",
+          "support": "列出过低和过高机位造成的全身照比例问题。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-canon-portrait-posing",
+          "locator": "Portrait posing, camera height examples (lines 624–670)",
+          "support": "腰部附近的全身拍摄位置作为控制变形的实践起点。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "诊断机位高度造成的身体比例偏差"
+      ]
+    },
+    {
+      "id": "perspective-skill-angle-comparison",
+      "skill_name": "比较高位、眼平与低位视点",
+      "capability": "能在保持其他变量稳定时比较不同视点对人物比例、可见面和画面感受的影响，不套用固定情绪标签。",
+      "why_it_matters": "“低角度有气势”并非普遍规律；主体、背景和具体取景共同决定效果。",
+      "module_hint": "机位与视点",
+      "domain_hint": "portrait_expression",
+      "prerequisites": [
+        "perspective-skill-height-vs-pitch"
+      ],
+      "failure_modes": [
+        "低角度没有产生预期效果仍不断降低机位",
+        "同时改变俯仰、距离与姿势后无法解释差异"
+      ],
+      "practice": "选同一姿势和背景拍高、眼平、低三组；分别记录比例、背景和主观感受。",
+      "acceptance": [
+        "能指出视觉差异来自哪些变量",
+        "不把低位自动标为强势或有气势"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, camera viewpoint and subject-proportion examples (lines 94–101)",
+          "support": "给出低视点显高、高视点压缩的条件性比例说明。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds interview, contrasting posing goals (lines 87–104)",
+          "support": "摄影师针对不同主体目标分别使用较高或较低机位，体现效果取决于对象和目标。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, visible high/low angle results (lines 18–24)",
+          "support": "提供俯拍和仰拍对身体部位显著度的具体描述。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "比较高位、眼平与低位视点"
+      ]
+    },
+    {
+      "id": "perspective-skill-pitch-vs-roll",
+      "skill_name": "区分俯仰与滚转倾斜",
+      "capability": "能识别镜头绕水平轴俯仰和绕光轴滚转两种倾斜，并分别观察垂直线收敛与画面地平/斜线变化。",
+      "why_it_matters": "把两种倾斜统称为“歪机位”会导致背景和人物姿态诊断混乱。",
+      "module_hint": "机位轴线",
+      "domain_hint": "camera_orientation",
+      "prerequisites": [],
+      "failure_modes": [
+        "用滚转制造倾斜却预期垂直线收敛",
+        "用俯仰修背景却没有检查主体比例"
+      ],
+      "practice": "同一建筑背景拍水平、上仰、滚转三张；独立标注竖线汇聚和画面水平感。",
+      "acceptance": [
+        "能在对照中指出俯仰与滚转各自改变的线条",
+        "能说明是否有意使用倾斜"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, angle types: eye-level/high/low/overhead/canted",
+          "support": "教材把canted framing与高低/俯仰类角度分别列出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, camera tilt and vertical convergence (lines 124–129)",
+          "support": "说明俯仰相机时建筑垂直线发生收敛。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "区分俯仰与滚转倾斜"
+      ]
+    },
+    {
+      "id": "perspective-skill-viewpoint-distance",
+      "skill_name": "用相机距离控制透视关系",
+      "capability": "能将相机到主体的距离作为前后部分相对大小和面部空间观感的重要控制变量。",
+      "why_it_matters": "仅换焦段但相机后退保持构图时，透视关系也会随视点改变。",
+      "module_hint": "透视控制",
+      "domain_hint": "camera_subject_distance",
+      "prerequisites": [],
+      "failure_modes": [
+        "把近大远小简单归因于广角镜头",
+        "改变距离同时改变姿势却把结果归于焦段"
+      ],
+      "practice": "先固定焦段和姿势，改变相机距离拍摄；之后换焦段恢复相近构图。",
+      "acceptance": [
+        "能指出前后部分比例首先随视点距离变化",
+        "记录是否为恢复构图而移动相机"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-cooper-banks-pictures",
+          "locator": "Experimental methods and discussion (PDF lines 80–92, 110 onward)",
+          "support": "研究控制视点与焦段、保持眼间距等条件比较人脸外观，证明感知效果须结合相机位置和观看条件理解。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-bh-perspective",
+          "locator": "Perspective article, proximity and near/far size (lines 62–66)",
+          "support": "指出相机到主体的接近程度影响近远物体在画面中的相对大小；同文的压缩措辞需结合研究结果谨慎理解。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "用相机距离控制透视关系"
+      ]
+    },
+    {
+      "id": "perspective-skill-optical-vs-perspective",
+      "skill_name": "区分镜头光学畸变与透视比例变化",
+      "capability": "能判断画面问题更像桶形/枕形等镜头畸变，还是前后景距离关系造成的透视变化。",
+      "why_it_matters": "混淆后会用换镜头去修正需要改变机位距离的问题，或反之。",
+      "module_hint": "透视诊断",
+      "domain_hint": "lens_geometry",
+      "prerequisites": [
+        "perspective-skill-viewpoint-distance"
+      ],
+      "failure_modes": [
+        "把近处鼻子/手变大归因于镜头桶形畸变",
+        "把画面边缘直线弯曲归因于相机距离"
+      ],
+      "practice": "拍摄同一主体/直线背景，分别改变距离和使用镜头畸变校正前后对照。",
+      "acceptance": [
+        "能区分边缘线弯曲与近远尺寸关系",
+        "诊断依据是可见特征而非焦段名称"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-cooper-banks-pictures",
+          "locator": "Paper discussion separating picture projection and perceived expansion/compression (PDF lines 80–92)",
+          "support": "研究区分几何投影与观看者感知的扩张/压缩。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-bh-perspective",
+          "locator": "Perspective article, optical versus perspective distortion section",
+          "support": "文章区分镜头光学畸变与拍摄距离造成的透视效果。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "区分镜头光学畸变与透视比例变化"
+      ]
+    },
+    {
+      "id": "perspective-skill-distance-before-focal",
+      "skill_name": "先选视点距离，再用焦段完成取景",
+      "capability": "能先设定希望的人物前后比例/空间关系，再选择焦段完成目标裁切；遇空间限制时明确取舍。",
+      "why_it_matters": "为了填满画面而后退可能改变透视；只关注焦段会忽略这一变化。",
+      "module_hint": "机位与镜头协同",
+      "domain_hint": "shooting_decisions",
+      "prerequisites": [
+        "perspective-skill-viewpoint-distance",
+        "perspective-skill-focal-length-field-of-view"
+      ],
+      "failure_modes": [
+        "以焦段决定所有效果",
+        "后退维持相同人物大小却未察觉视点关系改变"
+      ],
+      "practice": "用两种距离先比较同一人物的透视，再各自选择合适焦段完成裁切。",
+      "acceptance": [
+        "能解释距离选择与焦段选择的先后逻辑",
+        "能标明空间限制带来的妥协"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-cooper-banks-pictures",
+          "locator": "Controlled focal-length/distance conditions (PDF lines 80–92)",
+          "support": "研究展示需区分视点距离与焦段，且不同控制条件会得到不同感知结果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, focal-length and working-distance sections (lines 25–42, 90–111)",
+          "support": "说明焦段影响视角/放大率并与工作距离的使用情境相关。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "先选视点距离，再用焦段完成取景"
+      ]
+    },
+    {
+      "id": "perspective-skill-focal-length-field-of-view",
+      "skill_name": "用焦段控制视角与取景范围",
+      "capability": "能根据主体占画面比例和需要保留的场景范围选择焦段，并在取景变化时说明视角变化。",
+      "why_it_matters": "焦段变化会同时影响视角和画面中可见内容。",
+      "module_hint": "焦段与视角",
+      "domain_hint": "lens_choice",
+      "prerequisites": [],
+      "failure_modes": [
+        "误把焦段只当作“远近”旋钮",
+        "换焦段后未检查背景信息和主体占比"
+      ],
+      "practice": "保持机位不变，切换两个焦段并记录人物占比及背景边界。",
+      "acceptance": [
+        "能从画面内容解释视角差异",
+        "不将单一焦段称为所有人像的标准答案"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length (lines 25–42)",
+          "support": "解释焦距、视角与放大率关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-lens-selection",
+          "locator": "Module 1E, lens selection and field-of-view content",
+          "support": "PPA课程覆盖镜头焦距、视角及不同镜头的取景变化。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "用焦段控制视角与取景范围"
+      ]
+    },
+    {
+      "id": "perspective-skill-lens-working-distance",
+      "skill_name": "按拍摄空间选择焦段与工作距离",
+      "capability": "能在目标景别和可用场地内选择可执行的焦段/摄影距离组合。",
+      "why_it_matters": "理想化长焦建议可能在狭窄漫展空间无法实现。",
+      "module_hint": "镜头与空间",
+      "domain_hint": "field_constraints",
+      "prerequisites": [],
+      "failure_modes": [
+        "为追求某焦段挤入不安全/无法后退的位置",
+        "为了取景而靠得过近造成前后比例变化"
+      ],
+      "practice": "在同一目标裁切下，记录场地边界内可用的焦段/距离组合及各自比例效果。",
+      "acceptance": [
+        "所选组合在实际空间可执行",
+        "接受限制并说明透视取舍"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, portrait and working-distance sections (lines 90–111)",
+          "support": "把焦段推荐放在工作距离和题材情境中讨论。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-dixie-portrait-lens",
+          "locator": "Lens Choice for Great Portraits, photographer’s long-lens method (lines 27–31)",
+          "support": "Dixie Dixon说明个人肖像镜头选择方法；属其方法，不能外推成漫展通则。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-lens-selection",
+          "locator": "Module 1E, lens selection and portrait focal-length examples",
+          "support": "专业课程讨论焦段、视角及人像使用情境。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "按拍摄空间选择焦段与工作距离"
+      ]
+    },
+    {
+      "id": "perspective-skill-fixed-position-focal-compare",
+      "skill_name": "在固定机位比较不同焦段的背景呈现",
+      "capability": "能固定相机位置与主体姿势，比较换焦段后人物裁切、背景范围及背景视觉表现。",
+      "why_it_matters": "把固定机位测试误当成同构图对比，可能误判焦段的因果作用。",
+      "module_hint": "焦段实验",
+      "domain_hint": "lens_choice",
+      "prerequisites": [],
+      "failure_modes": [
+        "固定机位却声称人物大小完全相同",
+        "没有记录距离/裁切就比较背景"
+      ],
+      "practice": "在固定机位、固定光圈下拍摄两种焦段，明确标记取景边界和人物画面占比。",
+      "acceptance": [
+        "能准确描述哪些画面边界与比例改变",
+        "不把该实验与移动相机保持构图的实验混为一谈"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ukawa-focal-length",
+          "locator": "焦点距系列及拍摄条件说明 (lines 891–903; 911–981)",
+          "support": "摄影师描述固定位置和光圈下更换焦段的比较及背景表现。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "在固定机位比较不同焦段的背景呈现"
+      ]
+    },
+    {
+      "id": "perspective-skill-environment-context",
+      "skill_name": "用景别和视角保留所需环境信息",
+      "capability": "能选择环境人像、全身或紧凑肖像的画面范围，使场景信息量匹配拍摄意图。",
+      "why_it_matters": "主体过大可能失去环境线索，主体过小则难以辨认表情和角色细节。",
+      "module_hint": "景别设计",
+      "domain_hint": "portrait_framing",
+      "prerequisites": [],
+      "failure_modes": [
+        "环境线索被裁掉",
+        "主体在背景中显得过小或不突出"
+      ],
+      "practice": "同一地点依次拍环境、全身和近景，比较背景信息与人物可读性。",
+      "acceptance": [
+        "三种画面各自有清楚的主体/环境关系",
+        "能指出哪些环境线索被保留或舍弃"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, field-of-view and portrait examples (lines 25–42, 90–111)",
+          "support": "连接焦段/视角与画面范围及肖像工作距离。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ukawa-portrait-composition",
+          "locator": "Thinking about portrait composition, 18mm and 100mm example passages (lines 1076–1104)",
+          "support": "摄影师用不同焦段讨论人物与环境的画面表达；对照图像像素未检视。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, shot-scale and framing definitions (around line 45 onward)",
+          "support": "教材定义从远景到特写的景别词汇。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "用景别和视角保留所需环境信息"
+      ]
+    },
+    {
+      "id": "perspective-skill-shot-scale-vocabulary",
+      "skill_name": "识别并命名常用景别",
+      "capability": "能按人物在画面中的范围识别远景、全景、中景、近景和特写，并用相同词汇描述拍摄意图。",
+      "why_it_matters": "景别术语不统一会使拍摄计划和复盘沟通含糊。",
+      "module_hint": "景别设计",
+      "domain_hint": "shot_scale",
+      "prerequisites": [],
+      "failure_modes": [
+        "只说“拍近一点”而未说明主体裁切",
+        "同一个词被用于不同画面范围"
+      ],
+      "practice": "从一组肖像中标注景别，并为同一人物各拍一张环境/全身/中近景/面部特写。",
+      "acceptance": [
+        "能一致标注并解释主体画面范围",
+        "不把电影长镜头任务直接移植成人像要求"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-okstate-cinematography",
+          "locator": "Cinematography, shot-scale definitions (around line 45 onward)",
+          "support": "教材给出远景、全景、中景、近景、特写等景别术语。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-norton-framing",
+          "locator": "Framing of the Shot, opening framing variables (paragraphs 1–3)",
+          "support": "电影教材把距离、景深、角度、高度和视点列为构图/框景决策。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "识别并命名常用景别"
+      ]
+    },
+    {
+      "id": "perspective-skill-coverage-variation",
+      "skill_name": "为同一主体拍出景别变化组",
+      "capability": "能在一组肖像中安排不同主体占比和环境范围，使组照既有整体也有局部信息。",
+      "why_it_matters": "连续照片只有重复裁切，会削弱组照信息变化。",
+      "module_hint": "景别设计",
+      "domain_hint": "portrait_sequence",
+      "prerequisites": [],
+      "failure_modes": [
+        "一组照片取景范围几乎相同",
+        "细节镜头失去整体环境关联"
+      ],
+      "practice": "为一次短拍摄设计全身、半身、头肩和一张细节；逐张记录新增的信息。",
+      "acceptance": [
+        "每张均提供不同且可说明的信息",
+        "细节照能够与前后主体/场景对应"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-tamron-portrait-guide",
+          "locator": "Portrait guide, session shot-variety passages",
+          "support": "Tamron指南建议拍摄多种构图和细节，但该无署名厂商指南仅算单一弱共识来源。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ukawa-focal-length",
+          "locator": "Focal-length portrait examples and framing discussion (lines 911–981)",
+          "support": "摄影师展示多种焦段/构图的人像方法；示例像素未检视。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "为同一主体拍出景别变化组"
+      ]
+    },
+    {
+      "id": "perspective-skill-wide-near-depth",
+      "skill_name": "控制近距离广角的人物前后夸张",
+      "capability": "能在近距离广角取景时有意管理主体与镜头的距离差，判断夸张透视是否符合画面意图。",
+      "why_it_matters": "近处手脚或面部可能比躯干显著得多，主体关系偏离意图。",
+      "module_hint": "近远比例",
+      "domain_hint": "wide_angle_portrait",
+      "prerequisites": [],
+      "failure_modes": [
+        "近处身体部位突兀变大",
+        "把变化误归于某个焦段的固有“变形”"
+      ],
+      "practice": "先固定焦段，逐步调整拍摄距离；再保持距离换焦段，比较变化来源。",
+      "acceptance": [
+        "能分辨距离变化与视角变化",
+        "选择的夸张程度可见且有意图"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ukawa-portrait-composition",
+          "locator": "Photographer’s wide-angle portrait recommendation (lines 1076–1084)",
+          "support": "摄影师讨论近距离广角在人像中的透视表现和适用表达。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, near/far apparent-size and portrait angle (lines 94–101)",
+          "support": "PPA指出靠近相机的身体部分会显得更大。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-bh-perspective",
+          "locator": "Perspective article, camera proximity and scale (lines 62–64)",
+          "support": "说明相机靠近主体会改变近远相对尺寸。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "控制近距离广角的人物前后夸张"
+      ]
+    },
+    {
+      "id": "perspective-skill-foreground-hand-scale",
+      "skill_name": "控制伸向镜头的手/脚等近处部位比例",
+      "capability": "能发现近处手、脚或道具因距离镜头更近而显大，并通过姿势或机位调整保留目标比例。",
+      "why_it_matters": "近处部位可能抢过脸或主体，读者误读姿态。",
+      "module_hint": "前景比例",
+      "domain_hint": "pose_space",
+      "prerequisites": [
+        "perspective-skill-viewpoint-distance"
+      ],
+      "failure_modes": [
+        "近手过大或挡住面部",
+        "改焦段而没有处理近远距离差"
+      ],
+      "practice": "比较手臂伸向镜头、贴近躯干和轻微侧转三种姿势，并记录人物与近处部位的比例。",
+      "acceptance": [
+        "能指出比例变化来自近处距离",
+        "能通过姿势/视点调整获得目标效果"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-adobe-seated-proximity",
+          "locator": "Hand and sitting poses, nearest-object scale and camera viewpoint (lines 130–132)",
+          "support": "摄影师解释近处物体/身体部位会显大，并讨论通过相机位置和姿势减小距离差。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, closer body parts appear larger (lines 94–101)",
+          "support": "PPA明确指出靠近相机的身体部分在画面中显大。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, camera position and near/far body scale (lines 18–24)",
+          "support": "训练手册描述机位造成脚、头部等身体部分相对显著。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "控制伸向镜头的手/脚等近处部位比例"
+      ]
+    },
+    {
+      "id": "perspective-skill-lean-depth-control",
+      "skill_name": "把前倾作为可控的身体前后关系",
+      "capability": "能通过上身/头部前倾和髋部后移控制头部、躯干与相机的相对距离，并检查人物比例变化。",
+      "why_it_matters": "前倾可能产生头大身小；不同拍摄目标需要不同身体前后关系。",
+      "module_hint": "姿态与透视",
+      "domain_hint": "lean_pose",
+      "prerequisites": [
+        "perspective-skill-viewpoint-distance"
+      ],
+      "failure_modes": [
+        "头部离镜头太近显大",
+        "只提示“前倾”未观察髋部位置和头身比例"
+      ],
+      "practice": "保持相机不动，比较中立站姿、头肩前倾、髋部后移配合前倾三种状态。",
+      "acceptance": [
+        "能识别头部与躯干相对距离变化",
+        "能按主体意图选择而不把某一种姿势定为通则"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, body lean and near-part perspective passages (lines 94–101)",
+          "support": "PPA提及身体前倾与靠近相机部位显大之间的关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds corrective posing examples (lines 87–104)",
+          "support": "摄影师说明前倾使头部靠近相机、臀部后移的具体修姿方法，并按人物目标作相反选择。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "把前倾作为可控的身体前后关系"
+      ]
+    },
+    {
+      "id": "perspective-skill-body-angle",
+      "skill_name": "使用躯干转角调节身体形状和画面占宽",
+      "capability": "能改变躯干相对镜头的方向，并观察肩宽、躯干轮廓和脸部朝向的变化。",
+      "why_it_matters": "正对镜头可能扩大画面中的身体宽度；转身过多可能使面部信息减少。",
+      "module_hint": "人物与相机关系",
+      "domain_hint": "body_orientation",
+      "prerequisites": [],
+      "failure_modes": [
+        "躯干和脸朝向不协调",
+        "转角使主体轮廓或角色动作不可读"
+      ],
+      "practice": "同一站姿分别正对、转约四分之一侧、转约四分之一侧后回脸；比较肩线和面部可见度。",
+      "acceptance": [
+        "能指出转角对轮廓和脸部可见面的影响",
+        "选择角度与画面目标相符"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-canon-portrait-posing",
+          "locator": "Portrait posing, body angle and full-body advice (lines 624–670)",
+          "support": "摄影师给出全身姿势身体相对镜头约45度等指导示例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, turning the body and lens perspective (lines 18–24)",
+          "support": "训练材料讨论身体转向与相机位置对肖像形态的影响。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "使用躯干转角调节身体形状和画面占宽"
+      ]
+    },
+    {
+      "id": "perspective-skill-pose-distance-subject-goal",
+      "skill_name": "按主体表达目标选择头部与躯干的前后关系",
+      "capability": "能识别并选择头部/躯干靠近镜头的关系，而不是假设一种前倾法适用于所有主体。",
+      "why_it_matters": "同一提示在不同体型、角色与表情下可能造成相反效果。",
+      "module_hint": "姿态与透视",
+      "domain_hint": "pose_direction",
+      "prerequisites": [
+        "perspective-skill-lean-depth-control"
+      ],
+      "failure_modes": [
+        "机械套用前倾造成比例或气质偏差",
+        "把摄影师针对性修姿误当作普适规则"
+      ],
+      "practice": "从两个不同姿势目标出发，各拍一组头部前倾与躯干后移的对照；写出适用目标。",
+      "acceptance": [
+        "能说明此姿势解决的特定画面问题",
+        "明确记录这是摄影师方法/试验而非普适规则"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds interview, contrasting goals and opposite camera/body choices (lines 87–104)",
+          "support": "该摄影师针对不同主体呈现目标使用不同前后身体关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D, lean and perspective examples (lines 94–101)",
+          "support": "PPA给出前倾会改变相机与身体部分距离的例子。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "按主体表达目标选择头部与躯干的前后关系"
+      ]
+    },
+    {
+      "id": "perspective-skill-depth-of-field-control",
+      "skill_name": "用光圈、焦距和对焦距离管理景深",
+      "capability": "能通过调整光圈、焦距和对焦距离改变可接受清晰范围，并根据画面目标做出选择。",
+      "why_it_matters": "景深不足可能使应清楚的主体部分模糊；过深则可能削弱背景分离。",
+      "module_hint": "景深",
+      "domain_hint": "depth_of_field",
+      "prerequisites": [],
+      "failure_modes": [
+        "只凭最大光圈追求虚化",
+        "没有考虑焦距与拍摄距离对景深的影响"
+      ],
+      "practice": "固定构图进行光圈对照，再在安全范围内改变距离或焦距，观察清晰范围。",
+      "acceptance": [
+        "能识别各变量变化后的清晰范围",
+        "对焦和景深决定匹配主体/环境需求"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, factors affecting depth of field (lines 79–115)",
+          "support": "PPA说明景深与光圈、焦距和主体距离等条件有关。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focal-length",
+          "locator": "Understanding Focal Length, focal-length and magnification discussion (lines 25–42)",
+          "support": "官方教育解释焦距对视角/放大率影响；结合PPA景深因素理解而不单独过度归因。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-canon-portrait-posing",
+          "locator": "Portrait posing, group portrait depth of field (line 689)",
+          "support": "摄影师针对多人肖像提出增加清晰范围的光圈处理建议。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "用光圈、焦距和对焦距离管理景深"
+      ]
+    },
+    {
+      "id": "perspective-skill-aperture-sharpness-tradeoff",
+      "skill_name": "根据主体清晰范围选择光圈",
+      "capability": "能在背景虚化与人物所需清晰范围之间选择光圈，并按主体姿势/人物数量复核。",
+      "why_it_matters": "大光圈可以虚化背景，但清晰范围可能不足以覆盖人物。",
+      "module_hint": "景深",
+      "domain_hint": "aperture_choice",
+      "prerequisites": [
+        "perspective-skill-depth-of-field-control"
+      ],
+      "failure_modes": [
+        "脸部某一部分清楚、其他关键部分离焦",
+        "为虚化背景而牺牲多人/转脸时所需清晰范围"
+      ],
+      "practice": "在相同距离和构图下拍摄两档光圈；每张检查脸部、衣物主体和背景清晰度。",
+      "acceptance": [
+        "能指出哪个清晰范围是画面必要信息",
+        "光圈选择符合主体人数/姿势而不只追求虚化"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips, shallow-aperture caution and focus checks (lines 41, 56–67)",
+          "support": "摄影师提醒大光圈可能使整个人物清晰范围不足，并建议检查对焦。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-canon-portrait-posing",
+          "locator": "Portrait posing, group portrait depth-of-field passage (line 689)",
+          "support": "指出多人肖像需要增加景深以覆盖不同位置的人物。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, depth-of-field factors (lines 79–115)",
+          "support": "课程说明景深因素及光圈调整。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "根据主体清晰范围选择光圈"
+      ]
+    },
+    {
+      "id": "perspective-skill-group-focus-plane",
+      "skill_name": "为不同深度的人物安排清晰范围",
+      "capability": "能在多人或前后站位中安排人物深度/光圈，使重要面部处于可接受清晰范围。",
+      "why_it_matters": "一人清楚而另一人明显离焦，或为覆盖所有人而背景过于清晰。",
+      "module_hint": "景深与多人",
+      "domain_hint": "group_portrait",
+      "prerequisites": [
+        "perspective-skill-depth-of-field-control"
+      ],
+      "failure_modes": [
+        "人物前后距离超出景深范围",
+        "只检查焦点人物而遗漏其他面部"
+      ],
+      "practice": "让两位主体分别处在相近与不同前后距离，各拍一组光圈对照；检查所有关键面部。",
+      "acceptance": [
+        "能根据站位判断清晰范围是否覆盖关键人物",
+        "能选择调整站位、光圈或距离的手段"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-canon-portrait-posing",
+          "locator": "Portrait posing, group portrait aperture advice (line 689)",
+          "support": "Canon摄影师明确讨论多人合影的景深需求。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-capabilities",
+          "locator": "Module 1F, distance/aperture depth-of-field factors (lines 79–115)",
+          "support": "PPA课程解释景深随对焦距离和光圈改变。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "为不同深度的人物安排清晰范围"
+      ]
+    },
+    {
+      "id": "perspective-skill-eye-focus-priority",
+      "skill_name": "以眼睛清晰度作为人像对焦检查点",
+      "capability": "能在面部肖像中选择眼睛作为关键清晰区域，并在拍摄后检查实际焦点。",
+      "why_it_matters": "焦点落在耳朵、头发或背景时，人物面部显得失焦。",
+      "module_hint": "对焦",
+      "domain_hint": "portrait_focus",
+      "prerequisites": [],
+      "failure_modes": [
+        "自动对焦命中非关键部位",
+        "只看屏幕缩略图未发现眼部失焦"
+      ],
+      "practice": "拍摄不同光圈和构图的面部肖像，放大检查眼部焦点位置。",
+      "acceptance": [
+        "关键眼部清晰度可在放大回看时确认",
+        "能指出未合焦照片焦点落点"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips for Taking Better Portraits, eye-focus instruction and focus review (lines 41, 56–67)",
+          "support": "Gary Small强调眼睛作为人像最清晰处并指导检查对焦。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-versace-focus",
+          "locator": "The Lens Is the Brush, focus-point selection for close portrait (lines 52–67)",
+          "support": "Vincent Versace说明在近距离浅景深拍摄时选最近眼睛作为对焦目标。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "以眼睛清晰度作为人像对焦检查点"
+      ]
+    },
+    {
+      "id": "perspective-skill-near-eye-selection",
+      "skill_name": "在侧转脸部时选择靠镜头一侧的眼睛",
+      "capability": "能在浅景深人像中识别靠镜头一侧眼睛并将其设为优先焦点，同时检查另一眼是否仍符合意图。",
+      "why_it_matters": "焦点落在远眼可能让近眼失焦；浅景深下另一眼也可能离开清晰范围。",
+      "module_hint": "对焦",
+      "domain_hint": "portrait_focus",
+      "prerequisites": [
+        "perspective-skill-eye-focus-priority"
+      ],
+      "failure_modes": [
+        "焦点落在远眼",
+        "只追求近眼清晰却忽略另一眼离焦程度"
+      ],
+      "practice": "让主体轻微侧脸，拍摄近眼/远眼对焦对照，并记录光圈。",
+      "acceptance": [
+        "能验证焦点落在哪只眼",
+        "对两眼清晰度的取舍符合画面意图"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-versace-focus",
+          "locator": "The Lens Is the Brush, near-eye focus point example (lines 52–67)",
+          "support": "摄影师说明近距离浅景深肖像中将最近眼睛选作焦点的实例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips, eye-focus priority (lines 56–67)",
+          "support": "摄影师把眼睛作为人像关键清晰部位；没有为所有转脸情境规定固定眼睛。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "在侧转脸部时选择靠镜头一侧的眼睛"
+      ]
+    },
+    {
+      "id": "perspective-skill-autofocus-eye-detect",
+      "skill_name": "使用眼部识别自动对焦并核实选择结果",
+      "capability": "能在适合的移动人物情境启用眼部识别AF，并确认相机追踪的是预期主体/眼睛。",
+      "why_it_matters": "功能可能选错主体、被遮挡或无法稳定追踪，盲信提示会漏掉失焦。",
+      "module_hint": "自动对焦",
+      "domain_hint": "portrait_focus",
+      "prerequisites": [
+        "perspective-skill-eye-focus-priority"
+      ],
+      "failure_modes": [
+        "错误主体被识别为焦点",
+        "相机显示检测框但成片未合焦"
+      ],
+      "practice": "在静止、轻微移动和遮挡情境各拍一组，回看检测框与实际清晰位置。",
+      "acceptance": [
+        "能指出功能在哪些测试条件下可靠/失效",
+        "以成片检查而非检测框作为结果依据"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-eye-af",
+          "locator": "Eye-Detection Autofocus, use cases and tracking explanation (lines 26–53)",
+          "support": "Nikon说明眼部识别在移动人像中的功能及操作方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-focus-eyes",
+          "locator": "Quick Tips, photographer’s focus checks (lines 56–67)",
+          "support": "摄影师建议回看焦点是否落在眼睛；该来源使用较早期相机系统，流程需按当前机身验证。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "使用眼部识别自动对焦并核实选择结果"
+      ]
+    },
+    {
+      "id": "perspective-skill-focus-after-movement",
+      "skill_name": "主体移动后重新确认焦点",
+      "capability": "能在近距离或浅景深条件下于主体移动后重新对焦/检查，而非依赖先前锁定焦点。",
+      "why_it_matters": "主体前后移动后焦平面落在错误位置。",
+      "module_hint": "对焦",
+      "domain_hint": "portrait_focus",
+      "prerequisites": [
+        "perspective-skill-eye-focus-priority"
+      ],
+      "failure_modes": [
+        "先对焦后构图但主体移动导致焦点偏移",
+        "连拍后未复核关键帧"
+      ],
+      "practice": "让主体轻微前后移动，分别使用重对焦/眼部追踪/静态预对焦，检查每张成片。",
+      "acceptance": [
+        "能找到移动后失焦帧并解释原因",
+        "选择与动作幅度相称的对焦方式"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-nikon-versace-focus",
+          "locator": "The Lens Is the Brush, moving infant and shallow-DoF focus example (lines 52–67)",
+          "support": "Versace描述主体运动、近距离浅景深与焦点保持之间的实际问题。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-nikon-eye-af",
+          "locator": "Eye-Detection Autofocus, moving-subject tracking guidance (lines 26–53)",
+          "support": "Nikon说明眼部AF追踪移动主体的用途。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "主体移动后重新确认焦点"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "焦段与“压缩”",
+      "positions": [
+        "B&H文章称远摄会产生光学压缩，容易让读者把效果直接归因于镜头。",
+        "Banks/Cooper/Piazza研究分别考察固定视点和为保持眼间距调整距离等条件；人脸感知结果涉及焦段、相机位置与观看条件，不能化约为“焦段从不影响观感”。",
+        "Ukawa的固定机位换焦段示例观察取景/背景变化，并非保持人物画面尺寸的距离对照。"
+      ],
+      "handling": "保留术语和实验条件差异。训练先记录相机距离与焦段，再比较结果；候选技能不宣称焦段独立决定透视。",
+      "source_ids": [
+        "perspective-bh-perspective",
+        "perspective-cooper-banks-pictures",
+        "perspective-ukawa-focal-length"
+      ]
+    },
+    {
+      "topic": "低机位与仰拍的表达效果",
+      "positions": [
+        "PPA和Navy材料讲低/高视点对身体比例的影响；Faulds按不同人物目标选择较高或较低视点。",
+        "资料没有支持“低角度自动显得强大/有气势”这样的普遍情绪规则。"
+      ],
+      "handling": "训练用同主体对照判断比例、背景和个人表达，不把风格解释预设为结果。",
+      "source_ids": [
+        "perspective-ppa-angle-of-view",
+        "perspective-navy-posing-manual",
+        "perspective-ppa-fauld-corrective"
+      ]
+    },
+    {
+      "topic": "肖像机位高度建议",
+      "positions": [
+        "PPA、Canon和Navy给出按裁切/题材选择相机高度的实用起点；不同来源措辞和水平轴线建议并不完全相同。"
+      ],
+      "handling": "保留为可测试的起点，按身形、裁切、背景与意图调整；不制定固定腰位/眼位规范。",
+      "source_ids": [
+        "perspective-ppa-capabilities",
+        "perspective-canon-portrait-posing",
+        "perspective-navy-posing-manual"
+      ]
+    },
+    {
+      "topic": "浅景深与主体清晰范围",
+      "positions": [
+        "摄影师强调眼睛焦点和背景虚化；多人/转脸/动作条件下需更大清晰范围或更频繁地重对焦。"
+      ],
+      "handling": "按主体数量、深度、运动和表达意图选择景深，不能把“大光圈”作为默认专业答案。",
+      "source_ids": [
+        "perspective-nikon-focus-eyes",
+        "perspective-nikon-eye-af",
+        "perspective-canon-portrait-posing",
+        "perspective-ppa-capabilities"
+      ]
+    }
+  ],
+  "gaps": [
+    "Height versus pitch is now directly distinguished across a university cinematography text, PPA curriculum, and portrait practice sources. A controlled still-portrait comparison of roll versus pitch and the expressive effects of low height versus upward tilt remains thin; no universal low-angle emotion rule is supported.",
+    "Viewpoint-controlled focal-length perception is represented by a peer-reviewed experiment, with a photographer’s same-position focal-length series. A second independent portrait study that holds camera-to-subject distance and framing under explicit controls would improve triangulation; terminology like “telephoto compression” remains inconsistent across sources.",
+    "Near-object scale and lean/foreshortening now have several opened portrait sources, but no opened source directly studies cosplay props or oversize costume components. Any prop-specific practice remains an adaptation to verify in field work.",
+    "Shot-scale terms have textbook support and professional portrait examples, but an open, independent named portrait teacher’s deliberate one-session coverage sequence was not found at the same detail level. Do not treat Tamron’s generic shot list as consensus.",
+    "Depth-of-field factors and eye-focus priorities are represented. Source-backed tradeoffs for multiple-depth cosplay costume/prop details, subject movement, tracking reliability, and focus plane are incomplete; camera-specific AF behavior needs body-specific testing.",
+    "Canon official lens knowledge pages remained index-only after a direct 502. Nikon College remains a course listing and cannot support detailed technique claims.",
+    "No source in this pass supports cosplay-specific rules for large swords, daggers, wigs, wide sleeves, or convention-space constraints. Candidate practices use generic portrait geometry and label cosplay applications as project adaptations."
+  ]
+}

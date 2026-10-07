@@ -1,0 +1,257 @@
+{
+  "audit": "source_quality_final",
+  "as_of": "2026-10-08",
+  "snapshot_sha256": {
+    "SKILL_TREE.json": "8f043aa2b6fb331ce0a152d6cdcb2b869c6c2d06387130dc16c22e720b6a21a5",
+    "SOURCE_MAP.json": "f9f72b8a7d0e60cc80fd5da20646002d050cc17451a89bb75f9c2e4ca93ebdc8",
+    "EVIDENCE_MATRIX.json": "a96caa163f6f9a27be471929b21ebb6e126708580567963566aac9aa9c507b13",
+    "CLUSTER_DECISIONS.json": "31946613e241034a10fcc0e3ceca3bd2e821fc56664098cac1da450a1ccff466",
+    "raw/loop2_root_sources.json": "ebfdd66bbd74f9acef7e798953ea54f653d0c55418879f5fda61f0051285bcb5",
+    "raw/loop2_root_candidates.json": "9054a036b8b2eba4e95c0cae3e8d08bdc2e118cdbbb43fde90f80c7ac8f5ee6f",
+    "raw/light_gap_sources.json": "7835c41bda6fb3acee93fea4d247df40206e064d9b98b77cab83124cb0a7c09e",
+    "raw/light_gap_candidates.json": "364bab3155b061f9199a58616a33431a4a58cc22d5697c67885b7edd3888db70",
+    "raw/field_gap_sources.json": "a691bd89c7e22fb3ae34da3e5910aa3eb4e05c281f1088f2e021efbb3d119ec8",
+    "raw/field_gap_candidates.json": "a0e41f158d8723aa030f2d4728f44afce36dca29ad72d54aab155fd1ce1aefd7"
+  },
+  "scope": {
+    "metadata_review": "all canonical SOURCE_MAP records at captured snapshot",
+    "canonical_review": "SKILL_TREE, EVIDENCE_MATRIX, CLUSTER_DECISIONS plus raw root/light_gap/field_gap inputs",
+    "content_review": "risk-weighted primary-page sample listed below; not a page-by-page semantic verification of all sources or skills"
+  },
+  "summary": {
+    "domains": 14,
+    "modules": 71,
+    "skills": 247,
+    "sources": 205,
+    "evidence_rows": 247,
+    "access": {
+      "full_text": 160,
+      "index_only": 12,
+      "partial": 31,
+      "blocked": 2
+    },
+    "tier": {
+      "A": 193,
+      "C": 1,
+      "unranked": 11
+    },
+    "eligible": {
+      "True": 156,
+      "False": 49
+    },
+    "confidence_basis": {
+      "high|professional_consensus": 105,
+      "medium|photographer_method": 100,
+      "high|photographer_method": 4,
+      "medium|professional_consensus": 5,
+      "medium|project_adaptation": 33
+    }
+  },
+  "metadata_checks": {
+    "required_metadata_missing": [
+      {
+        "source_id": "cosplay-gap-canon-guangzhou-event",
+        "fields": [
+          "worth_deep_read"
+        ]
+      },
+      {
+        "source_id": "cosplay-gap-shobserver-chinajoy-field",
+        "fields": [
+          "worth_deep_read"
+        ]
+      },
+      {
+        "source_id": "cosplay-meihaku-sword",
+        "fields": [
+          "worth_deep_read"
+        ]
+      },
+      {
+        "source_id": "perspective-hasselblad-position-guide",
+        "fields": [
+          "worth_deep_read"
+        ]
+      },
+      {
+        "source_id": "posing-animek-coaching",
+        "fields": [
+          "worth_deep_read"
+        ]
+      }
+    ],
+    "duplicate_exact_urls": {},
+    "formal_evidence_nonfull_or_ineligible": [],
+    "high_rows_with_fewer_than_two_independence_keys": [],
+    "tier_b_count": 0,
+    "result": "All 205 canonical source rows have required metadata, exact URLs are unique in this snapshot, and all formal evidence references are eligible full-text sources. No current source is Tier B; partial/index/blocked records remain ineligible."
+  },
+  "actual_pages_reopened": [
+    {
+      "source_id": "root-duchemin-intent-review",
+      "url": "https://davidduchemin.com/2018/07/is-it-any-good/",
+      "location": "article lines 24–59",
+      "finding": "Text directly asks what the photographer wanted to express, whether the image succeeded, allows exploration before intent is clear, and suggests possible next choices."
+    },
+    {
+      "source_id": "root-duchemin-intent-review (identity)",
+      "url": "https://davidduchemin.com/about-david/",
+      "location": "about page lines 16–24, 32–36",
+      "finding": "Self-identifies as photographer and author; page documents photographic books and workshop/training work."
+    },
+    {
+      "source_id": "root-mcnally-portrait-error",
+      "url": "https://joemcnally.com/2008/02/19/more-from-corregidor/",
+      "location": "article lines 74–80",
+      "finding": "One ballerina portrait case: blue open shade, a lighting setup that creates a bright/reverse-gradient backdrop, then flags and feathers spill. Text is the source photographer’s interpretation; no image pixels were independently inspected."
+    },
+    {
+      "source_id": "root-mcnally-portrait-error (identity)",
+      "url": "https://joemcnally.com/about/",
+      "location": "about page lines 40–45",
+      "finding": "Official bio identifies McNally as an award-winning photographer/educator and describes National Geographic/LIFE assignment work; biographical source is self-published."
+    },
+    {
+      "source_id": "root-muncy-convention-location",
+      "url": "https://www.adorama.com/alc/c-s-muncy-on-how-to-shoot-cosplay-portraits/",
+      "location": "article lines 121–159; especially 147–155",
+      "finding": "Bylined Muncy article; describes prior permission/security check and a site survey choosing a location slightly tucked away from crowd flow. This is one authorized AwesomeCon fixed-backdrop/light project, not a venue-wide or China rule."
+    },
+    {
+      "source_id": "cosplay-nikon-cosgenic-lesson5",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson5/",
+      "location": "lesson lines 31–101, 112–135",
+      "finding": "Exact Lesson 5 page contains group-arrangement text and credits photography/retouching to 井上依子 (YOL) and 渡邉 (yakul); it supports placement/variation and coordination, not image-pixel review."
+    },
+    {
+      "source_id": "light-gap-neil-manual-controls",
+      "url": "https://neilvn.com/tangents/practical-tutorial-manual-flash-exposure/",
+      "location": "article lines 61–72, 87–123, 141–149",
+      "finding": "Full text names power/distance/aperture/ISO as manual-flash controls, uses a test frame, and limits shutter independence to below maximum sync; it gives a direct professional method."
+    },
+    {
+      "source_id": "light-gap-nikon-tejada",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/lighting-with-two-speedlights",
+      "location": "article lines 40–44, 67–82",
+      "finding": "Article attributes a manual-power/test-shot workflow to portrait photographer and workshop teacher David X. Tejada; separately distinguishes beginner TTL/compensation guidance, so the candidate should retain the manual-method framing."
+    },
+    {
+      "source_id": "light-gap-nikon-stilllife",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/photographing-still-life-subjects-using-flash",
+      "location": "article lines 26–57",
+      "finding": "Explains normal-sync flash/ambient split, aperture and flash exposure, shutter and ambient exposure; explicitly labels model-specific Auto FP/HSS behavior."
+    },
+    {
+      "source_id": "light-gap-ppa-exposure-4b",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-4b-utilizing-the-exposure-triangle-to-create-images",
+      "location": "chapter lines 84–114 and 140–143",
+      "finding": "Worked examples tie aperture/shutter choices to depth of field/action and shake; line 143 identifies ISO as an exposure compensation option. PPA page history credits Jessica Avery as creator/editor but not original chapter author, so it remains one PPA lineage."
+    },
+    {
+      "source_id": "light-canon-tillinghast-settings",
+      "url": "https://www.usa.canon.com/learning/training-articles/training-articles-list/camera-settings-for-stunning-portraits",
+      "location": "article lines 666–672",
+      "finding": "Credited portrait photographer Laura Tillinghast recommends raising ISO in low light/motion to permit faster shutter and notes increased noise."
+    },
+    {
+      "source_id": "light-gap-nikon-histogram",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/learning-how-to-use-your-cameras-histogram",
+      "location": "article lines 47–58, 95–105",
+      "finding": "Manufacturer page says several Nikon models provide RGB histograms and some allow local magnification; it recommends selective checks and defers exact procedures to the camera manual."
+    },
+    {
+      "source_id": "light-gap-nikon-tom-bol",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/awesome-skies-tips-and-techniques-for-photographing-the-northern-lights",
+      "location": "article lines 55–60",
+      "finding": "Tom Bol explicitly describes the average histogram appearing safe while a green channel is overexposed in aurora work; the source only gives a color-photography example, not cosplay-specific proof."
+    },
+    {
+      "source_id": "light-gap-canon-snow",
+      "url": "https://www.usa.canon.com/learning/training-articles/training-articles-list/photographing-snow",
+      "location": "article lines 681–705",
+      "finding": "Canon editor explains highlight histogram clipping in a snow/high-key example; adapted evidence is narrow and not used to establish RGB-specific behavior."
+    },
+    {
+      "source_id": "field_gap-rigsby-crowd-background",
+      "url": "https://www.spekture.com/how-to-improve-your-cosplay-photography-in-4-easy-steps/",
+      "location": "article lines 33–45, 64–69",
+      "finding": "Bylined Mark Rigsby article and author description support establishing rapport, selecting a nearby less cluttered location, asking the subject to move, and continuing conversation while walking. It does not establish Chinese venue permissions or crowd-control policy."
+    }
+  ],
+  "canonical_corrections_confirmed": [
+    {
+      "topic": "index/partial/unwatched sources",
+      "finding": "No formal skill evidence references ineligible or non-full-text sources. The Cosgenic about page is discovery-only; Lesson 5 now has its own full-text source row. Partial note.com and unwatched-video examples are excluded from formal evidence."
+    },
+    {
+      "topic": "source independence",
+      "finding": "All current high-confidence rows reference at least two distinct independence_key values. Adobe education/help pages remain one family and PPA guide chapters remain one family; multiple pages or locators from those sources are not treated as independent families. No duplicate exact URLs remain in SOURCE_MAP."
+    },
+    {
+      "topic": "cosplay scope and lineage",
+      "finding": "Cosplay note.com authors without established professional teaching credentials and the sword-museum editorial source are unranked/ineligible. COSPLAY MODE contributor content is grouped as one lineage. Nikon Lesson 5 is separate from its about/index record, and the COSPLAY MODE plus Nikon Lesson 5 group-skill pair remains medium."
+    },
+    {
+      "topic": "frequency separation and Adobe",
+      "finding": "Fstoppers remains unranked/partial and is absent from formal frequency-separation evidence; the current skill is medium and cites PHLEARN/Aaron Nace only for his method. Adobe sources are grouped under adobe-education and no row relies on two Adobe pages alone for high confidence."
+    },
+    {
+      "topic": "cinema/video transfer",
+      "finding": "The PASS2 video-only and project-adaptation corrections remain medium; repeated ASC article passages (mot-23) still count as one source. Other high film-craft rows inspected in the matrix are in the moving-image domain, not static-portrait consensus."
+    },
+    {
+      "topic": "other PASS2 candidate dispositions",
+      "finding": "Current rows reflect the corrected evidence/confidence for the sampled old corrections: COSPLAY C02/C08/C14 map to merged skills, C07 uses exact Lesson 11 plus a separate COSPLAY MODE lineage, C13 cites Lesson 5 and stays medium, and post-retouch claims narrowed to accessible full text are medium."
+    }
+  ],
+  "source_corrections": [],
+  "candidate_corrections": [
+    {
+      "id": "field-test-failure-hypothesis",
+      "disposition": "retain medium/project_adaptation; repair locator precision",
+      "requirededit": {
+        "evidence[root-mcnally-portrait-error].locator": "lines 74–80 (or 76–80); current candidate locator lines78–84 omits the setup-error/cause at lines 76–77."
+      },
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "reason": "The actual article supports one dancer/ballerina lighting diagnosis and intervention, not a universal root-cause protocol; DuChemin supplies a separate intent-review method. The skill’s single-variable logging protocol remains project-designed."
+    },
+    {
+      "id": "lightgap-exposure-aperture-iso-tradeoff",
+      "disposition": "retain high only with exact ISO locator added",
+      "requirededit": {
+        "evidence[light-gap-ppa-exposure-4b].locator": "include Filter Factors lines 140–143 in addition to Example 1–2 lines 84–114; line 143 explicitly names ISO as an exposure-adjustment option."
+      },
+      "confidence": "high after locator repair",
+      "basis": "professional_consensus",
+      "reason": "Canonical wording now correctly fixes aperture/shutter and trains ISO as the one changed variable; Canon lines 667–672 directly support ISO/noise trade-off, while PPA 4B supports exposure-equivalence and explicitly names ISO at line 143. The current PPA locator omits that exact ISO passage."
+    },
+    {
+      "id": "cosplay-c12-subject-set-overlap",
+      "disposition": "keep out of formal matrix as discovery/hold and explicitly record the disposition",
+      "requirededit": {
+        "cluster_decision": "Add a short exclusion/discovery rationale so omission is auditable."
+      },
+      "confidence": "not_assessed",
+      "basis": "discovery_only",
+      "reason": "PASS2 found only one self-published, unqualified single-shoot report; that source is now ineligible. Candidate is absent from EVIDENCE_MATRIX and not present in explicit excluded_skills, consistent with hold but not explicitly recorded."
+    },
+    {
+      "id": "post-skin-dodge-burn-scope",
+      "disposition": "keep out of formal matrix unless qualified full-text support is added; explicitly record disposition",
+      "requirededit": {
+        "cluster_decision": "Add a short exclusion/discovery rationale or merge into a supported neighboring skill with narrowed wording."
+      },
+      "confidence": "not_assessed",
+      "basis": "discovery_only",
+      "reason": "PASS2 called for removing partial Retouch Academy and Fstoppers summaries. Candidate is absent from EVIDENCE_MATRIX and not in explicit excluded_skills; no direct qualified full-text support for its face-structure boundary remains."
+    }
+  ],
+  "limitations": [
+    "This is not a semantic review of every one of the 247 skills or every cited page. All 205 source records were checked for metadata, access/eligibility and lineage fields; only the risk-weighted page sample above was reopened.",
+    "Byline/professional qualification was cross-checked on sampled pages and first-party biographies, not independently corroborated for every source. Institution-published pages without named teachers can be credible for device/documentation facts but should not silently imply an individual professional educator.",
+    "No example image pixels or videos were inspected in this pass. No claim of visual review is made.",
+    "A briefly attempted bulk web request failed at transport; all listed source pages were subsequently opened successfully in smaller batches."
+  ],
+  "outcome": "Snapshot checks show no source-ID, exact-URL duplicate, ineligible-evidence, or high-row lineage-count failure. Remaining actionable items are two precise locator repairs and explicit dispositions for two absent PASS2 candidates."
+}

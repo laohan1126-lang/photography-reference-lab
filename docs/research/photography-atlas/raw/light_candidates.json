@@ -1,0 +1,741 @@
+{
+  "scope": "light",
+  "candidates": [
+    {
+      "id": "light-001",
+      "skill_name": "辨认人脸上的主光方向",
+      "capability": "观察鼻影、眼窝和脸颊明暗，判断主光来自正面、侧面、上方或背后。",
+      "why_it_matters": "方向决定脸部立体感、阴影落点和逆光判断。",
+      "module_hint": "现场读光",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": ["只看整体亮度，忽略脸部受光方向", "逆光或顶光下无法解释阴影为何形成"],
+      "practice": "让同一人物站在窗边或单灯前，连续改变光源方向，拍摄正面、侧面、斜上方和背光四组，并标记鼻影方向。",
+      "acceptance": ["能仅依据阴影位置判断主光大致方向", "能预测移动人物或灯后哪一侧会变亮"],
+      "evidence": [
+        {"source_id":"light-ppa-quality","locator":"§ Properties of Light, lines 98–105; Lighting Design, lines 220–243","support":"说明入射角、反射方向与光线方向如何改变高光、阴影和脸部明暗。","scope":"direct"},
+        {"source_id":"light-cambridge-portrait","locator":"§ Direction: Sense of Depth, lines 114–123","support":"比较正面、侧面和前上侧光对脸部深度感的影响。","scope":"direct"},
+        {"source_id":"light-fuji-portrait-guide","locator":"§ How Does the Direction of Light Impact Portrait Photography, lines 217–219","support":"将光源相对人物的位置作为影响肖像外观的独立变量。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["portrait light direction face shadows photographer"]
+    },
+    {
+      "id": "light-002",
+      "skill_name": "估计主体与背景的明暗差",
+      "capability": "到达场景后分别观察人物脸部、背景高光和阴影区域，判断现有光是否能同时保留所需细节。",
+      "why_it_matters": "高反差场景常让背景或脸部一方失去细节，影响是否需要补光、换角度或接受剪切。",
+      "module_hint": "现场读光",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-001"],
+      "failure_modes": ["整张画面平均测光后才发现脸黑或天空过曝", "忽略阴影细节已超出当前光比可记录范围"],
+      "practice": "选一处有亮窗或天空的场景，分别记录人物脸、背景和暗部的测光读数或相机预览，再改变人物位置复测。",
+      "acceptance": ["按下快门前能指出需要优先保留的区域", "能解释另一处可能丢失的细节并说明是否接受"],
+      "evidence": [
+        {"source_id":"light-nikon-vitale","locator":"§ Spot Metering, lines 37–40; Off-Camera Flash, lines 43–45","support":"作者在高反差场景选择亮部测光并主动决定让阴影变暗，另以天空作为背景曝光参照。","scope":"direct"},
+        {"source_id":"light-ppa-techniques","locator":"§ Backlighting, lines 166–189","support":"指出背景与人物之间的曝光差，并列出补光、反光板、遮挡和允许背景过曝等不同处理。","scope":"direct"},
+        {"source_id":"light-society-carlino","locator":"§ Consider the quantity of light, lines 96–112","support":"要求先判断可用光量和现有氛围，再决定补光或压低环境光。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["portrait high contrast subject background exposure assessment"]
+    },
+    {
+      "id": "light-003",
+      "skill_name": "用阴影边界判断光线硬度",
+      "capability": "根据脸部阴影边缘的锐利程度、阴影对比和高光反射判断硬光或柔光。",
+      "why_it_matters": "能快速预判直射日光、云层、窗光或裸灯会如何呈现皮肤纹理与面部结构。",
+      "module_hint": "光质识别",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-001"],
+      "failure_modes": ["把亮度误当成软硬", "没看阴影边缘就选用与预期不符的场景"],
+      "practice": "同一人物分别在直射光、阴影和柔光源下拍摄脸部近景，对比鼻影边缘、眼睛高光与明暗反差。",
+      "acceptance": ["能依据阴影过渡而非亮度给三组照片排序", "能指出高光或阴影的可见差异"],
+      "evidence": [
+        {"source_id":"light-ppa-quality","locator":"§ Size of the Light, lines 109–121; Quality of Light, lines 190–206","support":"把小相对光源与强高光、急剧阴影过渡相连，把较大或扩散光源与柔和过渡相连。","scope":"direct"},
+        {"source_id":"light-fuji-portrait-guide","locator":"§ Understanding Light Hardness and Softness, lines 189–196","support":"用阴影边缘、镜面高光和明暗反差识别硬度。","scope":"direct"},
+        {"source_id":"light-cambridge-portrait","locator":"§ Size: Hard vs. Soft Light, lines 68–90","support":"以光源表观大小解释阴影和高光从突然到渐变的变化。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["portrait shadow edge hard soft light quality"]
+    },
+    {
+      "id": "light-004",
+      "skill_name": "按画面意图选择硬光或柔光",
+      "capability": "依据要表现的质感、结构或情绪选择硬光或柔光，而不是把一种光质当作所有肖像的标准答案。",
+      "why_it_matters": "柔光常用于降低面部反差，硬光也可用于戏剧性、纹理和鲜明结构。",
+      "module_hint": "光质识别",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-003"],
+      "failure_modes": ["为追求所谓好看而一律避开硬光", "没能解释光质与照片目标的关系"],
+      "practice": "以同一人物制作一张柔光和一张硬侧光肖像，拍前写下希望突出或压低的脸部特征。",
+      "acceptance": ["能把每种光质选择对应到一个可见视觉目标", "能说明当目标改变时是否需要换光质"],
+      "evidence": [
+        {"source_id":"light-fuji-portrait-guide","locator":"§ How Does Hard and Soft Light Affect a Portrait?, lines 204–207","support":"说明常见柔光用途，同时指出硬光可用于戏剧效果，选择依赖人物与想要的审美。","scope":"direct"},
+        {"source_id":"light-society-carlino","locator":"§ Look at the quality of the light, lines 83–95","support":"指出硬光可能带来强阴影，也可服务于时尚、运动或戏剧肖像。","scope":"direct"},
+        {"source_id":"light-ppa-quality","locator":"§ Hard Light Sources, lines 222–225","support":"描述硬光用于强化纹理和形体，并不将其限于失败或不适用场景。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["hard light soft light portrait intent professional photographer"]
+    },
+    {
+      "id": "light-005",
+      "skill_name": "通过相对光源尺寸与扩散改变硬度",
+      "capability": "用较大相对光源、靠近被摄者或扩散材料，让阴影过渡变柔；用较小、集中的光源保留更硬的边界。",
+      "why_it_matters": "可把日光或小型闪光改造成符合人物与场景的光质。",
+      "module_hint": "光质塑造",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-003"],
+      "failure_modes": ["只购买柔光附件却未考虑附件相对人物的尺寸", "期待小型远距离光源形成大面积柔和包裹光"],
+      "practice": "用同一盏灯分别裸灯、加伞或柔光布，并改变光源与人物距离，记录阴影边缘变化。",
+      "acceptance": ["能用阴影边缘证明软硬变化", "能在给定场景中选出可实现目标光质的尺寸或扩散方式"],
+      "evidence": [
+        {"source_id":"light-ppa-quality","locator":"§ Size of the Light and Soft Light Sources, lines 109–121, 229–238","support":"说明相对尺寸与距离决定光质，伞和柔光箱可扩大或扩散闪光源。","scope":"direct"},
+        {"source_id":"light-cambridge-portrait","locator":"§ Size: Hard vs. Soft Light; Tips for achieving softer light, lines 68–94","support":"解释大光源、漫射、反射如何产生较柔阴影过渡。","scope":"direct"},
+        {"source_id":"light-fuji-portrait-guide","locator":"§ What Makes Light Hard or Soft?, lines 197–203","support":"把相对尺寸、距离和扩散列为硬度变量。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["relative light source size diffuser portrait soft shadows"]
+    },
+    {
+      "id": "light-006",
+      "skill_name": "预判光源距离对光质与明暗变化的双重影响",
+      "capability": "改变灯距时，同时检查表观尺寸/硬度、主体亮度、脸部近远侧差异和背景亮度。",
+      "why_it_matters": "近灯更亮、表观更大但主体不同部位和背景可能出现更明显的照度差。",
+      "module_hint": "光质塑造",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-005"],
+      "failure_modes": ["移动灯后未重测曝光", "只获得柔光却造成远侧脸或服装亮度大幅下降"],
+      "practice": "在固定功率下把灯放在两个距离，拍摄同一人物并观察脸部远近侧和背景；随后补偿曝光再比较。",
+      "acceptance": ["能说明灯距变化后哪些区域会变亮或变暗", "能分辨质感变化与曝光变化并分别调整"],
+      "evidence": [
+        {"source_id":"light-cambridge-portrait","locator":"§ Distance & Apparent Light Size, lines 102–113","support":"说明近灯会变得表观更大、更亮，同时造成主体照度不均及主体/背景分离变化。","scope":"direct"},
+        {"source_id":"light-ppa-quality","locator":"§ The Inverse Square Law and Depth of Light, lines 127–155","support":"解释距离改变照度和主体前后/背景间的光线衰减。","scope":"direct"},
+        {"source_id":"light-fuji-portrait-guide","locator":"§ What Makes Light Hard or Soft?, lines 199–203","support":"把光源距离作为硬度影响因素。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["flash distance falloff portrait source size exposure"]
+    },
+    {
+      "id": "light-007",
+      "skill_name": "控制光源造成的主体到背景衰减",
+      "capability": "根据灯到主体与主体到背景的距离关系，决定背景是否随主体受光显著变暗。",
+      "why_it_matters": "可用一盏灯提高人物与背景的明暗分离，也可降低背景亮度落差。",
+      "module_hint": "光质塑造",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-006"],
+      "failure_modes": ["背景意外变黑或不均匀", "人物不同部位受光差异超过想要的程度"],
+      "practice": "固定人物与背景，分别近灯和远灯并调整输出使脸部曝光相近，比较背景明暗。",
+      "acceptance": ["能通过灯距改变背景受光趋势", "灯距变化后脸部仍在预定曝光范围"],
+      "evidence": [
+        {"source_id":"light-ppa-quality","locator":"§ The Inverse Square Law and Depth of Light, lines 147–155","support":"将近灯与快速衰减、远灯与较均匀的主体到背景曝光联系起来。","scope":"direct"},
+        {"source_id":"light-cambridge-portrait","locator":"§ Distance & Apparent Light Size, lines 111–113","support":"指出近灯可增加主体相对背景的亮度，也可能使已足够的分离变得过强。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["light falloff subject background portrait distance"]
+    },
+    {
+      "id": "light-008",
+      "skill_name": "在强日光下寻找开放阴影",
+      "capability": "将人物移入有天空或环境反射的开放阴影，检查眼窝、鼻影和眯眼情况。",
+      "why_it_matters": "开放阴影通常能降低直射日光导致的强硬脸部阴影。",
+      "module_hint": "自然光现场选择",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-003"],
+      "failure_modes": ["人物直面高位强光造成眯眼和眼窝阴影", "只追逐背景位置而未检查脸部照明"],
+      "practice": "在晴天拍摄直射光与开放阴影各一组，比较脸部阴影、眯眼和亮度。",
+      "acceptance": ["能指出何处是开放阴影而非封闭暗处", "移动人物后能重新测曝光并确认脸部均匀度"],
+      "evidence": [
+        {"source_id":"light-ppa-techniques","locator":"§ Controlling Natural Light, lines 61–79","support":"建议在强日光下寻找开放阴影或创造扩散的定向光。","scope":"direct"},
+        {"source_id":"light-canon-tillinghast-settings","locator":"Five Tips for Better Outdoor Portraits, § Get Edgy, lines 638–640","support":"作者建议将人物置于开放阴影并留意阴影边缘的环境反射。","scope":"direct"},
+        {"source_id":"light-society-carlino","locator":"§ Look at the quality of the light, lines 87–95","support":"将开放阴影作为减弱正午强光阴影的选择，同时保留硬光的创作可能。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["open shade natural light portrait harsh sun"]
+    },
+    {
+      "id": "light-009",
+      "skill_name": "在阴影边缘调节环境反射补光",
+      "capability": "把人物放在阴影边缘并逐步改变站位，利用周边亮面反射调整脸部亮度与方向。",
+      "why_it_matters": "开放阴影内部并非均一；靠近亮区可能增加反射光，深处则可能太暗。",
+      "module_hint": "自然光现场选择",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-008"],
+      "failure_modes": ["人物站在阴影深处导致曝光不足", "未检查来自亮区的侧向反射"],
+      "practice": "沿阴影边界每次移动半步拍摄，比较脸部阴影侧和亮侧。",
+      "acceptance": ["能找到脸部明暗符合预期的位置", "能指出补光来自哪一侧环境表面"],
+      "evidence": [
+        {"source_id":"light-canon-tillinghast-settings","locator":"Five Tips for Better Outdoor Portraits, § Get Edgy, lines 638–640","support":"Tillinghast把人物放在阴影边缘，以让外侧环境光反射进入阴影。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"photographer_method", "practice_basis":"project_designed", "search_terms":["shade edge reflected fill portrait outdoors"]
+    },
+    {
+      "id": "light-010",
+      "skill_name": "用窗光方向和扩散塑造室内人像",
+      "capability": "观察直射阳光是否进入窗内，选择侧窗、窗帘扩散或反射补光来形成所需的脸部明暗。",
+      "why_it_matters": "窗边光能提供方向性，但直射光与漫射窗光会产生不同阴影硬度。",
+      "module_hint": "自然光现场选择",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-001", "light-003"],
+      "failure_modes": ["未检查直射光便假设窗光柔和", "脸部反差太大却不调整人物方向或补光"],
+      "practice": "在同一窗口分别使用直射光、拉上薄窗帘、改变人物距离与朝向拍摄。",
+      "acceptance": ["能依据阴影边缘确认扩散是否生效", "能解释窗光朝向改变后脸部亮暗如何变化"],
+      "evidence": [
+        {"source_id":"light-ppa-techniques","locator":"§ Controlling Natural Light, lines 73–78","support":"建议避免直射阳光的柔窗光，也可用半透明布扩散并以反光板减小过强反差。","scope":"direct"},
+        {"source_id":"light-cambridge-portrait","locator":"§ Tips for achieving softer light, lines 92–94","support":"将窗帘扩散或将人物置于直射窗光以外的反射区域作为柔化方式。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["window light portrait diffuse curtain direction"]
+    },
+    {
+      "id": "light-011",
+      "skill_name": "用遮挡削弱不需要的自然光",
+      "capability": "用建筑边缘、遮光板或旗板挡掉直接光，观察脸部光比和方向是否更符合目标。",
+      "why_it_matters": "移除一部分光线可比单纯加灯更有效地控制反差和方向。",
+      "module_hint": "自然光现场控制",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-002"],
+      "failure_modes": ["试图只用补光克服所有亮部", "背景或脸部受不需要的直射光影响"],
+      "practice": "固定人物和相机，用黑旗或建筑边缘依次遮挡来自不同方向的直射光，记录变化。",
+      "acceptance": ["能指出被遮掉的光源及其在脸上的贡献", "遮挡后主体曝光与背景层次仍符合意图"],
+      "evidence": [
+        {"source_id":"light-ppa-techniques","locator":"§ Controlling Natural Light, lines 68–79","support":"将减光、挡光与扩散并列为自然光控制手段。","scope":"direct"},
+        {"source_id":"light-ppa-techniques","locator":"§ Backlighting, lines 177–187","support":"将用gobo或scrim降低背景入光列为处理逆光的选项。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["subtractive lighting natural light portrait flag scrim"]
+    },
+    {
+      "id": "light-012",
+      "skill_name": "用反光板提升脸部阴影侧",
+      "capability": "改变反光板位置、角度和距离，让环境光填入阴影，同时观察脸部立体感是否保留。",
+      "why_it_matters": "反光板可以在无需闪光灯的情况下减少逆光或侧光阴影。",
+      "module_hint": "自然光现场控制",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-001", "light-002"],
+      "failure_modes": ["阴影侧没有细节", "补光过强使脸部趋于平光"],
+      "practice": "在自然侧光下分别不使用、近距离使用和远距离使用反光板，比较脸部两侧的亮度关系。",
+      "acceptance": ["能降低阴影而不消除所有脸部层次", "能根据反光板距离和方向调整补光量"],
+      "evidence": [
+        {"source_id":"light-ppa-techniques","locator":"§ Backlighting, lines 177–182","support":"将反光板列为逆光人物补光方案。","scope":"direct"},
+        {"source_id":"light-ppa-quality","locator":"§ Soft Light Sources, lines 229–238","support":"说明大面积填充光可减少主光阴影而不额外制造明显新阴影。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["reflector fill shadows portrait natural light"]
+    },
+    {
+      "id": "light-013",
+      "skill_name": "判断自然光与人造光的色温变化",
+      "capability": "在拍摄位置比较窗光、阴影、日落光和室内灯的冷暖差，并选择整体白平衡或保留色偏。",
+      "why_it_matters": "同一人物不同部位可能由不同颜色光源照亮，造成肤色和服装色差。",
+      "module_hint": "混合光色彩",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": ["混合光使脸部左右两侧颜色明显不同", "误以为白平衡能修正多个相反色温的局部色偏"],
+      "practice": "在窗边打开暖色室内灯，分别关灯、开灯和加闪光拍摄，比较脸部不同受光侧的颜色。",
+      "acceptance": ["能辨认至少两种环境光源的颜色差", "能说明选择整体白平衡后哪些区域仍可能偏色"],
+      "evidence": [
+        {"source_id":"light-ppa-quality","locator":"§ Color Temperature and Color Shifts, lines 65–87","support":"说明不同来源会改变记录颜色，单一相机白平衡只能近似匹配。","scope":"direct"},
+        {"source_id":"light-fuji-portrait-guide","locator":"§ Colour Temperature in Photography, lines 209–213","support":"描述日出日落、蓝调时刻、云层和白平衡对画面色温的影响。","scope":"direct"},
+        {"source_id":"light-society-carlino","locator":"§ Learn to read the colour of light, lines 113–139","support":"指出自然光随时段变化，场馆可有多个色温来源且白平衡不能同时中和所有色光。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["mixed light color temperature skin portrait white balance"]
+    },
+    {
+      "id": "light-014",
+      "skill_name": "区分LED色温与显色能力",
+      "capability": "比较LED的色温与颜色显现差异，不把相同开尔文数视为相同肤色呈现。",
+      "why_it_matters": "LED光谱差异可能让肤色或服装颜色呈现不同，即使整体冷暖相近。",
+      "module_hint": "混合光色彩",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-013"],
+      "failure_modes": ["只看标称色温选择灯光", "预览中不同LED下肤色出现不一致而无法解释"],
+      "practice": "将两盏标称色温接近的LED照在同一色卡或人物上，比较皮肤与彩色服装，再检查灯具显色资料。",
+      "acceptance": ["能区分整体冷暖与颜色还原差异", "不会把单一CRI数字当作完整光谱评价"],
+      "evidence": [
+        {"source_id":"light-mcnamee-led-quality","locator":"§ What is colour rendering? and Colour temperature, lines 99–127","support":"说明色温相同仍可能呈现不同颜色，CRI也不是完整的颜色质量说明。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"photographer_method", "practice_basis":"project_designed", "search_terms":["LED colour rendering color temperature portrait skin"]
+    },
+    {
+      "id": "light-015",
+      "skill_name": "用校色片协调闪光与环境光",
+      "capability": "当环境色与闪光色不协调时，为闪光加校色片并按主要照明设定白平衡。",
+      "why_it_matters": "可减少人物与背景分别呈现橙、蓝或偏绿的混合色偏。",
+      "module_hint": "混合光色彩",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-013"],
+      "failure_modes": ["人物由闪光照亮但环境灯偏色", "全局白平衡修正一方后另一方颜色更偏"],
+      "practice": "在暖色室内灯下拍一张未校色闪光，再为闪光加合适CTO片并重复，比较人物与环境色差。",
+      "acceptance": ["能指出哪种光需要匹配到主要环境色", "匹配后人物与环境颜色关系更协调，或能说明有意保留的色差"],
+      "evidence": [
+        {"source_id":"light-ppa-techniques","locator":"§ Mixing Light Sources, lines 94–127; CTO, lines 151–155","support":"以钨丝灯与日光色闪光为例，介绍色温匹配与校色片方案。","scope":"direct"},
+        {"source_id":"light-society-carlino","locator":"§ Correcting mixed or unwanted colour, lines 127–139","support":"建议在保留混合环境光时用色片调整闪光颜色，并说明色偏也可能是有意表达。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["CTO gel flash match tungsten ambient portrait"]
+    },
+    {
+      "id": "light-016",
+      "skill_name": "选择要保留的环境色光并处理其余色偏",
+      "capability": "在多种混合光中决定哪一种环境颜色作为主导，再判断是否校正其他光、改变位置或保留色偏。",
+      "why_it_matters": "强行统一所有光色可能破坏现场氛围，也可能留下难以修复的肤色分区。",
+      "module_hint": "混合光色彩",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-013", "light-015"],
+      "failure_modes": ["默认所有颜色都应中和", "不同肤色区域分别被不同光源染色却未作决定"],
+      "practice": "在含窗光和室内灯的场景拍摄三组：统一校色、匹配闪光到一种环境光、保留有意色差。",
+      "acceptance": ["能识别人物各区域受哪种颜色光影响", "能陈述保留的色偏和修正的色偏各自的目的"],
+      "evidence": [
+        {"source_id":"light-ppa-techniques","locator":"§ Mixing Light Sources, lines 94–127","support":"针对多色温环境提出校色和RAW分阶段修正等不同路线。","scope":"direct"},
+        {"source_id":"light-society-carlino","locator":"§ Correcting mixed or unwanted colour, lines 127–139","support":"指出混合色可被校正，也可能是画面氛围的一部分。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["mixed lighting choose dominant color portrait"]
+    },
+    {
+      "id": "light-017",
+      "skill_name": "按画面意图选择曝光参照区域",
+      "capability": "在拍摄前决定以人物、天空、环境或其他高光为曝光参照，并接受因此产生的明暗取舍。",
+      "why_it_matters": "高反差场景通常无法同时保留所有亮部和暗部。",
+      "module_hint": "场景曝光决策",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-002"],
+      "failure_modes": ["把相机测光刻度居中当成唯一正确曝光", "未先决定要保留的细节区域"],
+      "practice": "对同一逆光人物分别以脸、天空和背景测光拍摄，记录每种结果保留与牺牲的部分。",
+      "acceptance": ["能在曝光前说明参照区域", "能解释成片中哪一方会偏暗、偏亮或剪切"],
+      "evidence": [
+        {"source_id":"light-ppa-quality","locator":"§ Quantity of Light, lines 157–186","support":"说明曝光常以主体为基础，但摄影师也可以依据天空或其他画面元素决定曝光。","scope":"direct"},
+        {"source_id":"light-nikon-vitale","locator":"§ Spot Metering, lines 37–40; Off-Camera Flash, lines 43–44","support":"Vitale在高反差场景以选定亮部为参照并主动压暗天空。","scope":"direct"},
+        {"source_id":"light-profoto-couzens","locator":"steps 1–3, lines 13–22","support":"Couzens先设背景曝光，再开启闪光控制人物曝光。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["portrait exposure choose face background highlights"]
+    },
+    {
+      "id": "light-018",
+      "skill_name": "在强反差场景用点测光保护选定高光",
+      "capability": "把点测光区域放在希望保留的亮部，并检查曝光结果是否符合场景意图。",
+      "why_it_matters": "平均测光可能无法保住强光中的细节；点测光可让摄影师有意牺牲暗部。",
+      "module_hint": "场景曝光决策",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-017"],
+      "failure_modes": ["整场平均测光导致重要亮部过曝", "点测后忘记判断高光是否需要留纹理"],
+      "practice": "对一处明暗差异明显的场景，分别以高光和整体测光拍摄并比较亮部细节。",
+      "acceptance": ["能将点测区域放在指定亮部", "能说明暗部变黑是否为有意选择"],
+      "evidence": [
+        {"source_id":"light-nikon-vitale","locator":"§ Spot Metering, lines 37–40","support":"Vitale在高反差环境用点测选中亮部，并让其他区域进入深阴影以保留戏剧性。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"advanced", "status":"unassessed", "confidence":"medium", "basis":"photographer_method", "practice_basis":"project_designed", "search_terms":["spot meter highlights high contrast portrait photographer"]
+    },
+    {
+      "id": "light-019",
+      "skill_name": "解释反射式测光的平均化限制",
+      "capability": "知道相机反射式测光读到的是场景反射光平均值，结合主体明暗与意图判断是否补偿。",
+      "why_it_matters": "白色、黑色和高反差主体可能被测光系统推向相近中间调。",
+      "module_hint": "测光判断",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": ["白衣或黑衣人物曝光偏离预期", "把测光表居中误认为主体准确曝光"],
+      "practice": "对同一光线下的白、灰、黑物体分别使用相机测光，比较测光结果和预期色调。",
+      "acceptance": ["能说明反射测光不认识被测物是白或黑", "能依据目标色调而非只看居中刻度调整曝光"],
+      "evidence": [
+        {"source_id":"light-ppa-metering","locator":"§ Light Meters and Understanding the In-Camera Meter, lines 63–82, 127–145","support":"解释反射式测光平均反射值且需摄影师解释，测光居中并不保证主体曝光正确。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"medium", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["reflective meter 18 gray portrait exposure interpretation"]
+    },
+    {
+      "id": "light-020",
+      "skill_name": "在人物位置读取入射光",
+      "capability": "在人物脸部受光位置用入射测光表读取光线，并结合快门或光圈选择曝光。",
+      "why_it_matters": "入射测光观察到达人物的光，而不是衣服或背景反射回来的亮度。",
+      "module_hint": "测光判断",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": ["拿背景反射亮度代替人物受光读数", "拍多种肤色或服装时只依据整体反射测光"],
+      "practice": "在相同光线下对人物位置分别做入射测光与相机反射测光，比较它们回答的问题。",
+      "acceptance": ["能在主体位置取得读数", "能说明该读数适合回答的是入光量而非主体反射色调"],
+      "evidence": [
+        {"source_id":"light-ppa-metering","locator":"§ Which Meter Should You Use?, lines 86–91; Measuring Ambient Light, lines 83–85","support":"将入射测光描述为适合人像与闪光测量，并说明其测量到达主体的光。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"photographer_method", "practice_basis":"project_designed", "search_terms":["incident meter portrait at subject position"]
+    },
+    {
+      "id": "light-021",
+      "skill_name": "先设环境光再添加闪光",
+      "capability": "先确定背景或环境的亮度，再逐步添加闪光至人物曝光达到预想关系。",
+      "why_it_matters": "避免闪光把背景压暗或让人物与现场环境脱节。",
+      "module_hint": "闪光与环境平衡",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-017"],
+      "failure_modes": ["人物正确曝光但背景失去原有气氛", "不清楚是环境光还是闪光造成曝光变化"],
+      "practice": "在逆光场景先拍无闪光环境基准，再开启闪光并逐步调节输出。",
+      "acceptance": ["能单独判断无闪光时背景曝光", "能只改变闪光量来改变人物亮度而保留所选背景效果"],
+      "evidence": [
+        {"source_id":"light-profoto-couzens","locator":"steps 1–3, lines 13–22","support":"Couzens明示先设背景，再摆放并打开闪光，最后调整人物曝光。","scope":"direct"},
+        {"source_id":"light-nikon-vitale","locator":"§ Off-Camera Flash, lines 43–45","support":"Vitale先测环境背景，再用TTL闪光增加人物补光。","scope":"direct"},
+        {"source_id":"light-ppa-techniques","locator":"§ Backlighting, lines 166–182","support":"建议先以背景为参照，再用闪光匹配人物曝光或使用反光板。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["ambient first background exposure add flash portrait"]
+    },
+    {
+      "id": "light-022",
+      "skill_name": "按亮部背景补足逆光人物的脸部",
+      "capability": "保留选定的天空或背景曝光后，用闪光或反光板抬高脸部曝光，使二者反差落在可接受范围。",
+      "why_it_matters": "逆光人物容易成为剪影或脸部曝光准确但背景失去细节。",
+      "module_hint": "逆光处理",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-002", "light-021"],
+      "failure_modes": ["人物脸部发黑", "为提亮脸部而完全丢失背景细节", "闪光与环境光方向冲突"],
+      "practice": "在明亮背景下拍无补光、反光板补光和闪光补光三个版本，对比脸与背景。",
+      "acceptance": ["脸部细节达到拍摄意图", "背景亮度仍在预定范围，或明确接受背景剪切"],
+      "evidence": [
+        {"source_id":"light-nikon-vitale","locator":"§ Off-Camera Flash, lines 41–46","support":"Vitale在日落逆光下先测环境并决定天空亮度，再以离机闪光补人物。","scope":"direct"},
+        {"source_id":"light-ppa-techniques","locator":"§ Backlighting, lines 166–182","support":"列出背景先曝光后用闪光或反光板提高人物照度的方案。","scope":"direct"},
+        {"source_id":"light-profoto-couzens","locator":"lines 13–22","support":"以背景作为第一步曝光参照，再为人物设闪光曝光。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["backlit portrait face exposure fill flash face shadow"]
+    },
+    {
+      "id": "light-023",
+      "skill_name": "决定强逆光是否保留背景或呈现剪影",
+      "capability": "比较以人物和以背景为曝光参照的结果，再选择保留脸部、保留高光背景或有意剪影。",
+      "why_it_matters": "强逆光的曝光取舍是画面表达的一部分，并非总能靠补光完全消除。",
+      "module_hint": "逆光处理",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-017"],
+      "failure_modes": ["未决定曝光意图导致脸和背景都不符合预想", "把任何过曝背景都当成技术失败"],
+      "practice": "对同一场景分别曝光人物、背景并制造剪影，比较每张照片传达的信息。",
+      "acceptance": ["能为每种曝光选择陈述视觉目的", "不把无意曝光失控与有意剪切混为一谈"],
+      "evidence": [
+        {"source_id":"light-ppa-quality","locator":"§ Quantity of Light, lines 173–186","support":"说明可以让人物剪影，并以天空而非人物作为曝光依据。","scope":"direct"},
+        {"source_id":"light-ppa-techniques","locator":"§ Backlighting, lines 177–189","support":"把允许背景过曝列作一种有意的创作选择。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["backlit portrait silhouette exposure intent"]
+    },
+    {
+      "id": "light-024",
+      "skill_name": "用闪光补硬光阴影而不完全抹平",
+      "capability": "在强日光阴影中加入低于主光的补光，检查暗部提升程度与脸部立体感。",
+      "why_it_matters": "补光过强可能让硬光造型变平，补光过弱则看不出阴影细节改善。",
+      "module_hint": "闪光与环境平衡",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-021", "light-003"],
+      "failure_modes": ["阴影仍太深", "补光和日光同强导致画面显平", "闪光看起来像直打前灯"],
+      "practice": "在硬日光下先拍无闪光版本，再逐步增加补光，比较阴影细节和面部塑形。",
+      "acceptance": ["暗部细节提升而脸部阴影形状仍可辨", "能指出补光太强或太弱时的画面征兆"],
+      "evidence": [
+        {"source_id":"light-ppa-flash-shutter","locator":"§ Fill Flash and The Sunny 16 Rule, lines 97–108","support":"PPA示例建议补光低于主日光曝光以填阴影，并指出完全匹配日光会变平。","scope":"direct"},
+        {"source_id":"light-canon-tillinghast-settings","locator":"Photographing Senior Portraits, lines 678–680","support":"Tillinghast降低TTL闪光补偿以轻微填充脸部阴影并避免过闪感。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["fill flash ratio harsh sun portrait shadows not flat"]
+    },
+    {
+      "id": "light-025",
+      "skill_name": "用闪光方向塑造脸部而非只增加亮度",
+      "capability": "把闪光放到相机轴线以外，比较正面补光与侧向補光对脸部阴影和立体感的影响。",
+      "why_it_matters": "方向性闪光能让人物与背景关系更清楚，也避免所有补光都成为平面正面光。",
+      "module_hint": "单灯人物塑形",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-001", "light-024"],
+      "failure_modes": ["离机灯摆位仍与相机同轴，脸部缺少形状", "闪光方向与现场光向冲突"],
+      "practice": "在同一场景分别用相机轴线闪光、约侧前方闪光拍摄，保持闪光量接近。",
+      "acceptance": ["能用脸部阴影辨认灯位变化", "能解释哪种方向更符合场景已有光线"],
+      "evidence": [
+        {"source_id":"light-nikon-vitale","locator":"§ Off-Camera Flash, lines 41–43","support":"Vitale偏好从侧面提供少量离机光以保留现场氛围和环境信息。","scope":"direct"},
+        {"source_id":"light-canon-hughes-speedlite","locator":"lines 670–677","support":"Hughes描述用伞控闪光强化现有自然光方向，而非压过自然光。","scope":"direct"},
+        {"source_id":"light-cambridge-portrait","locator":"§ Direction: Sense of Depth, lines 114–123","support":"说明光线从侧上方入射能建立脸部深度。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["off camera flash direction shape portrait face"]
+    },
+    {
+      "id": "light-026",
+      "skill_name": "让补光方向与现场主光形成合理关系",
+      "capability": "确定环境主光从哪侧来，再把闪光放在能补暗部或增强方向感的位置。",
+      "why_it_matters": "闪光从相反方向强烈照亮人物，可能形成互相矛盾的阴影。",
+      "module_hint": "单灯人物塑形",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-001", "light-025"],
+      "failure_modes": ["脸部出现与窗光或太阳方向不一致的双重阴影", "补光抹掉已有的侧向塑形"],
+      "practice": "固定自然主光方向，分别从相机轴线和与主光同侧的位置添加弱闪光，检查阴影一致性。",
+      "acceptance": ["成片中脸部主阴影方向明确", "能够描述闪光是填充、增强还是制造新的主光"],
+      "evidence": [
+        {"source_id":"light-canon-hughes-speedlite","locator":"lines 670–677","support":"Hughes用伞闪光增强可用自然光方向与对比。","scope":"direct"},
+        {"source_id":"light-profoto-couzens","locator":"steps 1–3, lines 13–22","support":"要求摆放并调整闪光位置，以获得预想的光型。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"project_adaptation", "practice_basis":"project_designed", "search_terms":["flash direction match ambient light direction portrait"]
+    },
+    {
+      "id": "light-027",
+      "skill_name": "在脸部自然受光良好时把闪光用于其他区域",
+      "capability": "当现有光已经适合脸部时，评估用单灯轻提阴影、勾边或照亮背景，而非自动再照脸。",
+      "why_it_matters": "有目的地使用闪光能避免破坏自然光氛围，也可控制人物与背景的分离。",
+      "module_hint": "单灯人物塑形",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-002", "light-025"],
+      "failure_modes": ["每张人像都正面加闪光", "原本好的脸部光线被多余闪光压平"],
+      "practice": "做一组自然光基准照，再分别把单灯用于边缘光、背景光和弱填充。",
+      "acceptance": ["能说明单灯当前承担的作用", "只有在可见改善与意图对应时保留闪光"],
+      "evidence": [
+        {"source_id":"light-canon-hughes-speedlite","locator":"lines 670–677","support":"Hughes说明自然光已合适时可不用闪光照脸，或将其用于边缘、背景和阴影。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"medium", "basis":"photographer_method", "practice_basis":"project_designed", "search_terms":["one speedlight edge light background when not to use fill"]
+    },
+    {
+      "id": "light-028",
+      "skill_name": "用相对人物尺寸选择闪光柔光附件",
+      "capability": "依据闪光附件对人物所呈现的相对尺寸，而不是附件名称，判断是否能产生预期柔和度。",
+      "why_it_matters": "相同柔光伞离人物太远时，阴影仍可能显硬，光线也难与柔和环境相配。",
+      "module_hint": "单灯人物塑形",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-005"],
+      "failure_modes": ["只依据“柔光箱”名称预期效果", "闪光质感明显硬于周围环境光"],
+      "practice": "使用同一附件，在远近两种位置拍摄并比较脸部阴影与环境光的过渡。",
+      "acceptance": ["能以阴影过渡判断附件是否有效扩大光源", "能选择适合人物距离的附件或位置"],
+      "evidence": [
+        {"source_id":"light-profoto-couzens","locator":"Tip, lines 20–22","support":"建议选相对人物较大的修饰器，使闪光更柔并接近自然环境光。","scope":"direct"},
+        {"source_id":"light-canon-tillinghast-settings","locator":"Tips for a Successful Engagement Photography Session, lines 658–661","support":"Canon文章建议离机Speedlite配合伞、柔光箱或扩散材料软化输出。","scope":"direct"},
+        {"source_id":"light-ppa-quality","locator":"§ Soft Light Sources, lines 229–238","support":"以相对大尺寸及近距离解释柔光工具如何改变光质。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["softbox size relative subject flash portrait natural ambient"]
+    },
+    {
+      "id": "light-029",
+      "skill_name": "通过TTL闪光补偿微调人物曝光",
+      "capability": "在环境曝光不变时，用TTL闪光补偿或输出控制微调人物亮度，并检查预览。",
+      "why_it_matters": "相机自动闪光可快速提供初值，但最终闪光比例仍需摄影师判断。",
+      "module_hint": "闪光与环境平衡",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-021"],
+      "failure_modes": ["依赖TTL一次测光结果", "闪光过强让人物与现场光脱节"],
+      "practice": "固定光位和环境曝光，拍摄TTL基准及两种不同补偿，再比较脸部和背景。",
+      "acceptance": ["能辨认补偿变化主要影响人物还是背景", "选出的闪光量符合希望的补光强度"],
+      "evidence": [
+        {"source_id":"light-nikon-vitale","locator":"§ Off-Camera Flash, lines 45–46","support":"建议使用TTL计算初始输出，再根据相机LCD预览上调或下调闪光功率。","scope":"direct"},
+        {"source_id":"light-canon-tillinghast-settings","locator":"Photographing Senior Portraits, lines 678–680","support":"Tillinghast用闪光曝光补偿降低E-TTL输出，避免闪光感过强。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["TTL flash exposure compensation portrait check LCD"]
+    },
+    {
+      "id": "light-030",
+      "skill_name": "在常规同步范围内用快门改变环境光背景",
+      "capability": "保持闪光曝光设置基本不变，在相机常规同步范围内改变快门速度以加深或提亮环境背景。",
+      "why_it_matters": "闪光照亮人物时，背景环境亮度仍可独立调整。",
+      "module_hint": "闪光与环境平衡",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-021", "light-033"],
+      "failure_modes": ["改变快门时未区分背景和闪光主体的变化", "超过相机同步限制导致画面遮挡或曝光异常"],
+      "practice": "在固定光圈、ISO与手动闪光下，按安全同步速度范围改变快门，拍摄背景亮度序列。",
+      "acceptance": ["在常规同步范围内能让背景变亮或变暗", "知道超出常规同步范围时需核对设备HSS能力"],
+      "evidence": [
+        {"source_id":"light-ppa-flash-shutter","locator":"lines 61–82","support":"说明常规闪光曝光不受快门影响，而环境光会随快门改变；快门可控制背景亮度。","scope":"direct"},
+        {"source_id":"light-nikon-kubota-hss","locator":"§ How High Speed Sync Works and Why, lines 234–236","support":"描述高于同步速度后闪光工作方式改变并损失输出，提供常规同步的边界条件。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["flash shutter speed ambient background sync speed portrait"]
+    },
+    {
+      "id": "light-031",
+      "skill_name": "用慢门闪光保留现场环境光",
+      "capability": "选择较慢快门记录环境，再用闪光曝光人物，并检查主体是否出现环境光拖影。",
+      "why_it_matters": "能保留室内空间、夜景或现场氛围，同时提供清晰的闪光主体。",
+      "module_hint": "闪光与环境平衡",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-030"],
+      "failure_modes": ["背景一片黑", "主体清晰但环境缺乏层次", "人物移动时产生重影"],
+      "practice": "在室内用固定闪光曝光拍摄，再逐步减慢快门，比较背景细节与移动重影。",
+      "acceptance": ["环境亮度有可控变化", "能识别何时环境光已足以在人物上产生重影"],
+      "evidence": [
+        {"source_id":"light-ppa-flash-shutter","locator":"§ Dragging the Shutter, lines 86–96","support":"定义慢于同步速度的快门记录环境光，并给出人物闪光与背景环境同时曝光的步骤。","scope":"direct"},
+        {"source_id":"light-aldred-freeze","locator":"lines 1051–1055","support":"指出环境光仍照到人物时可在闪光清晰之外叠加运动模糊，并将这种效果作为可选择的表达。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["drag shutter flash ambient portrait ghosting"]
+    },
+    {
+      "id": "light-032",
+      "skill_name": "辨认相机的常规闪光同步上限",
+      "capability": "确认相机与闪光灯的常规同步速度，并在该边界内完成整幅画面正常闪光曝光。",
+      "why_it_matters": "快于常规同步速度时，焦平面快门可能只开放狭缝，需专用高速同步模式。",
+      "module_hint": "同步与动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": ["快门速度过高出现黑边或遮挡", "按机型经验猜同步速度"],
+      "practice": "查阅自己的相机和闪光设备说明，在同步边界上下各拍一张测试照片。",
+      "acceptance": ["能从设备说明中找到常规同步上限", "边界以上测试时能识别是否进入HSS或出现遮挡"],
+      "evidence": [
+        {"source_id":"light-canon-tillinghast-settings","locator":"§ Shutter Speed & ISO, lines 638–641","support":"解释常规同步上限及使用HSS的条件。","scope":"direct"},
+        {"source_id":"light-nikon-kubota-hss","locator":"§ Set and Confirm, lines 112–118","support":"说明不同机身同步速度与进入FP/HSS模式的检查方式。","scope":"direct"},
+        {"source_id":"light-ppa-flash-shutter","locator":"lines 76–89","support":"提示室外测光要为同步速度保留空间，并界定慢门用法。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["camera flash sync speed test curtains portrait"]
+    },
+    {
+      "id": "light-033",
+      "skill_name": "用HSS在常规同步速度以上保留闪光",
+      "capability": "在设备支持时开启HSS，使闪光覆盖快门帘移动过程，从而在更快快门下工作。",
+      "why_it_matters": "强光环境下仍可使用较大光圈或更快快门，并保留补光能力。",
+      "module_hint": "同步与动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-032"],
+      "failure_modes": ["快门超过常规同步后出现遮挡", "误以为所有灯具或相机组合都支持HSS"],
+      "practice": "按说明书启用HSS，在常规同步速度及两档更高速下拍摄同一逆光人像，观察画面覆盖和闪光效果。",
+      "acceptance": ["能确认设备实际进入HSS", "整幅画面曝光连续且人物补光有效"],
+      "evidence": [
+        {"source_id":"light-nikon-kubota-hss","locator":"§ Set and Confirm, lines 112–118","support":"说明FP/HSS以快速脉冲照亮快门帘移动，可使用高于常规同步的快门。","scope":"direct"},
+        {"source_id":"light-canon-tillinghast-settings","locator":"lines 638–641","support":"说明HSS让闪光在人像中配合更快快门及大光圈。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["HSS high speed sync flash portrait shutter above sync"]
+    },
+    {
+      "id": "light-034",
+      "skill_name": "预判提高HSS快门后闪光功率下降",
+      "capability": "随着HSS快门变快，重新检查闪光距离、功率和人物曝光，不假设原有输出不变。",
+      "why_it_matters": "HSS把闪光能量分散在快门帘移动期间，速度越高可用补光通常越少。",
+      "module_hint": "同步与动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-033"],
+      "failure_modes": ["提高快门后人物补光明显不足", "误把输出损失当作相机故障"],
+      "practice": "保持光圈、ISO和灯位，逐步提高HSS快门速度并记录主体亮度变化。",
+      "acceptance": ["能观察到输出变化并采取距离或灯数等补偿", "能说明自己设备的限制来自HSS工作方式"],
+      "evidence": [
+        {"source_id":"light-nikon-kubota-hss","locator":"§ How It Works, lines 234–236","support":"解释HSS脉冲消耗功率，快门越快可用闪光越少。","scope":"direct"},
+        {"source_id":"light-canon-tillinghast-settings","locator":"lines 640–641","support":"指出启用HSS时快门越快闪光输出逐渐降低。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["HSS flash output decreases faster shutter speed power"]
+    },
+    {
+      "id": "light-035",
+      "skill_name": "在HSS下用快门速度控制动作模糊",
+      "capability": "当环境光仍照亮人物时，选择足够快的快门减少运动模糊，并确认闪光输出仍可用。",
+      "why_it_matters": "HSS下不能把闪光持续时间当成唯一冻结动作的变量。",
+      "module_hint": "同步与动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-033", "light-034"],
+      "failure_modes": ["动作仍有环境光拖影", "仅依赖HSS闪光补光而忽略环境曝光"],
+      "practice": "用移动手臂或转身动作，在HSS下改变快门速度，同时比较无闪光和有闪光版本。",
+      "acceptance": ["能通过主体边缘检查运动模糊是否减少", "能区分快门冻结效果和闪光照明效果"],
+      "evidence": [
+        {"source_id":"light-canon-tillinghast-settings","locator":"lines 622, 638–641","support":"把高速快门用于冻结人物动作，并描述HSS可在同步以上速度配合动态肖像。","scope":"direct"},
+        {"source_id":"light-nikon-kubota-hss","locator":"lines 58–60, 158–167","support":"作者用更快快门避免跳跃动作模糊，并将HSS用于高速动作和环境补光。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["HSS shutter speed freeze motion portrait ambient"]
+    },
+    {
+      "id": "light-036",
+      "skill_name": "用短闪光持续时间冻结动作",
+      "capability": "当环境光对主体曝光很低时，通过缩短闪光持续时间冻结动作，并为此检查灯具输出能力。",
+      "why_it_matters": "常规同步速度的快门也可能得到清晰动作，但短闪光要求环境光不在主体上形成明显曝光。",
+      "module_hint": "同步与动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-032"],
+      "failure_modes": ["闪光清晰但环境光留下运动重影", "闪光功率降低后照度不足"],
+      "practice": "在较暗背景下对同一动作拍摄常规功率和缩短持续时间/低功率版本，检查人物边缘与亮度。",
+      "acceptance": ["能确认背景环境光对人物贡献较低", "动作边缘清晰且人物曝光仍足够"],
+      "evidence": [
+        {"source_id":"light-carpenter-duration","locator":"lines 34–36","support":"Carpenter说明在环境光可控时闪光持续时间可以决定有效曝光时间并冻结动作。","scope":"direct"},
+        {"source_id":"light-aldred-freeze","locator":"lines 1051–1057","support":"Aldred说明压低环境光时由闪光持续时间而非快门冻结动作，并提醒短持续时间会减少输出。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"advanced", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["flash duration freeze motion ambient suppressed portrait strobe"]
+    },
+    {
+      "id": "light-037",
+      "skill_name": "区分短闪光冻结与HSS高速快门",
+      "capability": "识别短闪光持续时间与HSS脉冲是两种不同工作方式，并按环境光、动作速度和所需同步条件选择。",
+      "why_it_matters": "混淆两种机制会导致对有效冻结速度和闪光输出作出错误预期。",
+      "module_hint": "同步与动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-033", "light-036"],
+      "failure_modes": ["误以为HSS持续脉冲等同于短闪光持续时间", "用HSS处理暗环境动作却忽略输出损失"],
+      "practice": "在暗环境使用普通同步低功率闪光，再在明亮环境使用HSS高速快门，记录两种情形各自承担冻结动作的变量。",
+      "acceptance": ["能解释短闪光与HSS的工作区别", "能为两个不同环境选出并说明合适模式"],
+      "evidence": [
+        {"source_id":"light-aldred-freeze","locator":"lines 1051–1055","support":"明确区分短持续时间的高速闪光与高速同步，并讨论环境光造成的残余模糊。","scope":"direct"},
+        {"source_id":"light-nikon-kubota-hss","locator":"lines 234–236","support":"解释HSS以连续快速脉冲覆盖快门帘移动，并产生功率损失。","scope":"direct"},
+        {"source_id":"light-carpenter-duration","locator":"lines 34–36","support":"以压低环境光后由闪光持续时间冻结动作解释常规同步场景。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"advanced", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["flash duration vs HSS motion freezing difference"]
+    },
+    {
+      "id": "light-038",
+      "skill_name": "检查闪光与环境光叠加造成的重影",
+      "capability": "在闪光照亮人物时检查环境光是否也记录了动作轨迹，并选择压低环境曝光或保留拖影。",
+      "why_it_matters": "闪光瞬间清晰不代表较长的环境曝光没有同时记录移动。",
+      "module_hint": "同步与动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-031", "light-036"],
+      "failure_modes": ["主体有双边缘或透明拖影", "将环境光重影误认为对焦不准"],
+      "practice": "拍摄缓慢移动的手或衣摆，做环境光较强、较弱两组并逐张放大检查边缘。",
+      "acceptance": ["能区分对焦模糊、运动模糊和闪光重影", "能选出压低或保留重影的版本并说明意图"],
+      "evidence": [
+        {"source_id":"light-aldred-freeze","locator":"lines 1054–1056","support":"指出环境光仍落在主体上时会在闪光清晰影像之外造成模糊，可压低环境或有意混合。","scope":"direct"},
+        {"source_id":"light-ppa-flash-shutter","locator":"§ Dragging the Shutter, lines 86–96","support":"说明长曝光记录环境光并与闪光同时形成画面。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"important", "status":"unassessed", "confidence":"high", "basis":"professional_consensus", "practice_basis":"project_designed", "search_terms":["flash ambient ghosting moving subject portrait"]
+    },
+    {
+      "id": "light-039",
+      "skill_name": "先确认脸部受光，再评估肤色是否达到表达目标",
+      "capability": "使用预览、直方图或测光检查脸部是否被压暗或高光剪切，同时把肤色表达交由具体人物和画面意图判断，不按肤色类别自动套固定补偿。",
+      "why_it_matters": "不同肤色在相机反射测光和光线下的呈现容易被错误推向统一的中间调或套用单一规则。",
+      "module_hint": "人物曝光",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-019", "light-021"],
+      "failure_modes": ["深肤色被习惯性压暗或提亮", "浅肤色被习惯性压暗以追求晒黑效果", "脸部颜色差异被错误归因于整体曝光"],
+      "practice": "为不同人物拍摄同一光位的预览样张，与人物、造型或参考意图核对脸部明暗和细节；记录每次调整原因而不是只记录肤色类别。",
+      "acceptance": ["能指出脸部细节是否丢失或高光剪切", "调整理由对应到测光/光位/表达目标，而非预设补偿值"],
+      "evidence": [
+        {"source_id":"light-ppa-skin-tones","locator":"lines 95–100, 138","support":"Gress强调准确呈现不同肤色，并指出将浅肤色压暗或将深肤色提亮会改变人物外观；其数值方案仅作为作者方法。","scope":"direct"},
+        {"source_id":"light-jade-dark-skin","locator":"lines 97–110","support":"Gordon提醒不要因深肤色而默认欠曝，并描述需要平衡灯光与妆面；没有给出固定曝光偏移。","scope":"direct"},
+        {"source_id":"light-ppa-metering","locator":"lines 127–145","support":"说明反射测光对不同反射率的读数需要摄影师解释，不能直接视为主体的正确曝光。","scope":"adapted"}
+      ],
+      "visual_examples": [], "relevance":"core", "status":"unassessed", "confidence":"medium", "basis":"project_adaptation", "practice_basis":"project_designed", "search_terms":["professional portrait expose different skin tones avoid fixed exposure compensation"]
+    },
+    {
+      "id": "light-040",
+      "skill_name": "用光位和光线衰减平衡多人肤色亮度",
+      "capability": "拍摄多人时调整人物相对灯位、光束方向或网格，让不同位置获得适合的光量，并核查各人脸部。",
+      "why_it_matters": "单一光源照到不同肤色、不同距离的人物时可能造成亮度差异。",
+      "module_hint": "人物曝光",
+      "domain_hint": "光线与曝光",
+      "prerequisites": ["light-006", "light-039"],
+      "failure_modes": ["多人脸部曝光不均", "只靠后期补偿造成肤色失真"],
+      "practice": "两位不同肤色人物并排站立，移动两人的相对灯位或灯的指向，拍摄并比较各自脸部。",
+      "acceptance": ["能用位置变化改善两人的曝光差", "不会把Gress给出的具体比例当成跨场景固定规则"],
+      "evidence": [
+        {"source_id":"light-ppa-skin-tones","locator":"§ Positioning and Grids, lines 106–130","support":"Gress介绍以位置、距离、网格和灯向控制多人受光差异，并给出自己的具体比例建议。","scope":"direct"}
+      ],
+      "visual_examples": [], "relevance":"optional", "status":"unassessed", "confidence":"medium", "basis":"photographer_method", "practice_basis":"project_designed", "search_terms":["group portrait lighting different skin tones positioning grid"]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "不同肤色的固定曝光补偿值是否存在",
+      "positions": [
+        {"source_id":"light-ppa-skin-tones","summary":"John Gress建议对不同肤色使用特定的额外曝光/相对灯位，并用约三分之二档关系作为其多人布光经验。"},
+        {"source_id":"light-jade-dark-skin","summary":"Jade Keshia Gordon强调避免因深肤色默认欠曝，描述自己的两灯布光与平衡妆面，但没有给出统一补偿值。"},
+        {"source_id":"light-ppa-metering","summary":"PPA测光章指出反射测光是对反射光取平均，摄影师须结合主体与意图解释读数。"}
+      ],
+      "resolution": "不把肤色类别与固定补偿档数绑定。候选技能仅保留检查脸部细节、测光局限和按人物/意图判断；Gress比例作为可测试的摄影师方法记录。需要更多独立来源和真实人像测试。"
+    },
+    {
+      "topic": "自然光/闪光应作为主光还是补光",
+      "positions": [
+        {"source_id":"light-nikon-vitale","summary":"Ami Vitale在日落逆光案例中以背景环境光为参照，再加离机闪光补人物。"},
+        {"source_id":"light-profoto-couzens","summary":"Hannah Couzens采用先设背景、再设闪光人物的工作顺序。"},
+        {"source_id":"light-nikon-vitale","summary":"作者另说明方向与作用可随场景改变，离机闪光也可成为主要人物光。"}
+      ],
+      "resolution": "保留场景条件。环境氛围、背景亮度和人物位置决定谁承担主光；不将一种流程当成唯一正确方法。"
+    },
+    {
+      "topic": "柔光与硬光的肖像偏好",
+      "positions": [
+        {"source_id":"light-ppa-quality","summary":"PPA说明柔光常用于较低反差、较柔和的人像呈现，也说明硬光可用于质感、形体和戏剧效果。"},
+        {"source_id":"light-fuji-portrait-guide","summary":"FUJIFILM指南称柔光常见于人像，但选择依赖人物与表达意图。"},
+        {"source_id":"light-society-carlino","summary":"Alison Carlino指出开放阴影可减轻眯眼与阴影，硬光也可适合时尚、运动或戏剧肖像。"}
+      ],
+      "resolution": "把光质识别和按目标选择拆成两个候选技能，不将柔光标为普遍审美标准。"
+    },
+    {
+      "topic": "HSS与短闪光持续时间的动作冻结机制",
+      "positions": [
+        {"source_id":"light-nikon-kubota-hss","summary":"HSS以一串快速闪光覆盖快门帘移动，可用更快快门，但输出会随速度增加而下降。"},
+        {"source_id":"light-canon-tillinghast-settings","summary":"Canon文章描述HSS与更快快门冻结动作，并提醒闪光输出降低。"},
+        {"source_id":"light-carpenter-duration","summary":"Jeff Carpenter说明在环境光可控时，短闪光持续时间可作为有效曝光时间冻结动作。"},
+        {"source_id":"light-aldred-freeze","summary":"John Aldred区分短闪光持续时间与HSS，并提醒环境光可能在清晰闪光影像上叠加模糊。"}
+      ],
+      "resolution": "分开记录常规同步下的短持续时间冻结与HSS下的快门冻结；若环境光照到主体，单有短闪光不保证没有重影。"
+    }
+  ],
+  "gaps": [
+    "目前没有中文或日文的一手专业光线/闪光全文来源。",
+    "闪光持续时间冻结动作已有两篇独立全文来源，但需要设备手册或第三方实测补充持续时间标注方式及功率依赖，且不可外推到所有灯具。",
+    "肤色曝光只有两位摄影师的公开方法，针对自然光逆光、肤色细节和反射测光的独立一致证据不足；不要给出固定曝光补偿。",
+    "LED文章讲色温、光谱质量与显色，但缺完整的闪光匹配LED舞台灯光实拍教程；漫展环境的频闪、滚动快门和闪光限制也缺来源。",
+    "现有作品都以婚礼、棚拍、商业或旅行人像为主；复杂漫展背景、反光服装/道具对脸部光线的影响未获得足够专业来源。",
+    "高光保留与肤色判断仍缺少多种拍摄系统和输出目标下的来源交叉验证。"
+  ]
+}

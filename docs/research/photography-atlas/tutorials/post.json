@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "resources": [
+    {
+      "id": "tutorial-lightroom-compare-survey",
+      "title": "用比较视图筛选近似帧",
+      "original_title": "Browse and compare photos",
+      "url": "https://helpx.adobe.com/lightroom-classic/desktop/viewing-photos/browse-compare-photos.html",
+      "author": "Adobe Help team",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读筛选、Compare 与 Survey 章节：并排/平铺预览、候选缩小、同步缩放及给照片加旗标/评分。"
+      },
+      "trust_reason": "Adobe 官方 Lightroom Classic 帮助文档，直接说明软件比较视图和筛选控件的行为。",
+      "summary": "学习在 Lightroom Classic 中用 Compare 并排比较两张照片、用 Survey 同时查看多张候选，并在比较中缩小选择、评分或标记。",
+      "start_here": "从“Compare photos in the Library module”开始，再看“Compare photos in the Compare view”和“Compare photos in the Survey view”。",
+      "study_task": "项目练习：选一组同动作连拍，用 Compare 检查两张近似帧，再用 Survey 查看最终候选；记录每次选择的画面理由。",
+      "limitations": "这是软件操作说明，不替学习者决定表情、姿势或叙事哪一张更好；大量候选同时放入 Survey 会缩小预览。",
+      "source_id": null,
+      "skill_ids": [
+        "post-cull-near-duplicates",
+        "post-cull-separate-passes"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-ppa-photomechanic-culling",
+      "title": "用快速浏览与标记分轮筛片",
+      "original_title": "Power tips for Photo Mechanic",
+      "url": "https://www.ppa.com/ppmag/articles/photo-mechanic-power-tips",
+      "author": "Lisa Mark",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读正文的速度、Culling、Culling in action、元数据与发送文件部分；内含工作婚礼摄影师第一人称经验。"
+      },
+      "trust_reason": "PPA《Professional Photographer》刊载的具名工作摄影师流程文章，介绍快速选片、比较、标记和后续交接。",
+      "summary": "了解用联系表快速翻看和比较照片、以键盘分级标记并筛选候选，以及把选片与像素编辑分成不同步骤。作者也描述了客户参与相册选片的流程。",
+      "start_here": "先读“Culling”和“Culling in action”，再看“Sending files to clients”了解选择完成后的交接方式。",
+      "study_task": "项目练习：对自己的小型照片集只做 keep-in 标记与一轮复查，再把选中照片另存为工作集合；记录这套步骤是否减少重复查看。",
+      "limitations": "这是 Lisa Mark 在婚礼和相册业务中的个人工作方法；文章中关于软件速度、客户选片与销售的经验不是通用效率保证，也不要求永久删除原片。",
+      "source_id": "post-ppa-lisa-mark-culling",
+      "skill_ids": [
+        "post-cull-near-duplicates",
+        "post-cull-separate-passes"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-fstoppers-three-pass-culling",
+      "title": "三轮筛选并回看整组照片",
+      "original_title": "A Simple Three-Step Culling Process for Attractive Final Images",
+      "url": "https://fstoppers.com/photojournalistic/simple-three-step-culling-process-attractive-final-images-646493",
+      "author": "Zhen Siang Yang",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读全文的粗筛、候选帧比较、最终整理、Survey 视图与延迟复查章节；没有打开项目照片做视觉评判。"
+      },
+      "trust_reason": "具名工作摄影师以自己的个人项目说明三轮筛选，并解释如何查看系列的差异、整体情绪与叙事关系。",
+      "summary": "作者先标出明显失败帧并保留候选，再比较近似帧，最后在 Survey 视图中查看系列的重复、变化、整体气氛与叙事；作者也建议隔一段时间复查后再永久删除。",
+      "start_here": "按 Part 1“Rough Selection”、Part 2“Framing Selection”、Part 3“Curation Process”顺序阅读，最后看“Bonus Tips”。",
+      "study_task": "项目练习：对一组连拍做三轮标记，最后把缩略图并列，写出组照共同主题、至少两种有意保留的差异，以及一项可删的重复；原片保留到复查完成。",
+      "limitations": "这是作者根据个人项目给出的流程，不是唯一筛片标准；作者的“严格删除”表述不作为本项目的删除要求，具体选择仍取决于拍摄目的和本人偏好。",
+      "source_id": "post-fstoppers-zhen-culling",
+      "skill_ids": [
+        "post-cull-technical-rejects",
+        "post-cull-near-duplicates",
+        "post-cull-separate-passes",
+        "post-cull-set-variety",
+        "post-cull-cohesion",
+        "post-cull-review-before-delete"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-xitek-wang-portrait-post-workflow",
+      "title": "王小宁的人像后期流程示例",
+      "original_title": "王小宁聊人像摄影第六期｜人像摄影的后期流程",
+      "url": "https://info.xitek.com/allpage/favorites/201808/16-324591.html",
+      "author": "王小宁",
+      "kind": "article",
+      "language": "中文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读全文；覆盖 RAW 基础、曝光、清理、观察层、中性灰明暗调整、局部颜色、背景与输出收尾。"
+      },
+      "trust_reason": "中文摄影媒体刊载的具名摄影师第一人称流程；作者明确说明这是自己工作习惯与偏好的简略示例。",
+      "summary": "观察一个人像项目如何从 RAW 曝光调整进入 Photoshop，分别处理皮肤清理、黑白观察下的明暗不匀、低不透明度加深减淡、局部颜色、背景压暗，以及最后的噪点和锐化。",
+      "start_here": "先读第 23–33 行的 RAW 阶段，再依次读第 38–58 行的 Photoshop 操作；注意对照作者强调的“个人偏好”。",
+      "study_task": "项目练习：挑一张本人愿意修饰的人像，先列出可见问题，再试做基础曝光、局部明暗与颜色调整；每一步保留前后版本并在缩小视图复查。",
+      "limitations": "文章发表于 2018 年，作者明确称其为简略的个人流程；不应照搬具体工具顺序或数值为普适规则，也没有讨论 Cosplay 服装/道具的修改边界。",
+      "source_id": "post-xitek-wangxiaoning",
+      "skill_ids": [
+        "post-raw-exposure-detail",
+        "post-skin-local-dodge-burn",
+        "post-local-light-emphasis",
+        "post-skin-edit-subtle-opacity",
+        "post-skin-mask-color-correction",
+        "post-clean-distraction-tool",
+        "post-output-sharpening"
+      ],
+      "domain_ids": [
+        "color-retouch",
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-adobe-point-color-skin",
+      "title": "用 Point Color 局部调整肤色差异",
+      "original_title": "Make precise adjustments to specific colors in Lightroom",
+      "url": "https://www.adobe.com/learn/lightroom-cc/web/precise-color-adjustments",
+      "author": "Seán Duggan",
+      "kind": "video",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "transcript",
+        "locator": "已读 Adobe 页面完整文字转录，重点为 Minimize redness and create natural, even skin tones in a portrait；没有以观看视频作为依据。"
+      },
+      "trust_reason": "Adobe Learn 具名摄影师教学，页面提供可读转录；演示 Lightroom 取样、蒙版与 Variance 的软件操作。",
+      "summary": "学习先建立面部皮肤蒙版，再从较暗与较亮肤色之间取样，使用 Point Color 的 Variance、Luminance 与 Saturation 细调；转录明确提醒不要把肤色压得过度均匀。",
+      "start_here": "从“Minimize redness and create natural, even skin tones in a portrait”阅读，再回看“Select a specific color with the Point Color eyedropper”理解取样方式。",
+      "study_task": "项目练习：在一张本人选择的人像上建立肤色蒙版，试做轻微的偏色修正；保存前后版本并检查是否还保留自然的明暗和肤色变化。",
+      "limitations": "演示的是 Lightroom 控件和一个人的日晒泛红案例；Adobe 没有给出适用于所有人的目标肤色，也不应为了统一而消除自然差异。",
+      "source_id": "post-adobe-color-variance",
+      "skill_ids": [
+        "post-color-point-range",
+        "post-color-preserve-variation",
+        "post-skin-mask-color-correction"
+      ],
+      "domain_ids": [
+        "color-retouch"
+      ]
+    },
+    {
+      "id": "tutorial-retouching-academy-patchy-skin",
+      "title": "诊断并局部修正不均匀肤色",
+      "original_title": "How to Fix Patchy Skin With Capture One and Photoshop",
+      "url": "https://retouchingacademy.com/how-to-fix-patchy-skin-with-capture-one-and-photoshop/",
+      "author": "Kendra Paige；页面介绍的教师为 Michael Woloszynowicz",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读文章中对局部遮罩、Color Tab 的 Uniformity 滑块、亮度/饱和度/色相及转入 Photoshop 的文字说明；嵌入视频未观看。"
+      },
+      "trust_reason": "Retouching Academy 的专业修图教学文章具名介绍教师，并以正文解释局部肤色问题的流程和速度/质量取舍。",
+      "summary": "正文建议先圈选发生花斑或变色的区域，再通过采样健康肤色、调节 Lightness、Saturation 与 Hue 减轻色差；文章称传统加深减淡配合颜色修正质量高但更耗时，随后正文仅概述转入 Photoshop 的纹理/明暗处理。",
+      "start_here": "先读标题下的流程说明，再读关于 Capture One 遮罩、Uniformity Sliders 和转入 Photoshop 的第 156–164 行；视频内容不在本条总结范围内。",
+      "study_task": "项目练习：在一张有人像肤色不匀问题的照片上只圈选一小块，比较修正前后颜色和明暗；保留图层或版本，确认没有把周围肤色一起拉平。",
+      "limitations": "页面正文没有展开嵌入视频的完整步骤；文中提到的 Dodge & Burn 仅作为后续环节概述，不能据此声称读到了具体视频示范。文章是一个针对性方法，不是每张人像都需要统一肤色。",
+      "source_id": "post-retouch-academy-patchy-skin",
+      "skill_ids": [
+        "post-skin-patch-diagnosis",
+        "post-skin-mask-color-correction"
+      ],
+      "domain_ids": [
+        "color-retouch"
+      ]
+    },
+    {
+      "id": "tutorial-phlearn-frequency-separation",
+      "title": "分层处理肤色与皮肤纹理",
+      "original_title": "Skin Retouching in Photoshop: 4 Easy Frequency Steps",
+      "url": "https://phlearn.com/tutorial/30-days-photoshop-day-24/",
+      "author": "Aaron Nace / PHLEARN",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读完整页面文字教程，含先修瑕疵、8/16 位匹配、分离层、低流量涂抹、独立图层、回退与停止检查。"
+      },
+      "trust_reason": "具名 Photoshop 教师的完整文字步骤，页面给出具体图层、安全操作和过度修饰的失败模式。",
+      "summary": "学习把颜色/明暗与纹理分开处理：先在独立图层修个别瑕疵，按位深选择匹配动作，在纹理与颜色层之间新建空白层，用低流量逐步融合，再通过降低不透明度或擦除回退。文章强调真实皮肤保留变化，并建议定期缩小视图检查。",
+      "start_here": "先读“Clear the Individual Blemishes First”，接着按“Run the Frequency Separation Action”和“Blend the Tones on a Layer of Their Own”顺序实践，最后阅读“When Skin Retouching Goes Wrong”。",
+      "study_task": "项目练习：在一张练习人像副本上做一次非破坏性局部修正；保留原图和分层文件，在 100% 与适屏视图间切换，记录哪一步开始显得不自然并回退。",
+      "limitations": "这是 PHLEARN 的一种 Photoshop 频率分离工作法，不是所有皮肤问题都应使用此方法；页面提供的样片/动作下载可能要求免费账号，本任务不下载文件或创建账号。",
+      "source_id": "post-phlearn-frequency-separation",
+      "skill_ids": [
+        "post-skin-frequency-separation",
+        "post-skin-patch-diagnosis",
+        "post-color-preserve-variation",
+        "post-skin-edit-subtle-opacity",
+        "post-edit-layer-preservation"
+      ],
+      "domain_ids": [
+        "color-retouch"
+      ]
+    },
+    {
+      "id": "tutorial-adobe-composite-principles",
+      "title": "合成前检查光线、视角与画面安排",
+      "original_title": "What makes amazing creative compositing",
+      "url": "https://www.adobe.com/learn/photoshop/web/photography-effects",
+      "author": "Adobe Learn tutorial team",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读页面正文 Direction of light and shadow、Quality of light、Perspective and scale、Composition and framing 四节。"
+      },
+      "trust_reason": "Adobe 官方 Photoshop 学习页面以文字说明合成前素材匹配的检查维度。",
+      "summary": "学习在开始合成前检查光线方向和阴影、光质与色温、视角及主体比例，并预先安排元素位置、视觉焦点与留白。",
+      "start_here": "依次读 Direction of light and shadow、Quality of light、Perspective and scale、Composition and framing。",
+      "study_task": "项目练习：选择本人拥有使用权的两张练习素材，先写下光线方向、光质/色温、视角比例和焦点安排，再尝试小型合成并记录哪些不匹配最显眼。",
+      "limitations": "这是 Photoshop 的创意合成准备建议，不是摄影现场的统一准则；页面没有教授完整蒙版或边缘融合流程，也不能据此主张合成真实人物或场景已获许可。",
+      "source_id": "post-adobe-composite-principles",
+      "skill_ids": [
+        "post-composite-light-match",
+        "post-composite-perspective-scale",
+        "post-composite-framing"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    },
+    {
+      "id": "tutorial-adobe-lightroom-export",
+      "title": "按用途设置尺寸、色彩空间与输出锐化",
+      "original_title": "How to export Lightroom Classic files to disk or CD",
+      "url": "https://helpx.adobe.com/lightroom-classic/desktop/export-photos/export-files-disk-or-cd.html",
+      "author": "Adobe Help team",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读 File settings、Color Space、Image sizing、Resolution、Output sharpening 及元数据段落。"
+      },
+      "trust_reason": "Adobe 官方 Lightroom Classic 说明文件，列出导出设置及对应行为。",
+      "summary": "学习根据接收用途设置格式、质量和像素尺寸，了解 sRGB/Adobe RGB/ProPhoto RGB 的导出配置，以及按屏幕或纸张介质应用输出锐化。",
+      "start_here": "从 File settings 读到 Color Space，再看 Image sizing、Resolution 和 Output sharpening。",
+      "study_task": "项目练习：按一个明确假设（屏幕分享或印刷）导出一张照片副本，核对尺寸、格式、嵌入的色彩配置和输出锐化设置，并与编辑主文件分开保存。",
+      "limitations": "这是软件设置说明；它不替代接收平台、打印实验室或客户的实际文件规格。文中的建议范围也不应脱离具体打印服务商要求直接套用。",
+      "source_id": "post-adobe-lr-export",
+      "skill_ids": [
+        "post-master-resolution",
+        "post-output-sharpening",
+        "post-output-color-profile",
+        "post-output-file-spec"
+      ],
+      "domain_ids": [
+        "post-workflow"
+      ]
+    }
+  ]
+}

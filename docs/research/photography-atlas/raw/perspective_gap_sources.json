@@ -1,0 +1,170 @@
+{
+  "scope": "perspective-gap",
+  "queries": [
+    "site:amandalessnerphotography.com/blog friday photo tip joints knee portrait crop",
+    "professional portrait photographer Dutch angle intentional composition crooked horizon when use tutorial",
+    "portrait photography cropping at joints knees photographer guidance intentional crop",
+    "Dutch angle composition intentional vs accidental tilt cinematography professional textbook canted framing",
+    "site:photography.tutsplus.com/tutorials \"What We Expect to See\" \"Crop Limbs\" author",
+    "site:digital-photography-school.com \"Good Crop, Bad Crop\" Gina Milicia author portrait photographer bio",
+    "professional portrait camera roll Dutch tilt slight tilt background lines portrait photographer",
+    "Nikon Europe portrait Dutch tilt dynamic feel degree recommendation",
+    "camera angle low angle context pose vulnerability strength cinematography textbook portrait photography"
+  ],
+  "sources": [
+    {
+      "id": "perspective-gap-lessner-joints",
+      "title": "Friday Photo Tip | Joints",
+      "author": "Amanda Lessner",
+      "identity": "Oahu family photographer; her bio says she has photographed families for 16 years and her site offers portrait/family sessions",
+      "kind": "professional photographer tip with annotated comparison examples",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.amandalessnerphotography.com/blog/friday-photo-tip-joints-2",
+      "coverage": [
+        "joint-adjacent portrait crop",
+        "knee crop comparison",
+        "mid-thigh and mid-calf alternatives",
+        "visual interruption from cropped limbs"
+      ],
+      "trust_reason": "First-party working photographer gives a named, practical portrait cropping method with captioned comparisons; professional bio independently on her own site describes 16 years photographing families.",
+      "independence_key": "Amanda Lessner",
+      "access": "full_text",
+      "read_depth": "Read the full article and the author bio. Text and image captions identify knee/ankle/joint and adjacent-segment crop comparisons; example pixels were not opened.",
+      "worth_deep_read": true,
+      "notes": "The article makes a categorical “never crop at joints” statement. Use only as one photographer’s recommendation; do not promote that wording as a universal rule. Captions describe the linked demonstrations; no pixel-level visual review was performed.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "perspective-gap-milicia-crop",
+      "title": "Portrait Crop: The Ultimate Guide to Cropping Portraits Like a Pro (original title: Good Crop Bad Crop – How to Crop Portraits)",
+      "author": "Gina Milicia",
+      "identity": "Professional portrait photographer for 25+ years; dPS bio states she photographed high-profile people and runs workshops and private mentoring",
+      "kind": "professional photographer tutorial published by photography education site",
+      "tier": "A",
+      "language": "en",
+      "url": "https://digital-photography-school.com/good-crop-bad-crop-how-to-crop-portraits/",
+      "coverage": [
+        "cropping at knees and other joints",
+        "viewer interpretation of incomplete limbs",
+        "deliberate crop assessment",
+        "breaking rules conditionally",
+        "crop comparisons"
+      ],
+      "trust_reason": "Named working portrait photographer with extensive professional experience and teaching record; complete tutorial includes her rationale, image comparisons and an explicit section on deliberate crops and breaking rules.",
+      "independence_key": "Gina Milicia",
+      "access": "full_text",
+      "read_depth": "Read complete article sections on in-camera crops, joint cuts, crop alternatives, deliberate crops and the author bio. Linked images are present but their pixels were not opened.",
+      "worth_deep_read": true,
+      "notes": "Gina recommends avoiding joint crops as a starting point but explicitly says crops need individual judgment and the rule can be broken deliberately. Do not record “never crop a knee” as a universal law.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "perspective-gap-photofacts-roll",
+      "title": "Portretfotografie tip: Draai de camera (Portrait photography tip: Rotate the camera)",
+      "author": "Elja Trum",
+      "identity": "Portrait photographer, photography educator and author; Photofacts bio says he has written about photography since 2006 and authored books on portrait photography, composition and flash",
+      "kind": "portrait-photographer tutorial published by photography education site",
+      "tier": "A",
+      "language": "nl",
+      "url": "https://photofacts.nl/portretfotografie/portretfotografie-tip-draai-de-camera",
+      "coverage": [
+        "camera roll / Dutch angle in portrait",
+        "background vertical lines becoming diagonals",
+        "deliberate versus mistake-like tilt",
+        "portrait-specific roll experiment"
+      ],
+      "trust_reason": "Named portrait photographer and educator explains a specific portrait camera-roll technique; full Dutch original is open and author qualifications are stated on the page.",
+      "independence_key": "Elja Trum",
+      "access": "full_text",
+      "read_depth": "Read complete Dutch article and author bio; inspected text/captions only, not the linked example image pixels.",
+      "worth_deep_read": true,
+      "notes": "The author claims 30–45 degrees often looks intentional and 5–10 degrees can look accidental. This is a single photographer’s numerical method and directly conflicts with Nikon’s much smaller portrait-tilt advice; preserve the disagreement and do not derive a numeric rule.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "perspective-gap-nikon-tilt",
+      "title": "How to nail portrait photography as a beginner",
+      "author": "Nikon Team",
+      "identity": "Nikon Europe editorial team; the linked author profile says the team works with Nikon Ambassadors and Creators across Europe",
+      "kind": "manufacturer portrait education article",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.nikon.nl/nl_NL/learn-and-explore/magazine/tips-and-tricks/nail-portrait-photography-as-a-beginner",
+      "coverage": [
+        "Dutch tilt in portraits",
+        "tilt for dynamic feel",
+        "portrait viewpoint and apparent size",
+        "contextual composition choices"
+      ],
+      "trust_reason": "Official Nikon Europe portrait tutorial has full text, captions and a team identity with stated contributor access.",
+      "independence_key": "Nikon Europe Learn & Explore",
+      "access": "full_text",
+      "read_depth": "Read the full article and Nikon Team profile; Dutch tilt and viewpoint sections were checked. Linked image pixels were not opened.",
+      "worth_deep_read": true,
+      "notes": "Nikon suggests a slight tilt for dynamic portrait feel and cautions against more than about 5–10 degrees. This conflicts with Elja Trum’s 30–45-degree suggestion; record as differing methods, not averaged guidance.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "perspective-gap-norton-camera-angle",
+      "title": "Framing of the Shot, Chapter 7 (Looking at Movies, 8th ed.)",
+      "author": "Richard Barsam and Dave Monahan",
+      "identity": "Film studies textbook authors; Norton-hosted chapter uses cinematography examples and defines camera-angle conventions",
+      "kind": "professional cinematography textbook chapter",
+      "tier": "A",
+      "language": "en",
+      "url": "https://nerd.wwnorton.com/ebooks/epub/movies8/EPUB/content/7.4-chapter07.xhtml",
+      "coverage": [
+        "camera roll and Dutch angle",
+        "off-balance effect",
+        "high and low angle expressive readings",
+        "counterexamples and context-dependent interpretation"
+      ],
+      "trust_reason": "Full textbook chapter from an established educational publisher documents camera-angle terminology and analyzes named film examples.",
+      "independence_key": "Barsam and Monahan textbook",
+      "access": "full_text",
+      "read_depth": "Read the full chapter with close attention to camera angle and Dutch-angle sections, including contextual counterexamples.",
+      "worth_deep_read": true,
+      "notes": "This is cinematography evidence. Its expressive readings can inform a still-photo experiment but cannot be asserted as universal portrait semantics.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "perspective-ppa-fauld-corrective",
+      "title": "3 Corrective Posing and Lighting Tips for Portraits",
+      "author": "Jeff Kent; portrait method by Andrew Faulds, M.Photog.C., CPP",
+      "identity": "PPA Magazine feature with a credentialed working portrait photographer",
+      "kind": "professional photographer interview/tutorial",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
+      "coverage": [
+        "conditional camera height and angle",
+        "body angle and lean",
+        "subject-specific portrait goals"
+      ],
+      "trust_reason": "PPA Magazine identifies the portrait photographer and professional credentials; full article gives concrete, contrasting corrective-posing examples.",
+      "independence_key": "Andrew Faulds",
+      "access": "full_text",
+      "read_depth": "Full article previously opened; lines 87–104 describe opposite body/camera choices for different subject presentation goals.",
+      "worth_deep_read": true,
+      "notes": "One photographer’s corrective method; supports conditional choice, not a universal low-angle emotion or pose rule.",
+      "accessed_at": "2026-10-07"
+    }
+  ],
+  "gaps": [
+    "Independent portrait photography sources for Dutch tilt agree that roll can be a deliberate compositional variable, but they conflict on useful angles (Elja Trum: larger tilt for clear intention; Nikon Europe: keep it slight). There is no defensible universal degree threshold or tested rule for cosplay stills.",
+    "A film textbook explains that Dutch angle can signal imbalance/chaos and that high/low-angle meanings depend on scene context, but this does not establish a universal still-portrait or cosplay interpretation. More named portrait-photographer examples tying body pose, background verticals and tilt to a specific intended effect would improve coverage.",
+    "Two named portrait photographers discuss joint-adjacent cropping, including knees, and one explicitly permits deliberate exceptions. Current evidence supports comparing crop choices, not a categorical ban. A controlled or independently documented comparison focused on different poses, motion, costume and intentional abstraction remains absent.",
+    "The new sources are general portrait/family photography, Nikon editorial and cinematography; none address cosplay costume construction, posed action, armor, skirts or convention constraints. Keep such applications as project-designed tests."
+  ],
+  "excluded": [
+    {
+      "title": "Generic “never crop joints” SEO/AI-style crop guides",
+      "reason": "Search results repeated absolute rules but lacked clear professional authorship or added evidence. They are not counted as independent support."
+    },
+    {
+      "title": "Dutch-angle pages with no named photographer or transparent editorial provenance",
+      "reason": "Search surfaced anonymous or marketing-led copy; excluded from evidence even where the snippet repeated the same angle claims."
+    }
+  ]
+}

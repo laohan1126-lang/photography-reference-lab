@@ -1,0 +1,229 @@
+{
+  "title": "Photography Atlas content follow-up source audit",
+  "date": "2026-10-08",
+  "mode": "read_only_risk_weighted_sample",
+  "snapshot": {
+    "skill_tree_sha256": "c7f65050df5eca972ee40766a54fe59192701b0579605048198f6539f53089ec",
+    "source_map_sha256": "f9f72b8a7d0e60cc80fd5da20646002d050cc17451a89bb75f9c2e4ca93ebdc8",
+    "evidence_matrix_sha256": "317c8c1dfe0dac9030db03dad5baace187cd7e06f14c620fdc8f5d4acc778969",
+    "domain_count": 14,
+    "module_count": 71,
+    "skill_count": 247,
+    "source_count": 205,
+    "evidence_row_count": 247
+  },
+  "sample": [
+    {
+      "skill_id": "perspective-skill-angle-comparison",
+      "risk": "high-confidence central technique; locator accuracy",
+      "verdict": "SUPPORTED_WITH_LOCATOR_CORRECTION",
+      "finding": "The capability and limits are supported: PPA explains low angles can enlarge apparent stature and high views can foreshorten (actual lines 59–64); Faulds gives opposite choices for different subject goals (PPA lines 96–104); NAVEDTRA explains height/tilt distortion (lines 18–24). The evidence row points to PPA lines 94–101, which discuss negative space/crop, not angle-of-view. Correct only that locator to lines 59–64. No content downgrade warranted."
+    },
+    {
+      "skill_id": "cosplay-c07-japanese-sword-character-pose",
+      "risk": "high professional_consensus; cosplay-specific transfer and lineage",
+      "verdict": "SUPPORTED_NARROW_SCOPE_LINEAGE_NOTE",
+      "finding": "Both sources directly support Japanese-sword cosplay posing by character type and photographic readability. Nikon Lesson11 explicitly says to adapt stance to character/work, choose period-consistent scene, and use a wooden prop under safety controls; COSPLAY MODE explains character-dependent stances and turns the blade broadside to camera because edge-on it reads as a line. This is Japanese-sword cosplay, not actual weapons training or a universal prop rule. Nikon COSGENIC is labeled as powered by COSPLAY MODE, so publication lineage overlaps; the named authors/practitioners are different, therefore the independence key should encode actual contributors and preserve the overlap note. High is defensible only for this narrow capability, not for a broad weapon-pose consensus."
+    },
+    {
+      "skill_id": "light-037",
+      "risk": "high professional_consensus; potentially conflated mechanisms",
+      "verdict": "SUPPORTED",
+      "finding": "Aldred’s authored text explicitly distinguishes short-duration high-speed flash from HSS and warns ambient contribution can leave a sharp flash image plus blur; Nikon Kubota describes HSS as rapid pulses during focal-plane shutter travel and power loss; Carpenter explains flash duration freezing when ambient is controlled. Written sources support the exact distinction. Their associated videos were not used. High is defensible for mechanism distinction and choosing by ambient/sync conditions."
+    },
+    {
+      "skill_id": "post-composite-light-match",
+      "risk": "high professional_consensus; combined light-direction/quality/color claim",
+      "verdict": "SUPPORTED_WITH_SCOPE_LIMIT",
+      "finding": "Adobe directly states direction/shadow should match and light quality should be similar, including warm/cool and harsh/soft mismatch. PHLEARN provides a full written, named educator demonstration comparing highlight/shadow levels in a single dominant-sky-light composite. That second source supports tonal diagnosis in the stated example, not a universal multi-light rule; current skill does not force that universal interpretation. Two distinct instructional lineages support the capability."
+    },
+    {
+      "skill_id": "post-composite-perspective-scale",
+      "risk": "high professional_consensus; composite perspective claim",
+      "verdict": "SUPPORTED",
+      "finding": "Adobe states use the same point of view and similar scale; PHLEARN says to correct background perspective before other composite correction steps. Both are full-text sources, and the practical skill is limited to comparing/viewpoint matching and avoiding excessive rescue scaling. No source-url or claim mismatch found."
+    },
+    {
+      "skill_id": "mot-07",
+      "risk": "high professional_consensus; numeric exercise threshold",
+      "verdict": "SUPPORTED_WITH_EXERCISE_LIMIT",
+      "finding": "Nikon’s live article recommends deciding what moves, and gives a specific example: keep a flower still for the first 0.5 seconds during a 1-second exposure, then move it. The Society article contrasts a relatively still subject with moving fabric and flash/ambient blur; it says exposure timing and number of takes vary. The “one successful photo” acceptance criterion is a project exercise criterion, not a claim that professionals prescribe a numeric standard. The current wording treats it as acceptance, not consensus, so the distinction is acceptable."
+    },
+    {
+      "skill_id": "field-short-slot-prelight",
+      "risk": "high professional_consensus; practical workflow claim",
+      "verdict": "SUPPORTED",
+      "finding": "Nikon Ambassador Dave Black directly recommends a stand-in lighting test and correct exposure before an important short portrait slot. Mark Edward Harris separately says to practice in advance and not debut a complex flash effect during an important assignment. Full-text source claims align with the skill. No lesson-video inference or threshold overclaim observed."
+    },
+    {
+      "skill_id": "mot-25",
+      "risk": "high professional_consensus; film-method transfer risk",
+      "verdict": "SUPPORTED_FOR_MOVING_IMAGE_ONLY",
+      "finding": "Lubezki (ARRI), Edu Grau (ARRI), and Jay Holben (ASC) directly discuss story-motivated camera movement and rehearsal/blocking in cinema. The current skill is explicitly under domain_hint=动态影像 and module moving-image-5; it does not claim static-portrait consensus. Support is appropriate within moving-image cinematography. Do not reuse these film sources to label static portrait camera movement as professional consensus."
+    }
+  ],
+  "source_corrections": [
+    {
+      "source_id": "cosplay-cosplaymode-katana",
+      "targetfields": [
+        "author",
+        "identity",
+        "independence_key",
+        "notes"
+      ],
+      "recommendation": "Replace generic cosplaymode-contributor-line with named author/adviser identities from the page byline (Mame Mayo; adviser Jisai Tatsumura and suit-actor adviser); note that COSGENIC is also powered by COSPLAY MODE. This makes independence transparent; it does not imply the authors are duplicated."
+    }
+  ],
+  "candidate_corrections": [
+    {
+      "id": "perspective-skill-angle-comparison",
+      "disposition": "keep",
+      "requirededit": "Correct only the locator for perspective-ppa-angle-of-view from lines 94–101 to lines 59–64.",
+      "confidence": "high retained; basis photographer_method remains appropriate.",
+      "basis": "Reopened PPA angle section, PPA Faulds article, and Navy manual; all support conditional viewpoint effects and prevent a fixed emotional label."
+    },
+    {
+      "id": "cosplay-c07-japanese-sword-character-pose",
+      "disposition": "keep_narrow",
+      "requirededit": "No body change requested. Preserve narrow Japanese-sword cosplay/static-image scope and do not generalize to weapon operation or other props; refresh source independence metadata as above.",
+      "confidence": "high is defensible for this narrow capability with two distinct credited practitioners, but document shared COSPLAY MODE production lineage.",
+      "basis": "Nikon Lesson11 and COSPLAY MODE article directly support character-aware pose and visual readability; COSPLAY MODE lines 218 explains showing blade face to camera."
+    },
+    {
+      "id": "light-037",
+      "disposition": "keep",
+      "requirededit": "No body change requested; continue citing only written content and keep ambient contribution as the deciding condition.",
+      "confidence": "high supported by three named educators with distinct bylines.",
+      "basis": "Aldred lines 1051–1055; Kubota 234–236; Carpenter 34–36."
+    },
+    {
+      "id": "post-composite-light-match",
+      "disposition": "keep_with_limit",
+      "requirededit": "No body change requested. Keep the PHLEARN citation tied to highlight/shadow diagnosis for a single dominant light source; Adobe supports direction, warmth/coolness, and hard/soft quality.",
+      "confidence": "high supported by distinct instructional lineages for this technical composite criterion.",
+      "basis": "Adobe 165–177 and PHLEARN 83–117."
+    },
+    {
+      "id": "post-composite-perspective-scale",
+      "disposition": "keep",
+      "requirededit": "No body change requested.",
+      "confidence": "high supported.",
+      "basis": "Adobe 176–177 plus PHLEARN 88–92."
+    },
+    {
+      "id": "mot-07",
+      "disposition": "keep_with_exercise_boundary",
+      "requirededit": "No body change requested. Maintain that the one-photo criterion is a project acceptance threshold, not a professional recommendation.",
+      "confidence": "high supported for the general still/motion control capability.",
+      "basis": "Nikon example lines 140–151 and Society tutorial lines 101–118."
+    },
+    {
+      "id": "field-short-slot-prelight",
+      "disposition": "keep",
+      "requirededit": "No body change requested.",
+      "confidence": "high supported by distinct named portrait/photojournalism practitioners.",
+      "basis": "Nikon Dave Black line 31 and PPA Mark Edward Harris lines 127–133."
+    },
+    {
+      "id": "mot-25",
+      "disposition": "keep_in_moving_image_domain_only",
+      "requirededit": "No body change requested. Do not use this citation set to claim static portrait professional consensus.",
+      "confidence": "high supported within moving-image cinematography.",
+      "basis": "Skill is explicitly in dynamic-image domain; Lubezki 30–45, Grau 77–78, Holben 214–230."
+    }
+  ],
+  "limitations": [
+    "This is an 8-skill risk-weighted content sample, not a semantic audit of all 247 skills or all 205 sources.",
+    "The 17 pages below were opened/reopened; linked example images were not pixel-reviewed unless explicitly stated (none were).",
+    "One source-map record, cosplay-cosplaymode-katana, shares a publisher ecosystem with COSGENIC. The page bylines name distinct practitioners; source metadata should make that relationship legible.",
+    "One separate exploratory page (Oklahoma State film textbook chapter, used by perspective-skill-height-vs-pitch) returned HTTP 403 in this pass and was excluded from the selected eight."
+  ],
+  "actual_opened_sources": [
+    {
+      "source_id": "perspective-ppa-angle-of-view",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-3d-angle-of-view",
+      "opened": "Full text; angle passage lines 59–64. Lines 94–101 are negative-space material, confirming locator mismatch."
+    },
+    {
+      "source_id": "perspective-ppa-fauld-corrective",
+      "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
+      "opened": "Full text; byline and photographer-specific differing choices lines 92–104."
+    },
+    {
+      "source_id": "perspective-navy-posing-manual",
+      "url": "https://photographytraining.tpub.com/14209/css/Posing-196.htm",
+      "opened": "Full text; camera height/tilt and projection effects lines 18–24."
+    },
+    {
+      "source_id": "posing-nikon-cosgenic-lesson11",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson11/",
+      "opened": "Full article text; pose and background lines 42–72; prop-safety note and photographer credit lines 172–188. Linked pixels not reviewed."
+    },
+    {
+      "source_id": "cosplay-cosplaymode-katana",
+      "url": "https://cosplaymode.net/howto/1680/",
+      "opened": "Full article text; byline/role lines 63–71; character-specific stances lines 110–124; blade-to-camera readability lines 216–223."
+    },
+    {
+      "source_id": "light-aldred-freeze",
+      "url": "https://www.diyphotography.net/use-strobes-freeze-subject-movement-action/",
+      "opened": "Full written article excerpt lines 1036–1057; video linked in the article was not watched or used."
+    },
+    {
+      "source_id": "light-nikon-kubota-hss",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/high-speed-sync-a-flash-technique-to-add-a-pro-touch-to-your-photographs",
+      "opened": "HSS mechanism and output trade-off lines 234–236."
+    },
+    {
+      "source_id": "light-carpenter-duration",
+      "url": "https://fstoppers.com/lighting/using-flash-duration-freeze-motion-211408",
+      "opened": "Written article lines 19–36; associated video not used."
+    },
+    {
+      "source_id": "post-adobe-composite-principles",
+      "url": "https://www.adobe.com/learn/photoshop/web/photography-effects",
+      "opened": "Full text; lighting direction/quality and perspective/scale lines 153–182."
+    },
+    {
+      "source_id": "post-phlearn-composite-light",
+      "url": "https://phlearn.com/tutorial/match-lighting-any-composite/",
+      "opened": "Full written tutorial lines 83–117; single-source outdoor example, separate from embedded video."
+    },
+    {
+      "source_id": "motion-arri-birdman-lubezki",
+      "url": "https://www.arri.com/news-en/emmanuel-lubezki-asc-amc-on-birdman-",
+      "opened": "Full interview excerpt; motivated movement and preplanned blocking lines 30–45."
+    },
+    {
+      "source_id": "motion-arri-room-next-door-grau",
+      "url": "https://www.arri.com/news-en/the-room-next-door-almodovar-alexa35",
+      "opened": "Full interview; each camera move should serve story, lines 77–78."
+    },
+    {
+      "source_id": "motion-asc-camera-placement",
+      "url": "https://theasc.com/article/shot-craft-where-do-you-put-the-camera/",
+      "opened": "Full article by Jay Holben; narrative conditions and actor-rehearsal/movement link lines 214–230."
+    },
+    {
+      "source_id": "motion-nikon-jp-slow-shutter",
+      "url": "https://nij.nikon.com/learn/phototech/atoz/atoz35.html",
+      "opened": "Full relevant section lines 135–151: define moving/still elements; 1-second example with first 0.5 seconds held."
+    },
+    {
+      "source_id": "motion-society-flowing-fabric",
+      "url": "https://thesocieties.net/blog/2022/08/23/creating-movement-in-the-studio-photographing-flowing-fabric/",
+      "opened": "Full text; flash/ambient movement result and timing caveats lines 101–118; repeatable action and safety/preparation lines 179–201, 260–273."
+    },
+    {
+      "source_id": "field-nikon-test-run",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/do-a-test-run-for-important-portrait-shoots",
+      "opened": "Full page; Nikon Ambassador Dave Black recommends stand-in, lighting test and exposure check, line 31."
+    },
+    {
+      "source_id": "field-ppa-harris-balance",
+      "url": "https://www.ppa.com/ppmag/articles/the-artificial-balancing-act",
+      "opened": "Full article; recommends practice ahead of important assignment, lines 127–133."
+    }
+  ],
+  "actions": "Read-only: did not modify shared docs, source map, evidence matrix, UI, git index, commits, or remote."
+}

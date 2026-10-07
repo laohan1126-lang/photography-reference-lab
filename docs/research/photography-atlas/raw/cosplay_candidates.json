@@ -1,0 +1,387 @@
+{
+  "scope": "cosplay",
+  "candidates": [
+    {
+      "id": "cosplay-c01-character-pose-translation",
+      "skill_name": "把角色意图转成身体姿态变量",
+      "capability": "根据角色性格和目标场景，明确调整站姿方向、步幅、重心、肩部姿态和动作幅度中的哪些变量；不把角色类型简化为固定性别规则。",
+      "why_it_matters": "泛用的漂亮姿势可能和角色的状态、作品世界或标志动作不一致。",
+      "module_hint": "角色表达与姿态指导",
+      "domain_hint": "Cosplay现场人物指导",
+      "prerequisites": [],
+      "failure_modes": ["姿势与角色气质不符", "人物只是在展示服装而没有场景意图", "所有角色套用同一站姿"],
+      "practice": "选一个角色和一个明确场景意图，写出两项可调身体变量，拍摄中只调整这两项各做一个对照版本。",
+      "acceptance": ["能够在拍前说清角色/场景意图与对应的两项身体变量", "两组姿态之间的变量差异可观察并可复述", "由角色扮演者确认哪组更接近其角色理解；此为当次协作反馈，不代表普适审美结论"],
+      "evidence": [
+        {"source_id": "cosplay-nikon-cosgenic", "locator": "Lesson 3, lines 35–46; Lesson 11, lines 44–59", "support": "先确定角色特征与要再现的场景，再调整姿势/背景；剑剧姿态也随角色与作品特性变化。", "scope": "direct"},
+        {"source_id": "cosplay-cosplaymode-katana", "locator": "lines 110–124", "support": "文中对照不同角色气质与不同脚位、重心、肩部姿态，说明姿势需随角色性格变化。", "scope": "direct"},
+        {"source_id": "cosplay-ppa-body-language", "locator": "lines 97–121", "support": "肖像摄影师按委托人希望传达的信息调整头部与手臂姿态；此变量迁移到角色表达时须由具体角色意图约束。", "scope": "adapted"}
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay character pose direction photographer", "キャラクター性 ポージング コスプレ 撮影"]
+    },
+    {
+      "id": "cosplay-c02-align-shot-intent",
+      "skill_name": "拍摄前与角色扮演者对齐画面意图",
+      "capability": "在连续拍摄前，用角色/场景参考和简短问题确认双方对本组画面、姿势方向及服装展示重点的理解。",
+      "why_it_matters": "双方各自想象不同的画面时，摄影师的动作指示可能偏离扮演者的角色理解或服装设计重点。",
+      "module_hint": "拍前沟通与角色理解",
+      "domain_hint": "Cosplay现场人物指导",
+      "prerequisites": ["cosplay-c01-character-pose-translation"],
+      "failure_modes": ["摄影师和扮演者按不同的场景想象工作", "方向不清时仍连续拍摄", "参考图只被当作照抄姿势而未讨论用途"],
+      "practice": "每组拍摄开始前请扮演者描述角色此刻的状态；摄影师用自己的话复述，并共同选定一个可见的姿态或道具关系变量。",
+      "acceptance": ["拍前双方各自能用一句话描述目标画面", "扮演者可修正摄影师复述", "试拍后双方能指出该组是否符合约定目标"],
+      "evidence": [
+        {"source_id": "cosplay-nikon-cosgenic", "locator": "Lesson 3, lines 50–55", "support": "文章指出同一角色的双方可能有不同想象，建议在拍摄前讨论并对齐。", "scope": "direct"},
+        {"source_id": "cosplay-cosplaymode-mirror-check", "locator": "lines 87–104, 168–178", "support": "现场报道描述摄影师与模特在镜前核对服装可见度、沟通立姿并协作完成作品。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay photographer communicate image concept", "コスプレ撮影 イメージ 共有 撮影者 モデル"]
+    },
+    {
+      "id": "cosplay-c03-specific-pose-cues",
+      "skill_name": "把姿势要求改写成可执行的身体部位提示",
+      "capability": "把“自然一点”“更帅”等抽象要求，拆成一次一项可观察的身体动作提示，例如脚步、躯干方向、手的位置、脸部角度或视线。",
+      "why_it_matters": "模糊提示让不熟悉镜头前摆姿势的人不知道下一步怎么动。",
+      "module_hint": "现场指导语言",
+      "domain_hint": "Cosplay现场执行",
+      "prerequisites": ["cosplay-c01-character-pose-translation", "cosplay-c02-align-shot-intent"],
+      "failure_modes": ["只给抽象形容词", "一次说太多身体部位", "摄影师与扮演者对左右方向理解不一致"],
+      "practice": "为一个站姿分别写下脚、躯干、手、脸和视线五条短提示；拍摄时逐条给出并记录哪些措辞被正确理解。",
+      "acceptance": ["五条提示都能被扮演者用动作执行", "每条提示只改变一个主要变量", "左右方向有歧义时能立即改用扮演者视角或示范"],
+      "evidence": [
+        {"source_id": "cosplay-cosplaymode-direction-cues", "locator": "lines 68–93, 99–124, 161–202", "support": "文章用摄影师/扮演者对话示例，把躯干、手、下巴、重心和机位要求转成具体动作提示。", "scope": "direct"},
+        {"source_id": "cosplay-note-kujira-posing", "locator": "lines 28–54, 92–114", "support": "作者建议按脚、髋、肩、手、脸、视线和表情分解姿态提示；作者专业背景未独立核验，作为补充实践来源。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay photographer posing instructions", "コスプレカメラマン 声かけ 指示 ポージング"]
+    },
+    {
+      "id": "cosplay-c04-arm-torso-separation",
+      "skill_name": "控制手臂与躯干的画面间隙",
+      "capability": "从取景器检查手臂是否与躯干轮廓粘连，并通过手臂位置或上身转向调整轮廓分离。",
+      "why_it_matters": "手臂与躯干在画面中合并时，肢体轮廓可能变得难以辨认。",
+      "module_hint": "肢体轮廓与姿势修正",
+      "domain_hint": "人像姿势的Cosplay迁移",
+      "prerequisites": [],
+      "failure_modes": ["手臂贴紧身体后在画面里融成一块", "手臂遮住角色服装的关键轮廓", "只说“显瘦”而没有给可执行的空间调整"],
+      "practice": "在同一机位拍摄手臂贴躯干和留出间隙两个版本，保持其他姿势变量尽量不变，再比较轮廓是否可分。",
+      "acceptance": ["能在取景器中指出手臂与躯干相接的位置", "能用一次明确的手臂或躯干调整形成可见间隙", "结论只描述画面轮廓，不把身材偏好当作标准"],
+      "evidence": [
+        {"source_id": "cosplay-cosplaymode-direction-cues", "locator": "lines 68–85", "support": "文章指出手臂贴住身体会与身体视觉合并，并给出增加间隙的提示。", "scope": "direct"},
+        {"source_id": "cosplay-ppa-body-language", "locator": "lines 117–122", "support": "一般肖像摄影会根据想传达的姿态信息调整交叉手臂；只将其用于确认姿势语义依赖目标的适配，不能推出固定审美规则。", "scope": "adapted"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": ["portrait arm body separation posing", "コスプレ ポーズ 腕 体 隙間"]
+    },
+    {
+      "id": "cosplay-c05-pose-variation",
+      "skill_name": "用躯干扭转和关节弯曲制造姿势变化",
+      "capability": "从中性站姿出发，分别改变上/下身方向关系、关节弯曲或动作幅度，生成可辨认的角色姿势变体。",
+      "why_it_matters": "连续直立姿势容易让一组照片重复，也可能无法呈现角色动作感。",
+      "module_hint": "静态姿势变体",
+      "domain_hint": "角色姿态与组照变化",
+      "prerequisites": ["cosplay-c01-character-pose-translation"],
+      "failure_modes": ["每张照片重复同一躯干方向", "只有手指变化而身体轮廓不变", "动作幅度超过取景范围或角色舒适范围"],
+      "practice": "在安全舒适的中性站姿上，每次只改变躯干/骨盆反向扭转、一个关节弯曲或动作幅度之一，逐项拍照记录。",
+      "acceptance": ["至少能区分三个只改变单一主要变量的姿势版本", "每个版本仍在预设取景范围内", "对不适或不稳姿势立即停止并改为舒适版本"],
+      "evidence": [
+        {"source_id": "cosplay-cosplaymode-posing-variations", "locator": "lines 80–96", "support": "文章直接建议通过上下身反向扭转及调整动作幅度给站姿变化，并提醒与摄影者协商边界。", "scope": "direct"},
+        {"source_id": "cosplay-cosplaymode-gesture-motion", "locator": "lines 160–178", "support": "文章对比直立与关节弯曲、扭转姿势，并把衣物动作和角色动作意图联系起来。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay posing twist joints movement", "コスプレ ポージング ひねる 関節 動き"]
+    },
+    {
+      "id": "cosplay-c06-large-prop-pose-variants",
+      "skill_name": "为大型仿制道具设计多种静态画面姿势",
+      "capability": "使用大型轻型仿制道具，在人物站姿、身体高度、道具在人物前后/侧面的摆位之间设计安全的静态画面变体。",
+      "why_it_matters": "单一持法容易造成道具挡住人物或画面变化不足；大物件也会改变人物在画面中的占比。",
+      "module_hint": "大型道具与人物空间组织",
+      "domain_hint": "Cosplay武器/道具呈现",
+      "prerequisites": ["cosplay-c01-character-pose-translation"],
+      "failure_modes": ["道具位置遮住关键身体部位", "人物在道具旁缺少姿势变化", "为了表现道具而进入不稳或不舒适姿势"],
+      "practice": "只用轻质钝头仿制大剑，在固定安全位置设计直立、低身位和道具靠身侧三种静态姿势；由扮演者自行持有和移动。",
+      "acceptance": ["三张测试照片中可辨认出三种不同的人物/道具关系", "道具和人物均处于画面内且没有被裁切", "扮演者能稳定舒适地保持姿势；不得由此推断武器操作能力"],
+      "evidence": [
+        {"source_id": "cosplay-cosplaymode-rpg-weapons", "locator": "lines 249–303", "support": "文章按大型剑姿势给出双手、低身位、蹲姿和单手等静态变化示例。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay large sword pose photo examples", "コスプレ 大剣 ポージング 撮影"]
+    },
+    {
+      "id": "cosplay-c07-japanese-sword-character-pose",
+      "skill_name": "让日本刀仿制道具姿态符合角色与参考场景",
+      "capability": "在静态肖像拍摄中，根据角色参考选择与其气质和场景相符的日本刀道具姿态，并检查人物姿势和道具轮廓是否都清楚。",
+      "why_it_matters": "同样的道具姿态可能无法表达角色差异，也可能使服装和人物动作显得含混。",
+      "module_hint": "角色化武器道具呈现",
+      "domain_hint": "Cosplay武器/道具呈现",
+      "prerequisites": ["cosplay-c01-character-pose-translation", "cosplay-c02-align-shot-intent"],
+      "failure_modes": ["姿态与角色参考不符", "摄影师和扮演者使用不同的道具部位名稱", "照片看不清人物與仿制道具的关系"],
+      "practice": "选一张公开角色参考图和一把轻质钝头日本刀道具；拍摄前与扮演者确定静态姿态关键词，再只调整持物方向或身体朝向做对照。",
+      "acceptance": ["能指出所参照的角色动作/姿态特征", "扮演者同意所选静态姿态作为本次表达", "画面中人物与道具轮廓可分辨", "不将本文当作武器操作或实战训练"],
+      "evidence": [
+        {"source_id": "cosplay-nikon-cosgenic", "locator": "Lesson 11, lines 42–59", "support": "摄影指导建议使刀具姿势与角色/作品特性相符，并调整姿态组织和构图。", "scope": "direct"},
+        {"source_id": "cosplay-cosplaymode-katana", "locator": "lines 69–71, 110–124", "support": "指导者建议团队共享刀具部位名称以便清晰指导，并按角色性格区分姿势。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": ["Japanese sword cosplay posing character", "日本刀 コスプレ ポーズ キャラクター 撮影"]
+    },
+    {
+      "id": "cosplay-c08-action-shutter-choice",
+      "skill_name": "用快门时间决定道具动作的凝固或残影",
+      "capability": "通过快门时间对照，判断何时把轻型仿制道具的受控小幅移动凝固，何时保留可读的运动残影。",
+      "why_it_matters": "动作照片可能因道具完全冻结而缺少动态感，也可能因意外抖动而难以辨认。",
+      "module_hint": "动作拍摄与快门控制",
+      "domain_hint": "动态Cosplay摄影",
+      "prerequisites": [],
+      "failure_modes": ["没有表达预想的静或动", "人物和道具都意外模糊", "道具残影重叠后轮廓难以辨认"],
+      "practice": "在有明确空间、同伴确认和轻质钝头仿制道具的静态练习环境中，对同一受控动作拍摄快速与较慢快门版本；不在漫展人群中重复动作。",
+      "acceptance": ["能说出每张测试的目标是凝固还是表现运动", "目标道具的清晰度/残影与目标方向一致", "意图之外的人物和相机抖动可区分并记录"],
+      "evidence": [
+        {"source_id": "cosplay-nikon-cosgenic", "locator": "Lesson 11, lines 84–106, 142–158; lines 187–188", "support": "摄影师使用快门速度呈现刀的凝固/残影差异，也演示局部运动模糊；该课程以木制模造刀在适当环境中拍摄并强调安全。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay sword motion shutter speed photographer", "剣劇 コスプレ シャッタースピード 静 動"]
+    },
+    {
+      "id": "cosplay-c09-assisted-fabric-motion",
+      "skill_name": "协同助手控制衣料运动的拍摄时机",
+      "capability": "在扮演者保持安全稳定姿势时，与助手协调裙摆/披风等衣料的运动方向和快门时机，反复拍摄以获得所需形状。",
+      "why_it_matters": "衣料运动可能需要额外人手；若扮演者同时忙于动作和表情，容易失去对姿势的控制。",
+      "module_hint": "服装运动与现场协作",
+      "domain_hint": "Cosplay服装呈现",
+      "prerequisites": ["cosplay-c02-align-shot-intent"],
+      "failure_modes": ["布料方向与画面意图相反", "扮演者为衣料动作分心或失去平衡", "只拍到一次失败的落布时机"],
+      "practice": "先用轻质布料在不移动扮演者的情况下，由助手重复三次同一方向的抛送/风动动作；摄影师测试预备、最高点和回落阶段的快门时机。",
+      "acceptance": ["助手和摄影师能在试拍前复述动作方向与快门信号", "测试帧中至少一帧保留预设的衣料方向且人物姿势稳定", "扮演者与助手均同意当前动作安全舒适"],
+      "evidence": [
+        {"source_id": "cosplay-cosplaymode-gesture-motion", "locator": "lines 160–178", "support": "Cosplay专题建议由他人或摄影师遥控协助形成裙摆运动。", "scope": "direct"},
+        {"source_id": "cosplay-ppa-fabric-motion", "locator": "lines 96–105", "support": "舞蹈摄影师使用风扇和助手抛裙摆，让被摄者专注姿势/表情，并预先构想大裙摆构图。", "scope": "adapted"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay skirt motion assistant photographer", "裙摆 动态 摄影 助手 COSPLAY"]
+    },
+    {
+      "id": "cosplay-c10-wig-costume-flow",
+      "skill_name": "设计假发与衣料在画面中的运动方向",
+      "capability": "拍前决定假发/衣料运动要表现的动作阶段和画面方向，并检查它们是否引导视线、露出脸部与服装重点。",
+      "why_it_matters": "随机的头发和衣料运动可能遮住脸部或把视线带出画面，不能表达预想的角色动作。",
+      "module_hint": "服装与假发动态造型",
+      "domain_hint": "Cosplay头发/服装呈现",
+      "prerequisites": ["cosplay-c01-character-pose-translation", "cosplay-c02-align-shot-intent"],
+      "failure_modes": ["假发或衣料运动与动作意图不一致", "运动遮住脸部或关键服装元素", "没有为视线流向预留画面空间"],
+      "practice": "用轻质布条代替假发先做安全预演；口头描述其运动起点、方向和终点，然后用静帧核对脸部、服装和画面边缘是否仍清楚。",
+      "acceptance": ["能指出计划中的运动起点、方向和终点", "测试帧中运动元素未遮住双方约定的人物/服装重点", "能说明运动线将观者视线带向哪里；不把一个人的构图偏好称为普遍规则"],
+      "evidence": [
+        {"source_id": "cosplay-note-sutten-motion", "locator": "lines 28–50, 61–90, 97–124", "support": "摄影者描述用假发、服装和画外协助表达动作、增加体积并引导画面视线的个案方法。", "scope": "direct"},
+        {"source_id": "cosplay-cosplaymode-gesture-motion", "locator": "lines 160–178", "support": "Cosplay专题建议让假发和衣服的运动符合角色会做的动作。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay wig motion composition photographer", "コスプレ ウィッグ なびき 撮影 画面構成"]
+    },
+    {
+      "id": "cosplay-c11-costume-visibility-check",
+      "skill_name": "拍前检查服装在全身姿态中的可见度",
+      "capability": "与扮演者一起从全身视角检查服装长度、轮廓或指定细节是否按预期呈现，再确定姿势和机位。",
+      "why_it_matters": "近距离或俯视视角给人的感觉，可能与全身画面里裙摆/服装展示的实际效果不同。",
+      "module_hint": "服装轮廓检查",
+      "domain_hint": "Cosplay服装呈现",
+      "prerequisites": ["cosplay-c02-align-shot-intent"],
+      "failure_modes": ["服装关键设计被遮住或未进入画面", "以俯视印象代替全身画面的实际呈现", "摄影师单方面调整服装但未取得同意"],
+      "practice": "拍摄前让扮演者自己在全身镜前检查衣物；摄影师从计划机位核对约定的服装细节，任何整理动作先由扮演者执行或先询问同意。",
+      "acceptance": ["双方能指出本组要呈现的服装细节", "测试取景中该细节可见且没有被无意遮挡", "所有衣物调整均由扮演者自主完成或在明确同意后进行"],
+      "evidence": [
+        {"source_id": "cosplay-cosplaymode-mirror-check", "locator": "lines 84–96", "support": "被观察的Cosplay拍摄流程用全身镜和摄影者共同确认裙长/服装可见度；文章的直接触碰建议不纳入此技能。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay photographer full length mirror costume check", "コスプレ 撮影前 全身鏡 衣装 見え方"]
+    },
+    {
+      "id": "cosplay-c12-subject-set-overlap",
+      "skill_name": "通过移动摄影者、人物或场景物件调整画面重叠",
+      "capability": "发现人物/道具与背景重叠不清时，分别尝试移动摄影位置、扮演者位置或场景物件，观察哪一项改变了轮廓关系。",
+      "why_it_matters": "仅盯着人物而忽略背景，可能让道具或服装边缘与背景混在一起。",
+      "module_hint": "人物与场景关系",
+      "domain_hint": "Cosplay空间组织",
+      "prerequisites": [],
+      "failure_modes": ["背景只作为偶然进入的画面元素", "人物、道具或家具边缘相互粘连", "同时移动多项后无法知道哪项改变了画面"],
+      "practice": "保持灯光和姿势不变，分别只移动摄影者、扮演者、可移动场景物件各拍一帧，记录画面重叠的变化。",
+      "acceptance": ["能指出当前一处主体/道具与背景重叠点", "能用一次单变量移动改变该重叠关系", "记录结果为本次场景观察，不推广成固定构图规则"],
+      "evidence": [
+        {"source_id": "cosplay-note-background-overlap", "locator": "lines 8–27, 40–45", "support": "作者报告通过分别移动自己、扮演者和场景家具改变人物/背景重叠，并将其作为后续拍摄的检查项。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay photography background overlap composition", "コスプレ撮影 背景 重なり 構図"]
+    },
+    {
+      "id": "cosplay-c13-group-character-arrangement",
+      "skill_name": "安排多人角色姿势形成一张共同画面",
+      "capability": "先确定多人画面关系，再分配每人的朝向、姿势、视线和相互连接点，使各角色共同支持一个组照意图。",
+      "why_it_matters": "多名角色各自摆好姿势，不一定自然形成清晰的共同构图。",
+      "module_hint": "多人角色关系与构图",
+      "domain_hint": "Cosplay多人拍摄",
+      "prerequisites": ["cosplay-c01-character-pose-translation", "cosplay-c02-align-shot-intent"],
+      "failure_modes": ["人物姿势互不呼应", "组照中心和视觉次序不明确", "摄影师没有说明每名角色在画面中的职责"],
+      "practice": "拍两人或三人组照，先说出共同场景意图，再逐一安排朝向、视线或相互关系；每次只改变一人的位置或朝向做对照。",
+      "acceptance": ["每位扮演者都能说出自己与其他角色的画面关系", "测试构图中各人脸部和主要姿态没有意外遮挡", "至少能拍出两个关系明确且可区分的组照版本"],
+      "evidence": [
+        {"source_id": "cosplay-nikon-cosgenic", "locator": "Lesson 5, lines 35–45", "support": "摄影者被描述为多人组照构图的组织者，负责把共同想法落实为画面构图和指示。", "scope": "direct"},
+        {"source_id": "cosplay-cosplaymode-group-mame", "locator": "lines 72–97", "support": "Mame Mayo 的Cosplay多人拍摄文章按人数提供姿势/构图方案；其简介说明她教授动作与姿势工作坊。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay group posing composition photographer", "コスプレ 併せ 複数人 構図 ポージング"]
+    },
+    {
+      "id": "cosplay-c14-expression-message-match",
+      "skill_name": "让姿势与表情共同传达角色当下情绪",
+      "capability": "先明确本帧希望呈现的情绪或互动信息，再检查头部方向、手臂/身体姿态与表情是否互相支持；需要时让扮演者用自己的节奏调整表情。",
+      "why_it_matters": "姿势和表情发出冲突信号时，角色状态不易读；单纯要求“笑”或“凶”也可能变成僵硬表演。",
+      "module_hint": "情绪表达与角色状态",
+      "domain_hint": "角色表演指导",
+      "prerequisites": ["cosplay-c01-character-pose-translation", "cosplay-c02-align-shot-intent"],
+      "failure_modes": ["表情与姿势方向冲突", "表情重复且失去变化", "把某类表情的意义当成跨角色、跨文化固定含义"],
+      "practice": "为同一角色设定两种不同情绪意图，每种只给一个身体提示和一个表情/视线提示；允许扮演者先自行调整并确认舒适程度。",
+      "acceptance": ["能够说出每张试拍想传达的具体状态", "姿势和表情至少有一项可见差异", "扮演者能指出自己是否感到表达自然；结果记录为合作反馈而非普适表情规则"],
+      "evidence": [
+        {"source_id": "cosplay-ppa-body-language", "locator": "lines 97–134", "support": "专业肖像案例按目标信息调整头部倾斜、手臂姿势和笑容，并说明姿势含义依语境而异。", "scope": "adapted"},
+        {"source_id": "cosplay-nikon-cosgenic", "locator": "Lesson 3, lines 35–55; Lesson 11, lines 44–46", "support": "Cosplay拍摄以角色/场景意图为起点，动作和锐利视线随角色状态设计。", "scope": "direct"},
+        {"source_id": "cosplay-cosplaymode-mirror-check", "locator": "lines 106–112, 125–141", "support": "被观察的拍摄方法通过相机方向的交流与扮演者自行调整视线捕捉表情变化。", "scope": "direct"}
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": ["cosplay character expression posing photographer", "コスプレ 表情 姿勢 キャラクター 撮影"]
+    },
+    {
+      "id": "cosplay-c15-styled-hair-light-separation",
+      "skill_name": "为造型假发预留轮廓光与背景关系",
+      "capability": "拍前确定发型/假发与背景是否需要分离或形成轮廓光，再通过人物朝向、主光方向和辅助光位置做测试，并检查脸部与服装阴影细节。",
+      "why_it_matters": "复杂发型和头部造型可能融入背景，或因光线方向不合而抢过人物面部与服装。",
+      "module_hint": "假发/头发与服装照明",
+      "domain_hint": "Cosplay头发造型摄影",
+      "prerequisites": [],
+      "failure_modes": ["发型轮廓与暗背景合并", "发型未按预想方向显形", "提高头发可见度时丢失脸部或服装阴影细节"],
+      "practice": "固定背景和构图，对轻型造型假发分别拍摄人物朝向主光、背向主光并添加弱轮廓光的版本；每次只改一个灯位或朝向变量。",
+      "acceptance": ["能说明本组需要头发轮廓光还是自然融入背景", "测试帧中发型边缘与背景可按预设方式区分", "脸部及约定的服装细节仍可辨认", "不把普通发丝教程推断为合成纤维高光控制规则"],
+      "evidence": [
+        {"source_id": "cosplay-profoto-adler-hairlight", "locator": "lines 13–25", "support": "Lindsay Adler 指出高位主光可照亮头发，人物背向主光时可形成发丝光；反光板用于保留脸部和服装阴影细节，并建议拍前规划头发、服装和姿势。", "scope": "direct"},
+        {"source_id": "cosplay-joe-edelman-styled-wig-portrait", "locator": "lines 49–67", "support": "Joe Edelman 的实际肖像布光案例把造型假发、头肩布料、暗背景和有色后灯作为整体画面元素进行规划；不支持合成纤维专门结论。", "scope": "adapted"}
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": ["photographer hair light portrait wig background detail", "コスプレ ウィッグ 輪郭光 撮影 ライティング"]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "姿势语义是否固定",
+      "detail": "PPA 肖像文章承认同一姿势会依委托目标和人物语境产生不同含义；COSPLAY MODE 的某些特定示例会把某些姿态描述为更强/弱或更符合某类角色。候选技能采用“按角色意图选择变量”，不把某姿态固定映射为某性格。",
+      "sources": ["cosplay-ppa-body-language", "cosplay-cosplaymode-katana"]
+    },
+    {
+      "topic": "专业形式与Cosplay夸张姿态",
+      "detail": "Cosplay姿势资料会提供夸张或仅适用于静态照片的姿势，不能据此推断真实武术/军事技术。候选只覆盖仿制道具的静态画面呈现和安全受控的摄影实验。",
+      "sources": ["cosplay-cosplaymode-handgun", "cosplay-cosplaymode-weapon-fight-poses", "cosplay-cosplaymode-rpg-weapons", "cosplay-nikon-cosgenic"]
+    }
+  ],
+  "gaps": [
+    {
+      "area": "短匕首/短剑专门的镜头呈现",
+      "status": "未解决，继续保留为缺口",
+      "detail": "补搜仍未发现可靠来源专门讨论短匕首在画面里的朝向、手腕转向、与躯干遮挡或尺度关系。不得从日本刀、长剑或枪械姿势类推内扣/外展规则。"
+    },
+    {
+      "area": "假发静态造型与摄影控制",
+      "status": "动态运动有单一摄影者方法，静态控制仍不足",
+      "detail": "现有直接材料讲假发/衣物动态、体积和画面流向；未有多位独立专业来源系统支持静态假发亮泽、轮廓、遮眼、风控或不同合成纤维的布光变量。"
+    },
+    {
+      "area": "宽袖、裙摆与服装结构的画面检查",
+      "status": "部分证据，只能保留通用可见度检查",
+      "detail": "来源支持镜面检查全身服装可见度，以及助手协助裙摆动作；仍缺独立专业来源对宽袖遮挡、袖口/手部区分、裙摆空间与角色特定服装线条的系统指导。不能把镜前检查泛化成具体宽袖造型规则。"
+    },
+    {
+      "area": "大型道具的透视、尺度与遮挡",
+      "status": "有静态姿态目录，摄影空间变量未建立",
+      "detail": "来源展示大型剑在多种姿势中的静态摆位，但未充分支持相机距离、人物/道具占比、透视夸张、遮挡与场馆限制如何作为独立摄影技能进行控制。"
+    },
+    {
+      "area": "道具与服装共同构图的独立交叉验证",
+      "status": "不足",
+      "detail": "若干直接意见来自COSPLAY MODE单一编辑体系；高置信度只给到有独立专业作者/机构对确切变量的来源。其他道具展示方法暂标摄影师方法或项目适配。"
+    }
+  ]
+}

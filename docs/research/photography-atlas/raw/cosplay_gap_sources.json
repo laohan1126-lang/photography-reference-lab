@@ -1,0 +1,167 @@
+{
+  "scope": "cosplay_gap_supplement",
+  "queries": [
+    "Pugoffka cosplay photographer posing costume details tutorial official",
+    "Jeff Jenkins cosplay photographer posing convention photography tutorial props costume",
+    "site:cosplaymode.net 写真 撮影 cosplay 撮影 衣装 袖 小道具 カメラマン",
+    "コスプレ撮影 短剣 ダガー ポージング カメラマン 講座",
+    "漫展 摄影师 采访 快速拍摄 现场 人流 cosplay 摄影师",
+    "漫展摄影师 摄影讲座 coser 现场人多 拍摄沟通 摄影师经验",
+    "中国 职业摄影师 coser 摄影 采访 衣服 细节 道具 镜头",
+    "Pugoffka cosplay photographer posing tips tutorial articles",
+    "着物 撮影 ポージング 袖 流れ カメラマン 写真家 講座",
+    "コスプレ 撮影 広袖 袖 ポーズ 袖口 カメラマン",
+    "wide sleeves kimono photography posing photographer sleeve drape portrait photographer",
+    "site:ppa.com portrait posing sleeves clothing arms fabric visibility photographer",
+    "中国职业 cosplay摄影师 漫展摄影 专访 摄影师",
+    "cosplay 摄影师 漫展人像 采访 人多 沟通 专业",
+    "漫展 摄影师 教程 场照 摄影 人流 避免路人 背景 摄影师采访",
+    "ChinaJoy 摄影师 coser 采访 摄影师 场照 经验"
+  ],
+  "sources": [
+    {
+      "id": "cosplay-gap-cosplaymode-prop-posing",
+      "title": "Cosplay photography posing tips for when you get stuck",
+      "author": "COSPLAY MODE editorial staff; named example models Tsukasa Sakurazaki, Ringoame and Yuu; author not identified on the opened page",
+      "identity": "Specialist cosplay magazine posing article, originally published in the May 2018 issue.",
+      "kind": "specialist_magazine_howto_with_examples",
+      "tier": "A",
+      "language": "ja",
+      "url": "https://cosplaymode.net/howto/556/",
+      "coverage": ["small prop position as character expression", "prop/face contour and mouth occlusion", "garment silhouette examples for skirts", "pose comfort and splitting a difficult held pose into shorter attempts"],
+      "trust_reason": "Established specialist cosplay publication with explicit magazine provenance, named example models and detailed written posing guidance; the accessible article describes the relevant variable directly.",
+      "independence_key": "COSPLAY MODE editorial staff (2018 pose feature)",
+      "access": "full_text",
+      "read_depth": "Opened and read relevant sections on small props (lines 121–127), skirt spread (190–197), and movement comfort (201–206). Linked images were not opened as pixels.",
+      "worth_deep_read": true,
+      "notes": "Directly supports a generic hand-held small-prop variable. It does not establish dagger-specific orientation, grip, safety, or relation-to-torso rules; do not infer one. Its skirt examples do not establish wide-sleeve behavior.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "cosplay-gap-cosplaymode-cues",
+      "title": "Cosplay photographer and cosplayer: points for verbal direction",
+      "author": "COSPLAY MODE editorial staff; no individual byline visible in the opened text",
+      "identity": "Specialist cosplay magazine article originally published in COSPLAY MODE September 2018, with concrete photographer/cosplayer cue examples.",
+      "kind": "specialist_magazine_direction_howto",
+      "tier": "A",
+      "language": "ja",
+      "url": "https://cosplaymode.net/howto/184/",
+      "coverage": ["short, concrete on-set pose cues", "arm/body spacing", "camera-height cueing", "feedback loops between photographer and cosplayer", "role-specific pose direction examples"],
+      "trust_reason": "Specialist cosplay publication presents explicit verbal cue examples and corresponding pose outcomes, rather than only a syllabus or image captions.",
+      "independence_key": "COSPLAY MODE editorial staff (2018 direction feature)",
+      "access": "full_text",
+      "read_depth": "Opened and read the article text, including arm/body spacing and camera-height prompt examples (lines 63–109), and its communication framing (238–243). Image pixels were not inspected.",
+      "worth_deep_read": true,
+      "notes": "Supports explicit, actionable portrait direction in cosplay. It does not test or prescribe a faster method for crowded Chinese conventions; avoid claiming an event-speed or crowd-specific protocol.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "cosplay-gap-canon-guangzhou-event",
+      "title": "Offline sharing: beginner guide to convention photography (Guangzhou Canon Imaging Lounge)",
+      "author": "Canon China event listing; instructor named as A-Qi (2025) / Chen Ziqi (2024 listing)",
+      "identity": "Official Canon China showroom event listing for beginner convention-photography sessions in Guangzhou.",
+      "kind": "manufacturer_event_syllabus",
+      "tier": "A",
+      "language": "zh",
+      "url": "https://www.canon.com.cn/purchase/show/guangzhou/event50.html",
+      "coverage": ["convention photography locations", "equipment selection", "convention portrait photography course scope"],
+      "trust_reason": "Official Canon China event page, but it only lists topics and instructor name, not lesson text or demonstrated technique.",
+      "independence_key": "Canon China Imaging Lounge event listing",
+      "access": "full_text",
+      "read_depth": "Read the event listing lines 421–440; no class recording, handout or detailed instruction was present on the opened page.",
+      "worth_deep_read": false,
+      "notes": "Useful discovery lead for local professional teaching; syllabus alone cannot support a crowd workflow, prop framing, or technical rule.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "cosplay-gap-shobserver-chinajoy-field",
+      "title": "Inside the photo area where Coser portraits are made at ChinaJoy",
+      "author": "Lai Xinlin, Jiefang Daily / Shangguan News",
+      "identity": "Chinese newspaper photo report about the ChinaJoy photography area; includes observations and photographer/cosplayer captions.",
+      "kind": "journalistic_field_report",
+      "tier": "C",
+      "language": "zh",
+      "url": "https://www.jfdaily.com.cn/wx/detail.do?id=958292",
+      "coverage": ["ChinaJoy portrait-area conditions", "lighting stands and equipment setup", "photographer-cosplayer coordination observed in the field", "checking images and costume between shots"],
+      "trust_reason": "Named newspaper reporter and direct event reporting; useful for describing context but not an authored photography lesson.",
+      "independence_key": "Jiefang Daily reporter Lai Xinlin",
+      "access": "full_text",
+      "read_depth": "Opened and read the article text and captions (lines 5–29 and 55–72). The prose identifies one featured photographer as a university student and hobbyist, not a professional teacher. Caption-described photographs were not opened as pixels.",
+      "worth_deep_read": false,
+      "notes": "Confirms a ChinaJoy photography-zone setting and observed pose communication, but supplies no repeatable crowd-management or short-direction technique. Captions are not treated as instruction or image review.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "cosplay-gap-pugoffka-profile",
+      "title": "Pugoffka — creator profile",
+      "author": "Pugoffka",
+      "identity": "First-person Patreon profile of a Kyiv-based cosplayer and cosplay photographer; profile claims over ten years photographing and over 1,000 cosplay shoots.",
+      "kind": "photographer_profile_and_tutorial_index",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.patreon.com/pugoffka/about",
+      "coverage": ["professional identity lead", "cosplay photography tutorials and lighting schemes advertised"],
+      "trust_reason": "First-person identity and practice history are stated by the photographer; individual detailed tutorial posts are member-locked and were not used as evidence.",
+      "independence_key": "Pugoffka (individual photographer)",
+      "access": "full_text",
+      "read_depth": "Read public profile text only. Public post results were locked or exposed titles without teaching text; no specific technique was extracted.",
+      "worth_deep_read": true,
+      "notes": "Credible specialist for a later authorized/public full-text lesson review, but this pass did not find accessible full-text evidence for dagger, wig, wide-sleeve or crowded-convention variables.",
+      "accessed_at": "2026-10-08"
+    }
+  ],
+  "gaps": [
+    {
+      "area": "短匕首/小刀道具的摄影呈现",
+      "status": "未解决；本轮定向搜索后仍是核心专业缺口",
+      "detail": "检索了日文短剣/ダガー/ナイフ、中文漫展摄影师与英文cosplay photographer/prop posing，并阅读了通用小道具及日本刀专题原文；没有找到可靠全文直接说明短匕首在镜头里的内扣/外展、与躯干关系或遮挡控制。不得由日本刀、长剑、手枪或一般小道具推导匕首朝向规则。"
+    },
+    {
+      "area": "宽袖/宽袍袖的可读轮廓与手部关系",
+      "status": "未解决；一般裙摆证据不可替代宽袖指导",
+      "detail": "新增检索日文和英文和装/kimono袖部摄影、Cosplay宽袖关键词；结果主要是预约服务、课程简介、婚礼摄影或非专业营销内容。COSPLAY MODE原文直接讲裙摆铺展，不讲宽袖。当前没有专业全文直接支持袖口方向、手臂/袖片分离或宽袖遮挡规则。"
+    },
+    {
+      "area": "中国漫展拥挤现场的快速指示、轮换与失败复盘",
+      "status": "未解决；存在现场背景描述及厂商课程提纲，无可核实的专业全文教学",
+      "detail": "检索中国职业Cosplay摄影师采访、Canon中国漫展摄影课程和现场抓拍/高人流关键词。Canon公开页只列课程主题；媒体现场报道记录拍摄区、灯架和沟通场景，但人物级经验显示其中摄影者为学生/爱好者，且文章没有可训练的快拍或失败复盘流程。B站等结果只见标题/简介，未见可读取的完整教学转录。本轮不添加拥挤现场规则。"
+    },
+    {
+      "area": "假发静态造型与动态控制",
+      "status": "职业全文证据不足；仍留在缺口",
+      "detail": "补查Pugoffka公开profile和教程索引、COSPLAY MODE假发/衣料检索及通用肖像发丝布光。Pugoffka详细帖子受限，通用portrait hair-light只能作为普通头发照明，不能证明合成假发反光、假发固定、风动或遮眼控制。本轮没有新增可取代既有source gate删除项的直接职业教学。"
+    }
+  ],
+  "excluded": [
+    {
+      "title": "Stop Blaming Your Camera: Why Shiny Wigs Ruin Photos — A Photographer's Rant",
+      "url": "https://fevercos.com/blogs/cosplaynews/stop-blaming-your-camera-why-shiny-wigs-ruin-photos-a-photographer-s-rant",
+      "reason": "售卖假发商家文章，推广自身产品并含绝对化主张；不作为专业摄影规则来源。"
+    },
+    {
+      "title": "Inside the photo area where Coser portraits are made at ChinaJoy",
+      "url": "https://www.jfdaily.com.cn/wx/detail.do?id=958292",
+      "reason": "保留为场馆背景和调查线索，但报道不是摄影教程；文中重点摄影者明确是学生/爱好者，图注不能替代全文教学或图像审核。"
+    },
+    {
+      "title": "Convention Cosplay weapon posing search results and museum sword references",
+      "url": "https://www.meihaku.jp/cosplay/cosplay-photograph/",
+      "reason": "馆方刀剑/日本刀背景不构成摄影师对短匕首画面关系的直接证据，也不能跨道具类别泛化。"
+    },
+    {
+      "title": "Canon China Guangzhou convention photography course listing",
+      "url": "https://www.canon.com.cn/purchase/show/guangzhou/event50.html",
+      "reason": "课程主题与讲师身份可作发现线索；页面没有课程实录、教材或具体教学全文，不用于技能证据。"
+    },
+    {
+      "title": "Pugoffka Patreon tutorial posts",
+      "url": "https://www.patreon.com/pugoffka/sitemap",
+      "reason": "公开索引展示教程标题，但详细帖内容为付费锁定；未绕过访问限制，未从标题推断技术。"
+    },
+    {
+      "title": "Chinese convention vlogs and first-person photo samples returned by search",
+      "url": "https://www.bilibili.com/video/BV1E8411o7EQ/",
+      "reason": "搜索结果只有标题/简介而没有本轮可核实的教学全文或转录；不将其作为拥挤现场技巧证据。"
+    }
+  ]
+}

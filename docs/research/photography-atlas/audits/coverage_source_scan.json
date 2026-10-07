@@ -1,0 +1,320 @@
+{
+  "audit_type": "independent_pass1_source_coverage_scan",
+  "phase": "preliminary source-coverage audit; clustered skill tree not reviewed",
+  "scope": "Photography Reference Lab atlas for high-level cosplay and portrait field photography, emphasizing Chinese convention/outdoor/venue conditions",
+  "method": {
+    "read_inputs": [
+      "docs/research/photography-atlas/USER_BRIEF.txt",
+      "docs/research/photography-atlas/RESEARCH_PROTOCOL.md",
+      "docs/research/photography-atlas/raw/*_sources.json"
+    ],
+    "inventory": {
+      "source_map_files": 9,
+      "source_records": 125,
+      "access_counts": {
+        "full_text": 77,
+        "partial": 36,
+        "index_only": 10,
+        "blocked": 2
+      }
+    },
+    "approach": "Cross-walked the brief's A-I Coverage Audit and target persona against the stated source coverage, access, read depth, and each map's recorded gaps. Source-map coverage labels below describe this scan only; they do not assert that no source exists elsewhere.",
+    "new_web_searches": 0,
+    "tree_reviewed": false,
+    "visual_examples_pixel_reviewed": false
+  },
+  "dimension_audit": [
+    {
+      "dimension": "A",
+      "name": "拍摄流程：拍前—观察—构图—指导—拍摄—检查—后期—复盘",
+      "coverage": "partial",
+      "risk": "core_gap",
+      "covered_in_scan": [
+        "拍前沟通、预期、服装与地点规划：field-canon-session-prep, field-ppa-session-prep, field-ppa-consult",
+        "场景观察、准备与现场调整：field-vet-location, field-nikon-kanayo-location, field-sony-ira-block",
+        "构图、人物指导与拍摄：composition_* and posing_* maps; selected Cosgenic lessons"
+      ],
+      "uncovered_or_weak": [
+        "现场回看节奏、如何发现刚拍失败、如何决定重拍/换方案",
+        "结构化拍后复盘，以及把失败观察转成下一轮可验证练习",
+        "拍摄前设计如何形成可检查的拍摄覆盖清单"
+      ],
+      "basis": "field_sources.json explicitly says on-site review cadence and structured reflection are lightly covered; curriculum outlines are partial and cannot substantiate detailed workflow.",
+      "focused_search_directions": [
+        "具名职业人像摄影师完整 session demonstration：拍前计划、现场检查、调整与复盘",
+        "摄影师作品集评图/拍摄日志中可访问的失败诊断与下一轮验证案例",
+        "Cosplay 摄影师 first-party 记录如何在短时现场把角色意图转为可执行镜头序列"
+      ]
+    },
+    {
+      "dimension": "B",
+      "name": "技术：曝光、对焦、快门、景深、焦段、透视、闪灯、色彩",
+      "coverage": "broad_but_incomplete",
+      "risk": "important_gap",
+      "covered_in_scan": [
+        "焦段、视角、距离/透视、景深和眼部对焦：perspective-ppa-lens-selection, perspective-ppa-capabilities, perspective-nikon-eye-af, perspective-cooper-banks-pictures",
+        "曝光、测光、自然光/闪光平衡、HSS 与同步：light-ppa-* and named Nikon/Canon/Profoto records in light_sources.json",
+        "白平衡、混合光、色彩操作在一般流程中的基础覆盖：light-ppa-techniques, light-society-carlino, post-ppa-workflow"
+      ],
+      "uncovered_or_weak": [
+        "高反差逆光下不同肤色的面部曝光：没有完整、直接、专业来源作系统评估",
+        "混合 LED/荧光/日光及彩色灯光的光谱颜色问题，尤其是漫展/舞台现场",
+        "闪光持续时间与快门冻结动作的专业实操材料；滚动/电子快门与现场动作灯光兼容性",
+        "对焦与景深在多平面服装/道具和移动主体之间的实拍权衡"
+      ],
+      "basis": "透视与常规灯光来源较广；light_sources.json 与 perspective_sources.json 已明确列出上述未充分覆盖项。",
+      "focused_search_directions": [
+        "具名闪光灯/相机专业作者：闪光持续时间、同步、电子快门、动作冻结的实拍对照",
+        "专业摄影师对不同肤色、逆光和混合光的可访问案例说明，保留个体差异，不搜寻统一 RGB 目标值",
+        "漫展/舞台摄影师与相机厂商对 LED 频闪、快门带状/色偏和闪灯限制的第一手材料",
+        "人像实拍中眼睛、服装层次、武器/道具不同景深平面的对焦取舍"
+      ]
+    },
+    {
+      "dimension": "C",
+      "name": "视觉：构图、光线、色彩、层次、形状、视觉重量",
+      "coverage": "partial_to_broad",
+      "risk": "important_gap",
+      "covered_in_scan": [
+        "画面边缘、负空间、框中框、前中后景、主体分离、构图平衡：composition_sources.json",
+        "光线质量/方向/硬软、明暗分离与主体背景：light_sources.json and composition-drew-forsyth-profoto",
+        "颜色调节及场景色彩作为画面因素：composition-center-tamara-lackey, post-adobe-color-variance"
+      ],
+      "uncovered_or_weak": [
+        "形状与剪影设计、Cosplay 服装/道具剪影可读性",
+        "视觉节奏、颜色引导/视觉重量在人物与道具同框时的可重复专业教学",
+        "大量已有示例只读了文字和图注，未打开像素；不能当作视觉案例分析证据"
+      ],
+      "basis": "composition_sources.json explicitly identifies silhouette, rhythm, color-based weight, and cosplay portrait applications as sparse.",
+      "focused_search_directions": [
+        "具名 editorial/portrait 摄影师对 silhouette、shape、visual rhythm 的完整案例解说",
+        "Cosplay 摄影师如何让服装轮廓、手持道具和人物在小画面中保持可读",
+        "公开专业作品配套的摄影师解说或原始教程；后续若据图归纳必须实际打开图像像素"
+      ]
+    },
+    {
+      "dimension": "D",
+      "name": "人物：姿势、重心、手腿肩胯、表情、视线、动作",
+      "coverage": "broad_but_conditioned",
+      "risk": "important_gap",
+      "covered_in_scan": [
+        "分部位指导、体重转移、姿势变化、手部观察和舒适度：posing-society-joe-lenton, posing-sue-bryce-pose-series (outline only), posing-lindsay-adler-series (outline only)",
+        "Cosplay 角色意图、表情/视线、手部与动作：posing-nikon-cosgenic-lesson1, posing-nikon-cosgenic-lesson3, posing-nikon-cosgenic-lesson4",
+        "特定日式剑戏姿势与动作：posing-nikon-cosgenic-lesson11"
+      ],
+      "uncovered_or_weak": [
+        "脚部压力、关节负荷与平衡机制缺乏易访问的专项人像教学",
+        "头肩视线和表情资料偏商业头像；叙事、角色、抓拍、动作语境的差异仍需对照",
+        "同一对象/机位/光线下的姿势变体对照演示不足；若干相关课程只有大纲或未看视频",
+        "手套、宽袖、裙摆及非剑类道具交互不足；身体类型或性别表达不能泛化"
+      ],
+      "basis": "posing_sources.json provides broad but conditional coverage and expressly flags these limits; course outlines are not lesson evidence.",
+      "focused_search_directions": [
+        "可访问的具名摄影师逐步实拍：同一主体下比较脚/重心/肩胯/手/视线变量",
+        "叙事/编辑/动作人像摄影师对角色表情与商业头像表情差异的第一手讲解",
+        "服装限制、活动能力与舒适度下的姿势调整；保留摄影师方法边界而非身体普适规则"
+      ]
+    },
+    {
+      "dimension": "E",
+      "name": "Cosplay 特殊能力：服装、假发、武器/道具、角色表现、漫展复杂背景",
+      "coverage": "thin_for_target_specialty",
+      "risk": "serious_core_void",
+      "covered_in_scan": [
+        "日式长刀、RPG 大型武器、枪械道具的姿态案例：cosplay-cosplaymode-rpg-weapons, cosplay-cosplaymode-katana, cosplay-cosplaymode-handgun",
+        "角色意图、姿势与服装/道具展示：cosplay-nikon-cosgenic and posing-nikon-cosgenic-lesson1/3/4/11",
+        "发丝/布料运动的一位 Cosplay 实践者案例：cosplay-note-sutten-motion"
+      ],
+      "uncovered_or_weak": [
+        "匕首/小刀的朝向、手腕关系、镜头前遮挡没有直接专业证据；不能从武士刀或枪械文章外推",
+        "假发静态轮廓、光泽、遮眼和风控只有弱或单一实践线索",
+        "宽袖、袖口与手分离、裙摆体积、服装遮挡等缺独立专业来源",
+        "大型道具在镜头距离、比例、遮挡、狭窄空间中的呈现/调度不足",
+        "中文可归属的职业 Cosplay 摄影教学来源偏少；现有来源以日文/日本情境为主",
+        "道具安全与同意在拥挤漫展中的系统约束未充分研究"
+      ],
+      "basis": "cosplay_sources.json explicitly records each gap; perspective/posing maps also state that unsupported prop and costume adaptations must remain open.",
+      "focused_search_directions": [
+        "中国漫展职业摄影师本人发布的工作流、现场案例与摄影教学，核实作者身份和原始出处",
+        "服装/舞台/时装摄影师对大体积袖摆、布料遮挡、发丝轮廓与运动的原始教学，再明确其对 Cosplay 的适用边界",
+        "分开研究短刃、长剑、枪械、弓/长柄等不同道具的摄影展示资料；禁止用一种武器代替另一种证据",
+        "逐个漫展主办方官方摄影/道具/通行规则；规则只证明场地约束，不证明摄影原理"
+      ]
+    },
+    {
+      "dimension": "F",
+      "name": "场景：室内/外、树林、建筑、窗边、逆光、夜景、漫展场馆",
+      "coverage": "partial_with_scene_mismatch",
+      "risk": "serious_core_void",
+      "covered_in_scan": [
+        "树林/开放阴影、窗边、工作空间、建筑、黄昏/夜间和户外环境人像：field-ppa-macgregor-env, field-nikon-migs-van, field-nikon-kanayo-location, field-npg-portrait",
+        "地点勘察、人流/安全/许可因素：field-ppa-vet-location",
+        "官方活动规则作为场地限制线索：field-manga-comiccon-rules, field-wcs-rules (index only)"
+      ],
+      "uncovered_or_weak": [
+        "没有第一手专业方法系统处理中国漫展拥挤展馆：短交互、背景快速变化、工作距离受限、连续姿势时间短",
+        "窗less展馆、混色/高噪点室内与快速变化人流的专业拍摄讲解少",
+        "活动规则有场地/年份差异，不能把某个活动规则泛化为摄影技能"
+      ],
+      "basis": "field_sources.json explicitly says coverage is stronger outdoors/windows/night than halls and mixed-color interiors; cosplay_sources.json flags crowd constraints.",
+      "focused_search_directions": [
+        "中国大型漫展主办方官方摄影规则及媒体/活动摄影师公开的现场流程记录",
+        "职业活动/展会人像摄影师对拥挤背景、距离受限、快速让位和短时协作的第一手案例",
+        "摄影师本人对展馆混合 LED/荧光/日光、频闪、背景色偏与补光选择的实拍说明",
+        "区分 venue rules、摄影师方法与个人 project adaptation；场地规则需按具体活动/日期验证"
+      ]
+    },
+    {
+      "dimension": "G",
+      "name": "执行：快速判断、模特沟通、连续变化、现场调整、失败发现",
+      "coverage": "partial",
+      "risk": "core_gap",
+      "covered_in_scan": [
+        "拍前沟通与预期管理：field-canon-session-prep, field-ppa-session-prep",
+        "在地点间快速适配、背景优先观察与限时决策：field-nikon-kanayo-location, field-sony-ira-block",
+        "姿势分步口令、变化与舒适度：posing-society-joe-lenton, cosplay-note-kujira-posing (partial)",
+        "活动中的同意/场地规则线索：field-jeff-jenkins-cosplay (partial), field-manga-comiccon-rules"
+      ],
+      "uncovered_or_weak": [
+        "拥挤/嘈杂且时间受限情况下的短句沟通与快速确认缺少系统专业演示",
+        "现场检查回路、失败分类、何时重拍/换方向/转为可行方案，以及复盘如何转成验证任务",
+        "连续变化在不同服装、道具和角色状态中的独立专业来源数量不足"
+      ],
+      "basis": "field_sources.json flags rapid crowded-hall decisions and review/reflection; cosplay pose direction is available but largely partial or context-specific.",
+      "focused_search_directions": [
+        "完整拍摄花絮/现场讲评中可见摄影师决策、口令、模特回应和当场纠错",
+        "人像摄影师本人描述检查取景/表情/焦点/背景后继续或重拍的判据",
+        "Cosplay 摄影师的漫展短时协作和角色参考沟通实践；注意同意与舒适度"
+      ]
+    },
+    {
+      "dimension": "H",
+      "name": "后期：筛片、肤色、局部光影、背景清理、色彩、合成边界、最终输出",
+      "coverage": "partial",
+      "risk": "serious_core_void",
+      "covered_in_scan": [
+        "RAW/曝光/白平衡、局部 dodge and burn、基础清理和输出锐化：post-ppa-workflow",
+        "局部颜色与遮罩操作：post-adobe-color-variance",
+        "非破坏性修饰、肤色局部修正的实践文章：post-retouch-academy-dodge-burn, post-retouch-academy-patchy-skin (video not watched), post-xitek-wangxiaoning"
+      ],
+      "uncovered_or_weak": [
+        "近似帧筛选、表情/姿势多样性与交付组照连贯性缺深入摄影师一手来源",
+        "不同肤色及混合/彩色光下的修饰需要更全面直接演示；不得建立统一 RGB 肤色目标",
+        "合成的光向、接触阴影、景深/噪点/颜色匹配及假发/服装边缘缺可读专业演示",
+        "Cosplay 假发、盔甲/武器、服装纹理与道具身份/现场真实的后期边界没有来源",
+        "输出平台/打印/软打样/导出规范仍较概括；多数相关材料仅 partial"
+      ],
+      "basis": "post_sources.json contains eight explicit gaps; only 4 of 13 records are full-text, with 9 partial.",
+      "focused_search_directions": [
+        "专业人像摄影师对 RAW 到精选交付组照的完整案例，含弃片理由及系列一致性决策",
+        "多肤色和混合光下的具名修图师演示，讨论个体差异与非统一阈值",
+        "职业合成/修图师逐步讲解发丝/衣物边缘、接触阴影、光色和景深匹配",
+        "以真实 Cosplay 原片为对象的授权后期案例；把真实场景保留、物体移除与合成标为不同实践/政策问题",
+        "相机、修图软件与输出平台当前官方文档用于操作步骤，再用摄影师方法补足审美判断"
+      ]
+    },
+    {
+      "dimension": "I",
+      "name": "动态：人物运动、相机运动、起点/过程/终点、简单镜头语言",
+      "coverage": "broad_general_motion_but_target_gap",
+      "risk": "important_gap",
+      "covered_in_scan": [
+        "人物/布料动作、快门拖影和局部清晰：motion-* map and cosplay-ppa-fabric-motion",
+        "主体运动与相机摇摄/运动模糊的分别：motion-peter-llewellyn-blur, motion-dcw-portrait-blur",
+        "镜头运动动机、长镜头调度、机位路径与连续性：motion-arri-birdman-lubezki, motion-arri-room-next-door-grau, motion-asc-camera-movement"
+      ],
+      "uncovered_or_weak": [
+        "Cosplay 静态动作照的专业指导、服装/头发/武器互动及漫展地面限制稀少",
+        "单人短视频的起点—过程—终点、人物路线、镜头路线、构图和焦点协同缺直接教学",
+        "对焦拉动可重复性、动作连续性及简易覆盖方法主要是部分/课程材料",
+        "中文电影摄影教学与日文电影摄影教学尚缺已打开的第一手来源"
+      ],
+      "basis": "motion_sources.json explicitly records the cosplay, simple shot, focus-pull, continuity, and language gaps; the 19-record count is not equivalent to target-specific coverage.",
+      "focused_search_directions": [
+        "Cosplay 摄影师实拍一个短动作：动作提示、起点/终点、快门/连拍/机位与服装道具约束",
+        "电影摄影师或教育机构公开的单人短片调度与焦点练习，明确这是视频技能而非静态摄影共识",
+        "低预算短视频摄影的可重复对焦、匹配动作状态和基础镜头覆盖教学",
+        "有访问权限的中文/日文第一手电影摄影公开课程、访谈或案例"
+      ]
+    }
+  ],
+  "cross_cutting_target_fit": {
+    "status": "undercovered_for_the_specific_china_cosplay_field_context",
+    "observations": [
+      "Source breadth is substantial in general portrait, composition, lighting, and cinematography, but the target-specific overlay—Chinese cosplay conventions, costume/prop interaction, constrained distance and permission/safety conditions—is much thinner.",
+      "The scans cover English and Japanese extensively; Chinese-language professional first-hand instruction is repeatedly noted as sparse in composition, posing, field, lighting and cosplay sources.",
+      "Several curriculum or video records are only outlines/indexes or partial page descriptions. Their topic presence is not equivalent to read lesson evidence.",
+      "The source maps generally state that image pixels were not reviewed; this audit makes no visual-example claims."
+    ],
+    "serious_core_voids": [
+      "Crowded Chinese cosplay venue field method and venue-specific constraint research (E/F/G)",
+      "Cosplay costume and prop interactions beyond sword/generic weapon examples, especially daggers, wigs, sleeves and scale (E)",
+      "End-to-end selection, coherent set delivery, cosplay-aware retouch/compositing, and integrity boundaries (H)",
+      "On-site failure detection and structured review loop (A/G)"
+    ],
+    "important_but_narrower_gaps": [
+      "Silhouette, visual rhythm and color weight in costume/prop frames (C)",
+      "Mixed LED/fluorescent/daylight and facial exposure variation (B/F)",
+      "Character/narrative expression contrasts and controlled posing demonstrations (D)",
+      "Simple, repeatable short motion work for cosplay (I)"
+    ]
+  },
+  "priority_search_plan": [
+    {
+      "priority": 1,
+      "focus": "Chinese cosplay convention field method + exact event constraints",
+      "why": "Highest overlap with the declared target persona and several core dimensions; current general outdoor portrait sources cannot stand in for crowded hall evidence.",
+      "queries": [
+        "中国 漫展 摄影师 现场 拍摄 流程 人像 背景 拍摄距离 实战",
+        "漫展摄影师 现场拍摄 花絮 coser 沟通 走位 灯光 摄影师",
+        "site:官方域名 漫展 摄影规则 摄影区 禁止 闪光灯 作品发布 授权"
+      ]
+    },
+    {
+      "priority": 2,
+      "focus": "Cosplay costume/prop presentation with distinct object categories",
+      "why": "Source maps have specific unresolved claims for daggers, wigs, sleeves, large prop scale and prop safety. Do not promote an unsupported visual rule.",
+      "queries": [
+        "职业 Cosplay 摄影师 匕首 道具 手腕 构图 摄影 教学",
+        "Cosplay photographer wig silhouette wind costume sleeves prop photography tutorial",
+        "舞台服装摄影 袖摆 发丝 道具 遮挡 具名摄影师 实拍"
+      ]
+    },
+    {
+      "priority": 3,
+      "focus": "Post workflow from cull to delivered set, including composite boundaries",
+      "why": "Broad tool/process coverage exists but set-level decisions and Cosplay material integrity are weakly evidenced.",
+      "queries": [
+        "portrait photographer culling selects final gallery sequence photographer own workflow",
+        "professional portrait retoucher compositing hair costume edge contact shadow tutorial",
+        "Cosplay photographer editing workflow wig armor costume prop retouch before after"
+      ]
+    },
+    {
+      "priority": 4,
+      "focus": "Failure-check and reflection loop",
+      "why": "The brief requires the photographer to diagnose failures and design the next validation; sources for field check cadence and structured reflection are thin.",
+      "queries": [
+        "portrait photographer on set image review troubleshooting reshoot professional workflow",
+        "photographer portfolio critique failure analysis next shoot practice first person",
+        "cosplay photography session review mistakes lessons photographer"
+      ]
+    },
+    {
+      "priority": 5,
+      "focus": "Mixed venue light and movement/focus under constrained conditions",
+      "why": "General flash/ambient foundations are covered, but mixed LEDs, electronic-shutter behavior, action freezing and simple motion sequencing are not sufficiently represented for convention/stage use.",
+      "queries": [
+        "professional photographer LED stage flicker electronic shutter portrait mixed light tutorial",
+        "flash duration shutter speed freeze action portrait photographer demonstration",
+        "single person short film start middle end camera path focus pull blocking cinematographer lesson"
+      ]
+    }
+  ],
+  "limits": [
+    "This is a source-map coverage audit before Pass 2 extraction and before any clustered tree exists; it does not certify the tree or individual skill claims.",
+    "Coverage describes the current 125-record Pass 1 inventory only, not the entire available literature.",
+    "No additional source pages or image pixels were opened during this preliminary audit.",
+    "Search directions are candidate queries, not evidence and not claims about the missing skill details."
+  ]
+}

@@ -1,0 +1,1469 @@
+{
+  "scope": "composition",
+  "candidates": [
+    {
+      "id": "composition-edge-sweep",
+      "skill_name": "四边缘扫视",
+      "capability": "按快门前逐一扫查画面四边及角落，识别无意闯入的高反差细节、截断物体和视线出口，再决定是否移动机位或改取景。",
+      "why_it_matters": "避免主体中心正确却被边缘杂物抢走注意力。",
+      "module_hint": "edges_and_crop",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "杆件、树枝、路人或亮点从边缘闯入",
+        "边缘截断显得像疏忽"
+      ],
+      "practice": "项目练习：同一场景每次取景都做四边顺序扫描，记录发现并修正的边缘问题。",
+      "acceptance": [
+        "验收：连续三次练习中，复看图能指出每个边缘干扰",
+        "最终画面中被指出的非意图干扰为零"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "‘Working the Edges’正文",
+          "support": "作者将边缘视为画面的一部分，主张给边缘内容以明确意义。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "background and composition examples",
+          "support": "Gary Small指出背景线杆/枝条穿过人物头部，以及画框、天花板和沙发从边缘进入会形成问题。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "‘Composing Photographs’ opening comparison",
+          "support": "作者以改变拍摄角度来减少竞争背景，并解释画面含入过多细节造成分心。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-gary-small-portrait",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/take-better-portraits",
+          "description": "文本和图注说明边缘/背景问题；未检查图片像素。"
+        }
+      ],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "survey frame edges",
+        "portrait edge management"
+      ]
+    },
+    {
+      "id": "composition-crop-intent",
+      "skill_name": "有意截断与完整保留",
+      "capability": "决定人物或环境元素是否完整入画；若裁切，选择能读出动作、形状和关系的截点，避免看似偶然的边界切断。",
+      "why_it_matters": "失控的边缘裁切会让肢体、道具和环境关系像拍摄失误。",
+      "module_hint": "edges_and_crop",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-edge-sweep"
+      ],
+      "failure_modes": [
+        "肢体或物体贴边被切得过紧",
+        "裁切边界与主体动作无关"
+      ],
+      "practice": "项目练习：对一组静态人像各做完整入画、紧裁、边缘裁切三种方案，并写明每种裁切意图。",
+      "acceptance": [
+        "验收：每张图都能说明为何该元素被切或保留",
+        "盲看者能把刻意裁切与偶然截断区分开"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "‘Working the Edges’正文",
+          "support": "作者讨论边缘如何参与意义，并举出只留下局部人物/动物仍可传递关系的构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "brick-wall before/after captions",
+          "support": "摄影师改成紧凑竖幅裁切，以减少无效空间并让砖墙成为构图元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "caption comparing wide and tight marsh frames",
+          "support": "作者用广景和紧景表现不同信息范围。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-gary-small-portrait",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/take-better-portraits",
+          "description": "图注描述裁切前后差别；未检查图片像素。"
+        }
+      ],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "intentional cropping",
+        "portrait crop edges"
+      ]
+    },
+    {
+      "id": "composition-tangent-check",
+      "skill_name": "头身背景切线检查",
+      "capability": "检查头部、肩线与背景杆件/枝条/边框的接触关系；移动机位或人物位置，使这些线条清楚分离或明确形成构图关系。",
+      "why_it_matters": "背景线贴着头肩会显得像穿过人体或黏连，降低轮廓可读性。",
+      "module_hint": "edges_and_background",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-edge-sweep"
+      ],
+      "failure_modes": [
+        "杆件从头顶长出",
+        "线条擦过头肩但既未分开也未形成明确连接"
+      ],
+      "practice": "项目练习：用简单墙面和带竖线背景各拍一组；每次移动相机或人物一步，并对照轮廓是否分离。",
+      "acceptance": [
+        "验收：选定系列中不出现意外穿头线",
+        "每个保留的相切关系能说明其视觉作用"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "opening background example",
+          "support": "Gary Small明确将杆/枝穿过主体头部作为背景问题。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-gary-small-portrait",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/take-better-portraits",
+          "description": "Nikon正文/图注明确描述杆件穿过头部；未检查图片像素。"
+        }
+      ],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait background tangent",
+        "avoid lines behind head"
+      ]
+    },
+    {
+      "id": "composition-remove-bg-distractions",
+      "skill_name": "背景减法与机位清理",
+      "capability": "先通过改变机位、取景范围或现场小幅整理，移除无助于主题且抢眼的背景元素；只有仍需时再用景深弱化。",
+      "why_it_matters": "混乱背景会与脸、服装或动作争夺注意力，后期模糊也不能修复所有形状冲突。",
+      "module_hint": "background_management",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-edge-sweep"
+      ],
+      "failure_modes": [
+        "杂物、高亮或线条与人物竞争",
+        "只靠大光圈仍留下可辨识干扰"
+      ],
+      "practice": "项目练习：同一人物和姿态，分别尝试原机位、横移机位、靠近/收紧取景，并记录背景变化。",
+      "acceptance": [
+        "验收：选定方案能指出被减掉的元素和被保留的环境信息",
+        "主体优先级符合预先写下的目标"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "center portrait case captions",
+          "support": "摄影师把分心长椅移出画外并清理地面杂物，以控制醒目背景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "paired clutter/background examples",
+          "support": "摄影师移动主体并收紧取景以消除分散注意的架子、百叶和画框边缘。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "same subject with alternate camera angle",
+          "support": "摄影师改变角度减少竞争背景，并提出靠近/收窄视野/模糊背景等手段。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
+          "description": "页面以文字说明换角度后的背景变化；未检查图像像素。"
+        }
+      ],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "remove distracting background portrait",
+        "move camera background cleanup"
+      ]
+    },
+    {
+      "id": "composition-background-density",
+      "skill_name": "背景信息密度控制",
+      "capability": "根据照片目标选择简洁背景或保留能交代人物身份/情境的背景，并控制背景元素数量、显著度及其与人物的关系。",
+      "why_it_matters": "背景过空会丢失情境，背景过密会吞没人物或使叙事分散。",
+      "module_hint": "background_management",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-remove-bg-distractions"
+      ],
+      "failure_modes": [
+        "每张图背景都被虚化而缺少环境意义",
+        "背景细节过多且无层次，观者不知先看何处"
+      ],
+      "practice": "项目练习：同一人物分别拍简洁背景、环境背景和密集场景，逐张写出背景在叙事里的职责。",
+      "acceptance": [
+        "验收：每张保留作品都有可说明的背景用途",
+        "与人物无关的强视觉细节不会无意间超过主体"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "negative-space section",
+          "support": "摄影师指出增加空白会让环境信息和故事性更明显。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-malwitz-portrait",
+          "locator": "environmental portrait section",
+          "support": "文章建议退后纳入周围环境，以传递人物相关信息。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "opening and alternate-background examples",
+          "support": "作者区分想表达的主体与干扰背景，并以角度和距离重组信息。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "composition guidance",
+          "support": "人像摄影师说明人物以外的空间和背景会影响主体表达。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait background information density",
+        "environmental portrait background"
+      ]
+    },
+    {
+      "id": "composition-center-subject",
+      "skill_name": "有条件的中央构图",
+      "capability": "当主体能支撑中心注意力，或画面中的对称、线条、色彩/背景关系加强中心时，主动选择居中；比较它与偏置版本的表达差异。",
+      "why_it_matters": "机械回避中心会错过人物表情、对称造型或直接有力的构图；机械居中也可能单调。",
+      "module_hint": "subject_placement",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "中心放置却缺少足够视觉支撑",
+        "因套用三分法而让主体关系不自然"
+      ],
+      "practice": "项目练习：对同一姿态拍中央、偏左、偏右三版；每版说明主体能否独自支撑画面及背景关系。",
+      "acceptance": [
+        "验收：能在作品中指出居中选择依赖的主体/几何/色彩支撑，并能说明偏置版本失去或增加了什么"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "opening and numbered conditions",
+          "support": "Tamara Lackey说明中心构图在主体足以支撑画面、背景简洁且组合其他视觉手段时可以成立。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "center composition section",
+          "support": "Sakai说明居中能强化主体印象，但需注意单调并可用动作/空白调整。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "subject placement section",
+          "support": "Wilkinson指出中心能强调对称主体，也可能使其他人像较快失去兴趣。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/when-center-composition-can-elevate-a-portrait",
+          "description": "文本描述中心人像及其构图条件；未检查图片像素。"
+        }
+      ],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "center composition portrait conditions",
+        "portrait centered subject"
+      ]
+    },
+    {
+      "id": "composition-offcenter-negative-space",
+      "skill_name": "偏置主体与负空间比例",
+      "capability": "把人物放在偏离中心的位置，并调节负空间的位置与面积，使空白承担方向、尺度、环境或情绪功能。",
+      "why_it_matters": "负空间不足会挤压人物；过多又可能削弱主体或产生无意空洞。",
+      "module_hint": "subject_placement",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-background-density"
+      ],
+      "failure_modes": [
+        "主体偏置却没有视觉平衡点",
+        "负空间与主体视线/环境无关"
+      ],
+      "practice": "项目练习：同一场景拍三种人物占幅，改变空白方向和比例；对比主体显著度与环境信息。",
+      "acceptance": [
+        "验收：至少两种不同留白方案都能说清功能",
+        "无意空白不会让观者误判主次"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "negative-space and composition-combination sections",
+          "support": "摄影师示范通过缩小人物和扩展天空改变清爽感与尺度感。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "subject placement and balance sections",
+          "support": "职业人像教学讨论人物位置、背景空间与画面平衡。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "negative-space captions",
+          "support": "作者以水面空白包围主体，并描述空白和反射在整体构图中的作用。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "subject placement section",
+          "support": "职业人像教育讨论偏置主体与负空间的平衡关系。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "url": "https://nij.nikon.com/nicostop/entry/portrait/kimi/2019/06/13/2",
+          "description": "图注文字说明人物缩小、天空留白与尺度感；未检查图片像素。"
+        }
+      ],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait negative space",
+        "off-center portrait composition"
+      ]
+    },
+    {
+      "id": "composition-gaze-action-room",
+      "skill_name": "视线与动作前方空间",
+      "capability": "人物看向画面内或动作将进入的方向时，比较前方留白与后方留白，让空间方向与动作意图相匹配；偏离时需有明确表达目的。",
+      "why_it_matters": "紧贴画框的视线或动作可能显得受阻、仓促或与画面方向冲突。",
+      "module_hint": "subject_placement",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-offcenter-negative-space"
+      ],
+      "failure_modes": [
+        "人物视线撞到边缘",
+        "动作方向没有可延伸空间"
+      ],
+      "practice": "项目练习：同一人物视线/行进方向不变，拍前方留白充足、紧凑和后方留白三种版本。",
+      "acceptance": [
+        "验收：能指出留白如何改变方向感",
+        "非意图情况下视线/动作不会无故撞边"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "‘Lean Into the Frame’ section",
+          "support": "Diane Berkenfeld的Nikon指南明确针对人物和动物建议朝画内看，并在动作前方留空间；例图为野生动物，cosplay服装/道具情境仍未被直接覆盖。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait look room",
+        "lead room still photography"
+      ]
+    },
+    {
+      "id": "composition-subject-context-scale",
+      "skill_name": "人物占幅与环境尺度",
+      "capability": "控制人物在画面中的相对尺寸，使画面明确偏向人物表情/姿态，或让环境占比共同承担地点、尺度和情境信息。",
+      "why_it_matters": "一味拍近景会丢失服装和场景关系；一味拍远景则可能削弱人物表达。",
+      "module_hint": "subject_placement",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-background-density"
+      ],
+      "failure_modes": [
+        "人物过小难以读出表情动作",
+        "人物占幅过大使环境/道具关系消失"
+      ],
+      "practice": "项目练习：在固定地点拍近、中、远三种人物占幅，逐张写出主要保留的信息。",
+      "acceptance": [
+        "验收：三种景别中主体与环境各自的职责可被说明",
+        "成片不因占幅错误丢失任务所需信息"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "negative-space section",
+          "support": "Sakai以小人物和大面积天空表达环境尺度。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-malwitz-portrait",
+          "locator": "environmental portrait section",
+          "support": "文章建议退后纳入周围环境并留意人物姿态信息。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-dazhuang-cn",
+          "locator": "portrait technique interview answer",
+          "support": "摄影师建议兼顾远、中、近、特写，避免作品平淡。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait subject scale environment",
+        "environmental portrait framing"
+      ]
+    },
+    {
+      "id": "composition-frame-orientation",
+      "skill_name": "画幅方向与长宽比选择",
+      "capability": "根据人物整体姿态、环境几何与预期表达选择竖幅、横幅或其他画幅；按实际画框边缘重新检查关系，而不是只依赖拍摄时的默认比例。",
+      "why_it_matters": "默认竖拍或横拍可能切坏关键姿态、环境线条或视线空间。",
+      "module_hint": "format_and_crop",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "人物形体与画框方向冲突",
+        "最终裁切改变主次或压缩动作空间"
+      ],
+      "practice": "项目练习：同一场景拍横幅和竖幅两版，再用不同交付比例预览并记录构图变化。",
+      "acceptance": [
+        "验收：每张成片的画幅选择能对应到主体/环境关系",
+        "交付裁切没有意外切除重要信息"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "portrait orientation before/after captions",
+          "support": "Gary Small指出竖幅紧裁可改变画面结构并使背景成为动态元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-ukawa-fujiya-jp",
+          "locator": "composition element overview",
+          "support": "Ukawa将选择纵/横方向列为构图组成选择。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "‘shape of the photograph’ section",
+          "support": "Lenton说明同一图像在宽幅、方幅、竖幅下会产生不同感受，且需考虑最终用途。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait orientation composition",
+        "aspect ratio portrait framing"
+      ]
+    },
+    {
+      "id": "composition-internal-frame",
+      "skill_name": "内部框景识别与应用",
+      "capability": "利用门窗、枝叶、光影、色块或失焦形状围合/指向人物，同时决定内部框景出现在哪些边、是否完整闭合。",
+      "why_it_matters": "框景可突出人物和地点，也可能挡住主体、制造拥挤或形成多余边框。",
+      "module_hint": "frames_and_layers",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-edge-sweep"
+      ],
+      "failure_modes": [
+        "框景遮挡脸/动作",
+        "框线与人物轮廓混淆",
+        "为套用框景而增加无用元素"
+      ],
+      "practice": "项目练习：同一人物拍无框、单侧框、部分围合三版，检查主体显著度与场景意义。",
+      "acceptance": [
+        "验收：每个框景元素都有可说明的指向/层次/情境作用",
+        "遮挡和边缘拥挤是受控的"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "natural/artificial frames and partial frames sections",
+          "support": "框景可由自然、建筑、光影、质感或散景形成，不一定围住四边。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "natural framing section",
+          "support": "摄影师说明自然框景可将重点从环境中隔离出来。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "portrait composition examples",
+          "support": "摄影师以服装弧线与背景元素配合主体构图。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "url": "https://www.bhphotovideo.com/explora/photography/tips-and-solutions/framing-photographic-composition",
+          "description": "页面文字配图标题/说明框架类型；图片未检查像素。"
+        }
+      ],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "frame within frame portrait",
+        "natural framing portrait"
+      ]
+    },
+    {
+      "id": "composition-frame-purpose",
+      "skill_name": "框景有效性判断",
+      "capability": "在保留框景前判断它是否强化焦点、层次、地点或意义；若没有清楚用途，移动机位或移除该框景。",
+      "why_it_matters": "现场容易为“构图技巧”硬塞框景，反而让画面更乱。",
+      "module_hint": "frames_and_layers",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-internal-frame"
+      ],
+      "failure_modes": [
+        "框线与主体争抢",
+        "画面可读性因框景降低"
+      ],
+      "practice": "项目练习：每找到一个框景候选，拍含框与不含框两版，写出差异后再选。",
+      "acceptance": [
+        "验收：能给每个保留框景说明至少一个具体视觉作用",
+        "没有作用的框景从最终选择中移除"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "‘Forced Framing’ and closing sections",
+          "support": "作者明确提醒框景不是所有照片的必要元素，可能带来伤害。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "natural framing and clean-frame conditions",
+          "support": "摄影师将框景作为可选的注意力工具，并同时强调清洁画面。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "when not to use framing photography",
+        "framing distract portrait"
+      ]
+    },
+    {
+      "id": "composition-layer-depth",
+      "skill_name": "前景—主体—背景层次组织",
+      "capability": "按照片表达需要安排前景、人物主体和背景的相对位置、清晰度与信息职责；并判断何时不需要额外层次。",
+      "why_it_matters": "层次能建立深度与情境；没有控制时会出现遮挡、平面化或前景喧宾夺主。",
+      "module_hint": "frames_and_layers",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-background-density"
+      ],
+      "failure_modes": [
+        "背景与主体贴合成一层",
+        "前景完全挡住主体",
+        "为制造深度堆入无用层次"
+      ],
+      "practice": "项目练习：同一主体分别拍平面背景、带前景、带前景与远背景三种结构。",
+      "acceptance": [
+        "验收：至少两种层次方案中，各层都可在照片里辨认并有明确作用",
+        "主体仍容易识别"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "‘Depth, Layers, Context’ section",
+          "support": "作者讨论前景、中景、背景的层次及其提供的深度和情境。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "‘The Next Dimension’ section",
+          "support": "作者建议用层次和消失点来提示二维照片中的空间。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-tamron-basics-jp",
+          "locator": "layering section",
+          "support": "Tamron将レイヤリング作为独立构图要素，并讨论前后景关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "foreground reflection caption",
+          "support": "作者描述前景反射与背景空白共同组织画面。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait foreground midground background layers",
+        "layering composition portrait"
+      ]
+    },
+    {
+      "id": "composition-foreground-control",
+      "skill_name": "前景形状与遮挡控制",
+      "capability": "主动选择是否让前景进入画面，并控制其占幅、清晰度、位置和遮挡边界，使其提供框景/深度而不损害脸部和动作可读性。",
+      "why_it_matters": "前景既能增强层次，也会形成大面积模糊遮挡或吸引力过强的亮斑。",
+      "module_hint": "frames_and_layers",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-layer-depth"
+      ],
+      "failure_modes": [
+        "前景遮住关键人物信息",
+        "失焦光斑比脸更醒目",
+        "前景未形成明确空间关系"
+      ],
+      "practice": "项目练习：分别拍无前景、轻微边缘前景、较强遮挡前景，并检查主体是否仍优先。",
+      "acceptance": [
+        "验收：前景边缘和面积可说明其作用",
+        "核心表情/动作无意外遮挡，主体仍先被识别"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-todd-vorenkamp-framing",
+          "locator": "foreground frame and depth section",
+          "support": "内部框景可处于前景并增加层次，但不是必需。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "foreground reflection caption",
+          "support": "前景倒影与主体、负空间共同构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bobby-kenney-portrait",
+          "locator": "foreground bokeh/reflection case",
+          "support": "摄影师描述用前景散景、玻璃和反射增加人像的图形效果。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "composition-bobby-kenney-portrait",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/ideas-and-inspiration/mighty-little-snapshooter",
+          "description": "图注/文字描述玻璃和前景光点的用途；未检查图片像素。"
+        }
+      ],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "foreground framing portrait",
+        "foreground bokeh portrait composition"
+      ]
+    },
+    {
+      "id": "composition-focus-background-separation",
+      "skill_name": "景深分离与主体可读性",
+      "capability": "以人物与背景的清晰度差建立分离，同时保留动作需要的景深；不能把最大虚化当作构图目标本身。",
+      "why_it_matters": "虚化可压低杂乱背景，但过浅景深会让重要动作、服装或道具失焦。",
+      "module_hint": "subject_background_separation",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-background-density"
+      ],
+      "failure_modes": [
+        "人物与背景清晰度相近且轮廓粘连",
+        "主体局部失焦",
+        "背景虽糊但仍有高反差形状抢眼"
+      ],
+      "practice": "项目练习：固定机位和人物位置拍较深/中等/浅景深三种结果，比较主体轮廓和动作清晰度。",
+      "acceptance": [
+        "验收：主次人物信息保持清楚",
+        "背景干扰被减弱",
+        "焦外效果没有掩盖主体必需细节"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-malwitz-portrait",
+          "locator": "depth and focus section",
+          "support": "文章讨论用景深控制来弱化背景，同时提醒动态人物可能需要更多景深。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "subject/background separation example",
+          "support": "摄影师以较浅景深加强主体与背景分离。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-gary-small-portrait",
+          "locator": "paired portrait examples",
+          "support": "摄影师以取景和背景变化减少干扰，而不是盲目追求虚化。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "depth of field background separation portrait",
+        "portrait background blur control"
+      ]
+    },
+    {
+      "id": "composition-tonal-figure-ground",
+      "skill_name": "明暗轮廓分离",
+      "capability": "让人物与相邻背景在亮度/阴影上形成足够可读的边界，或有意把轮廓融入背景以服务表达。",
+      "why_it_matters": "相近明暗区域会使服装、发型或身体轮廓吞进背景。",
+      "module_hint": "subject_background_separation",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-background-density"
+      ],
+      "failure_modes": [
+        "人物边界难辨",
+        "局部亮背景穿过头肩或服装轮廓"
+      ],
+      "practice": "项目练习：让人物依次站在更亮、更暗和相近亮度背景前；比较灰度预览中的轮廓。",
+      "acceptance": [
+        "验收：目标主体轮廓在缩小图和灰度预览中仍可辨",
+        "有意融合的区域能说明其效果"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "separation captions",
+          "support": "摄影师建议让较亮主体对较暗背景，或使用不同色调分开主体与背景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "contrast and silhouette sections",
+          "support": "Joe Lenton说明亮暗对比加强形状，并讨论深色人物对亮背景的简化轮廓。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "background separation case",
+          "support": "摄影师分离人物和强色/强光背景以突出主体。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "figure ground contrast portrait",
+        "tonal separation portrait background"
+      ]
+    },
+    {
+      "id": "composition-color-separation",
+      "skill_name": "色彩差异分离主体",
+      "capability": "比较人物服装/发色与邻近背景的色相和明度差；若色彩相近，尝试改机位、背景或光线，使人物边界更清晰。",
+      "why_it_matters": "相近色块会让服装和背景融成一片，降低人物层级。",
+      "module_hint": "subject_background_separation",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-background-density"
+      ],
+      "failure_modes": [
+        "人物与背景同色而轮廓不清",
+        "强背景色抢走视觉重心"
+      ],
+      "practice": "项目练习：同一服装分别置于相近色与互补/明度差异背景前；先在现场预览再拍摄。",
+      "acceptance": [
+        "验收：人物边界可读，背景色不夺主",
+        "若保留色彩融合，能说明其叙事意图"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "color counterbalance case",
+          "support": "摄影师说明背景颜色与衣服色块之间可以形成视觉补偿关系，同时要求控制压迫性背景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "‘Composing Photographs’ separation guidance",
+          "support": "作者建议使用不同颜色或色调的背景分离主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "visual weight section",
+          "support": "作者将颜色列为改变视觉重量的因素；对人物与背景的边界分离仅作补充推导，不计为直接证据。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "color separation subject background portrait",
+        "portrait color contrast composition"
+      ]
+    },
+    {
+      "id": "composition-leading-line-target",
+      "skill_name": "引导线落点控制",
+      "capability": "识别画面中的自然/人工线条，使它们指向人物或想强调的主体关系；检查线条从哪里开始、在哪里汇聚及是否被其他线打断。",
+      "why_it_matters": "线条可能误导视线、切割主体或把注意力带向无关位置。",
+      "module_hint": "lines_and_paths",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "线条朝向无关背景",
+        "线条在主体前结束或穿过关键脸部位置"
+      ],
+      "practice": "项目练习：固定人物，在同一场景移动机位直到道路/栏杆/建筑线分别指向脸、身体和画外背景。",
+      "acceptance": [
+        "验收：观察者能快速指出线条指向的主对象",
+        "不需要讲解也不会先看无关背景"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-leading-lines-adobe",
+          "locator": "‘Focus on your subject’ section",
+          "support": "Adobe引用摄影师建议将主体放在线条指向或汇聚的位置。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "‘Leading lines’ section",
+          "support": "Nikon指南区分线条作为主体与用于带向画面焦点两种方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "vanishing-point section",
+          "support": "Tom Bol说明线条汇聚点形成空间深度提示。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "leading lines to portrait subject",
+        "visual line direction composition"
+      ]
+    },
+    {
+      "id": "composition-line-exit-control",
+      "skill_name": "画面线条进出方向",
+      "capability": "检查强线条是否将注意力带入、留在画内或引向画外；只有画外出口符合表达时才保留，否则改变取景或线条走向。",
+      "why_it_matters": "有力的道路、栏杆或亮边可能把视线直接带出画面。",
+      "module_hint": "lines_and_paths",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-leading-line-target",
+        "composition-edge-sweep"
+      ],
+      "failure_modes": [
+        "关键线条在主角之前出框",
+        "多个线条把眼睛拉向画面外不同方向"
+      ],
+      "practice": "项目练习：同一条线拍入口向内、平行画边、明确出框三种构图，比较视线去向。",
+      "acceptance": [
+        "验收：主视线路径与预期一致",
+        "画外出口若存在，能说清其表达目的"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-leading-lines-adobe",
+          "locator": "horizontal/converging lines sections",
+          "support": "摄影师建议留意水平线把视线完全带出画面，也解释线条可用于重新引导焦点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "lines meeting/exiting frame discussion",
+          "support": "作者讨论平行、垂直或斜向穿出边缘的线如何形成运动或将视线带入/带出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "leading-lines section",
+          "support": "Nikon指南说明线条有时可将视线带出画面，方向需结合目标选择。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "leading lines leave frame control",
+        "photography eye path frame edge"
+      ]
+    },
+    {
+      "id": "composition-line-character",
+      "skill_name": "线条方向与画面动势",
+      "capability": "观察水平、垂直、斜线、曲线及汇聚线在当前照片中形成的稳定、方向或空间感，再选择与人物状态相符的线条关系。",
+      "why_it_matters": "背景线条可能与姿态/情绪相冲突，或只形成装饰而没有方向用途。",
+      "module_hint": "lines_and_paths",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "线条在画面中随机交叉",
+        "线条方向与人物动作相互抵消"
+      ],
+      "practice": "项目练习：同一姿态寻找水平线、竖线、斜线与曲线背景，逐张写下线条带来的可观察方向变化。",
+      "acceptance": [
+        "验收：能指出主导线条和其方向",
+        "画面仍然把观者带回人物或符合预设的离开方向"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-leading-lines-adobe",
+          "locator": "horizontal, vertical, diagonal, converging and curved sections",
+          "support": "Adobe文章汇集摄影师对不同线条方向常见效果的描述，并指出这些效应取决于构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "frame-edge line discussion",
+          "support": "作者说明平行或斜向出框线条会影响运动感及视线进出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "line and vanishing point sections",
+          "support": "Tom Bol讨论线条、形状、光影如何提示二维照片的空间。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "line direction composition portrait",
+        "curved diagonal lines visual movement"
+      ]
+    },
+    {
+      "id": "composition-shape-reduction",
+      "skill_name": "画面简化为几何形状",
+      "capability": "暂时忽略人物身份和细节，将画面归纳为少量大形状、明暗块与方向，检查这些形状是否形成清楚主次。",
+      "why_it_matters": "摄影师可能只看角色/服饰细节而忽略画面整体结构。",
+      "module_hint": "shape_and_form",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "背景形状与人物轮廓粘连",
+        "细节很多但大形关系混乱"
+      ],
+      "practice": "项目练习：从取景器或照片简图中用三到五个几何块表示人物、背景和主要负空间。",
+      "acceptance": [
+        "验收：缩小或简化后，主角仍可从形状关系中识别，次要形状不压过主题"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "‘Look for shapes’ and simple-shape exercise",
+          "support": "Joe Lenton建议忽略对象身份、识别主形状，并用少数几何形状重画照片。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "monochrome graphic design section",
+          "support": "Tom Bol建议以黑白观察线、形、形式、纹理与图案。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "reduce photograph to simple shapes",
+        "graphic composition shape portrait"
+      ]
+    },
+    {
+      "id": "composition-silhouette-readability",
+      "skill_name": "人物剪影可读性",
+      "capability": "检查人物外轮廓与背景形状是否清晰分离，尤其是头发、手臂、服装边缘及姿态方向；需要时调整背景或光比。",
+      "why_it_matters": "剪影重叠会让姿态难读，也可能使人物与背景融合。",
+      "module_hint": "shape_and_form",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-tonal-figure-ground",
+        "composition-shape-reduction"
+      ],
+      "failure_modes": [
+        "手臂贴身体成为难辨形块",
+        "发型/肩部与背景连成一片"
+      ],
+      "practice": "项目练习：将拍摄结果转为灰度缩略图，记录哪些轮廓相接；通过小步移位或背景变化重拍。",
+      "acceptance": [
+        "验收：缩略图中主要头身与肢体轮廓可读",
+        "刻意融合的部位不遮断关键姿态"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "silhouette and portrait monochrome sections",
+          "support": "作者建议用明暗轮廓描述人物，并在黑白人像中依靠光影、轮廓和对比完成分离。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-center-tamara-lackey",
+          "locator": "subject/background separation case",
+          "support": "Tamara Lackey说明强背景可能压过主体，需通过分离使人物显著。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-diane-berkenfeld-field",
+          "locator": "subject/background tone examples",
+          "support": "Diane Berkenfeld用不同明度背景说明主体边界分离。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait silhouette readability",
+        "figure background outline separation"
+      ]
+    },
+    {
+      "id": "composition-monochrome-audit",
+      "skill_name": "黑白图形结构复核",
+      "capability": "用黑白预览暂时移除色相差异，检查明暗块、形状、线条、纹理和负空间是否仍支持主体优先级。",
+      "why_it_matters": "鲜艳颜色可能暂时掩盖明暗冲突和轮廓粘连。",
+      "module_hint": "shape_and_form",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-shape-reduction"
+      ],
+      "failure_modes": [
+        "主体只靠颜色从背景中分离",
+        "黑白后主次结构消失"
+      ],
+      "practice": "项目练习：每次拍摄选三张图做黑白预览，标出最大明暗块、主形状与最强线条。",
+      "acceptance": [
+        "验收：能说明黑白预览暴露的至少一个图形关系",
+        "最终彩色版本的主次仍清楚"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "monochrome and shape-analysis sections",
+          "support": "Joe Lenton说明去色后可更直接观察明度、反差、形状和形式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "‘Vintage B&W’ section",
+          "support": "Tom Bol将黑白拍摄作为显露图案、阴影和图形关系的练习。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "monochrome composition audit",
+        "black and white shape analysis photography"
+      ]
+    },
+    {
+      "id": "composition-pattern-break",
+      "skill_name": "重复形状与节奏变化",
+      "capability": "识别画面中的重复形状、纹理或色块，并决定是否让规律本身成为主题，或用一个差异元素建立视觉焦点。",
+      "why_it_matters": "无意重复会显得杂乱；完整重复可能缺少焦点，差异元素也可能不合主题。",
+      "module_hint": "shape_and_form",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "重复元素密度压过人物",
+        "差异元素过强却无叙事关联"
+      ],
+      "practice": "项目练习：拍摄一组重复形状背景，分别保留纯重复和加入一个差异元素的版本。",
+      "acceptance": [
+        "验收：能指出重复规律和变化点",
+        "视线焦点与拍摄意图一致"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-nikon-diane-guidelines",
+          "locator": "‘Patterns & Textures’ section",
+          "support": "Nikon指南讨论重复形状形成图案以及单个不同元素可产生焦点。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-graphic-design-tom-bol",
+          "locator": "graphic design/B&W sections",
+          "support": "Tom Bol把图案、阴影和形状列为可被主动观察的图形要素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-shape-joe-lenton",
+          "locator": "shape-analysis exercise",
+          "support": "作者建议忽略对象名称，观察主形状及其关系。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "repeated shapes photography composition",
+        "pattern break focal point photography"
+      ]
+    },
+    {
+      "id": "composition-visual-weight-diagnosis",
+      "skill_name": "视觉重量诊断",
+      "capability": "比较元素的面积、明暗反差、颜色、质感、清晰度、位置和孤立程度，找出实际最先吸引视线的区域。",
+      "why_it_matters": "主角可能不是画面中最显眼的东西，观者会先看亮招牌、强色块或孤立细节。",
+      "module_hint": "visual_weight",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "视线被次要亮点抢走",
+        "主体在形状或反差上弱于背景"
+      ],
+      "practice": "项目练习：把照片缩小或眯眼观察，记下第一、第二注视点；标注产生吸引力的可见因素。",
+      "acceptance": [
+        "验收：能预测至少两个观者首先注视的位置，并通过裁切/移位/简化让注意顺序接近目标"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-visual-weight-rackham",
+          "locator": "‘Concept of Visual Weight’ and factor sections",
+          "support": "Rackham将视觉重量解释为元素吸引注意的感知效应，并分别讨论尺寸、颜色、深度、方向等变量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "visual weight section",
+          "support": "Wilkinson列出反差、大小、深色和位置作为重量因素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bh-balance",
+          "locator": "balance examples and variables",
+          "support": "B&H教程用大小、亮度、颜色、质感和孤立程度示意重量变化。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "visual weight portrait composition",
+        "diagnose visual attention composition"
+      ]
+    },
+    {
+      "id": "composition-asymmetric-balance",
+      "skill_name": "不对称元素平衡",
+      "capability": "在人物偏置时用大小、亮度、颜色、位置或次要元素的关系补偿画面另一侧；目标是可控的稳定或动态感，不是左右等量。",
+      "why_it_matters": "偏置主体可能显得失衡，或摄影师误以为必须镜像对称。",
+      "module_hint": "visual_weight",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-visual-weight-diagnosis",
+        "composition-offcenter-negative-space"
+      ],
+      "failure_modes": [
+        "两侧显著元素互相压迫",
+        "人物偏置而另一侧无意空洞"
+      ],
+      "practice": "项目练习：固定人物在一侧，分别用空白、弱纹理、暗块或小型次要元素做平衡对照。",
+      "acceptance": [
+        "验收：每版可说明平衡变量",
+        "观者能区分预设的稳定版与动态版"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-visual-balance-wilkinson",
+          "locator": "visual weight and placement sections",
+          "support": "职业人像教育讨论以不同权重元素或负空间平衡偏置主体。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-visual-weight-rackham",
+          "locator": "balance section",
+          "support": "Rackham区分对称平衡与依赖不同权重元素的非对称平衡。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bh-balance",
+          "locator": "balance examples",
+          "support": "B&H文章演示不同大小/亮度/颜色的对象如何平衡。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "asymmetrical balance portrait photography",
+        "visual weight balance elements"
+      ]
+    },
+    {
+      "id": "composition-intentional-imbalance",
+      "skill_name": "表达性失衡控制",
+      "capability": "在情绪或叙事需要时主动让重量偏向一侧或压向边缘，并检查它是否产生预期紧张、孤立或运动感。",
+      "why_it_matters": "不平衡可能只是遗漏检查，也可能是有意表达；不判断意图会误修或误留。",
+      "module_hint": "visual_weight",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [
+        "composition-visual-weight-diagnosis"
+      ],
+      "failure_modes": [
+        "不平衡没有可辨含义",
+        "为了迎合平均平衡而削弱紧张感"
+      ],
+      "practice": "项目练习：同一场景拍平衡版与偏重一侧版；请观察者写下先注意到的区域和画面感受。",
+      "acceptance": [
+        "验收：偏置的位置和程度可重复",
+        "观察者能感到预设的主次/张力差别，而非只指出疏忽"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-visual-weight-rackham",
+          "locator": "balance and delayed-reveal sections",
+          "support": "Rackham指出摄影师可在需要时主动避免平衡，也讨论让次要元素暂时压过主体的表达方式。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-john-harris-edges",
+          "locator": "edge placement discussion",
+          "support": "Harris讨论把主体放在边缘以制造意外、空虚或特定情绪的选择。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "intentional unbalanced composition photography",
+        "edge placement emotional portrait"
+      ]
+    },
+    {
+      "id": "composition-symmetry-alignment",
+      "skill_name": "对称构图校准",
+      "capability": "当选择镜像/轴对称时，找到主体或场景的对称轴并让相机位置、画框和水平/垂直线保持对应；检查轻微偏差是否成为干扰。",
+      "why_it_matters": "对称意图对微小偏移敏感；不对齐会让画面像失手而非故意不对称。",
+      "module_hint": "visual_weight",
+      "domain_hint": "composition_visual_organization",
+      "prerequisites": [],
+      "failure_modes": [
+        "中轴歪斜",
+        "两侧元素近似但不一致造成视觉噪声"
+      ],
+      "practice": "项目练习：拍摄有明确轴线的建筑或反射场景，先手持定位再用网格/水平线复拍；比较误差。",
+      "acceptance": [
+        "验收：若表达对称，中心线与画框可见关系对齐",
+        "若不对称，偏移能被说明为意图"
+      ],
+      "evidence": [
+        {
+          "source_id": "composition-bh-balance",
+          "locator": "symmetry and alignment section",
+          "support": "B&H文章说明对称要求接近中心和垂直视角，轻微错位也可能分散注意。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-bobby-kenney-portrait",
+          "locator": "reflection portrait case",
+          "support": "摄影师用镜面反射形成对称视觉；该作者经验有限，作为个案参考。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "composition-sakai-nico-jp",
+          "locator": "center composition section",
+          "support": "Sakai说明中心构图能强调主体存在感，但需结合其他元素避免单调。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "symmetry alignment photography portrait",
+        "center axis composition"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "居中与偏置/三分法",
+      "description": "Nikon Ambassador Tamara Lackey和摄影师 Sakai都说明居中可在主体突出、背景受控、配合线条/颜色/动作时成立；Mastering Portrait Photography同样指出居中可强调对称性，但可能使其他人像较快失去兴趣。来源共识是按表达和画面支撑条件选择，不是居中/三分法谁普遍更优。",
+      "source_ids": [
+        "composition-center-tamara-lackey",
+        "composition-sakai-nico-jp",
+        "composition-visual-balance-wilkinson",
+        "composition-nikon-diane-guidelines"
+      ]
+    },
+    {
+      "topic": "平衡与表达性失衡",
+      "description": "B&H/Paul Wilkinson强调平衡和稳定；Ivor Rackham与John Harris同时保留失衡、边缘主体在张力、运动或空虚表达中的作用。验收应按预期表达，而不是把视觉对称当作统一标准。",
+      "source_ids": [
+        "composition-bh-balance",
+        "composition-visual-balance-wilkinson",
+        "composition-visual-weight-rackham",
+        "composition-john-harris-edges"
+      ]
+    },
+    {
+      "topic": "阅读方向与画面左右重量",
+      "description": "Paul Wilkinson提出阅读方向会改变左右边缘元素的阻挡/稳定作用，并认为不同文字阅读方向会反转。B&H教程则提出右侧元素常更重。仅此两种表述不足以建立通用左右重量规律，候选中没有把它固化成训练规则。",
+      "source_ids": [
+        "composition-visual-balance-wilkinson",
+        "composition-bh-balance"
+      ]
+    },
+    {
+      "topic": "图形层次与前景重量",
+      "description": "前景可以增加层次和深度，也可能因更近而得到更强视觉重量。不能把增加前景、虚化或框景当成无条件改善；主体可读性和画面目标决定取舍。",
+      "source_ids": [
+        "composition-todd-vorenkamp-framing",
+        "composition-visual-weight-rackham",
+        "composition-diane-berkenfeld-field",
+        "composition-bobby-kenney-portrait"
+      ]
+    },
+    {
+      "topic": "颜色与形状是否主导",
+      "description": "Joe Lenton和Tom Bol建议用黑白简化图形变量；人像案例也使用颜色和色调分离主体。黑白是诊断工具，不代表彩色关系在最终作品中不重要。",
+      "source_ids": [
+        "composition-shape-joe-lenton",
+        "composition-graphic-design-tom-bol",
+        "composition-center-tamara-lackey",
+        "composition-diane-berkenfeld-field"
+      ]
+    }
+  ],
+  "gaps": [
+    "本批材料可支持通用人像与视觉组织控制，但对武器/道具入画时人物比例、道具与身体的切线、假发/宽袖剪影可读性没有足够的专业 Cosplay 直接教学。",
+    "漫展场馆拥挤背景、多人交叠、现场可移动范围等情境的专门构图方法仍待搜索。",
+    "图形形状与黑白分析资料不少来自风景/商业摄影；向 Cosplay 肖像迁移需要后续明确标 adaptation 并限制适用性。",
+    "未检查图片像素，因此没有对来源示例作视觉判断；示例链接仅为按来源文字/图注定位。",
+    "负空间、构图方向与主体/服装动作关系仍需要更专门的职业人像资料，尤其在复杂动作和横向武器方向方面。",
+    "候选数量反映可直接证据覆盖的原子控制点；不可据此宣称构图完整，尤其 shape rhythm 和 prop-specific visual organization 仍缺口。",
+    "No dedicated source found for a universal knee/joint crop rule; the crop-intent candidate remains about deliberate boundary treatment generally and makes no joint-specific claim."
+  ]
+}

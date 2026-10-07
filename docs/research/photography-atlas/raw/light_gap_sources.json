@@ -1,0 +1,185 @@
+{
+  "scope": "light-gap",
+  "queries": [
+    "site:neilvn.com/tangents practical tutorial manual flash exposure distance power ISO aperture",
+    "site:neilvn.com/tangents getting most power from flash speedlight aperture ISO distance",
+    "site:nikonusa.com/learn-and-explore lighting with two speedlights David Tejada manual flash power ambient exposure",
+    "site:nikonusa.com/learn-and-explore photographing still life subjects using flash ambient shutter aperture",
+    "site:nikonusa.com/learn-and-explore learning how to use your camera histogram RGB clipping",
+    "site:usa.canon.com/learning photographing snow histograms highlight alert clipping",
+    "site:wiki.ppa.com/books/photography-certification-guide/page/module-4b-utilizing-the-exposure-triangle-to-create-images",
+    "site:nikonusa.com/learn-and-explore awesome skies Tom Bol RGB histogram green channel overexposure"
+  ],
+  "sources": [
+    {
+      "id": "light-gap-neil-manual-controls",
+      "title": "Practical tutorial: Manual flash – distance, power, ISO & aperture",
+      "author": "Neil van Niekerk",
+      "identity": "Neil van Niekerk, professional portrait photographer and educator",
+      "kind": "professional photographer educational article",
+      "tier": "A",
+      "language": "en",
+      "url": "https://neilvn.com/tangents/practical-tutorial-manual-flash-exposure/",
+      "coverage": [
+        "manual flash output",
+        "flash-to-subject distance",
+        "aperture and ISO effects on flash exposure",
+        "shutter effect within normal sync"
+      ],
+      "trust_reason": "Full instructional article by a working portrait photographer and workshop educator; walks through changing individual flash controls and observing output.",
+      "independence_key": "Neil van Niekerk",
+      "access": "full_text",
+      "read_depth": "full article read; text only",
+      "worth_deep_read": true,
+      "notes": "Scope: manual flash and normal-sync behavior; do not generalize shutter independence above sync/HSS.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "light-gap-nikon-tejada",
+      "title": "Lighting with Two Speedlights",
+      "author": "David X. Tejada; Nikon USA editorial presentation",
+      "identity": "David X. Tejada, professional corporate portrait photographer and workshop instructor",
+      "kind": "manufacturer-hosted photographer teaching article",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/lighting-with-two-speedlights",
+      "coverage": [
+        "choose aperture for depth of field",
+        "set shutter according to ambient light and handholding",
+        "set ISO for conditions",
+        "manual flash power adjustment",
+        "separate ambient and flash test exposures"
+      ],
+      "trust_reason": "Full Nikon USA educational article documents Tejada’s actual teaching sequence and rationale, including test exposure and manual power changes.",
+      "independence_key": "David X. Tejada",
+      "access": "full_text",
+      "read_depth": "full article read; text only",
+      "worth_deep_read": true,
+      "notes": "Nikon CLS product examples; the exposure decisions described are attributed to Tejada. Its same institutional host does not make other Nikon-hosted educators independent when author identity is shared.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "light-gap-nikon-stilllife",
+      "title": "Photographing Still Life Subjects using Flash",
+      "author": "Paul Van Allen; Nikon USA editorial presentation",
+      "identity": "Paul Van Allen, Nikon imaging educator/photographer",
+      "kind": "manufacturer-hosted photographer educational article",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/photographing-still-life-subjects-using-flash",
+      "coverage": [
+        "flash and ambient as two exposures",
+        "aperture impacts flash and ambient",
+        "shutter controls ambient in normal flash operation",
+        "HSS output/range limitation"
+      ],
+      "trust_reason": "Full educational article gives a worked real-camera and off-camera Speedlight example and explains the flash/ambient split.",
+      "independence_key": "Paul Van Allen",
+      "access": "full_text",
+      "read_depth": "full article read; text only",
+      "worth_deep_read": true,
+      "notes": "Specific article centers on Nikon Auto FP and still life; use only its general normal-sync light relationship where explicitly stated. Device controls and HSS details remain Nikon/system-specific.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "light-gap-nikon-histogram",
+      "title": "Learning How to Use Your Camera's Histogram",
+      "author": "Nikon USA education team; contributor attribution unclear in article body",
+      "identity": "Nikon Imaging USA educational resource",
+      "kind": "manufacturer educational article",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/learning-how-to-use-your-cameras-histogram",
+      "coverage": [
+        "left/right tonal distribution",
+        "highlights and shadow warning",
+        "RGB histogram availability",
+        "localized playback histogram on supported cameras"
+      ],
+      "trust_reason": "Full manufacturer education article describes displayed histogram behavior and recommends selective checks for difficult lighting and series consistency.",
+      "independence_key": "Nikon Imaging USA education",
+      "access": "full_text",
+      "read_depth": "full article read; text only",
+      "worth_deep_read": true,
+      "notes": "The article states supported features vary by camera. RGB/local histogram availability and exact procedures require the user’s camera manual.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "light-gap-canon-snow",
+      "title": "How to Photograph Snow",
+      "author": "Canon Editor",
+      "identity": "Canon U.S.A. camera maker education/support team",
+      "kind": "manufacturer educational article",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.usa.canon.com/learning/training-articles/training-articles-list/photographing-snow",
+      "coverage": [
+        "histogram distribution and clipped right edge",
+        "highlight alert",
+        "exposure compensation in high-key scenes",
+        "camera-specific RAW/highlight-tone-priority processing caveats"
+      ],
+      "trust_reason": "Full Canon educational article explains histogram edge behavior using an actual bright-subject use case and clearly ties feature behavior to Canon models and processing.",
+      "independence_key": "Canon U.S.A. education",
+      "access": "full_text",
+      "read_depth": "relevant sections read; text only",
+      "worth_deep_read": true,
+      "notes": "Snow-specific example illustrates metering and highlight decisions; do not transpose its compensation values to portraits. HTP/RAW handling is Canon-specific.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "light-gap-ppa-exposure-4b",
+      "title": "Module 4B: Utilizing the Exposure Triangle to Create Images",
+      "author": "Professional Photographers of America; page history credits Jessica Avery as creator/editor (original chapter authorship unspecified)",
+      "identity": "Professional Photographers of America (PPA), trade association and photography education provider",
+      "kind": "professional association certification-guide chapter",
+      "tier": "A",
+      "language": "en",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-4b-utilizing-the-exposure-triangle-to-create-images",
+      "coverage": [
+        "equivalent exposures for depth-of-field/action choices",
+        "meter averaging and exposure compensation in bright/dark scenes",
+        "exposure bracketing",
+        "limits of camera capture in high contrast"
+      ],
+      "trust_reason": "Public full-text chapter in PPA’s Photography Certification Guide gives worked exposure examples and explains subject/background metering trade-offs.",
+      "independence_key": "PPA Photography Certification Guide",
+      "access": "full_text",
+      "read_depth": "full chapter text read; no image pixels inspected",
+      "worth_deep_read": true,
+      "notes": "Same institutional family as other PPA chapters; not an independent corroborator of those PPA chapters. Uses Sunny 16 as a starting estimate, not a universal prescription.",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "light-gap-nikon-tom-bol",
+      "title": "Awesome Skies: Tips and Techniques for Photographing the Northern Lights",
+      "author": "Tom Bol; Nikon USA editorial presentation",
+      "identity": "Tom Bol, professional photographer and workshop leader",
+      "kind": "manufacturer-hosted photographer educational article",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/awesome-skies-tips-and-techniques-for-photographing-the-northern-lights",
+      "coverage": [
+        "RGB channel histogram",
+        "single-channel clipping despite acceptable overall brightness histogram",
+        "test exposures in changing ambient light"
+      ],
+      "trust_reason": "Full Nikon-hosted article quotes Tom Bol describing his RGB-histogram workflow and the observed green-channel overexposure risk in aurora images.",
+      "independence_key": "Tom Bol",
+      "access": "full_text",
+      "read_depth": "full article; relevant RGB sections read; text only",
+      "worth_deep_read": true,
+      "notes": "The observed technique is in aurora color photography; adaptation to saturated cosplay LEDs or costume colors should be tested and not assumed identical. Camera menu details remain model-specific.",
+      "accessed_at": "2026-10-08"
+    }
+  ],
+  "gaps": [
+    "No general source inspected here establishes how every camera’s playback histogram relates to RAW sensor headroom; require model-specific documentation or measurements before making that claim.",
+    "PPA Module 4A URL/search exposure was not successfully opened during this pass; PPA 4B is accessible and supports practical exposure choices, not every ISO/shutter/aperture mechanism."
+  ],
+  "excluded": [
+    "PPA course-video/module lists without readable lesson text",
+    "search snippets for manual flash guide numbers not opened as source text",
+    "interactive auto-generated/photo-basics pages that were not attributable to a professional teacher"
+  ]
+}

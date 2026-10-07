@@ -1,0 +1,694 @@
+{
+  "conflicts": [
+    {
+      "research_scope": "composition",
+      "record": {
+        "topic": "居中与偏置/三分法",
+        "description": "Nikon Ambassador Tamara Lackey和摄影师 Sakai都说明居中可在主体突出、背景受控、配合线条/颜色/动作时成立；Mastering Portrait Photography同样指出居中可强调对称性，但可能使其他人像较快失去兴趣。来源共识是按表达和画面支撑条件选择，不是居中/三分法谁普遍更优。",
+        "source_ids": [
+          "composition-center-tamara-lackey",
+          "composition-sakai-nico-jp",
+          "composition-visual-balance-wilkinson",
+          "composition-nikon-diane-guidelines"
+        ]
+      },
+      "skill_ids": [
+        "composition-center-subject",
+        "composition-offcenter-negative-space"
+      ]
+    },
+    {
+      "research_scope": "composition",
+      "record": {
+        "topic": "平衡与表达性失衡",
+        "description": "B&H/Paul Wilkinson强调平衡和稳定；Ivor Rackham与John Harris同时保留失衡、边缘主体在张力、运动或空虚表达中的作用。验收应按预期表达，而不是把视觉对称当作统一标准。",
+        "source_ids": [
+          "composition-bh-balance",
+          "composition-visual-balance-wilkinson",
+          "composition-visual-weight-rackham",
+          "composition-john-harris-edges"
+        ]
+      },
+      "skill_ids": [
+        "composition-visual-weight-diagnosis",
+        "composition-asymmetric-balance",
+        "composition-intentional-imbalance"
+      ]
+    },
+    {
+      "research_scope": "composition",
+      "record": {
+        "topic": "阅读方向与画面左右重量",
+        "description": "Paul Wilkinson提出阅读方向会改变左右边缘元素的阻挡/稳定作用，并认为不同文字阅读方向会反转。B&H教程则提出右侧元素常更重。仅此两种表述不足以建立通用左右重量规律，候选中没有把它固化成训练规则。",
+        "source_ids": [
+          "composition-visual-balance-wilkinson",
+          "composition-bh-balance"
+        ]
+      },
+      "skill_ids": [
+        "composition-visual-weight-diagnosis",
+        "composition-asymmetric-balance"
+      ]
+    },
+    {
+      "research_scope": "composition",
+      "record": {
+        "topic": "图形层次与前景重量",
+        "description": "前景可以增加层次和深度，也可能因更近而得到更强视觉重量。不能把增加前景、虚化或框景当成无条件改善；主体可读性和画面目标决定取舍。",
+        "source_ids": [
+          "composition-todd-vorenkamp-framing",
+          "composition-visual-weight-rackham",
+          "composition-diane-berkenfeld-field",
+          "composition-bobby-kenney-portrait"
+        ]
+      },
+      "skill_ids": [
+        "composition-layer-depth",
+        "composition-foreground-control",
+        "composition-visual-weight-diagnosis"
+      ]
+    },
+    {
+      "research_scope": "composition",
+      "record": {
+        "topic": "颜色与形状是否主导",
+        "description": "Joe Lenton和Tom Bol建议用黑白简化图形变量；人像案例也使用颜色和色调分离主体。黑白是诊断工具，不代表彩色关系在最终作品中不重要。",
+        "source_ids": [
+          "composition-shape-joe-lenton",
+          "composition-graphic-design-tom-bol",
+          "composition-center-tamara-lackey",
+          "composition-diane-berkenfeld-field"
+        ]
+      },
+      "skill_ids": [
+        "composition-shape-reduction",
+        "composition-monochrome-audit",
+        "composition-tonal-figure-ground",
+        "composition-color-separation"
+      ]
+    },
+    {
+      "research_scope": "cosplay",
+      "record": {
+        "topic": "姿势语义是否固定",
+        "detail": "PPA 肖像文章承认同一姿势会依委托目标和人物语境产生不同含义；COSPLAY MODE 的某些特定示例会把某些姿态描述为更强/弱或更符合某类角色。候选技能采用“按角色意图选择变量”，不把某姿态固定映射为某性格。",
+        "sources": [
+          "cosplay-ppa-body-language",
+          "cosplay-cosplaymode-katana"
+        ]
+      },
+      "skill_ids": [
+        "posing-character-appropriate-action",
+        "posing-character-mood-variation",
+        "posing-action-stance-context"
+      ]
+    },
+    {
+      "research_scope": "cosplay",
+      "record": {
+        "topic": "专业形式与Cosplay夸张姿态",
+        "detail": "Cosplay姿势资料会提供夸张或仅适用于静态照片的姿势，不能据此推断真实武术/军事技术。候选只覆盖仿制道具的静态画面呈现和安全受控的摄影实验。",
+        "sources": [
+          "cosplay-cosplaymode-handgun",
+          "cosplay-cosplaymode-weapon-fight-poses",
+          "cosplay-cosplaymode-rpg-weapons",
+          "cosplay-nikon-cosgenic"
+        ]
+      },
+      "skill_ids": [
+        "cosplay-c06-large-prop-pose-variants",
+        "cosplay-c07-japanese-sword-character-pose",
+        "posing-action-stance-context"
+      ]
+    },
+    {
+      "research_scope": "field",
+      "record": {
+        "topic": "环境人像中环境与人物的视觉主次",
+        "positions": [
+          {
+            "source_id": "field-ppa-macgregor-env",
+            "position": "环境肖像仍应以人物为主兴趣点，避免环境过度主导。"
+          },
+          {
+            "source_id": "field-owm-kate-holt",
+            "position": "在纪实叙事中，环境有时是故事主题不可替代的主体信息，人物肖像之外还要拍情境画面。"
+          }
+        ],
+        "resolution": "按照片用途和画面角色分别处理，不将单张肖像规则套到整组纪实覆盖。"
+      },
+      "skill_ids": [
+        "field-background-priority",
+        "field-story-coverage-plan"
+      ]
+    },
+    {
+      "research_scope": "field",
+      "record": {
+        "topic": "现场环境光的色彩与闪光的处理",
+        "positions": [
+          {
+            "source_id": "field-ppa-macgregor-env",
+            "position": "优先让闪光的反差品质与环境匹配。"
+          },
+          {
+            "source_id": "field-ppa-harris-balance",
+            "position": "可选择平衡、压过或填充环境光，并通过色温附件及曝光决定效果。"
+          }
+        ],
+        "resolution": "这是有意图与场景条件决定的选项差异，不存在统一闪光强度；先明确意图再做对照。"
+      },
+      "skill_ids": [
+        "field-match-flash-ambient",
+        "light-021",
+        "light-015",
+        "light-016"
+      ]
+    },
+    {
+      "research_scope": "field",
+      "record": {
+        "topic": "漫展快速变化的姿势数量与变化幅度",
+        "positions": [
+          {
+            "source_id": "field-cosplay-keane-photowall",
+            "position": "固定背景排队拍摄建议预备少量姿势，并在即兴时每次改变一个身体部位。"
+          },
+          {
+            "source_id": "field-cosplay-pugoffka",
+            "position": "允许动作自由时也建议不要过快移动，轻微变化可产生不同画面。"
+          }
+        ],
+        "resolution": "两者适用于受限时间环境；姿势数字属于个别摄影师方法，尚无独立多作者方法共识。"
+      },
+      "skill_ids": [
+        "field-photowall-pose-ready",
+        "field-small-pose-variation"
+      ]
+    },
+    {
+      "research_scope": "field_gap",
+      "record": {
+        "topic": "现场回看节奏取决于拍摄情境",
+        "positions": [
+          {
+            "source_id": "field_gap-cooke-review-rhythm",
+            "position": "对人物/事件拍摄，避免机械逐张回看；在新环境、光线或机位变化及技术性镜头后进行有明确检查问题的回看。"
+          },
+          {
+            "source_id": "field_gap-glatzer-tethered-review",
+            "position": "固定棚内联机人像能在大屏幕上即时发现细节并补拍，回看是客户协作流程的一部分。"
+          },
+          {
+            "source_id": "field_gap-carpenter-client-review",
+            "position": "协作人像可以适时向主体展示成片以调整姿势/表情；run-and-gun条件下用相机屏幕间歇展示，而非每张都停下。"
+          }
+        ],
+        "resolution": "保留条件差异；这几条资料不能平均成一个固定回看频率，也不能构成拥挤中国漫展的综合失败检查表。"
+      },
+      "skill_ids": [
+        "field-intent-result-review",
+        "field-feedback-to-experiment"
+      ]
+    },
+    {
+      "research_scope": "light",
+      "record": {
+        "topic": "不同肤色的固定曝光补偿值是否存在",
+        "positions": [
+          {
+            "source_id": "light-ppa-skin-tones",
+            "summary": "John Gress建议对不同肤色使用特定的额外曝光/相对灯位，并用约三分之二档关系作为其多人布光经验。"
+          },
+          {
+            "source_id": "light-jade-dark-skin",
+            "summary": "Jade Keshia Gordon强调避免因深肤色默认欠曝，描述自己的两灯布光与平衡妆面，但没有给出统一补偿值。"
+          },
+          {
+            "source_id": "light-ppa-metering",
+            "summary": "PPA测光章指出反射测光是对反射光取平均，摄影师须结合主体与意图解释读数。"
+          }
+        ],
+        "resolution": "不把肤色类别与固定补偿档数绑定。候选技能仅保留检查脸部细节、测光局限和按人物/意图判断；Gress比例作为可测试的摄影师方法记录。需要更多独立来源和真实人像测试。"
+      },
+      "skill_ids": [
+        "light-039",
+        "light-040",
+        "light-017",
+        "light-019"
+      ]
+    },
+    {
+      "research_scope": "light",
+      "record": {
+        "topic": "自然光/闪光应作为主光还是补光",
+        "positions": [
+          {
+            "source_id": "light-nikon-vitale",
+            "summary": "Ami Vitale在日落逆光案例中以背景环境光为参照，再加离机闪光补人物。"
+          },
+          {
+            "source_id": "light-profoto-couzens",
+            "summary": "Hannah Couzens采用先设背景、再设闪光人物的工作顺序。"
+          },
+          {
+            "source_id": "light-nikon-vitale",
+            "summary": "作者另说明方向与作用可随场景改变，离机闪光也可成为主要人物光。"
+          }
+        ],
+        "resolution": "保留场景条件。环境氛围、背景亮度和人物位置决定谁承担主光；不将一种流程当成唯一正确方法。"
+      },
+      "skill_ids": [
+        "field-match-flash-ambient",
+        "light-021",
+        "light-027"
+      ]
+    },
+    {
+      "research_scope": "light",
+      "record": {
+        "topic": "柔光与硬光的肖像偏好",
+        "positions": [
+          {
+            "source_id": "light-ppa-quality",
+            "summary": "PPA说明柔光常用于较低反差、较柔和的人像呈现，也说明硬光可用于质感、形体和戏剧效果。"
+          },
+          {
+            "source_id": "light-fuji-portrait-guide",
+            "summary": "FUJIFILM指南称柔光常见于人像，但选择依赖人物与表达意图。"
+          },
+          {
+            "source_id": "light-society-carlino",
+            "summary": "Alison Carlino指出开放阴影可减轻眯眼与阴影，硬光也可适合时尚、运动或戏剧肖像。"
+          }
+        ],
+        "resolution": "把光质识别和按目标选择拆成两个候选技能，不将柔光标为普遍审美标准。"
+      },
+      "skill_ids": [
+        "light-003",
+        "light-004"
+      ]
+    },
+    {
+      "research_scope": "light",
+      "record": {
+        "topic": "HSS与短闪光持续时间的动作冻结机制",
+        "positions": [
+          {
+            "source_id": "light-nikon-kubota-hss",
+            "summary": "HSS以一串快速闪光覆盖快门帘移动，可用更快快门，但输出会随速度增加而下降。"
+          },
+          {
+            "source_id": "light-canon-tillinghast-settings",
+            "summary": "Canon文章描述HSS与更快快门冻结动作，并提醒闪光输出降低。"
+          },
+          {
+            "source_id": "light-carpenter-duration",
+            "summary": "Jeff Carpenter说明在环境光可控时，短闪光持续时间可作为有效曝光时间冻结动作。"
+          },
+          {
+            "source_id": "light-aldred-freeze",
+            "summary": "John Aldred区分短闪光持续时间与HSS，并提醒环境光可能在清晰闪光影像上叠加模糊。"
+          }
+        ],
+        "resolution": "分开记录常规同步下的短持续时间冻结与HSS下的快门冻结；若环境光照到主体，单有短闪光不保证没有重影。"
+      },
+      "skill_ids": [
+        "light-033",
+        "light-034",
+        "light-035",
+        "light-036",
+        "light-037",
+        "light-038"
+      ]
+    },
+    {
+      "research_scope": "light-gap",
+      "record": {
+        "topic": "直方图右侧信息与实际文件高光剪切边界",
+        "positions": [
+          {
+            "source_id": "light-gap-nikon-histogram",
+            "summary": "Nikon教育文把贴近右端解释为高光可能过曝，并明确可用功能依相机而异。"
+          },
+          {
+            "source_id": "light-gap-canon-snow",
+            "summary": "Canon教育文在Canon回放/高光警告语境下把右端截断作为严重过曝风险，并讨论特定相机/RAW处理方式。"
+          }
+        ],
+        "resolution": "保留为回放诊断和剪切风险，而非通用RAW剪切判定；若要陈述某机型的RAW余量或机内预览对应关系，另查该机型号手册或实测。"
+      },
+      "skill_ids": [
+        "lightgap-histogram-highlight-check"
+      ]
+    },
+    {
+      "research_scope": "motion",
+      "record": {
+        "topic": "静态照片里追随摇摄与固定机位长曝光都能表现运动",
+        "positions": [
+          {
+            "basis": "professional_method",
+            "summary": "Dave Black及Peter Llewellyn讨论跟随相机配合主体轨迹，以背景相对模糊强化速度。",
+            "source_ids": [
+              "motion-nikon-panning",
+              "motion-peter-llewellyn-blur"
+            ]
+          },
+          {
+            "basis": "professional_method",
+            "summary": "Nikon Japan与Cristina Pascu-Tulbure用固定相机和主体/服装运动记录拖影，同时保留锐利元素。",
+            "source_ids": [
+              "motion-nikon-jp-slow-shutter",
+              "motion-society-flowing-fabric"
+            ]
+          }
+        ],
+        "resolution": "保留两种工作模式，按希望的主体/背景运动关系选择，不将其中一种作为普遍更优。"
+      },
+      "skill_ids": [
+        "mot-03",
+        "mot-06"
+      ]
+    },
+    {
+      "research_scope": "motion",
+      "record": {
+        "topic": "相机运动要服务叙事，但自由移动也可能是明确风格",
+        "positions": [
+          {
+            "basis": "professional_method",
+            "summary": "Edu Grau与Lubezki都强调目的与故事/人物能量关联，但Grau强调稳定一致，Lubezki项目采用更持续的手持/稳定器移动。",
+            "source_ids": [
+              "motion-arri-room-next-door-grau",
+              "motion-arri-birdman-lubezki"
+            ]
+          }
+        ],
+        "resolution": "按项目意图和动作需要判断，记录为条件差异；不把“总要移动”或“总要稳定”固化成规则。"
+      },
+      "skill_ids": [
+        "mot-25"
+      ]
+    },
+    {
+      "research_scope": "perspective",
+      "record": {
+        "topic": "焦段与“压缩”",
+        "positions": [
+          "B&H文章称远摄会产生光学压缩，容易让读者把效果直接归因于镜头。",
+          "Banks/Cooper/Piazza研究分别考察固定视点和为保持眼间距调整距离等条件；人脸感知结果涉及焦段、相机位置与观看条件，不能化约为“焦段从不影响观感”。",
+          "Ukawa的固定机位换焦段示例观察取景/背景变化，并非保持人物画面尺寸的距离对照。"
+        ],
+        "handling": "保留术语和实验条件差异。训练先记录相机距离与焦段，再比较结果；候选技能不宣称焦段独立决定透视。",
+        "source_ids": [
+          "perspective-bh-perspective",
+          "perspective-cooper-banks-pictures",
+          "perspective-ukawa-focal-length"
+        ]
+      },
+      "skill_ids": [
+        "perspective-skill-distance-before-focal",
+        "perspective-skill-fixed-position-focal-compare",
+        "perspective-skill-viewpoint-distance",
+        "perspective-skill-focal-length-field-of-view",
+        "perspective-skill-optical-vs-perspective"
+      ]
+    },
+    {
+      "research_scope": "perspective",
+      "record": {
+        "topic": "低机位与仰拍的表达效果",
+        "positions": [
+          "PPA和Navy材料讲低/高视点对身体比例的影响；Faulds按不同人物目标选择较高或较低视点。",
+          "资料没有支持“低角度自动显得强大/有气势”这样的普遍情绪规则。"
+        ],
+        "handling": "训练用同主体对照判断比例、背景和个人表达，不把风格解释预设为结果。",
+        "source_ids": [
+          "perspective-ppa-angle-of-view",
+          "perspective-navy-posing-manual",
+          "perspective-ppa-fauld-corrective"
+        ]
+      },
+      "skill_ids": [
+        "perspective-skill-angle-comparison",
+        "perspective-gap-skill-low-view-expression-context"
+      ]
+    },
+    {
+      "research_scope": "perspective",
+      "record": {
+        "topic": "肖像机位高度建议",
+        "positions": [
+          "PPA、Canon和Navy给出按裁切/题材选择相机高度的实用起点；不同来源措辞和水平轴线建议并不完全相同。"
+        ],
+        "handling": "保留为可测试的起点，按身形、裁切、背景与意图调整；不制定固定腰位/眼位规范。",
+        "source_ids": [
+          "perspective-ppa-capabilities",
+          "perspective-canon-portrait-posing",
+          "perspective-navy-posing-manual"
+        ]
+      },
+      "skill_ids": [
+        "perspective-skill-crop-height",
+        "perspective-skill-lens-axis-level",
+        "perspective-skill-height-proportion-diagnosis"
+      ]
+    },
+    {
+      "research_scope": "perspective",
+      "record": {
+        "topic": "浅景深与主体清晰范围",
+        "positions": [
+          "摄影师强调眼睛焦点和背景虚化；多人/转脸/动作条件下需更大清晰范围或更频繁地重对焦。"
+        ],
+        "handling": "按主体数量、深度、运动和表达意图选择景深，不能把“大光圈”作为默认专业答案。",
+        "source_ids": [
+          "perspective-nikon-focus-eyes",
+          "perspective-nikon-eye-af",
+          "perspective-canon-portrait-posing",
+          "perspective-ppa-capabilities"
+        ]
+      },
+      "skill_ids": [
+        "perspective-skill-depth-of-field-control",
+        "perspective-skill-aperture-sharpness-tradeoff",
+        "perspective-skill-group-focus-plane"
+      ]
+    },
+    {
+      "research_scope": "perspective-gap",
+      "record": {
+        "topic": "荷兰角/人像滚转建议的角度幅度",
+        "positions": [
+          "Elja Trum在Photofacts人像提示中说较明显的30–45°常显得明确有意，而5–10°可能看起来像失误。",
+          "Nikon Europe的人像教材建议倾斜保持较轻，并警告不要超过约5–10°。",
+          "Barsam与Monahan的电影教材强调倾斜画框在叙事中的失衡/混乱意味，但不提出适用于静态肖像的角度数值。"
+        ],
+        "handling": "保留来源、媒介和目标差异。只训练滚转变量、线条效果和意图是否可读；不统一或平均角度数字。",
+        "source_ids": [
+          "perspective-gap-photofacts-roll",
+          "perspective-gap-nikon-tilt",
+          "perspective-gap-norton-camera-angle"
+        ]
+      },
+      "skill_ids": [
+        "perspective-gap-skill-intentional-roll",
+        "perspective-skill-pitch-vs-roll"
+      ]
+    },
+    {
+      "research_scope": "perspective-gap",
+      "record": {
+        "topic": "膝部/关节裁切的边界",
+        "positions": [
+          "Amanda Lessner强烈建议避开膝、踝、肘等关节，并用字幕案例说明她的偏好。",
+          "Gina Milicia也把关节裁切作为通常需要谨慎的起点，但明确说应逐张判断、可有意打破规则，并给出衣袖边缘会使理论上安全裁切看起来意外的例子。"
+        ],
+        "handling": "正式节点训练的是判断和比较裁切效果；不能记成“永远不得截膝”。",
+        "source_ids": [
+          "perspective-gap-lessner-joints",
+          "perspective-gap-milicia-crop"
+        ]
+      },
+      "skill_ids": [
+        "perspective-gap-skill-knee-crop-choice",
+        "composition-crop-intent"
+      ]
+    },
+    {
+      "research_scope": "perspective-gap",
+      "record": {
+        "topic": "低机位的情绪读法",
+        "positions": [
+          "电影教材列出低角度常见的强势/威胁读法，同时展示低角度令角色显得脆弱的例子，并指出解释受上下文控制。",
+          "Nikon人像教学的低机位建议主要围绕显高/视觉动态；Faulds使用低机位服务不同身形目标。"
+        ],
+        "handling": "将静态Cosplay人像的表达效果作为项目验证，避免把电影叙事和常见象征当作普遍肖像规则。",
+        "source_ids": [
+          "perspective-gap-norton-camera-angle",
+          "perspective-gap-nikon-tilt",
+          "perspective-ppa-fauld-corrective"
+        ]
+      },
+      "skill_ids": [
+        "perspective-gap-skill-low-view-expression-context",
+        "perspective-skill-angle-comparison"
+      ]
+    },
+    {
+      "research_scope": "portrait posing, weight and balance, hands, legs, shoulders and hips, expression and gaze, subject direction, and character expression for cosplay and portrait photography",
+      "record": {
+        "topic": "站姿承重方向",
+        "positions": [
+          {
+            "source_id": "posing-canon-laura-tillinghast",
+            "position": "传统肖像示例中，转离镜头后先把重心置于前腿，并提出后腿承重作为替代版本。"
+          },
+          {
+            "source_id": "posing-nikon-cosgenic-lesson11",
+            "position": "和装剑剧示例建议略宽站距和后倾重心，以表现特定角色气质。"
+          }
+        ],
+        "resolution": "保留条件差异；不归纳成普遍的前腿或后腿规则。训练者应根据角色意图、身体反应和画面目的比较版本。"
+      },
+      "skill_ids": [
+        "posing-weight-transfer",
+        "posing-front-back-weight-variation",
+        "posing-action-stance-context"
+      ]
+    },
+    {
+      "research_scope": "portrait posing, weight and balance, hands, legs, shoulders and hips, expression and gaze, subject direction, and character expression for cosplay and portrait photography",
+      "record": {
+        "topic": "把手臂从躯干分开",
+        "positions": [
+          {
+            "source_id": "posing-canon-laura-tillinghast",
+            "position": "为特定轮廓塑造目的建议让手臂略离身体。"
+          },
+          {
+            "source_id": "posing-nikon-cosgenic-lesson3",
+            "position": "Cosplay 例子按角色需要使用靠近脸部、朝向镜头或离开镜头的不同手势。"
+          }
+        ],
+        "resolution": "手臂分离仅作为可控视觉变量；角色动作、服装展示和人物意图可要求保留贴近或交叠。"
+      },
+      "skill_ids": [
+        "posing-arm-torso-separation"
+      ]
+    },
+    {
+      "research_scope": "portrait posing, weight and balance, hands, legs, shoulders and hips, expression and gaze, subject direction, and character expression for cosplay and portrait photography",
+      "record": {
+        "topic": "下颌前移",
+        "positions": [
+          {
+            "source_id": "posing-peter-hurley-jawline",
+            "position": "Hurley 将前移下颌作为其头部肖像流程中的标准修正，并作出广泛适用的主张。"
+          },
+          {
+            "source_id": "posing-canon-laura-tillinghast",
+            "position": "Canon 文章将脸部前移作为一种特定轮廓塑造方法。"
+          }
+        ],
+        "resolution": "只记录为可测试的摄影方法，不宣称适用于所有身体、角色、表情或肖像风格。"
+      },
+      "skill_ids": [
+        "posing-jawline-forward-method"
+      ]
+    },
+    {
+      "research_scope": "post",
+      "record": {
+        "topic": "筛片后是否立即删除拒绝项",
+        "positions": [
+          {
+            "source_id": "post-ppa-lisa-mark-culling",
+            "position": "该摄影师描述第一轮选择后删除其余照片，并可继续重复筛选。"
+          },
+          {
+            "source_id": "post-fstoppers-zhen-culling",
+            "position": "该摄影师建议隔一段时间再复筛，不要立刻永久删除。"
+          }
+        ],
+        "resolution": "保留为方法选择差异。候选技能只要求筛片状态可恢复、永久删除另行决定；不把任何一位作者的删除时机当成普遍规则。"
+      },
+      "skill_ids": [
+        "post-cull-review-before-delete"
+      ]
+    },
+    {
+      "research_scope": "post",
+      "record": {
+        "topic": "皮肤修饰方法与处理程度",
+        "positions": [
+          {
+            "source_id": "post-fstoppers-grimes",
+            "position": "文章摘要展示频率分离，并称此法容易过度、存在行业争议。"
+          },
+          {
+            "source_id": "post-retouch-academy-dodge-burn",
+            "position": "文章突出D&B作为非破坏性肤色/明暗均匀方法，并强调练习和理解自然脸部结构。"
+          },
+          {
+            "source_id": "post-xitek-wangxiaoning",
+            "position": "作者描述自己使用低不透明度D&B、图章和色彩统一的具体顺序。"
+          }
+        ],
+        "resolution": "将方法保留为工具选择与个人流程；正式技能聚焦诊断问题、保留质感、控制力度，不规定频率分离或D&B为唯一正确流程。"
+      },
+      "skill_ids": [
+        "post-skin-patch-diagnosis",
+        "post-skin-frequency-separation",
+        "post-skin-local-dodge-burn",
+        "post-skin-edit-subtle-opacity"
+      ]
+    },
+    {
+      "research_scope": "post",
+      "record": {
+        "topic": "局部肤色均匀与自然差异",
+        "positions": [
+          {
+            "source_id": "post-adobe-color-variance",
+            "position": "调整肤色红斑时，Adobe教师示范减弱色差，但过度会让肤色过于均一。"
+          },
+          {
+            "source_id": "post-retouch-academy-patchy-skin",
+            "position": "Retouching Academy示范对明确斑驳区域做遮罩和颜色/明度修正。"
+          }
+        ],
+        "resolution": "区分局部缺陷修正和追求统一肤色的风格目标；不设定统一肤色值或单一美肤标准。"
+      },
+      "skill_ids": [
+        "post-skin-patch-diagnosis",
+        "post-skin-mask-color-correction",
+        "post-color-preserve-variation"
+      ]
+    },
+    {
+      "research_scope": "post",
+      "record": {
+        "topic": "合成光线诊断的条件",
+        "positions": [
+          {
+            "source_id": "post-adobe-composite-principles",
+            "position": "Adobe建议匹配光向与光质。"
+          },
+          {
+            "source_id": "post-phlearn-composite-light",
+            "position": "PHLEARN使用阈值法比较单一主光源示例中的主体高光/阴影。"
+          }
+        ],
+        "resolution": "方向和光质相容可作为基础检查；阈值亮度层级法只按教师示例的单一主光源条件使用，不推断到复杂多灯现场。"
+      },
+      "skill_ids": [
+        "post-composite-light-match",
+        "post-composite-tone-check",
+        "post-composite-luminosity-correction"
+      ]
+    }
+  ],
+  "scope": "Named and conditional differences; not averaged into universal rules."
+}

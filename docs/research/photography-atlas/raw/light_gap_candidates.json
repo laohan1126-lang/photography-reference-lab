@@ -1,0 +1,252 @@
+{
+  "scope": "light-gap",
+  "candidates": [
+    {
+      "id": "lightgap-exposure-aperture-iso-tradeoff",
+      "skill_name": "按景深与动作约束调整曝光并核查代价",
+      "capability": "先根据需要的清晰范围选择光圈、根据人物运动选择快门；曝光不足时再在可接受噪点范围内提高ISO，并回看清晰度、运动模糊与噪点是否符合目标。",
+      "why_it_matters": "避免只追求测光表归零，或为补亮而破坏景深和动作表现。",
+      "module_hint": "曝光控制与人物动作",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": [
+        "为了压低ISO而接受人物运动模糊",
+        "改变光圈后景深不再覆盖所需人物范围",
+        "提高ISO后噪点或颜色细节损失超过当前成片需要"
+      ],
+      "practice": "在固定自然光人像场景中，先拍一张按景深目标确定光圈的样片，再针对人物动作选定快门；逐档提高ISO使曝光达到可用亮度，回看眼部清晰、动作边缘和暗部噪点。",
+      "acceptance": [
+        "能说明本张光圈选择与所需清晰范围的关系",
+        "能通过动作边缘检查快门是否够用",
+        "能指出ISO提升后的噪点变化，并选出满足当前表达的版本"
+      ],
+      "evidence": [
+        {
+          "source_id": "light-gap-ppa-exposure-4b",
+          "locator": "§ Example 1–2, lines 84–114",
+          "support": "展示同等曝光下为景深或冻结动作改变光圈/快门组合，并提醒慢门可能带来手持抖动。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "§ Shutter Speed & ISO, lines 667–672",
+          "support": "人像教育文建议根据低光/移动人物提高ISO以换取更快快门，同时说明噪点代价。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait exposure choose aperture for depth shutter for motion ISO tradeoff"
+      ]
+    },
+    {
+      "id": "lightgap-manual-flash-power",
+      "skill_name": "固定相机与灯位后用手动功率调整闪光主体亮度",
+      "capability": "保持相机光圈、ISO、闪灯距离和方向不变，以测试照片为依据逐步调整手动闪光功率，使人物受光达到预期；环境亮度的变化另行判断。",
+      "why_it_matters": "手动功率提供可重复的主体亮度控制，避免把人物闪光不足误判成背景曝光问题。",
+      "module_hint": "手动闪光曝光",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": [
+        "一次改变功率、光圈和灯距，无法判断哪项造成变化",
+        "误用相机曝光补偿调整手动闪光输出",
+        "只看相机测光表而不检查闪光测试帧"
+      ],
+      "practice": "固定人物、相机参数与灯距，拍摄当前手动功率及上下相邻一档的版本；逐张比较脸部受光，记录可重复的功率设置。",
+      "acceptance": [
+        "仅改变闪光功率时人物受光可辨别变化",
+        "能复现选定的功率结果",
+        "背景环境曝光在相同环境和快门下基本不随手动功率变化"
+      ],
+      "evidence": [
+        {
+          "source_id": "light-gap-nikon-tejada",
+          "locator": "§ A Note on Metering, lines 71–82",
+          "support": "David Tejada先按景深/环境/手持条件设置相机，再用手动闪光功率和测试拍摄校正结果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-neil-manual-controls",
+          "locator": "§ A few observations, lines 126–142",
+          "support": "Neil van Niekerk把功率列为手动闪光曝光控制项，并说明常规同步范围内快门不改闪光输出。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "manual speedlight flash power test shot portrait exposure"
+      ]
+    },
+    {
+      "id": "lightgap-flash-distance-power",
+      "skill_name": "用灯距或功率补偿维持手动闪光曝光",
+      "capability": "在光圈和ISO目标确定后，若改变闪灯到人物的距离，就重新调节手动输出并测试；知道距离变化会改变人物收到的光量，不能沿用原功率而假定亮度不变。",
+      "why_it_matters": "移动闪灯会改变曝光和人物与背景之间的光线衰减，功率与距离需要一并管理。",
+      "module_hint": "手动闪光曝光",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [
+        "lightgap-manual-flash-power"
+      ],
+      "failure_modes": [
+        "灯移远后仍用原功率导致人物变暗",
+        "灯靠近后人物过曝或光线衰减加剧",
+        "把灯距变化造成的背景亮度差只靠后期处理"
+      ],
+      "practice": "保持人物、相机曝光和灯向不变，记录两种灯距的初始亮度，再用闪光功率调整到人物亮度接近；同时观察背景受光差异。",
+      "acceptance": [
+        "能通过同场景测试判断灯距改变后的闪光曝光变化",
+        "能用功率重新匹配人物亮度",
+        "能指出背景与人物之间的相对亮度也可能随灯距改变"
+      ],
+      "evidence": [
+        {
+          "source_id": "light-gap-neil-manual-controls",
+          "locator": "§ The scenario, lines 69–75, 113–123",
+          "support": "明确指出靠近灯会增加落在主体上的光量，移远会减少，且距离/光圈/ISO改变后需用其他控制（包括功率）补偿。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-ppa-quality",
+          "locator": "§ The Inverse Square Law and Depth of Light, lines 127–155",
+          "support": "PPA章节说明闪光或其他受控近距离光源随距离变化导致照度与前后景衰减；此来源只补充光量/衰减背景，不独立验证手动功率公式。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "manual flash power distance portrait light falloff compensation"
+      ]
+    },
+    {
+      "id": "lightgap-shared-aperture-iso-flash-ambient",
+      "skill_name": "改变光圈或ISO后同时复核闪光与环境曝光",
+      "capability": "在常规同步范围内，改变光圈或ISO后同时检查闪光人物和环境背景的亮度；需要维持人物闪光亮度时，另调手动闪光功率/灯距，并用快门修整环境光。",
+      "why_it_matters": "光圈和ISO会同时影响闪光与环境光；只修正一层会打乱人物与背景的关系。",
+      "module_hint": "闪光与环境曝光",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [
+        "lightgap-manual-flash-power"
+      ],
+      "failure_modes": [
+        "为改变景深而收小光圈后，闪光人物变暗却只改快门",
+        "提高ISO后人物闪光和背景一起变亮却只补偿闪灯",
+        "把HSS条件下快门与闪光的关系套用到常规同步模式"
+      ],
+      "practice": "在常规同步范围选定一个闪光人像基准；分别改变一档光圈、再改变一档ISO，每次记录人物和背景变化，再用手动功率/快门把两层恢复到原先目标。",
+      "acceptance": [
+        "能正确预测光圈或ISO改变后闪光人物和环境背景都会受影响",
+        "能分别调整闪光输出与快门恢复人物/背景关系",
+        "能指出实验仅适用于常规同步与相对稳定环境条件"
+      ],
+      "evidence": [
+        {
+          "source_id": "light-gap-neil-manual-controls",
+          "locator": "lines 118–142",
+          "support": "说明光圈/ISO与距离、功率共同决定手动闪光，常规同步范围内快门不直接改变闪光输出。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-nikon-stilllife",
+          "locator": "§ Putting theory into practice, lines 55–57",
+          "support": "将画面拆为闪光与环境两次曝光，并明确在其常规条件下光圈影响闪光、快门控制环境光。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "flash ambient aperture ISO affect both shutter controls background manual flash"
+      ]
+    },
+    {
+      "id": "lightgap-histogram-highlight-check",
+      "skill_name": "用RGB直方图核查单色高光通道剪切风险",
+      "capability": "在颜色浓烈的服装、灯牌或彩色光照下，除亮度直方图外查看相机若支持的RGB分通道直方图，发现某个颜色通道已靠近/截断右缘的风险；再核对相应区域是否必须保留层次，并按相机手册理解机内显示范围。",
+      "why_it_matters": "整体亮度图可能掩盖单一颜色通道的高光风险，尤其是高饱和彩色区域；这一检查补充脸部整体明暗判断，不替代它。",
+      "module_hint": "彩色高光与曝光回看",
+      "domain_hint": "光线与曝光",
+      "prerequisites": [],
+      "failure_modes": [
+        "只看整体亮度分布，漏掉RGB某个通道贴近右缘",
+        "因局部通道峰值一概压暗整张照片，未检查该颜色区域是否需要保留细节",
+        "把某型号的分通道图表、警告功能或RAW解释外推到其他机型"
+      ],
+      "practice": "在有高饱和彩色服饰、LED或灯牌的场景拍摄同一画面；回放时分别查看亮度图与机身可提供的RGB分通道图，检查彩色区域细节并记录机型与显示方式。",
+      "acceptance": [
+        "能在支持的机型上指出亮度直方图和单独颜色通道所揭示信息的差别",
+        "能将通道提示对应到画面中实际的彩色区域和想保留的细节",
+        "能说明当前机型是否提供RGB直方图；不对不支持的设备作推断",
+        "不会把机内显示的边缘截断直接宣称为所有RAW流程的永久像素剪切"
+      ],
+      "evidence": [
+        {
+          "source_id": "light-gap-nikon-histogram",
+          "locator": "lines 47, 75–86, 95–105",
+          "support": "Nikon教育文指出部分机型可显示RGB通道，并可在支持机型上放大局部查看；可作为具体型号能力的检查项。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-nikon-tom-bol",
+          "locator": "§ Maybe the Moon, lines 58–60",
+          "support": "Tom Bol说明整体图可能看似安全但绿色通道已过曝，并用RGB图检查北极光；将此作为彩色高光场景的通道诊断实例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-gap-canon-snow",
+          "locator": "§ Histograms and Highlight Alert, lines 694–705",
+          "support": "Canon将直方图解释为场景像素亮度分布并示范使用右边缘判断高光风险；仅作为厂商界面的一般使用线索，不外推其具体菜单/RAW行为。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "RGB histogram single channel clipping colored light costume portrait photography"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "直方图右侧信息与实际文件高光剪切边界",
+      "positions": [
+        {
+          "source_id": "light-gap-nikon-histogram",
+          "summary": "Nikon教育文把贴近右端解释为高光可能过曝，并明确可用功能依相机而异。"
+        },
+        {
+          "source_id": "light-gap-canon-snow",
+          "summary": "Canon教育文在Canon回放/高光警告语境下把右端截断作为严重过曝风险，并讨论特定相机/RAW处理方式。"
+        }
+      ],
+      "resolution": "保留为回放诊断和剪切风险，而非通用RAW剪切判定；若要陈述某机型的RAW余量或机内预览对应关系，另查该机型号手册或实测。"
+    }
+  ],
+  "gaps": [
+    "尚未读取PPA 4A全文，不能据此声称所有基本ISO/快门/光圈机理已经跨源验证；当前4B只支持曝光选择实例。",
+    "缺少通用设备手册全文来独立支持手动闪光功率与距离的定量互换；相关候选维持medium。",
+    "没有支持“相机机内直方图与RAW剪切必然相同/必然不同”的普适证据。"
+  ]
+}

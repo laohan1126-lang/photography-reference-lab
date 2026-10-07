@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "resources": [
+    {
+      "id": "tutorial-adorama-hoey-one-light-headshots",
+      "title": "一盏灯的人像实拍：光位、沟通与手部安排",
+      "original_title": "Easy One Light Headshots | Take and Make Great Photography with Gavin Hoey",
+      "url": "https://www.youtube.com/watch?v=G95axag1gMA",
+      "author": "Gavin Hoey / Adorama 官方频道",
+      "kind": "video",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "page_and_description",
+        "locator": "Edge/BrowserSkill 核对官方搜索结果的频道、标题与章节；公开视频页读取超时，会话随后已结束。再用公开网页搜索核对官方描述与章节表；未观看画面或读取字幕。"
+      },
+      "trust_reason": "职业摄影讲师 Gavin Hoey 的 Adorama 官方节目；推荐依据是实名作者、官方发布与明确的实拍章节，不是观看量。",
+      "summary": "官方简介说明课程演示三种单灯头像方案，并讨论人物沟通、手部安排和反光板；适合与图文材料配合观看。",
+      "start_here": "按官方章节：1:08 拍前安排；2:09 光源尺寸与位置；5:35 顶光方案；7:25 手部安排。全片约 12 分钟。",
+      "study_task": "项目练习：观看后只选一种光位拍摄，在相同曝光与构图下改变一个变量，记录你看到的面部阴影变化。",
+      "limitations": "仅核对官方简介与章节，未对视频内容逐段核验；不作为技能结论的新证据。偏室内头像，不能直接套用到拥挤漫展。中国大陆网络可达性依环境而定。",
+      "source_id": null,
+      "skill_ids": [
+        "light-025",
+        "light-028",
+        "posing-purposeful-hand-placement"
+      ],
+      "domain_ids": [
+        "flash",
+        "posing"
+      ]
+    }
+  ]
+}

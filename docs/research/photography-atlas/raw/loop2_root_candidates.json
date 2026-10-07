@@ -1,0 +1,129 @@
+{
+  "scope": "loop2_intent_and_convention",
+  "candidates": [
+    {
+      "id": "field-intent-result-review",
+      "skill_name": "对照照片检查画面意图是否达成",
+      "capability": "先说清这张照片想表达的情绪或信息，再回看成片能否支持它；意图尚未明确时保留探索状态。",
+      "why_it_matters": "把“够不够好看”改成针对自己的明确意图可讨论的问题。",
+      "module_hint": "反馈与下一轮实验",
+      "domain_hint": "field",
+      "prerequisites": [],
+      "failure_modes": [
+        "只凭成片好看与否下结论，没有明确比较目标或可验证的下一步。"
+      ],
+      "practice": "项目练习：写一句当前画面意图，选一张成片指出支持或抵触它的可见线索；不足以判断时写“还不能确定”，不补剧情。",
+      "acceptance": [
+        "判断指向实际画面，而非服装名称或拍前想象。",
+        "能区分作者自己的表达选择与其他观众的反馈。"
+      ],
+      "evidence": [
+        {
+          "source_id": "root-duchemin-intent-review",
+          "locator": "lines24–38,42,55–61",
+          "support": "作者直接提出先确认想表达什么，再问是否实现，并依据缺口考虑取景、视点、时机或光线；未知意图时先探索。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "复盘",
+        "意图",
+        "照片失败原因",
+        "表达未达成"
+      ]
+    },
+    {
+      "id": "field-test-failure-hypothesis",
+      "skill_name": "把失败原因写成可复拍的假设",
+      "capability": "把一处观察到的画面问题与一个可能控制它的拍摄选择关联，并安排下一张对照来检查这个解释；未验证前保留为假设。",
+      "why_it_matters": "避免把一个失败现象直接当成已经找到根因。",
+      "module_hint": "反馈与下一轮实验",
+      "domain_hint": "field",
+      "prerequisites": [],
+      "failure_modes": [
+        "只凭成片好看与否下结论，没有明确比较目标或可验证的下一步。"
+      ],
+      "practice": "项目练习：对一处失败记录“观察—可能原因—只改一个因素的复拍—结果”；若两项同时改变或条件不同，写明无法区分原因。单变量记录表是项目工具，不是两位作者提出的标准规程。",
+      "acceptance": [
+        "问题与原因是两个分开的描述，原因未测试时明确写“假设”。",
+        "对照注明变化的条件；结果没有支持假设时不把它记录为已确认。"
+      ],
+      "evidence": [
+        {
+          "source_id": "root-mcnally-portrait-error",
+          "locator": "lines78–84",
+          "support": "McNally在舞者肖像中识别背景亮斑、说明光源贴近背景的原因，并用遮光与灯向修正后比较；这是具体人像案例中的诊断—干预链。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "root-duchemin-intent-review",
+          "locator": "lines38,42",
+          "support": "作者由未实现的意图提出更换视点、取景、时机或光线等后续选择。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "失败原因",
+        "根因",
+        "现场检查",
+        "复拍验证",
+        "拍后复盘"
+      ]
+    },
+    {
+      "id": "field-convention-approved-footprint",
+      "skill_name": "选择不阻碍人流的已获准拍点",
+      "capability": "在安排漫展肖像拍点前，核对本次活动的许可与通行空间；固定灯具、背景的方案只有得到许可并留出通行后才使用。",
+      "why_it_matters": "场地合适也不等于能占用通道或把设备架在那里。",
+      "module_hint": "场馆规则与备选准备",
+      "domain_hint": "field",
+      "prerequisites": [],
+      "failure_modes": [
+        "拍点未经核对，影响通行或超出本次场馆许可。"
+      ],
+      "practice": "项目练习：到场前查当前活动规则，到场后标出一个获准位置、设备占地与通行路线；若不能保持通行则放弃原方案另选位置。",
+      "acceptance": [
+        "能指出许可来自本次活动的哪条规则或哪次确认。",
+        "设备与人物位置没有依赖占用现场通行路线；无法判断就不使用该位置。"
+      ],
+      "evidence": [
+        {
+          "source_id": "root-muncy-convention-location",
+          "locator": "lines147–154",
+          "support": "作者先沟通许可并核对保安，再勘察略离主流线、不阻人流的位置；案例为有授权的固定肖像拍点。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "漫展",
+        "人流",
+        "场馆",
+        "通道",
+        "拥挤"
+      ]
+    }
+  ],
+  "conflicts": [],
+  "gaps": [
+    "固定获准拍点的来源不能证明中国拥挤漫展的机动拍摄、轮换或排队方法。",
+    "项目因果复拍表不是专业认证量表；复杂现场可能有多个变化，仍须保留不确定。"
+  ]
+}

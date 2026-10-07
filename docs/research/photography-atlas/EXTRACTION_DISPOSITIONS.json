@@ -1,0 +1,71 @@
+{
+  "merges": {
+    "cosplay-c04-arm-torso-separation": "posing-arm-torso-separation",
+    "cosplay-c02-align-shot-intent": "posing-intent-elicitation",
+    "cosplay-c03-specific-pose-cues": "posing-instruction-clarity",
+    "perspective-skill-body-angle": "posing-body-angle-to-camera",
+    "mot-14": "composition-gaze-action-room",
+    "perspective-skill-environment-context": "composition-subject-context-scale",
+    "perspective-skill-pose-distance-subject-goal": "perspective-skill-lean-depth-control",
+    "perspective-skill-foreground-hand-scale": "perspective-skill-wide-near-depth",
+    "cosplay-c14-expression-message-match": "posing-body-face-expression-alignment",
+    "cosplay-c08-action-shutter-choice": "mot-01"
+  },
+  "excluded": [
+    {
+      "id": "mot-09",
+      "skill_name": "按动作可预测性选择预对焦或连续追焦",
+      "reason": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. mot-09同时要求诊断动作可预测性并在预对焦与连续追焦中二选一，是决策模块；mot-10与mot-11是两个相反、各自可训练的对焦执行技能，不应再把父项作为第三个重复L3。"
+    },
+    {
+      "id": "posing-person-specific-adjustment",
+      "skill_name": "按个体反应调整姿态而不套用统一姿势",
+      "reason": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 按个体舒适度调整姿势是跨姿势技能的个体化原则，可能同时改变承重、手、头、表情等不同变量，粒度更像模块级准则。"
+    },
+    {
+      "id": "posing-feet-upward-sequence",
+      "skill_name": "从脚部支撑开始逐层检查姿势",
+      "reason": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 从脚到脸的检查顺序是多项技能的流程，不是一个独立可控变量；候选本身覆盖脚、髋肩、手臂、头、视线和表情。"
+    },
+    {
+      "id": "posing-seated-variation",
+      "skill_name": "在坐姿中连续改变躯干与手臂位置",
+      "reason": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 单项同时改变躯干、手臂和头部，且验收关注连续成片的总变化，无法定位失败来自哪个变量。"
+    },
+    {
+      "id": "cosplay-c05-pose-variation",
+      "skill_name": "用躯干扭转和关节弯曲制造姿势变化",
+      "reason": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 候选要求分别改变躯干转向、关节弯曲和动作幅度，三项独立操控；且现有posing候选已覆盖承重、身体转角和短步/转向。"
+    },
+    {
+      "id": "cosplay-c01-character-pose-translation",
+      "skill_name": "把角色意图转成身体姿态变量",
+      "reason": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. c01一次列出站姿方向、步幅、重心、肩姿、动作幅度多个独立变量，达不到单一L3；posing-character-appropriate-action更窄，只控制动作幅度与角色意图的对应。"
+    },
+    {
+      "id": "posing-adapt-to-movement-limits",
+      "skill_name": "把受限动作改写为可完成的姿势",
+      "reason": "Sources support discussing limits but not the claimed replacement method; retain project checklist instead of formal skill."
+    },
+    {
+      "id": "cosplay-c12-subject-set-overlap",
+      "skill_name": "通过移动摄影者、人物或场景物件调整画面重叠",
+      "reason": "Discovery only: unclear professional identity of note.com original; no eligible full-text direct evidence."
+    },
+    {
+      "id": "light-006",
+      "skill_name": "预判光源距离对光质与明暗变化的双重影响",
+      "reason": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. light-006把灯距对光质、主体亮度、脸部近远侧差与背景亮度的多种结果并列，和相邻两个候选重复涵盖表观光源尺寸/软硬及背景衰减。"
+    },
+    {
+      "id": "field-location-reflection",
+      "skill_name": "拍后对照画面意图检查故事线索是否成立",
+      "reason": "Only adapted support for original broad location/story review; replaced by narrower directly sourced field-intent-result-review."
+    },
+    {
+      "id": "post-skin-dodge-burn-scope",
+      "skill_name": "避免用加深减淡过度重塑面部",
+      "reason": "Discovery only: relevant instruction is partial/index material; no directly read full professional teaching supporting this claimed scope."
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "scope": "curriculum",
+  "queries": [
+    "portrait photography professional curriculum site.nyip.edu",
+    "site.ppa.com certified professional photographer technical image evaluation posing lighting",
+    "site.nyip.edu courses professional photography lessons people",
+    "site.nikon.com.cn 摄影 教程 人像",
+    "写真 学校 ポートレート カリキュラム 写真専門学校"
+  ],
+  "sources": [
+    {
+      "id": "curriculum-nyip",
+      "title": "Professional Photography Course Outline",
+      "author": "New York Institute of Photography",
+      "identity": "Professional educational institution or institution-hosted named professional photographer",
+      "kind": "curriculum",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.nyip.edu/courses/professional-photography/lessons",
+      "coverage": [
+        "camera",
+        "composition",
+        "lighting",
+        "portrait",
+        "workflow"
+      ],
+      "trust_reason": "First-party institutional publication; named professional teaching or assessment program.",
+      "independence_key": "NYIP",
+      "access": "partial",
+      "read_depth": "Public curriculum read; paid lessons not accessed.",
+      "worth_deep_read": true,
+      "notes": "Course outline establishes breadth only, not unseen lesson claims.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "curriculum-ppa-evaluation",
+      "title": "Your Path to Certification",
+      "author": "Professional Photographers of America",
+      "identity": "Professional educational institution or institution-hosted named professional photographer",
+      "kind": "professional evaluation overview",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.ppa.com/credentials/cpp/your-path-to-certification",
+      "coverage": [
+        "technical evaluation",
+        "focus",
+        "light",
+        "white balance",
+        "file handling"
+      ],
+      "trust_reason": "First-party institutional publication; named professional teaching or assessment program.",
+      "independence_key": "PPA",
+      "access": "partial",
+      "read_depth": "Public certification overview and technical evaluation scope read.",
+      "worth_deep_read": true,
+      "notes": "Technical evaluation does not certify cosplay expression or aesthetic excellence.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "curriculum-ppa-guide",
+      "title": "Photography Certification Guide index",
+      "author": "Professional Photographers of America",
+      "identity": "Professional educational institution or institution-hosted named professional photographer",
+      "kind": "curriculum",
+      "tier": "A",
+      "language": "en",
+      "url": "https://wiki.ppa.com/",
+      "coverage": [
+        "light",
+        "exposure",
+        "lenses",
+        "digital workflow"
+      ],
+      "trust_reason": "First-party institutional publication; named professional teaching or assessment program.",
+      "independence_key": "PPA",
+      "access": "partial",
+      "read_depth": "Public index read; chapter-specific reading is recorded separately.",
+      "worth_deep_read": true,
+      "notes": "Index is a discovery map, not detailed chapter evidence.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "curriculum-nichide",
+      "title": "写真映像科 カリキュラム",
+      "author": "日本デザイナー芸術学院",
+      "identity": "Professional educational institution or institution-hosted named professional photographer",
+      "kind": "curriculum",
+      "tier": "A",
+      "language": "ja",
+      "url": "https://nichide.ac.jp/curriculum/ph",
+      "coverage": [
+        "photographic planning",
+        "portrait",
+        "lighting",
+        "retouch",
+        "film",
+        "location practice"
+      ],
+      "trust_reason": "First-party institutional publication; named professional teaching or assessment program.",
+      "independence_key": "nichide",
+      "access": "partial",
+      "read_depth": "Two-year course outline read.",
+      "worth_deep_read": true,
+      "notes": "Subjects support breadth. Product/film-specialist branches are not imported into the core portrait scope.",
+      "accessed_at": "2026-10-07"
+    },
+    {
+      "id": "curriculum-nikon-hk",
+      "title": "Nikon x Chan Kit 人像攝影一日工作坊",
+      "author": "陳杰 / Nikon School Hong Kong",
+      "identity": "Professional educational institution or institution-hosted named professional photographer",
+      "kind": "curriculum",
+      "tier": "A",
+      "language": "zh-Hant",
+      "url": "https://school.nikon.com.hk/courses/CK202512",
+      "coverage": [
+        "lens",
+        "light observation",
+        "subject communication",
+        "posing",
+        "critique",
+        "postproduction"
+      ],
+      "trust_reason": "First-party institutional publication; named professional teaching or assessment program.",
+      "independence_key": "chan-kit",
+      "access": "partial",
+      "read_depth": "Instructor biography and full workshop outline read; workshop not attended.",
+      "worth_deep_read": true,
+      "notes": "This is a curriculum lead; specific techniques need accessible primary lessons.",
+      "accessed_at": "2026-10-07"
+    }
+  ],
+  "gaps": [
+    "Detailed evidence must come from actual educational text rather than these course outlines.",
+    "Main web__run connection failed; public search_service_web_run was then verified operational."
+  ],
+  "excluded": [
+    "Secondary unattributed course copies",
+    "General product/wedding/wildlife content outside requested core scope"
+  ]
+}

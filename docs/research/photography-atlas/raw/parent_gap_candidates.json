@@ -1,0 +1,45 @@
+{
+  "scope": "purpose_based_post_boundaries",
+  "candidates": [
+    {
+      "id": "post-purpose-edit-boundary",
+      "skill_name": "按用途确认后期与合成边界",
+      "capability": "在开始处理前，把这组作品的用途与允许的后期范围写清楚；有比赛或交付规则时逐项核对，不把创意人像的允许项套到纪实作品。",
+      "why_it_matters": "同一合成或清理操作在创意角色成片与事件记录中可能承担不同含义。",
+      "domain_hint": "post-workflow",
+      "module_hint": "人物修饰边界",
+      "prerequisites": [],
+      "failure_modes": [
+        "成片用途未确认，却按另一种作品类型套用后期处理范围",
+        "不能说明哪些元素由现场拍摄、哪些由后期改动"
+      ],
+      "practice": "项目练习：为一组角色创意成片和一组现场记录分别写出用途、允许修改项与保留项；有具体交付规则时逐项比对。",
+      "acceptance": [
+        "能指出两种用途的不同约定，以及每一项约定来自规则还是双方协商。",
+        "能从原片与编辑记录说明已做的修改，未约定项先保留待确认。"
+      ],
+      "evidence": [
+        {
+          "source_id": "parent-ppa-delivery-boundaries",
+          "locator": "Illustrative Portrait / Natural Portrait / Reportage categories, lines172–180; Eligibility lines131–143",
+          "support": "PPA对三类作品设不同后期边界；示例说明作品用途及具体规则会改变允许的操作，不构成普遍Cosplay规范。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "合成边界",
+        "后期伦理",
+        "纪实",
+        "创意角色成片"
+      ]
+    }
+  ],
+  "conflicts": [],
+  "gaps": []
+}

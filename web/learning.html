@@ -3,51 +3,102 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0f0e0d">
+  <meta name="theme-color" content="#f3f6f8">
   <title>摄影能力地图 · 摄影学习</title>
-  <link rel="stylesheet" href="/static/learning.css?v=20261007-contact-sheet">
-  <script src="/static/learning.js?v=2-map" defer></script>
+  <link rel="stylesheet" href="/static/learning.css?v=atlas-study-20261008">
+  <script src="/static/learning.js?v=atlas-study-20261008" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到内容</a>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand-mark" href="#map" aria-label="摄影学习首页">R<span>.</span></a>
-      <a class="home-link" href="#map">摄影学习</a>
-      <label class="search-field"><i data-icon="search"></i><input id="search" type="search" autocomplete="off" maxlength="100" placeholder="搜索专题" aria-label="搜索专题"><kbd>/</kbd></label>
-      <div class="recent-wrap">
-        <button id="recent-toggle" class="text-control" aria-expanded="false" aria-controls="recent-panel">最近学习</button>
-        <section id="recent-panel" class="recent-panel" aria-label="最近学习" hidden></section>
-      </div>
-      <a id="reference-link" class="reference-link" href="/">拍摄参考<i data-icon="arrow-up-right"></i></a>
+      <a class="brand-mark" href="#map" aria-label="摄影能力地图首页">R<span>.</span></a>
+      <span class="header-title">摄影能力地图</span>
+      <label class="search-field"><span aria-hidden="true">⌕</span><input id="search" type="search" autocomplete="off" maxlength="120" placeholder="搜一个问题、失败表现或能力" aria-label="搜索问题、技能或研究缺口"><kbd>/</kbd></label>
+      <button id="recent-toggle" class="quiet-button" type="button" aria-expanded="false" aria-controls="recent-panel">最近打开</button>
+      <a id="reference-link" class="reference-link" href="/">拍摄参考 <span aria-hidden="true">↗</span></a>
+      <section id="recent-panel" class="recent-panel" aria-label="最近打开" hidden><div id="recent-list"></div></section>
     </div>
   </header>
+
   <main id="main" tabindex="-1">
-    <section id="map-view" class="page-shell">
-      <header class="map-heading"><h1 id="map-title" tabindex="-1">摄影能力地图</h1><p>把喜欢的画面，拆成可以练习的能力。</p></header>
-      <div id="topic-grid" class="topic-grid" aria-label="摄影学习专题"></div>
-      <section id="empty-state" class="empty-state" hidden><h2>没有找到这个专题</h2><p>试试“构图”“焦段”或“人物”。</p><button id="clear-search" class="underlined-control">查看所有专题</button></section>
-      <p id="asset-notice" class="asset-notice" role="status" hidden></p>
-      <footer class="page-footer"><span>从画面出发，带着问题回来。</span><small>视觉原型 · 专题内容与图片标注仅作示例</small></footer>
-    </section>
-    <section id="topic-view" class="page-shell" hidden aria-label="专题研究">
-      <a id="back-to-map" class="back-link" href="#map"><i data-icon="arrow-left"></i>摄影能力地图</a>
-      <div class="topic-layout">
-        <article id="research-note" class="research-note" aria-labelledby="topic-title"></article>
-        <section class="case-section" aria-labelledby="case-heading">
-          <header class="case-heading"><h2 id="case-heading">精选案例</h2><p>对照画面，重新看一遍。</p></header>
-          <div id="case-gallery" class="case-gallery" aria-label="精选案例图片"></div>
-          <p class="case-disclaimer">图片用于版式预览；成败、焦段与标签均为示例标注。</p>
-        </section>
+    <section id="map-view" class="page-shell" aria-labelledby="map-title">
+      <div class="masthead">
+        <div class="masthead-copy">
+          <p class="eyebrow">FIELD NOTES · 01—14</p>
+          <h1 id="map-title" tabindex="-1">从画面，找到<br><em>下一次可以练的事。</em></h1>
+          <p class="intro">沿着实际问题浏览摄影能力。研究证据、练习方法和你的自评记录各自清楚可见。</p>
+        </div>
+        <aside id="next-practice" class="next-practice" aria-live="polite"></aside>
       </div>
+
+      <section class="mine-strip" aria-label="我的学习筛选">
+        <span class="strip-label">我的记录</span>
+        <button class="filter-chip" data-mine-filter="focus" type="button">当前重点</button>
+        <button class="filter-chip" data-mine-filter="weak" type="button">我标记的薄弱项</button>
+        <button class="filter-chip" data-mine-filter="unassessed" type="button">未评估</button>
+        <label class="mine-status-filter">我的状态 <select id="mine-status-filter" aria-label="按个人学习状态筛选"><option value="">全部状态</option><option value="focus">当前重点</option><option value="weak">薄弱项</option><option value="unassessed">未评估</option><option value="unstarted">未开始</option><option value="learning">学习中</option><option value="practicing">正在练</option><option value="field_verified">实拍验证</option><option value="mastered">已掌握</option></select></label>
+        <p id="state-notice" class="state-notice" role="status">正在读取个人学习记录…</p>
+      </section>
+
+      <section id="search-view" class="search-view" aria-labelledby="search-title" hidden>
+        <div class="section-heading"><div><p class="eyebrow">FIND A WAY THROUGH</p><h2 id="search-title" tabindex="-1">问题索引</h2></div><button id="clear-search" class="text-link" type="button">清除搜索</button></div>
+        <p id="search-summary" class="search-summary"></p>
+        <div id="search-results" class="search-results"></div>
+      </section>
+
+      <section id="mine-view" class="mine-view" aria-labelledby="mine-title" hidden>
+        <div class="section-heading"><div><p class="eyebrow">MY LEARNING</p><h2 id="mine-title" tabindex="-1">我的学习记录</h2></div><button id="clear-mine" class="text-link" type="button">返回全部领域</button></div>
+        <div id="mine-results" class="mine-results"></div>
+      </section>
+
+      <section id="home-view" aria-labelledby="domains-title">
+        <div class="section-heading"><div><p class="eyebrow">A MAP OF PRACTICE</p><h2 id="domains-title">从一个领域开始</h2></div></div>
+        <div id="domain-grid" class="domain-grid" aria-label="摄影能力领域"></div>
+      </section>
+      <p id="load-error" class="load-error" role="alert" hidden></p>
+      <footer class="page-footer"><span>封面仅供导航；未作图像事实核验，不作为技能证据。</span><a href="/">返回拍摄参考 <span aria-hidden="true">↗</span></a></footer>
     </section>
+
+    <section id="domain-view" class="page-shell detail-view" aria-labelledby="domain-title" hidden>
+      <nav class="breadcrumbs" aria-label="面包屑"><a href="#map">能力地图</a><span aria-hidden="true">/</span><span id="domain-crumb"></span></nav>
+      <header id="domain-hero" class="domain-hero"></header>
+      <div class="section-heading module-heading"><div><p class="eyebrow">MODULES</p><h2>这个领域包含的模块</h2></div><p id="domain-module-count" class="section-note"></p></div>
+      <div id="module-list" class="module-list"></div>
+    </section>
+
+    <section id="module-view" class="page-shell detail-view" aria-labelledby="module-title" hidden>
+      <nav class="breadcrumbs" aria-label="面包屑"><a href="#map">能力地图</a><span aria-hidden="true">/</span><a id="module-domain-link"></a><span aria-hidden="true">/</span><span id="module-crumb"></span></nav>
+      <header class="module-hero"><p class="eyebrow">MODULE INDEX</p><h1 id="module-title" tabindex="-1"></h1><p id="module-intro"></p></header>
+      <div class="module-toolbar"><span id="skill-count"></span><label>我的状态 <select id="status-filter"><option value="">全部</option><option value="unassessed">未评估</option><option value="unstarted">未开始</option><option value="learning">学习中</option><option value="practicing">练习中</option><option value="field_verified">实拍验证</option><option value="mastered">已掌握</option></select></label></div>
+      <div id="skill-list" class="skill-list"></div>
+    </section>
+
+    <section id="skill-view" class="page-shell detail-view skill-detail" aria-labelledby="skill-title" hidden></section>
+
+    <section id="problem-view" class="page-shell detail-view" aria-labelledby="problem-title" hidden></section>
   </main>
-  <dialog id="case-viewer" class="case-viewer" aria-labelledby="viewer-title">
-    <button id="viewer-close" class="icon-control viewer-close" aria-label="关闭案例"><i data-icon="x"></i></button>
-    <div class="viewer-layout">
-      <div class="viewer-stage"><img id="viewer-image" alt=""><div class="viewer-controls"><button id="viewer-prev" class="icon-control" aria-label="上一个案例"><i data-icon="chevron-left"></i></button><span id="viewer-position" aria-live="polite"></span><button id="viewer-next" class="icon-control" aria-label="下一个案例"><i data-icon="chevron-right"></i></button></div><p id="viewer-image-error" role="status" hidden>这张图片暂时无法显示，请切换案例或稍后重试。</p></div>
-      <div class="viewer-caption"><p id="viewer-kind" class="viewer-kind"></p><h2 id="viewer-title"></h2><p id="viewer-tags" class="viewer-tags"></p><div class="viewer-observation"><h3>带着这个问题看</h3><p id="viewer-note"></p></div><p class="mock-note">示例标注，用于体验案例对照方式。未核验原片焦段，也不代表对作品的成败判断。</p><div class="source-info"><p id="viewer-author"></p><a id="viewer-source" target="_blank" rel="noopener noreferrer">查看原始出处<i data-icon="external-link"></i></a><details id="viewer-rights"><summary>素材说明</summary><p id="viewer-restrictions"></p></details></div></div>
-    </div>
+
+  <dialog id="record-dialog" class="record-dialog" aria-labelledby="record-title">
+    <form id="record-form">
+      <div class="dialog-heading"><div><p class="eyebrow">PRIVATE PRACTICE LOG</p><h2 id="record-title">记下这次练习</h2></div><button id="record-close" class="close-button" type="button" aria-label="关闭">×</button></div>
+      <p id="record-skill-name" class="dialog-skill-name"></p>
+      <label class="field-label" for="record-text">练习内容与观察</label>
+      <textarea id="record-text" rows="5" maxlength="8000" required placeholder="记录你尝试了什么、看到什么，以及下一次要验证什么。"></textarea>
+      <div class="upload-fields">
+        <label class="field-label" for="record-photo">附一张自己的练习照片 <span>可选 · JPEG / PNG / WebP，最多 12 MiB</span></label>
+        <input id="record-photo" type="file" accept="image/jpeg,image/png,image/webp">
+        <label class="field-label" for="record-caption">照片说明 <span>可选</span></label>
+        <input id="record-caption" type="text" maxlength="1000" placeholder="这张照片想留意什么？">
+      </div>
+      <p id="record-message" class="form-message" role="status"></p>
+      <div class="dialog-actions"><button class="secondary-button" id="record-cancel" type="button">取消</button><button class="primary-button" id="record-save" type="submit">保存练习记录</button></div>
+    </form>
+  </dialog>
+  <dialog id="photo-dialog" class="photo-dialog" aria-labelledby="photo-caption">
+    <button id="photo-close" class="close-button photo-close" type="button" aria-label="关闭照片">×</button>
+    <img id="photo-view-image" alt="个人练习照片">
+    <p id="photo-caption"></p>
   </dialog>
 </body>
 </html>

@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "resources": [
+    {
+      "id": "tutorial-light-fuji-portrait-lighting",
+      "title": "富士人像用光指南：辨认硬光、柔光、色温与方向",
+      "original_title": "A Guide to Portrait Lighting",
+      "url": "https://www.fujifilm-x.com/en-gb/learning-centre/a-guide-to-portrait-lighting/",
+      "author": "FUJIFILM X Series & GFX Learning Centre; examples credited to named photographers",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "文章正文：光线硬度与软度、光源尺寸/距离/扩散、色温、方向和人像阴影，约 lines 182–225；只读文字和图注，未检查图片像素。"
+      },
+      "trust_reason": "富士官方教育站的人像专题，正文用不同摄影师署名的照片说明硬度、颜色与方向变量；作者未明确署名，品牌立场需保留。",
+      "summary": "从阴影边缘、反光和反差辨认光质；理解相对光源尺寸、距离与扩散如何改变过渡；观察色温和来光方向如何影响人像，并把硬光/柔光选择放回表达意图。",
+      "start_here": "先读“Understanding Light Hardness and Softness”与“What Makes Light Hard or Soft?”，再读色温和方向两节。",
+      "study_task": "项目练习：在可控的自然光或连续光下记录脸部阴影边缘、反光点和阴影反差；只移动人物或调整扩散条件做对照，再描述变化。不是富士课程布置的作业。",
+      "limitations": "“肖像通常偏好柔光”是厂商教育文中的概括，不作为审美规则；实例照片像素未单独检查。",
+      "source_id": "light-fuji-portrait-guide",
+      "skill_ids": [
+        "light-003",
+        "light-004",
+        "light-005",
+        "light-013"
+      ],
+      "domain_ids": [
+        "natural-light",
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-light-cambridge-portrait-lighting",
+      "title": "单灯人像用光入门：方向、相对尺寸、反射与扩散",
+      "original_title": "Introduction to Portrait Lighting",
+      "url": "https://www.cambridgeincolour.com/tutorials/portrait-lighting.htm",
+      "author": "Cambridge in Colour editorial team; individual author not identified on page",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "正文单光源概览、硬光/柔光、反射与扩散及距离/方向相关部分，约 lines 50–100；交互示意图和样例像素未检查。"
+      },
+      "trust_reason": "独立摄影教育网站的完整单光源教学，按方向、表观尺寸、阴影与高光组织内容，并说明扩散/反射的代价。",
+      "summary": "用来光方向判断阴影和高光落点，用相对光源尺寸判断硬软过渡；学习透过扩散物或反射面改变光质，同时注意光量会下降。",
+      "start_here": "从“Overview: One Light Source”读到“Size: Hard vs. Soft”，再看柔化光线的两种做法及其光量代价。",
+      "study_task": "项目练习：固定人物和相机，比较直射光、扩散光、墙面/窗帘反射光，分别记录阴影边缘、皮肤反光和脸部亮度变化。不要把互动示意图当作真人皮肤的完整替代。",
+      "limitations": "页面是入门型概括，且建议柔光的文字带有一般化倾向；具体审美要按人物、场景和表达目标判断。",
+      "source_id": "light-cambridge-portrait",
+      "skill_ids": [
+        "light-001",
+        "light-003",
+        "light-005",
+        "light-007",
+        "light-010"
+      ],
+      "domain_ids": [
+        "natural-light"
+      ]
+    },
+    {
+      "id": "tutorial-light-mautner-window-shadows",
+      "title": "用窗光和阴影塑造人像：Cliff Mautner 的现场提示",
+      "original_title": "Using Shadows and Light in Your Photographs",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/using-shadows-and-light-in-your-photographs",
+      "author": "Cliff Mautner, Nikon Ambassador",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "页面全部教学文字为一条署名提示，lines 27–31；嵌入 Vimeo 视频未观看。"
+      },
+      "trust_reason": "Nikon 标明作者为职业婚礼/人像摄影师及 Nikon Ambassador；页面直接呈现作者的窗光方法。",
+      "summary": "作者建议室内人像用窗光时关闭顶灯，并以窗光为曝光参照，让阴影参与画面层次。",
+      "start_here": "阅读页面顶部 Cliff Mautner 的单条提示即可；页面下方关联内容不是本条教学正文。",
+      "study_task": "项目练习：在安全且允许拍摄的室内，比较仅窗光与窗光加顶灯两种结果，记录脸部亮暗和颜色差异；让被摄者参与选择。",
+      "limitations": "这是一则极短提示，没有完整测光流程、设备参数或场景案例；关联视频未观看，不能从其标题推断额外技法。",
+      "source_id": "field-nikon-window-portrait",
+      "skill_ids": [
+        "light-010",
+        "light-017"
+      ],
+      "domain_ids": [
+        "natural-light",
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-flash-vitale-location",
+      "title": "外景单灯闪光：高反差测光与保留环境气氛",
+      "original_title": "Flash Photography on Location",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/flash-photography-on-location",
+      "author": "Ami Vitale, Nikon Ambassador and photojournalist",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "正文 spot metering、off-camera flash 与 TTL/回看部分，约 lines 27–46；文字及页面说明已读，未检验样图像素。"
+      },
+      "trust_reason": "Nikon 页面署名并介绍 Ami Vitale；摄影师以第一人称说明高反差环境如何测高光、使用侧向离机闪光和回看调整。",
+      "summary": "通过高反差场景的高光点测决定要保留的亮部；在外景用侧向离机闪光做少量补光，并通过相机预览检查 TTL 输出，尽量保留环境气氛。",
+      "start_here": "从“Spot Metering”读到“Off-Camera Flash”及“how do I meter for the flash?”段。",
+      "study_task": "项目练习：在有亮窗或逆光的静态人像场景，分别拍环境光基准、侧向闪光和不同 TTL 补偿版本；检查脸部阴影与背景气氛。此为项目练习，不代表作者提供了统一曝光值。",
+      "limitations": "作者的高光优先和深黑阴影是她的创作方法，不是每个逆光场景都应照搬；设备范例以 Nikon Speedlight 为主。",
+      "source_id": "light-nikon-vitale",
+      "skill_ids": [
+        "light-017",
+        "light-018",
+        "light-021",
+        "light-022",
+        "light-025",
+        "light-029"
+      ],
+      "domain_ids": [
+        "flash",
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-flash-couzens-ambient",
+      "title": "外景闪光与环境光混合：先设背景，再塑造人物",
+      "original_title": "How to mix ambient light with flash",
+      "url": "https://www.profoto.com/us/en/still-photography/tips-tricks/how-to-mix-ambient-light-with-flash",
+      "author": "Hannah Couzens; published by Profoto",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "页面全部教学正文：先设背景曝光、布置并转向闪光/伞、再设人物曝光及相对主体尺寸的柔光提示，lines 5–24；未检查示例图片像素。"
+      },
+      "trust_reason": "Profoto 明确署名摄影师 Hannah Couzens，并以简洁步骤说明外景肖像的背景、人物和柔光修饰顺序。",
+      "summary": "先用相机曝光决定背景，再安置并转向闪光灯，最后调人物曝光；修饰附件的相对主体尺寸会影响光质。",
+      "start_here": "按页面 Step 1–3 阅读，再看“大型附件相对主体尺寸”的提示；不要把页面的短流程延伸成未写出的测光规则。",
+      "study_task": "项目练习：固定背景与人物位置，先做无闪光环境曝光，再逐步加入侧向闪光并调整角度/附件；记录人物和背景分别发生什么变化。",
+      "limitations": "内容很短且使用 Profoto A1X 与特定伞具；原图和布光图仅有页面文字/说明核验，未做像素审阅。",
+      "source_id": "light-profoto-couzens",
+      "skill_ids": [
+        "light-021",
+        "light-025",
+        "light-026",
+        "light-028",
+        "light-030"
+      ],
+      "domain_ids": [
+        "flash"
+      ]
+    },
+    {
+      "id": "tutorial-flash-kubota-hss",
+      "title": "HSS 外景人像案例：补阴影、保留快门选择并测试功率边界",
+      "original_title": "High Speed Sync: A Flash Technique To Add a Pro Touch to Your Photographs",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/high-speed-sync-a-flash-technique-to-add-a-pro-touch-to-your-photographs",
+      "author": "Kevin Kubota, photographer and educator; Nikon USA feature",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "署名案例与 HSS 工作方式/练习段，约 lines 27–60、209–241；只读正文与图注，未检查照片像素。"
+      },
+      "trust_reason": "Nikon 全文署名 Kevin Kubota，提供多种户外/室内案例参数，并解释快速脉冲的功率代价及逐档测试方法。",
+      "summary": "阅读 HSS 如何支持高于常规同步的快门，在明亮背景或动作场景保持闪光；了解快门越快可用输出越少，并用自己的设备做测试。",
+      "start_here": "先读前部环境光/闪光案例，再读“How It Works”和“Practice to Perfect”；机身菜单和兼容性需查自己相机及闪灯说明书。",
+      "study_task": "项目练习：按设备说明开启 HSS，在逆光人像场景比较常规同步与设备支持的数个快门速度，逐张检查补光和闪光可达范围。",
+      "limitations": "旧 Nikon D3/SB-910 案例不能直接当作当前机型的设置说明；输出损耗受设备、距离、灯位和附件共同影响，文章没有给所有组合通用的定量表。",
+      "source_id": "light-nikon-kubota-hss",
+      "skill_ids": [
+        "light-022",
+        "light-032",
+        "light-033",
+        "light-034",
+        "light-035"
+      ],
+      "domain_ids": [
+        "flash",
+        "natural-light"
+      ]
+    },
+    {
+      "id": "tutorial-exposure-ppa-metering",
+      "title": "反射式与入射式测光：理解读数参照与人像测光位置",
+      "original_title": "Module 4C: Using a Light Meter",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-4c-using-a-light-meter",
+      "author": "Professional Photographers of America; page history credits Jessica Avery as creator/editor",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "公开章节读数标定、机内反射表、环境/入射测光、点测与反射率限制，约 lines 54–129；章节文字已读。"
+      },
+      "trust_reason": "PPA 公开职业摄影认证指南章节，提供反射表/入射表区别、18%灰参照及人像/闪光测光说明；作者身份主要是机构/编辑，非独立署名教师。",
+      "summary": "区分相机反射测光和在人物位置测量入射光；理解测光表以中间灰为标定参照，读数居中并不自动等于人物目标曝光。",
+      "start_here": "先看“Light Meters”与“Which Meter Should You Use?”，再读“In-Camera Meter”及反射率限制。",
+      "study_task": "项目练习：对同一人物分别记录机内反射读数和人物脸部位置的入射读数，再按人物与背景细节目标选择结果；记录设备、测光模式和判断理由。",
+      "limitations": "PPA 指南是机构级材料，不能视为多个独立摄影师的共识；章节仍把某些入射测光用途描述得较宽泛，必须结合场景和设备能力。",
+      "source_id": "light-ppa-metering",
+      "skill_ids": [
+        "light-017",
+        "light-018",
+        "light-019",
+        "light-020"
+      ],
+      "domain_ids": [
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-exposure-gress-skin-tones",
+      "title": "多人不同肤色曝光与布光：John Gress 的商业人像方法",
+      "original_title": "Light to Dark: How to light differing skin tones in the same image",
+      "url": "https://www.ppa.com/ppmag/articles/light-to-dark",
+      "author": "John Gress; reported by Professional Photographer magazine",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文人物曝光说明与 positioning、grids、多灯位置部分，约 lines 87–130；读了正文和图注，未打开图像像素或文中关联视频。"
+      },
+      "trust_reason": "PPA 杂志以职业商业摄影师 John Gress 的第一人称经验为核心，明确讨论多人不同肤色、测光回看、灯位与网格。",
+      "summary": "学习 Gress 如何通过相对灯距、人物顺序、网格和多灯位置管理多人脸部亮度，并阅读他给出的特定曝光建议作为个人工作方法。",
+      "start_here": "先读“Exposure”和“Positioning”，再读后续 grids/multiple-light sections；把作者给出的比例与档数标记为他的经验方法。",
+      "study_task": "项目练习：在模特同意且场景允许时，为两位不同肤色人物拍摄共同入镜测试；先核对每个人脸部的细节与表达意图，再微调相对光位并比较。不要预设统一补偿值。",
+      "limitations": "Gress 提出的 50% / 约三分之二档建议属于个人布光方法，不能当成按肤色套用的普遍曝光定律；真实人物的妆面、光源和目标呈现都不同。",
+      "source_id": "light-ppa-skin-tones",
+      "skill_ids": [
+        "light-039",
+        "light-040"
+      ],
+      "domain_ids": [
+        "exposure-color"
+      ]
+    },
+    {
+      "id": "tutorial-exposure-mcnamee-led-colour",
+      "title": "LED 摄影灯的显色与色温：为何相同 K 值仍可能不同色",
+      "original_title": "LED Lighting for Photography: Colour Quality, CRI and Continuous Light",
+      "url": "https://thesocieties.net/blog/2023/09/28/led-lighting-for-photography-colour-quality-cri-and-continuous-light/",
+      "author": "Mike McNamee, imaging-technology writer and photographer; The Society of Photographers",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "显色、CRI 限制、色温与光谱差异、同色温灯具表现差异及混合光影响，约 lines 62–127；阅读相关正文，未检查页面图像。"
+      },
+      "trust_reason": "作者简介列出其工程与摄影组织背景；文章以显色科学和摄影现场材料/肤色举例，并提醒完整规格与真人测试的重要性。",
+      "summary": "理解色温只描述总体暖冷外观，不能完整说明光谱或颜色还原；了解 CRI 的局限，并比较 LED 对肤色、服装和混合光色彩的影响。",
+      "start_here": "阅读“Why lighting technology matters to photographers”、“What is colour rendering?”与“Colour temperature is only part of the story”。",
+      "study_task": "项目练习：在同一相机白平衡下，用两种不同 LED 或 LED 与闪光灯分别照一块白/灰参考物及有色服装，记录色温标称值、材料颜色差异和最终选择。",
+      "limitations": "文章偏连续光技术与选灯教育，不是漫展舞台 LED 与闪光混合的专项流程；其仪器/标准结论不能替代现场对具体灯具和相机的测试。",
+      "source_id": "light-mcnamee-led-quality",
+      "skill_ids": [
+        "light-013",
+        "light-014",
+        "light-016"
+      ],
+      "domain_ids": [
+        "exposure-color"
+      ]
+    }
+  ]
+}

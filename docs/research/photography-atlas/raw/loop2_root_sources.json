@@ -1,0 +1,76 @@
+{
+  "scope": "loop2_intent_and_convention",
+  "queries": [
+    "site:davidduchemin.com sketch frames critique questions intention photograph improve",
+    "site:joemcnally.com mistakes learn photograph review lighting",
+    "site:adorama.com photographer critique own work intentions compare contact sheet"
+  ],
+  "sources": [
+    {
+      "id": "root-duchemin-intent-review",
+      "title": "Is It Any Good?",
+      "author": "David duChemin",
+      "identity": "Humanitarian photographer, photography author and workshop educator; first-party bio https://davidduchemin.com/about-david/",
+      "kind": "first_party_professional_method",
+      "tier": "A",
+      "language": "en",
+      "url": "https://davidduchemin.com/2018/07/is-it-any-good/",
+      "coverage": [
+        "intent-to-result review",
+        "next photographic choices"
+      ],
+      "trust_reason": "职业摄影师本人公开正文；身份由本人职业履历页面核对。具体方法只按公开文本范围使用。",
+      "independence_key": "david-duchemin",
+      "access": "full_text",
+      "read_depth": "正文24–38、42、55–61行；全文公开正文已打开；未看图片像素或未公开视频。",
+      "worth_deep_read": true,
+      "notes": "通用摄影创作复盘方法；不代表固定审美评分或Cosplay专门因果量表。",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "root-mcnally-portrait-error",
+      "title": "More From Corregidor",
+      "author": "Joe McNally",
+      "identity": "National Geographic/LIFE assignment photographer and educator; first-party bio https://joemcnally.com/about/",
+      "kind": "first_party_professional_method",
+      "tier": "A",
+      "language": "en",
+      "url": "https://joemcnally.com/2008/02/19/more-from-corregidor/",
+      "coverage": [
+        "portrait mistake diagnosis",
+        "light spill",
+        "correction comparison"
+      ],
+      "trust_reason": "职业摄影师本人公开正文；身份由本人职业履历页面核对。具体方法只按公开文本范围使用。",
+      "independence_key": "joe-mcnally",
+      "access": "full_text",
+      "read_depth": "舞者人像案例70–84行；全文公开正文已打开；未看图片像素或未公开视频。",
+      "worth_deep_read": true,
+      "notes": "作者文字解释蓝色环境光、背景亮斑和改变灯向/遮光的修正；本轮没有图像独立视觉审阅，不把文字说明变成我们观察到的结论。",
+      "accessed_at": "2026-10-08"
+    },
+    {
+      "id": "root-muncy-convention-location",
+      "title": "C.S. Muncy on How to Shoot Cosplay Portraits",
+      "author": "C.S. Muncy",
+      "identity": "Working photojournalist; article bio lists NYT/WSJ/Time/Smithsonian and Defense Information School",
+      "kind": "first_party_professional_method",
+      "tier": "A",
+      "language": "en",
+      "url": "https://www.adorama.com/alc/c-s-muncy-on-how-to-shoot-cosplay-portraits/",
+      "coverage": [
+        "convention portrait location",
+        "subject commitments",
+        "approved lighting footprint"
+      ],
+      "trust_reason": "职业摄影师本人公开正文；身份由本人职业履历页面核对。具体方法只按公开文本范围使用。",
+      "independence_key": "c.s.-muncy",
+      "access": "full_text",
+      "read_depth": "正文137–160行；全文公开正文已打开；未看图片像素或未公开视频。",
+      "worth_deep_read": true,
+      "notes": "美国已获准的固定背景/灯具漫展肖像项目；选位与人流分離是可迁移变量，不声称中国场馆都允许布置、不推导占位排队规则。",
+      "accessed_at": "2026-10-08"
+    }
+  ],
+  "gaps": []
+}

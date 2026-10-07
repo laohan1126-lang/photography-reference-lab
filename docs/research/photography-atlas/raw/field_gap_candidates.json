@@ -1,0 +1,69 @@
+{
+  "scope": "field_gap",
+  "candidates": [
+    {
+      "id": "field-gap-nearby-background-reposition",
+      "skill_name": "在人流场景预选邻近的低杂背景点",
+      "capability": "在拥挤展会环境中，先观察并选定附近较少背景干扰的可用点；征得被摄者同意后，邀请其短距离移步，并在移动中保持交流。",
+      "why_it_matters": "主背景杂乱时，找一个近处替代点可以减少临时搜索和长时间喊话，让拍摄方向更清楚。",
+      "module_hint": "漫展现场背景与站位",
+      "domain_hint": "field",
+      "prerequisites": [],
+      "failure_modes": [
+        "拍摄者只看到角色而没有预先检查身后背景，主体被拥挤环境干扰。",
+        "没有准备替代点，现场临时找位拖慢短暂拍摄窗口。",
+        "移步时交流中断，被摄者不清楚下一张为何要换位置。"
+      ],
+      "practice": "项目练习：只在本次活动明确许可的区域内，预先找一个被摄者附近、背景较简洁的备选点；说明移动意图并征得同意，短距离移步时继续沟通，然后比较移动前后的背景干扰。此练习的区域许可检查来自项目要求，不是 Rigsby 的方法。",
+      "acceptance": [
+        "备选点确实在附近，取景器中可见背景干扰减少。",
+        "移步前征得被摄者同意，并能用一句话说明调整目的。",
+        "移动不要求占用通道或未经许可的区域；若许可或通行情况不明确则不执行。"
+      ],
+      "evidence": [
+        {
+          "source_id": "field_gap-rigsby-crowd-background",
+          "locator": "‘Remove the surrounding clutter by Isolating your subject’; lines 37–45",
+          "support": "Rigsby 在拥挤展会中先建立交流，预选附近较少杂乱的点，征询后请被摄者移步，并建议在走动中继续交流。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "拥挤漫展 预选背景点",
+        "cosplay convention nearby less cluttered location",
+        "拥挤环境 主体 移动 低杂背景"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "现场回看节奏取决于拍摄情境",
+      "positions": [
+        {
+          "source_id": "field_gap-cooke-review-rhythm",
+          "position": "对人物/事件拍摄，避免机械逐张回看；在新环境、光线或机位变化及技术性镜头后进行有明确检查问题的回看。"
+        },
+        {
+          "source_id": "field_gap-glatzer-tethered-review",
+          "position": "固定棚内联机人像能在大屏幕上即时发现细节并补拍，回看是客户协作流程的一部分。"
+        },
+        {
+          "source_id": "field_gap-carpenter-client-review",
+          "position": "协作人像可以适时向主体展示成片以调整姿势/表情；run-and-gun条件下用相机屏幕间歇展示，而非每张都停下。"
+        }
+      ],
+      "resolution": "保留条件差异；这几条资料不能平均成一个固定回看频率，也不能构成拥挤中国漫展的综合失败检查表。"
+    }
+  ],
+  "gaps": [
+    "本轮仅确认一个海外摄影师的方法，候选为 medium；没有第二位独立职业摄影师直接支持同一‘邻近低杂背景点+短距离移步’能力。",
+    "该候选不覆盖中国展馆的许可、人流、安全或官方拍摄区规则，不足以补齐中国高密漫展的场控协议。",
+    "本轮不新增现场失败检查清单或单一回看节奏技能；完整专业证据仍缺。"
+  ]
+}

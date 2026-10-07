@@ -1,0 +1,1759 @@
+{
+  "scope": "post",
+  "candidates": [
+    {
+      "id": "post-cull-technical-rejects",
+      "skill_name": "先剔除明确技术失败帧",
+      "capability": "在浏览阶段标出无法交付的严重失焦、曝光错误或构图失效帧。",
+      "why_it_matters": "减少无效后期投入，同时避免只凭一项技术指标误删有重要表情或叙事价值的照片。",
+      "module_hint": "初筛",
+      "domain_hint": "后期筛片",
+      "prerequisites": [],
+      "failure_modes": [
+        "失焦或明显错误曝光的帧进入精修",
+        "把稍软但表情关键的帧机械判为废片"
+      ],
+      "practice": "对一个小型连拍序列只做技术初筛，先标出不可用帧，再单独检查有表现力但技术边缘的照片。",
+      "acceptance": [
+        "标记的拒绝帧均能指出具体技术失败",
+        "技术初筛后仍保留进入表达与组照比较的候选帧"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling; image-to-image comparison",
+          "support": "作者用快速浏览、焦点/清晰度比较和标记缩短初筛。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 1: The Rough Selection, Step One",
+          "support": "作者把明显失焦、曝光错误和构图失败列为初筛拒绝条件。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait culling technical rejects",
+        "照片初筛 失焦 曝光"
+      ]
+    },
+    {
+      "id": "post-cull-near-duplicates",
+      "skill_name": "比较近似帧并选出更强的一张",
+      "capability": "并排或连续比较近似帧中的清晰度、表情、视线、姿势和构图差异。",
+      "why_it_matters": "一组连拍常有多个技术可用帧，细微差别会决定交付照片的表现力。",
+      "module_hint": "精筛",
+      "domain_hint": "后期筛片",
+      "prerequisites": [
+        "post-cull-technical-rejects"
+      ],
+      "failure_modes": [
+        "交付多个几乎重复的画面",
+        "仅凭放大后的锐度选择而忽略表情或姿态"
+      ],
+      "practice": "对同一动作的相邻帧使用比较或调查视图，记录每张胜出的可见理由。",
+      "acceptance": [
+        "能为最终保留帧指出相对其他帧的具体优势",
+        "最终选择避免同一动作中没有可见差异的重复帧"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling; Culling in action",
+          "support": "作者使用快速翻看和双图比较，在焦点和清晰度上挑选帧。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-andrew-faulds-variety",
+          "locator": "Produce",
+          "support": "Faulds避免保留本质相同的多张照片，并以姿势、表情、视线等差异筛选。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 2–3 and Bonus Tips",
+          "support": "作者逐轮缩小候选并以Survey View研究整组选片。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait contact sheet compare frames",
+        "人像连拍 选片 表情 姿势"
+      ]
+    },
+    {
+      "id": "post-cull-set-variety",
+      "skill_name": "让交付组照包含有意义的变化",
+      "capability": "从姿势、方向、景别、表情、视线、背景、道具或光线中识别真实变化，并据此避免重复构成。",
+      "why_it_matters": "单张优秀不等于整组有变化；重复帧会削弱组照节奏。",
+      "module_hint": "组照筛选",
+      "domain_hint": "后期筛片",
+      "prerequisites": [
+        "post-cull-near-duplicates"
+      ],
+      "failure_modes": [
+        "整组几乎只有同一姿势和表情",
+        "为凑数量保留重复画面"
+      ],
+      "practice": "把候选照片做成缩略图网格，按画面差异标注相邻照片之间最明显的变化。",
+      "acceptance": [
+        "交付集合能指出多种可见变化",
+        "删除重复项后，重要动作或造型没有被意外遗漏"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-andrew-faulds-variety",
+          "locator": "Produce",
+          "support": "Faulds以横竖、姿势、服装、背景、道具、光型、光质、光比、表情和视线识别变化。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Final selected images",
+          "support": "作者要求最终集合既有区别，又共同讲述同一故事。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait gallery visual variety",
+        "人像组照 视觉变化"
+      ]
+    },
+    {
+      "id": "post-cull-cohesion",
+      "skill_name": "从全组检查情绪与叙事连贯性",
+      "capability": "在保留变化的同时，用网格或调查视图检查照片的整体气氛、构图关系和共同主题。",
+      "why_it_matters": "一组照片可以有多样性，但如果彼此不相干，观看体验会松散。",
+      "module_hint": "组照筛选",
+      "domain_hint": "后期筛片",
+      "prerequisites": [
+        "post-cull-set-variety"
+      ],
+      "failure_modes": [
+        "单张看着都好，放在一起却没有共同主题",
+        "把一致误解为每张照片必须长得一样"
+      ],
+      "practice": "将一组候选缩略图排列后，写出一句共同主题，并标出偏离该主题的帧。",
+      "acceptance": [
+        "能描述组照共同的情绪或主题",
+        "能指出至少一种有意保留的变化和一种重复或偏离"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Final selected images; Bonus Tips",
+          "support": "作者在调查视图中检查整组的情绪、感觉、构图，并强调变化与同一故事并存。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-andrew-faulds-variety",
+          "locator": "Produce",
+          "support": "作者以多种可见差异形成不同照片，而非近似重复。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photography survey view edit series cohesion",
+        "摄影组照 情绪 连贯"
+      ]
+    },
+    {
+      "id": "post-cull-review-before-delete",
+      "skill_name": "永久删除前复查拒绝帧",
+      "capability": "先用可恢复的标记管理拒绝项，并在间隔后复查，再决定是否永久删除。",
+      "why_it_matters": "刚拍完时容易受投入感影响，过早清除可能失去后来才看出的有效画面。",
+      "module_hint": "文件与筛片",
+      "domain_hint": "后期筛片",
+      "prerequisites": [
+        "post-cull-technical-rejects"
+      ],
+      "failure_modes": [
+        "把临时拒绝误当成应立即永久删除",
+        "因舍不得而把所有重复项都留作最终交付"
+      ],
+      "practice": "用拒绝标记完成一次筛片，隔一段时间复看标记项后再决定保留或删除。",
+      "acceptance": [
+        "筛片状态可逆且与永久删除区分",
+        "复查后能说明保留或最终删除的理由"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Bonus Tips",
+          "support": "作者建议先保留原始图像，稍后再运行筛选流程，避免立即永久删除。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling",
+          "support": "作者以旗标和星级管理候选状态；本文并未要求立即删除原片。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "reversible photo culling reject flags",
+        "筛片 拒绝标记 复查"
+      ]
+    },
+    {
+      "id": "post-cull-separate-passes",
+      "skill_name": "把初筛与组照精筛分开进行",
+      "capability": "先排除明显失败，再比较近似帧，最后从整组关系检查保留照片。",
+      "why_it_matters": "一次同时判断技术、表情、风格和组照会增加犹豫，也容易跳过不同层次的问题。",
+      "module_hint": "筛片流程",
+      "domain_hint": "后期筛片",
+      "prerequisites": [],
+      "failure_modes": [
+        "一边逐张精修一边决定是否保留",
+        "最终集合未从整体角度检查"
+      ],
+      "practice": "同一批照片分别做技术拒绝、近似帧比较、整组复核三轮，并记录每轮只回答的问题。",
+      "acceptance": [
+        "三轮标记对应不同问题",
+        "最后一轮能发现逐张浏览时未注意到的重复或缺口"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 1–3",
+          "support": "作者明确分成粗筛、候选比较和最终挑选。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "locator": "Culling",
+          "support": "作者先标喜欢的照片，再进一步缩小选择。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "multi pass photo culling workflow",
+        "摄影筛片 多轮"
+      ]
+    },
+    {
+      "id": "post-raw-group-lighting",
+      "skill_name": "按相同光线条件分组做白平衡",
+      "capability": "识别同一光源条件下拍摄的照片并成组校正白平衡；不同光源条件使用独立基准。",
+      "why_it_matters": "同一组内色温漂移会显得不连贯，而把不同灯光场景硬套成一个白平衡也会改变氛围。",
+      "module_hint": "RAW批处理",
+      "domain_hint": "色彩与组照一致性",
+      "prerequisites": [],
+      "failure_modes": [
+        "整组白平衡在相同光线下跳动",
+        "跨越不同灯光条件同步错误的全局设置"
+      ],
+      "practice": "把一组照片按拍摄光线分组，在每组挑一张代表帧校正后回看组内其他帧。",
+      "acceptance": [
+        "同组画面在相同光源下没有明显无意色偏跳变",
+        "不同光线组仍可保留真实环境的色彩差异"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Working with Images in RAW—White Balance",
+          "support": "PPA建议把相同照明条件下的图像分组批量校正白平衡以保持颜色统一。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "RAW流程与局部颜色统一",
+          "support": "王小宁把组照颜色一致与局部颜色修正列入其个人后期流程。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "batch white balance same lighting",
+        "RAW 同光线 白平衡 批量"
+      ]
+    },
+    {
+      "id": "post-raw-whitebalance-diagnosis",
+      "skill_name": "在创意调色前校正明显白平衡偏差",
+      "capability": "在RAW基准阶段辨认并修正明显的暖冷或绿洋红偏色，再决定是否进行风格化调色。",
+      "why_it_matters": "偏色基准会影响后续肤色、服装和背景颜色判断。",
+      "module_hint": "RAW基础校正",
+      "domain_hint": "色彩与组照一致性",
+      "prerequisites": [],
+      "failure_modes": [
+        "把光源色偏当成既定风格",
+        "在基础偏色未修正时进行复杂局部调色"
+      ],
+      "practice": "对一张有已知中性色物体或明显色偏的照片做基准校正，再另存一份风格尝试。",
+      "acceptance": [
+        "能分别展示基准校正和风格化版本",
+        "创意版本没有掩盖原有的不可控色偏"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Working with Images in RAW—White Balance",
+          "support": "PPA说明RAW编辑阶段可处理拍摄时的白平衡偏差。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-needham-skin-color",
+          "locator": "article summary, camera profile and white balance",
+          "support": "文章总结Needham先确定相机配置文件并校正白平衡，再进行颜色曲线处理。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "RAW white balance portrait workflow",
+        "人像 RAW 白平衡 基础校正"
+      ]
+    },
+    {
+      "id": "post-raw-exposure-detail",
+      "skill_name": "检查主体高光与阴影细节",
+      "capability": "分别判断主体重要高光和阴影是否失去细节，并针对高光或暗部局部调整。",
+      "why_it_matters": "整体曝光数值看似正确时，脸部或服装的关键纹理仍可能被截断。",
+      "module_hint": "RAW基础校正",
+      "domain_hint": "曝光与色彩",
+      "prerequisites": [],
+      "failure_modes": [
+        "只看整体亮度而忽略局部剪切",
+        "恢复阴影时把画面推得灰平"
+      ],
+      "practice": "分别检查整体直方图和主体关键区域的高光/阴影，在RAW处理器里做小幅恢复并对照原图。",
+      "acceptance": [
+        "重要区域纹理恢复后仍保留明确明暗关系",
+        "调整没有引入大面积灰雾或色偏"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Exposure",
+          "support": "PPA建议先评估曝光，再独立检查高光和阴影细节并调整。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-capture-fixes",
+          "locator": "Digital Noise and White Balance",
+          "support": "PPA指出RAW与校准显示器提供更大的后期校色余地，但严重捕捉错误可能难以修复。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "RAW recover highlight shadow detail portrait",
+        "RAW 高光 阴影 细节 恢复"
+      ]
+    },
+    {
+      "id": "post-raw-contrast-control",
+      "skill_name": "增加反差时保留暗部与高光层次",
+      "capability": "增加整体反差后检查阴影是否堵塞、亮部是否溢出，并回退到细节仍可辨认的程度。",
+      "why_it_matters": "反差过度会压缩服装、头发和皮肤的重要细节。",
+      "module_hint": "RAW基础校正",
+      "domain_hint": "曝光与色彩",
+      "prerequisites": [
+        "post-raw-exposure-detail"
+      ],
+      "failure_modes": [
+        "黑色服装粘成一块",
+        "面部亮部缺乏纹理"
+      ],
+      "practice": "对一张有深色和亮色细节的RAW照片制作多个反差版本，在正常观看尺寸和放大视图检查。",
+      "acceptance": [
+        "暗部与亮部仍能分辨原有关键材质",
+        "对比版本没有仅靠拉高反差制造质感"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Contrast",
+          "support": "PPA提醒反差调整会同时压暗和提亮，过度会堵塞暗部并吹掉亮部细节。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait contrast clipping shadows highlights",
+        "人像 后期 反差 暗部 高光"
+      ]
+    },
+    {
+      "id": "post-color-saturation-control",
+      "skill_name": "控制全局饱和度而不过度增艳",
+      "capability": "调整全局色彩强度时，检查肤色、服装和背景是否开始显得不自然或互相抢色。",
+      "why_it_matters": "全局饱和度容易让人物肤色和服装色彩同时变得过强。",
+      "module_hint": "色彩校正",
+      "domain_hint": "曝光与色彩",
+      "prerequisites": [],
+      "failure_modes": [
+        "肤色发红或发橙",
+        "服装和背景色同时过度浓烈"
+      ],
+      "practice": "对同一照片做无调整、轻度增加和减少饱和度版本，比较肤色与服装色彩的变化。",
+      "acceptance": [
+        "能指出调色在哪些区域开始显得不自然",
+        "最终版本仍保留真实肤色与服装色差异"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Saturation",
+          "support": "PPA说明饱和度可提升颜色强度，也提醒过度会显得人工、不自然。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "portrait example, lines 265–275",
+          "support": "Adobe教师演示了肤色调整过度时会变得过于均匀或不自然。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait saturation natural skin color",
+        "人像 饱和度 肤色 自然"
+      ]
+    },
+    {
+      "id": "post-color-point-range",
+      "skill_name": "限定目标颜色范围后再微调",
+      "capability": "取样后调整特定颜色的色相、饱和度或明度，并收窄受影响的颜色范围。",
+      "why_it_matters": "全局滑块会改变多个颜色，难以只修正局部色彩问题。",
+      "module_hint": "局部色彩",
+      "domain_hint": "肤色与色彩",
+      "prerequisites": [],
+      "failure_modes": [
+        "改肤色时连服装或背景一起偏色",
+        "选取的色域过宽导致邻近颜色被影响"
+      ],
+      "practice": "用Point Color选择皮肤中的中间色，分别做小幅色相、饱和度和明度调整，再检查掩模范围。",
+      "acceptance": [
+        "目标颜色有可见变化而非目标区域基本保持原状",
+        "相邻服装和背景颜色没有意外改变"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Select a specific color; portrait example",
+          "support": "Seán Duggan演示取样颜色、色相/饱和度/明度和色域范围控制。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "Lightroom Point Color portrait skin",
+        "Point Color 人像 肤色 色域"
+      ]
+    },
+    {
+      "id": "post-color-mask-boundary",
+      "skill_name": "用蒙版把颜色修正限制在目标区域",
+      "capability": "当颜色范围也影响到非目标对象时，用局部蒙版限定调整区域并检查边界。",
+      "why_it_matters": "同色物体可能出现在画面多个位置，单靠色彩取样会造成误改。",
+      "module_hint": "局部色彩",
+      "domain_hint": "肤色与色彩",
+      "prerequisites": [
+        "post-color-point-range"
+      ],
+      "failure_modes": [
+        "皮肤色彩调整影响到背景或服装",
+        "蒙版溢出到头发、眼睛或衣领"
+      ],
+      "practice": "在皮肤颜色调整上添加人物/肤色蒙版，用叠加预览检查头发边缘与服装交界。",
+      "acceptance": [
+        "修改限于所需皮肤区域",
+        "蒙版在头发与服装边界没有明显溢出"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Use Variance with a mask; portrait example",
+          "support": "Adobe教师建议用蒙版控制颜色变化影响范围，并使用人物皮肤选择作为示例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-captureone-portrait-edit",
+          "locator": "learning objectives",
+          "support": "Capture One的文字教学目标包括绘制蒙版并通过图层调色。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "mask local skin color correction portrait",
+        "人像 局部肤色 蒙版"
+      ]
+    },
+    {
+      "id": "post-color-preserve-variation",
+      "skill_name": "均匀局部肤色时保留自然变化",
+      "capability": "针对明显局部色斑做轻度修正，并在同一张脸上保留受光、阴影和肤色之间的自然差异。",
+      "why_it_matters": "把肤色压成单一色块会失去皮肤立体感和真实感。",
+      "module_hint": "肤色校正",
+      "domain_hint": "肤色与色彩",
+      "prerequisites": [
+        "post-color-point-range",
+        "post-color-mask-boundary"
+      ],
+      "failure_modes": [
+        "肤色变成同一色调",
+        "为消除红色而产生灰、绿或塑料感"
+      ],
+      "practice": "对一处明显偏红或色斑区域轻调Point Color variance，反复对照原图并回退过头的版本。",
+      "acceptance": [
+        "局部偏差减弱但皮肤不同区域仍有可辨色彩变化",
+        "调整没有形成清晰的蒙版边界"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Minimize redness and create natural, even skin tones",
+          "support": "Adobe教师示范减弱日晒红，并明确提醒过度会令肤色太均匀、不自然。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "皮肤色调与颜色统一",
+          "support": "王小宁描述局部统一颜色和整体肤色处理作为其流程步骤。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "natural skin tone local correction",
+        "肤色局部校正 保留变化"
+      ]
+    },
+    {
+      "id": "post-skin-patch-diagnosis",
+      "skill_name": "区分肤色斑驳中的颜色差与明暗差",
+      "capability": "检查斑驳区域是色相/饱和度差异还是亮度不均，再选择相应的颜色或明暗调整。",
+      "why_it_matters": "仅用颜色工具修正明暗问题，或仅用明暗调整修正色偏，可能制造新问题。",
+      "module_hint": "肤色校正",
+      "domain_hint": "肤色与色彩",
+      "prerequisites": [],
+      "failure_modes": [
+        "颜色斑驳仍在而亮度被压平",
+        "明暗已均匀但肤色仍有偏色"
+      ],
+      "practice": "在一处有肤色差异的照片分别做颜色范围检查和黑白明度观察，记录问题主要属于哪一类。",
+      "acceptance": [
+        "能将观察到的问题描述为颜色差、明暗差或两者兼有",
+        "所用调整工具对应诊断出的变量"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-retouch-academy-patchy-skin",
+          "locator": "paragraphs on masking, Color Tab, uniformity and luminosity",
+          "support": "教程文字将斑驳肤色拆解为局部颜色校正与亮度处理，再以D&B改善纹理/细节。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "观察层与皮肤颜色统一",
+          "support": "作者通过黑白观察层检查皮肤明暗，并把颜色统一作为独立步骤。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "patchy skin diagnose color luminosity retouching",
+        "肤色斑驳 明度 色彩 区分"
+      ]
+    },
+    {
+      "id": "post-skin-mask-color-correction",
+      "skill_name": "只修正局部肤色斑驳区域",
+      "capability": "对存在色斑的皮肤区域建立蒙版，并在亮度和颜色滑块上分别小幅调整。",
+      "why_it_matters": "全局色彩调整难以只处理手臂、腿部或脸上的局部不均。",
+      "module_hint": "肤色校正",
+      "domain_hint": "肤色与色彩",
+      "prerequisites": [
+        "post-skin-patch-diagnosis"
+      ],
+      "failure_modes": [
+        "整体肤色被改偏以弥补一个局部问题",
+        "遮罩外出现明显色彩过渡线"
+      ],
+      "practice": "按照一位教师文章的Capture One例子，在局部斑驳区域做蒙版并单独试调亮度、饱和度、色相。",
+      "acceptance": [
+        "局部色差减弱且周围未改区域保持稳定",
+        "边缘过渡没有可见断层"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-retouch-academy-patchy-skin",
+          "locator": "Capture One steps",
+          "support": "文章描述遮罩后取样健康肤色，调整Lightness、Saturation和Hue来减轻斑驳。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Use Variance with a mask",
+          "support": "Adobe教学文字说明蒙版能限制颜色范围调整影响到的画面区域。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "mask patchy skin Capture One correction",
+        "Capture One 局部肤色斑驳 蒙版"
+      ]
+    },
+    {
+      "id": "post-skin-frequency-separation",
+      "skill_name": "分辨频率分离中的颜色层与纹理层",
+      "capability": "理解频率分离把影像纹理与颜色/明度信息分层后分别编辑，并检查结果是否损失皮肤细节。",
+      "why_it_matters": "该方法可控制不同类型的不均，但过量处理容易把皮肤做得平滑或人工。",
+      "module_hint": "皮肤纹理",
+      "domain_hint": "肤色与皮肤修饰",
+      "prerequisites": [
+        "post-skin-patch-diagnosis"
+      ],
+      "failure_modes": [
+        "混淆颜色不均与纹理问题",
+        "皮肤失去毛孔或被抹成平面"
+      ],
+      "practice": "在复制图层上建立高低频分层，只修一处小区域，反复开关组比较皮肤纹理与色彩。",
+      "acceptance": [
+        "能指出高频与低频层各自承载的可见信息",
+        "调整前后毛孔与皮肤微纹理仍可辨"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-phlearn-frequency-separation",
+          "locator": "Blend Skin Tones Without Touching the Texture; Clear Blemishes First; Where Skin Retouching Goes Wrong",
+          "support": "Aaron Nace直接解释高频纹理层与低频颜色/明度层的分离、先处理瑕疵、低流量混色，并提醒肤色过度均匀会显得像人偶。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-grimes",
+          "locator": "article summary of Joel Grimes workflow",
+          "support": "文章文字描述该技术把纹理与颜色/亮度信息分开处理，并提醒频率分离很容易用过量。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "frequency separation texture color layers skin retouch",
+        "频率分离 纹理 颜色 肤质"
+      ]
+    },
+    {
+      "id": "post-skin-local-dodge-burn",
+      "skill_name": "用局部加深减淡控制皮肤明暗过渡",
+      "capability": "使用可调整的局部加深或减淡减少小范围明暗斑驳，同时保留脸部和身体原有立体结构。",
+      "why_it_matters": "局部明暗处理可以缓和斑驳并塑造过渡，但力度过大会改变人物结构。",
+      "module_hint": "局部光影",
+      "domain_hint": "局部光影与皮肤修饰",
+      "prerequisites": [
+        "post-skin-patch-diagnosis"
+      ],
+      "failure_modes": [
+        "局部斑驳未改善",
+        "脸部或身体被过度勾勒出不真实的轮廓"
+      ],
+      "practice": "在独立灰色或曲线层做小区域D&B，每轮只改一处明暗过渡，开关图层检查。",
+      "acceptance": [
+        "目标过渡变得更平顺，但原有轮廓仍然成立",
+        "关闭D&B组后变化可明确比较且可撤销"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-retouch-academy-dodge-burn",
+          "locator": "intro and Zoë Noble demonstration outline",
+          "support": "文章将D&B描述为非破坏性肤质修饰，并强调理解骨骼和自然面部特征以避免过度雕刻。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "观察层与柔光层",
+          "support": "作者将黑白观察与柔光层低不透明度的加深减淡用于肤色均匀和立体感。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Local Adjustments",
+          "support": "PPA说明D&B可局部提亮或压暗，以减少干扰或强调主体。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait skin dodge burn tonal transitions",
+        "人像 D&B 肤色 明暗过渡"
+      ]
+    },
+    {
+      "id": "post-skin-dodge-burn-scope",
+      "skill_name": "避免用加深减淡过度重塑面部",
+      "capability": "判断局部D&B是在均匀明暗过渡还是在明显改变原始面部结构，并将结果控制在所需程度。",
+      "why_it_matters": "过度雕刻会改变人物自然特征，使修图痕迹先于人物表情被看见。",
+      "module_hint": "局部光影",
+      "domain_hint": "局部光影与皮肤修饰",
+      "prerequisites": [
+        "post-skin-local-dodge-burn"
+      ],
+      "failure_modes": [
+        "面部被画出夸张高光和暗边",
+        "不同人物被修成同一套脸型"
+      ],
+      "practice": "为同一处面部明暗制作三个力度版本，在缩小视图中辨认从修正变成造型重塑的临界变化。",
+      "acceptance": [
+        "能指出增强在哪一档开始明显改变原始面部结构",
+        "交付版本未把不同人物套入相同的轮廓标准"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-retouch-academy-dodge-burn",
+          "locator": "anatomy and over-contouring caution",
+          "support": "文章警告全球D&B容易造成过度轮廓塑造，并要求理解自然面部和骨骼特征。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-grimes",
+          "locator": "article summary",
+          "support": "文章提醒高控制力的皮肤修饰手段容易过度使用。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "avoid over-contouring dodge burn portrait",
+        "D&B 过度修容 人像"
+      ]
+    },
+    {
+      "id": "post-local-light-emphasis",
+      "skill_name": "用局部明暗把注意力引向主体",
+      "capability": "在不改变全局曝光的前提下，局部提亮主体或压低干扰区域，并检查它是否仍融入原有光线。",
+      "why_it_matters": "局部明暗调整可以弥补背光或降低背景干扰，但过量会让人物像被单独贴亮。",
+      "module_hint": "局部光影",
+      "domain_hint": "局部光影与皮肤修饰",
+      "prerequisites": [
+        "post-raw-exposure-detail"
+      ],
+      "failure_modes": [
+        "主体仍然过暗",
+        "局部调整边缘明显或亮度违背场景光线"
+      ],
+      "practice": "在一张背光人像上用局部蒙版做两个强度版本，观察主体和背景的亮度关系。",
+      "acceptance": [
+        "脸部细节得到需要的可读性",
+        "蒙版边缘不明显且调整未抹掉逆光氛围"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Local Adjustments",
+          "support": "PPA说明局部D&B可减少干扰或增加主体强调。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-local-light",
+          "locator": "tutorial summary",
+          "support": "Adobe教程以局部刷子调整背光主体亮度为示例。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-color-variance",
+          "locator": "Use Variance with a mask",
+          "support": "Adobe教学将蒙版作为让调整只作用于指定画面部分的控制方式。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "local adjustment backlit portrait subject",
+        "人像 背光 局部提亮 主体"
+      ]
+    },
+    {
+      "id": "post-skin-edit-subtle-opacity",
+      "skill_name": "用可调不透明度控制修饰力度",
+      "capability": "把修饰放在独立图层或蒙版中，并通过开关、降低不透明度或微调蒙版来评估其影响。",
+      "why_it_matters": "单独比较效果能帮助发现看起来有效但实际过重的修饰。",
+      "module_hint": "非破坏编辑",
+      "domain_hint": "局部光影与皮肤修饰",
+      "prerequisites": [],
+      "failure_modes": [
+        "步骤无法独立撤回",
+        "修饰叠加后过于明显但没有复查"
+      ],
+      "practice": "把一个局部颜色或光影操作放在单独层，分别以全强度和降低不透明度状态查看。",
+      "acceptance": [
+        "每项主要修饰可以单独关闭或回退",
+        "选择力度时能说明全强度带来的可见变化"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Using Layers",
+          "support": "PPA指出新建图层可以保留原层，并用不透明度混合来减弱效果。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "locator": "Dodge and burn workflow",
+          "support": "王小宁示范用低不透明度柔光层做局部肤色和立体感调整。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "non-destructive opacity retouching portrait",
+        "人像 修图 图层 不透明度"
+      ]
+    },
+    {
+      "id": "post-edit-layer-preservation",
+      "skill_name": "保留可返回的原始与分层编辑版本",
+      "capability": "保存未扁平化的原片或工作文件，并把主要局部处理拆成可独立调整的层。",
+      "why_it_matters": "后期需求可能改变，分层让局部决策能够回退、修订或适配另一种输出。",
+      "module_hint": "非破坏编辑",
+      "domain_hint": "工作流与交付",
+      "prerequisites": [],
+      "failure_modes": [
+        "覆盖原始文件",
+        "所有修改合并到单层而无法局部更改"
+      ],
+      "practice": "将一个局部修饰分层保存后，关闭并重新打开项目文件，尝试单独调整该步骤。",
+      "acceptance": [
+        "原始图像仍可恢复",
+        "主要修饰层可单独开关或调整",
+        "重开文件后层结构仍存在"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "File Formats for Editing; Using Layers",
+          "support": "PPA说明PSD/TIFF可保留层供以后继续编辑，并建议用新层保留原图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Match Perspective and Blur; clipped Levels",
+          "support": "PHLEARN教程用Smart Object和调整层保留可回改的模糊与光影修正。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "layered non destructive portrait edit",
+        "人像 后期 分层 可编辑 原片"
+      ]
+    },
+    {
+      "id": "post-clean-distraction-tool",
+      "skill_name": "按干扰物与周边纹理选择清理工具",
+      "capability": "针对小污点、规则纹理和复杂背景，选择修复、仿制或内容感知工具，并检查替换区域。",
+      "why_it_matters": "一种清理工具不适合所有背景，错误采样容易形成重复纹理或明显补丁。",
+      "module_hint": "背景清理",
+      "domain_hint": "干扰物处理",
+      "prerequisites": [],
+      "failure_modes": [
+        "补丁边缘或重复纹理可见",
+        "内容感知填充引入原场景没有的细节"
+      ],
+      "practice": "在一张照片的不同位置各选一个污点、边缘物体和纹理复杂区域，比较修复、仿制与内容感知结果。",
+      "acceptance": [
+        "每个清理结果在原尺寸和放大视图下都没有明显重复或断裂",
+        "工具选择与周边纹理结构相符"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Additional Editing; Item Removal; Clone/Healing/Content-Aware",
+          "support": "PPA分别描述仿制、融合式修复和内容感知填充的用途。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-cleanup",
+          "locator": "tutorial search-index summary",
+          "support": "Adobe教程的搜索摘要展示了选择与采样范围控制，但完整页面正文尚未在本轮打开。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "complex backgrounds section",
+          "support": "PHLEARN指出若没有合适的相似区域可供采样，复杂背景中的移除会失败。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait background cleanup healing clone",
+        "人像 背景 清理 修复 仿制"
+      ]
+    },
+    {
+      "id": "post-clean-source-texture",
+      "skill_name": "清理时检查采样区域是否适合替换",
+      "capability": "比较目标周边的纹理、明暗和边缘走向，判断能否从照片内找到合理的替换来源。",
+      "why_it_matters": "复杂交界处缺少可用来源时，自动或仿制修补容易出现重复、错位或不连贯的纹理。",
+      "module_hint": "背景清理",
+      "domain_hint": "干扰物处理",
+      "prerequisites": [
+        "post-clean-distraction-tool"
+      ],
+      "failure_modes": [
+        "从不匹配区域取样导致边缘突变",
+        "在复杂纹理上反复修补仍留下明显痕迹"
+      ],
+      "practice": "为一个干扰物分别试取两个来源区域，比较接缝和纹理连续性；若都不合适则标记为需要其他方案。",
+      "acceptance": [
+        "修补区域的纹理和明暗方向与邻近区域连续",
+        "遇到无合适来源的情况能停止自动修补并保留记录"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "when Generative Fill works and fails",
+          "support": "PHLEARN明确说明干净、相似的邻近区域便于移除，而复杂多纹理背景可能没有可采样的好区域。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Clone Tool and Healing Brush",
+          "support": "PPA解释仿制复制所选来源像素、修复笔刷会融合来源和目标区域像素。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "retouch source texture patch portrait background",
+        "修图 采样区 纹理 接缝"
+      ]
+    },
+    {
+      "id": "post-clean-scene-judgment",
+      "skill_name": "判断画面元素是干扰还是必要场景信息",
+      "capability": "在删除背景元素前，判断它是否干扰主体、是否帮助解释人物与环境的关系。",
+      "why_it_matters": "移除元素会改变照片所呈现的环境信息，而场景本身可能是人像意义的一部分。",
+      "module_hint": "背景清理判断",
+      "domain_hint": "干扰物处理",
+      "prerequisites": [
+        "post-cull-cohesion"
+      ],
+      "failure_modes": [
+        "为求干净移除有叙事作用的环境线索",
+        "保留高对比杂物而抢走主体注意力",
+        "在没有沟通的情况下移除或重塑人物特征"
+      ],
+      "practice": "对有背景人、标志或道具的照片分别写下它对主体注意力和场景信息的作用，再决定是否清理。",
+      "acceptance": [
+        "每项删除都能说明它造成的视觉干扰",
+        "删除后人物与环境关系仍可理解",
+        "涉及人物自身特征的修改得到当事人意愿确认"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Item Removal",
+          "support": "PPA将垃圾桶、标志、垃圾和路人列为可能移除的干扰物，但也说明是否改善需结合画面判断。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "locator": "Part 3 discussion of context",
+          "support": "作者指出紧裁人物可加强眼神，也可能失去解释人物与环境关系的上下文。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "Knowing What to Remove",
+          "support": "Aaron Nace区分吸引视线的背景干扰与会改变人物本身的特征，并建议不确定时先询问。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait background removal context ethics",
+        "人像 背景 删除 场景关系"
+      ]
+    },
+    {
+      "id": "post-composite-light-match",
+      "skill_name": "让合成元素的光线方向与质量相符",
+      "capability": "比较主体与背景的主光方向、冷暖和硬软程度，选择相容素材或把元素调整到一致。",
+      "why_it_matters": "光线差异会暴露拼接边界，即使蒙版本身很干净。",
+      "module_hint": "合成",
+      "domain_hint": "合成与边界控制",
+      "prerequisites": [
+        "post-raw-exposure-detail"
+      ],
+      "failure_modes": [
+        "人物受光与背景主光方向相反",
+        "人物为硬光而背景是软光或冷暖方向冲突"
+      ],
+      "practice": "将主体与背景分别转为灰度草稿，标出两者亮面和暗面，再选择更匹配的素材组合。",
+      "acceptance": [
+        "主光方向和光质没有明显冲突",
+        "隐藏色彩后仍看不出主体亮暗关系违背背景"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Direction of light and shadow; Quality of light",
+          "support": "Adobe建议元素光向、影向和光质相似，以减少拼接迹象。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "analyzing highlight and shadow mismatch",
+          "support": "PHLEARN通过主体与背景的高光、阴影水平比较来诊断光线不匹配。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait composite match light direction quality",
+        "人像 合成 光线方向 光质"
+      ]
+    },
+    {
+      "id": "post-composite-perspective-scale",
+      "skill_name": "让合成元素的视角与比例相符",
+      "capability": "比较素材的拍摄视点和主体大小关系，调整位置或选择视角更接近的素材。",
+      "why_it_matters": "不同相机视角或不协调的比例会使主体显得漂浮或被错误缩放。",
+      "module_hint": "合成",
+      "domain_hint": "合成与边界控制",
+      "prerequisites": [],
+      "failure_modes": [
+        "透视线不一致",
+        "主体大小与环境空间关系不合理"
+      ],
+      "practice": "把主体和背景对齐后先只做位置、尺度和透视变换，再检查地平线和透视关系。",
+      "acceptance": [
+        "主体视角与环境线条大体相容",
+        "没有明显过度缩放才能勉强拼合的迹象"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Perspective and scale",
+          "support": "Adobe建议选择相同视点且尺度接近的合成元素，减少后期大幅缩放。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Match Perspective and Blur the Background",
+          "support": "PHLEARN把透视调整安排在其他合成修正之前。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "match perspective scale photo composite",
+        "照片合成 透视 比例"
+      ]
+    },
+    {
+      "id": "post-composite-depth-of-field",
+      "skill_name": "检查合成主体与背景的景深关系",
+      "capability": "比较主体和背景的清晰程度，并以可编辑方式调整失焦程度使两者处于相容焦平面关系。",
+      "why_it_matters": "主体与背景锐度差异过大时，合成会显得不在同一空间。",
+      "module_hint": "合成",
+      "domain_hint": "合成与边界控制",
+      "prerequisites": [
+        "post-composite-perspective-scale"
+      ],
+      "failure_modes": [
+        "背景异常锐利而主体明显失焦",
+        "对焦区域被不恰当地整体模糊"
+      ],
+      "practice": "找一张背景焦外与主体清晰度不匹配的素材，用Smart Object进行可返修的轻度模糊测试。",
+      "acceptance": [
+        "主体与背景锐度关系看起来属于同一空间",
+        "模糊层可独立关闭并调整"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Match Perspective and Blur the Background",
+          "support": "PHLEARN示例把背景转换为Smart Object后轻微模糊，以匹配主体景深并保留可编辑性。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "composite depth of field match subject background",
+        "照片合成 景深 焦外 匹配"
+      ]
+    },
+    {
+      "id": "post-composite-tone-check",
+      "skill_name": "检查合成主体的高光与阴影层次",
+      "capability": "在场景条件相容时，比较主体高光与背景主光、主体暗部与背景阴影的层级，并识别明显不匹配。",
+      "why_it_matters": "主体亮部或阴影与背景冲突时，合成容易显得脱离环境。",
+      "module_hint": "合成",
+      "domain_hint": "合成与边界控制",
+      "prerequisites": [
+        "post-composite-light-match"
+      ],
+      "failure_modes": [
+        "主体高光比场景主光还强而不合理",
+        "主体阴影比背景暗部更浅或更黑"
+      ],
+      "practice": "在具有单一明显主光源的练习合成中，用阈值调整层比较主体与背景的高光和阴影，再用可编辑调整层微调。",
+      "acceptance": [
+        "主体亮暗层次与场景关系相容",
+        "没有把主体压成无细节黑块或保留不合理的亮点",
+        "遇到多主光源场景时不套用单光源假设"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Threshold layer; compare highlights and shadows",
+          "support": "PHLEARN用阈值层比较主体与背景的亮暗位置，并指出示例建立在户外单一主光源假设上。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Direction of light and shadow",
+          "support": "Adobe建议合成元素的光向和影向彼此匹配。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "composite highlight shadow threshold comparison",
+        "合成 高光 阴影 层次 检查"
+      ]
+    },
+    {
+      "id": "post-composite-luminosity-correction",
+      "skill_name": "校正合成亮度时避免无意改变颜色",
+      "capability": "当需要单独修正主体亮暗时，将调整限制到亮度通道或使用相应混合模式，并检查色彩变化。",
+      "why_it_matters": "普通亮度调整可能同时改变饱和度，使修正后的主体与背景产生色彩不一致。",
+      "module_hint": "合成",
+      "domain_hint": "合成与边界控制",
+      "prerequisites": [
+        "post-composite-highlight-check",
+        "post-composite-shadow-check"
+      ],
+      "failure_modes": [
+        "变暗后主体饱和度明显上升",
+        "亮度吻合但主体颜色不再自然"
+      ],
+      "practice": "对一个 clipped Levels 层比较Normal与Luminosity混合模式，分别记录亮度和颜色变化。",
+      "acceptance": [
+        "最终亮度调整没有造成不需要的色彩偏移",
+        "仅调整目标主体而非背景"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-phlearn-composite-light",
+          "locator": "Switch the Levels Layer to Luminosity",
+          "support": "PHLEARN说明Normal模式的Levels会影响颜色饱和度，Luminosity可把调整限制到亮度。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "luminosity blend mode composite light correction",
+        "合成 明度混合模式 色彩保护"
+      ]
+    },
+    {
+      "id": "post-composite-framing",
+      "skill_name": "让合成元素共同指向画面焦点",
+      "capability": "安排合成元素的位置与裁切，使其共同支持主体焦点和观看路径。",
+      "why_it_matters": "元素各自匹配但位置冲突时，画面仍会显得拼贴或注意力分散。",
+      "module_hint": "合成构图",
+      "domain_hint": "合成与边界控制",
+      "prerequisites": [
+        "post-composite-perspective-scale"
+      ],
+      "failure_modes": [
+        "元素互相遮挡主体",
+        "视觉焦点被边缘元素拉走"
+      ],
+      "practice": "先用灰色块摆放主体与背景元素，不调色，确认视觉路径后再进入精细合成。",
+      "acceptance": [
+        "缩略图尺寸下焦点明确",
+        "构图元素的位置和裁切支持而非削弱主体"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-composite-principles",
+          "locator": "Composition and framing",
+          "support": "Adobe建议预先安排元素位置和框架，让视线通过合成画面到达焦点。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "composite framing focal point",
+        "合成构图 视觉焦点"
+      ]
+    },
+    {
+      "id": "post-master-resolution",
+      "skill_name": "保留高分辨率可编辑主文件",
+      "capability": "在制作交付尺寸副本前保留未经缩小的工作版本，并记录原片与编辑主文件的关系。",
+      "why_it_matters": "同一作品可能被重新裁切或用于其他输出尺寸。",
+      "module_hint": "工作文件管理",
+      "domain_hint": "工作流与交付",
+      "prerequisites": [
+        "post-edit-layer-preservation"
+      ],
+      "failure_modes": [
+        "只保存小尺寸网络版本",
+        "更换打印或平台需求时只能从低分辨率文件重做"
+      ],
+      "practice": "从一张工作文件生成屏幕副本和打印副本，确认两者都由完整主文件导出。",
+      "acceptance": [
+        "主文件像素尺寸保持原生/所需高分辨率",
+        "输出副本尺寸和文件名能区分用途"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "RAW Conversion; Final Edits Before Delivery",
+          "support": "PPA建议从RAW导出最大原生分辨率，之后按具体用途定尺寸。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Image Sizing and export workflow",
+          "support": "Adobe文档区分导出尺寸与用途，并保留以原图为基础的输出设置。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "full resolution master photo export",
+        "照片 高分辨率 主文件 导出"
+      ]
+    },
+    {
+      "id": "post-output-crop-variants",
+      "skill_name": "为不同画幅输出建立独立裁切版本",
+      "capability": "根据交付目标裁切成不同画幅，并确保主体、头饰、武器或服装边缘没有意外截断。",
+      "why_it_matters": "平台或打印尺寸会改变画面比例，单一裁切可能不适用于所有用途。",
+      "module_hint": "最终输出",
+      "domain_hint": "工作流与交付",
+      "prerequisites": [
+        "post-master-resolution"
+      ],
+      "failure_modes": [
+        "自动重裁切掉关键道具或人物关节",
+        "直接覆盖主文件裁切而无法恢复画幅"
+      ],
+      "practice": "从完整主文件创建一个竖版和一个横版副本，分别检查主体完整度和画面平衡。",
+      "acceptance": [
+        "各版本适配其目标比例",
+        "改变比例没有意外截断重要人物或道具",
+        "主文件仍保留完整画幅"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Final Edits Before Delivery—Cropping",
+          "support": "PPA建议可先完成图像编辑，再为横竖等交付裁切准备版本。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Image Sizing",
+          "support": "Adobe导出控件支持按输出文件设置具体像素尺寸。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait output crop aspect ratio variants",
+        "人像 多画幅 输出 裁切"
+      ]
+    },
+    {
+      "id": "post-output-sharpening",
+      "skill_name": "根据最终介质与尺寸应用输出锐化",
+      "capability": "在确定最终尺寸和用途后选择屏幕、哑光纸或光面纸对应的输出锐化，并避免重复锐化。",
+      "why_it_matters": "屏幕显示和不同纸张对锐化的呈现不同，过早或过量锐化会制造边缘伪影。",
+      "module_hint": "最终输出",
+      "domain_hint": "工作流与交付",
+      "prerequisites": [
+        "post-output-crop-variants"
+      ],
+      "failure_modes": [
+        "边缘出现光晕或锯齿",
+        "屏幕与打印版本锐度不适配"
+      ],
+      "practice": "为同一照片生成屏幕和一类纸张输出副本，按实际最终尺寸比较锐化效果。",
+      "acceptance": [
+        "最终尺寸下边缘清楚但没有明显光晕",
+        "不同介质的锐化设置分别保存"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "Final Edits Before Delivery—Sharpening",
+          "support": "PPA要求把锐化与最终用途、尺寸和观看距离结合，并警告过度锐化会降低质量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Output sharpening",
+          "support": "Adobe说明导出锐化可按Screen、Matte Paper或Glossy Paper与分辨率设置。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "output sharpening screen matte glossy",
+        "输出锐化 屏幕 哑光 光面"
+      ]
+    },
+    {
+      "id": "post-output-color-profile",
+      "skill_name": "按交付目标转换并标记色彩配置文件",
+      "capability": "在输出前确认目标设备、打印服务或平台要求，转换到对应配置文件并保留配置文件标记。",
+      "why_it_matters": "仅改变文件标签而未转换颜色数值，可能让不同设备显示出明显色差。",
+      "module_hint": "色彩管理",
+      "domain_hint": "工作流与交付",
+      "prerequisites": [],
+      "failure_modes": [
+        "网络图片未转到平台适用的色彩空间",
+        "误把Assign Profile当成颜色转换"
+      ],
+      "practice": "分别准备网页副本和一个指定打印目标的副本，检查各自的转换目标、配置文件标记与目的地说明。",
+      "acceptance": [
+        "每个导出文件的配置文件与目标要求一致",
+        "读取配置文件后没有意外色彩跳变",
+        "打印目标使用对应打印机或纸张的配置文件"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "Color Space",
+          "support": "Adobe说明导出可转换到sRGB、AdobeRGB、ProPhotoRGB等空间并标记配置文件。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-adobe-ps-colorprofiles",
+          "locator": "Convert between profiles",
+          "support": "Adobe区分目标配置文件转换与工作色域，并说明转换会映射超出目标空间的颜色。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photo export convert embed color profile",
+        "照片导出 色彩配置文件 转换 嵌入"
+      ]
+    },
+    {
+      "id": "post-output-file-spec",
+      "skill_name": "核对交付文件格式与像素规格",
+      "capability": "根据屏幕分享、打印或继续编辑的目标设置文件格式、色彩空间、像素尺寸和压缩质量。",
+      "why_it_matters": "不合适的文件规格会造成色彩问题、细节损失或交付方无法使用。",
+      "module_hint": "最终输出",
+      "domain_hint": "工作流与交付",
+      "prerequisites": [
+        "post-master-resolution",
+        "post-output-color-profile"
+      ],
+      "failure_modes": [
+        "打印文件像素不足",
+        "网络文件体积过大或色彩空间不符合要求",
+        "误交付分层主文件而不是成片"
+      ],
+      "practice": "按一个明确的假设交付说明生成网络图与打印图，并检查成品文件的尺寸、格式和色彩空间。",
+      "acceptance": [
+        "每个副本符合对应用途的文件说明",
+        "屏幕版本与打印版本可通过名称或目录区分"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-adobe-lr-export",
+          "locator": "export options and Image Sizing",
+          "support": "Adobe文档列出格式、像素尺寸、分辨率、颜色空间、质量和锐化等导出变量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "File Formats for Editing; Final Edits Before Delivery",
+          "support": "PPA区分分层编辑格式和最终交付格式，并建议按用途调整尺寸。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photo delivery export file size resolution profile",
+        "摄影交付 格式 尺寸 分辨率"
+      ]
+    },
+    {
+      "id": "post-capture-fix-boundary",
+      "skill_name": "判断缺陷能否安全后期修复",
+      "capability": "区分可用局部修正解决的缺陷与需要返拍或接受限制的捕捉问题。",
+      "why_it_matters": "有些问题后期修复成本很高，另一些根本无法恢复已丢失的画面信息。",
+      "module_hint": "后期诊断",
+      "domain_hint": "工作流与交付",
+      "prerequisites": [],
+      "failure_modes": [
+        "在不可恢复的失焦或裁切区域投入大量时间",
+        "对可修复的小问题过早放弃照片"
+      ],
+      "practice": "从一组练习照片中挑选不同缺陷，分别记录预计修复方式、是否可能恢复以及是否值得继续处理。",
+      "acceptance": [
+        "每种问题都有修复、限制交付或重拍的明确决定",
+        "不把生成或补绘结果误当成原始捕捉信息"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-ppa-capture-fixes",
+          "locator": "Diagnosing Problems with Image Capture",
+          "support": "PPA指出拍摄缺陷若未现场发现，后期可能更费时甚至无法修复。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "post-ppa-workflow",
+          "locator": "RAW workflow; Item Removal",
+          "support": "PPA将拍摄调整、RAW转换和后续追加修整区分为连续工作阶段。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photographic capture problems cannot be fixed post production",
+        "摄影 缺陷 后期 可修复性"
+      ]
+    },
+    {
+      "id": "post-clean-near-face-selection",
+      "skill_name": "靠近面部特征时收紧清理选区",
+      "capability": "清除靠近眼睛、眉毛、嘴唇或脸部轮廓的干扰时，将选区限制在目标物周围，避免生成式重建覆盖人物特征。",
+      "why_it_matters": "生成式工具会重建选区中的内容，选区越界可能让人物面部变得不再像本人。",
+      "module_hint": "背景清理",
+      "domain_hint": "干扰物处理",
+      "prerequisites": [
+        "post-clean-distraction-tool"
+      ],
+      "failure_modes": [
+        "眼睛、眉毛或嘴唇被无意重绘",
+        "脸部边缘被重建而改变身份特征"
+      ],
+      "practice": "在包含贴近脸部的细小背景干扰的练习文件上，对目标做紧密选区，分别在100%和200%查看结果。",
+      "acceptance": [
+        "处理区域没有覆盖未授权的面部特征",
+        "前后对照时脸部轮廓与原图一致"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "Making the Selection—Tight is essential, near the face",
+          "support": "PHLEARN指出靠近面部时选区应紧贴目标，因为选区内的眼、眉、唇等会被重建。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "generative fill tight selection near face portrait",
+        "人像 生成式修复 面部 紧密选区"
+      ]
+    },
+    {
+      "id": "post-clean-person-feature-consent",
+      "skill_name": "修改人物自身特征前确认当事人意愿",
+      "capability": "区分移除环境干扰和改变人物皮肤、痣、疤痕或其他身份特征；涉及后者时先征询被摄者偏好。",
+      "why_it_matters": "修图可能改变人物如何呈现自己，工具本身不能决定这种改动是否合适。",
+      "module_hint": "人物修饰边界",
+      "domain_hint": "干扰物处理",
+      "prerequisites": [],
+      "failure_modes": [
+        "把痣、疤痕或自然特征当作默认要删除的问题",
+        "为省时采用生成结果重建脸部特征"
+      ],
+      "practice": "在一组人物修饰练习中给每项修改标记为环境清理、暂时瑕疵或人物自身特征，并对最后一类写出沟通问题。",
+      "acceptance": [
+        "环境清理和人物特征修改被分开记录",
+        "对人物特征的修改符合明确的个人偏好"
+      ],
+      "evidence": [
+        {
+          "source_id": "post-phlearn-cleanup",
+          "locator": "Knowing What to Remove—Things that are part of the person",
+          "support": "Aaron Nace将皮肤纹理、标记和特征视为与背景干扰不同的一类，并建议不确定时询问本人。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait retouch ask before changing features",
+        "人像 修图 个人特征 意愿 确认"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "筛片后是否立即删除拒绝项",
+      "positions": [
+        {
+          "source_id": "post-ppa-lisa-mark-culling",
+          "position": "该摄影师描述第一轮选择后删除其余照片，并可继续重复筛选。"
+        },
+        {
+          "source_id": "post-fstoppers-zhen-culling",
+          "position": "该摄影师建议隔一段时间再复筛，不要立刻永久删除。"
+        }
+      ],
+      "resolution": "保留为方法选择差异。候选技能只要求筛片状态可恢复、永久删除另行决定；不把任何一位作者的删除时机当成普遍规则。"
+    },
+    {
+      "topic": "皮肤修饰方法与处理程度",
+      "positions": [
+        {
+          "source_id": "post-fstoppers-grimes",
+          "position": "文章摘要展示频率分离，并称此法容易过度、存在行业争议。"
+        },
+        {
+          "source_id": "post-retouch-academy-dodge-burn",
+          "position": "文章突出D&B作为非破坏性肤色/明暗均匀方法，并强调练习和理解自然脸部结构。"
+        },
+        {
+          "source_id": "post-xitek-wangxiaoning",
+          "position": "作者描述自己使用低不透明度D&B、图章和色彩统一的具体顺序。"
+        }
+      ],
+      "resolution": "将方法保留为工具选择与个人流程；正式技能聚焦诊断问题、保留质感、控制力度，不规定频率分离或D&B为唯一正确流程。"
+    },
+    {
+      "topic": "局部肤色均匀与自然差异",
+      "positions": [
+        {
+          "source_id": "post-adobe-color-variance",
+          "position": "调整肤色红斑时，Adobe教师示范减弱色差，但过度会让肤色过于均一。"
+        },
+        {
+          "source_id": "post-retouch-academy-patchy-skin",
+          "position": "Retouching Academy示范对明确斑驳区域做遮罩和颜色/明度修正。"
+        }
+      ],
+      "resolution": "区分局部缺陷修正和追求统一肤色的风格目标；不设定统一肤色值或单一美肤标准。"
+    },
+    {
+      "topic": "合成光线诊断的条件",
+      "positions": [
+        {
+          "source_id": "post-adobe-composite-principles",
+          "position": "Adobe建议匹配光向与光质。"
+        },
+        {
+          "source_id": "post-phlearn-composite-light",
+          "position": "PHLEARN使用阈值法比较单一主光源示例中的主体高光/阴影。"
+        }
+      ],
+      "resolution": "方向和光质相容可作为基础检查；阈值亮度层级法只按教师示例的单一主光源条件使用，不推断到复杂多灯现场。"
+    }
+  ],
+  "gaps": [
+    "本轮新增一手正文补足筛片、系列变化、合成光线/透视和当前导出操作，但候选技能中的肤色、多肤色渲染与复杂混合光仍主要由少数教育者支持。没有形成跨多个独立教师的普适肤色目标或修图量标准。",
+    "合成只覆盖匹配选择、透视、景深和亮暗诊断；没有找到足够证据支持Cosplay假发、盔甲、透明材质、武器遮挡边缘或新增投影的专项验收标准。",
+    "‘保留场景真实信息’的正式边界仍需项目所有者判断。资料说明了干扰物处理和环境上下文可能丢失，但没有足够来源制定Cosplay纪实合成伦理规则。",
+    "当前筛片来源以婚礼、高量 senior portrait 和摄影师个人项目为主。Cosplay组照的角色叙事、动作连贯、角色差异和漫展现场语境需要专门来源或后续项目适配，并须明确其适配性质。",
+    "打印色彩配置、软打样和平台交付受到具体服务商要求影响；本候选只保留目的地驱动的可训练操作，不指定一组通用sRGB/AdobeRGB、像素尺寸或纸张参数。",
+    "现有来源不能支持“移除所有杂物”“修白/磨皮”或“所有照片应一致到完全同色”的通用美学要求。"
+  ]
+}

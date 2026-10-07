@@ -1,0 +1,1417 @@
+{
+  "scope": "field",
+  "candidates": [
+    {
+      "id": "field-brief-purpose",
+      "skill_name": "把拍摄用途转成可执行的视觉意图",
+      "capability": "在拍前确认照片用途、主题情绪与被摄者希望传达的内容，并据此决定场景和拍摄安排。",
+      "why_it_matters": "缺少共同目标时，摄影师容易准备了技术方案，却没有对准被摄者想表达的内容。",
+      "module_hint": "拍前设计与沟通",
+      "domain_hint": "现场执行",
+      "prerequisites": [],
+      "failure_modes": [
+        "拍完才发现用途或期待不一致",
+        "场景和拍摄方向未回应人物或委托目标"
+      ],
+      "practice": "项目练习：拍前用一轮简短问答记录用途、核心信息、情绪词和交付情境，再写一条画面意图。",
+      "acceptance": [
+        "记录能指出用途、目标和至少一项可见画面决定",
+        "被摄者能复述双方约定的拍摄方向"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-consult",
+          "locator": "‘Understanding Client Goals’; lines 96–99",
+          "support": "拍前讨论客户目标和照片用途，并据此调整拍摄方式和场景。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-session-prep",
+          "locator": "sections on planning and client preferences; lines 631–632",
+          "support": "先讨论偏好、创意想法和安排，并把个人经历纳入拍摄概念。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait pre-session consultation goals",
+        "portrait intended use planning"
+      ]
+    },
+    {
+      "id": "field-subject-context",
+      "skill_name": "拍前查明人物与场景的真实关联",
+      "capability": "阅读拍摄简报并查找人物背景，使现场观察能识别与人物主题相关的地点、物件和活动。",
+      "why_it_matters": "环境若只是漂亮布景，可能与人物主题无关；忽略背景也会损失能帮助讲清故事的线索。",
+      "module_hint": "拍前研究",
+      "domain_hint": "环境人像",
+      "prerequisites": [],
+      "failure_modes": [
+        "背景元素与人物主题无关",
+        "未注意到场景中有意义的线索"
+      ],
+      "practice": "项目练习：为一个公开人物或自选角色写下三条可查证背景事实，并在场景草图上标出可能相关的元素。",
+      "acceptance": [
+        "每条画面意图都能追溯到简报或可查证背景",
+        "明确区分事实和摄影师自己的联想"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "‘Know the background to your subject’; lines 57–60",
+          "support": "背景研究帮助摄影师注意日常环境中的故事元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "‘Before: Location Research & Gear Prep’; lines 200–202",
+          "support": "Block 先研究人物与地点背景，再安排当地协作和器材。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photojournalist research subject before assignment",
+        "environmental portrait meaningful background"
+      ]
+    },
+    {
+      "id": "field-scene-story-fit",
+      "skill_name": "判断地点是否能支持人物故事",
+      "capability": "选择与人物、情绪或主题有关的环境，并让人物仍是画面主要兴趣点。",
+      "why_it_matters": "地点可以提供身份和氛围，也可能喧宾夺主或只留下无意义的装饰。",
+      "module_hint": "环境选择",
+      "domain_hint": "环境人像",
+      "prerequisites": [
+        "field-brief-purpose"
+      ],
+      "failure_modes": [
+        "环境比人物更抢眼",
+        "场景无法解释为何人物出现在那里"
+      ],
+      "practice": "项目练习：在同一地点拍摄一张人物主导和一张环境主导的画面，比较主题是否仍清楚。",
+      "acceptance": [
+        "观看者先识别人物，再从环境读出有根据的情境",
+        "摄影师能指出每个保留环境元素的作用"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "‘COMPOSITION’ and ‘Relate people to the scene’; lines 103–120",
+          "support": "人物仍是主兴趣点，需考虑人物编排及其与场景的关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "‘Choosing your sitter’ and composition sections; lines 178–180, 343–347",
+          "support": "先决定想让观者理解人物什么，再组织框内人物、物件和空间。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "environmental portrait subject relationship setting",
+        "portrait environment supports story"
+      ]
+    },
+    {
+      "id": "field-location-time-scout",
+      "skill_name": "按拍摄时段评估地点的光线与可行性",
+      "capability": "在计划的拍摄时段评估日照、阴影、拥挤、路线和限制，而不是只凭地点照片决定选址。",
+      "why_it_matters": "同一地点会随时间、天气和人流改变；只按空场景外观选点容易现场失效。",
+      "module_hint": "地点侦察",
+      "domain_hint": "拍前设计",
+      "prerequisites": [],
+      "failure_modes": [
+        "拍摄时脸部落在斑驳光或强反差中",
+        "地点可看但无法安全到达或被人流打断"
+      ],
+      "practice": "项目练习：同一地点在两个不同时段各拍一张测试记录，写下阳光方向、遮阴和可用站位。",
+      "acceptance": [
+        "能用实际观察或现场测试指出时段变化",
+        "所选时间有可执行的光线与人流理由"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-vet-location",
+          "locator": "‘AESTHETIC’; lines 124–129",
+          "support": "侦察时需考虑不同时间和季节的日照与阴影。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-session-prep",
+          "locator": "‘Scout your location’; lines 633–637",
+          "support": "拍前实地侦察，并核对场地日程和许可。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "creative process answer; lines 131–136",
+          "support": "Pugoffka 先选地点，再按室外日光、日落或暮光决定拍摄时间。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait location scout time of day",
+        "cosplay location light timing"
+      ]
+    },
+    {
+      "id": "field-location-feasibility",
+      "skill_name": "预判地点的安全、通行和设备条件",
+      "capability": "侦察地点的交通、地面、步行距离、许可、人流、换装、供电和个人物品放置条件。",
+      "why_it_matters": "可用的画面位置不一定适合人物、服装、道具和拍摄设备安全工作。",
+      "module_hint": "地点侦察",
+      "domain_hint": "拍前设计",
+      "prerequisites": [],
+      "failure_modes": [
+        "器材或人物处于湿滑、交通或跌落风险中",
+        "无法抵达、补给或安排物品"
+      ],
+      "practice": "项目练习：为一个外景点做一次清单侦察，现场逐项记录到达、地面、洗手间、设备、风险和备选站位。",
+      "acceptance": [
+        "清单包含至少一个能改变地点选择的风险或限制",
+        "安全问题有明确的规避方案或淘汰决定"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-vet-location",
+          "locator": "‘FEASIBILITY’ and ‘PRACTICALITY’; lines 102–120",
+          "support": "PPA 列出许可、干扰、人身风险、移动能力、停车、地形、换鞋、供电与个人物品等侦察项。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "PPA vet a location safety practicality"
+      ]
+    },
+    {
+      "id": "field-venue-policy-check",
+      "skill_name": "到场前核对本次活动的摄影规则",
+      "capability": "针对具体活动和年份核对摄影区域、器材、人流、许可、肖像使用和发布规则。",
+      "why_it_matters": "漫展规则由场地方和主办方分别制定，沿用其他活动的经验可能导致中止拍摄或侵犯他人边界。",
+      "module_hint": "场馆执行",
+      "domain_hint": "漫展现场",
+      "prerequisites": [],
+      "failure_modes": [
+        "在禁止或拥堵区域架灯",
+        "未经许可拍摄或错误理解照片发布规则"
+      ],
+      "practice": "项目练习：对一个实际活动制作一页规则摘要，附官方链接、查看日期及需要现场确认的项目。",
+      "acceptance": [
+        "规则来自该活动官方页面并标明年份",
+        "能区分场地规定与通用摄影判断"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-manga-comiccon-rules",
+          "locator": "official rules; lines 22–29",
+          "support": "该活动要求先征得同意、不得妨碍客流，并规定其发布和设备限制。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-vet-location",
+          "locator": "‘FEASIBILITY’; lines 102–109",
+          "support": "专业地点侦察要核对许可、非拍摄人员干扰和场地风险。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "official convention photography rules consent crowd flow",
+        "cosplay event camera policy"
+      ]
+    },
+    {
+      "id": "field-story-coverage-plan",
+      "skill_name": "预先安排人物与环境的画面覆盖",
+      "capability": "按拍摄目的列出人物肖像、情境画面以及室内外可用的不同画面角色。",
+      "why_it_matters": "连续拍同一景别和同一姿态会让成组照片缺少信息层次，且错过不能重来的现场细节。",
+      "module_hint": "组照规划",
+      "domain_hint": "现场执行",
+      "prerequisites": [
+        "field-brief-purpose"
+      ],
+      "failure_modes": [
+        "只得到一类肖像",
+        "回看时缺少交代环境或人物关系的画面"
+      ],
+      "practice": "项目练习：为一次拍摄列出人物肖像、环境关系、细节三类画面，并拍一组覆盖记录。",
+      "acceptance": [
+        "成组照片含有至少两种不同的信息角色",
+        "每个画面角色都服务于同一拍摄意图"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "‘Cover all bases’; lines 62–64",
+          "support": "Holt 拍摄肖像与情境画面，并在室内和室外取不同光线和日常元素。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "creative process answer; lines 131–136",
+          "support": "先拍预想的主要画面，再补人物肖像。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait assignment shot coverage context portrait",
+        "cosplay photoshoot shot sequence"
+      ]
+    },
+    {
+      "id": "field-short-slot-priorities",
+      "skill_name": "短时拍摄先完成核心画面",
+      "capability": "在时间有限的拍摄中先完成事前想好的主画面，再扩展肖像或额外变化。",
+      "why_it_matters": "短时段若先不断探索，可能在窗口结束前仍没有可靠的主画面。",
+      "module_hint": "快节奏拍摄",
+      "domain_hint": "漫展现场",
+      "prerequisites": [
+        "field-story-coverage-plan"
+      ],
+      "failure_modes": [
+        "时间被临时试想消耗",
+        "离开时缺少最重要的画面"
+      ],
+      "practice": "来源练习：先写下三个本次必须完成的画面，再按主画面、人物肖像顺序拍摄；数字三是 Pugoffka 的个人工作方法。",
+      "acceptance": [
+        "约定时间结束前完成核心画面",
+        "额外变化没有挤掉已约定的主要画面"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "planning and large group answers; lines 131–136, 153–160",
+          "support": "她先想好三四张主要画面并先完成，之后再拍肖像；大型组照也强调预备。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "source_exercise",
+      "search_terms": [
+        "cosplay photographer short session prioritize main shots"
+      ]
+    },
+    {
+      "id": "field-short-slot-prelight",
+      "skill_name": "短时人像拍摄前完成布光测试",
+      "capability": "在主体到场前用替身或测试对象完成灯光设置和曝光确认。",
+      "why_it_matters": "只有几分钟的拍摄若现场才调灯，容易占掉可用拍摄时间。",
+      "module_hint": "快节奏拍摄",
+      "domain_hint": "拍前设计",
+      "prerequisites": [],
+      "failure_modes": [
+        "主体到场后仍在试灯和调整曝光",
+        "关键时段被技术准备占用"
+      ],
+      "practice": "项目练习：预设一盏灯并以替身完成一张测试照；在正式拍摄前只改动一项变量。",
+      "acceptance": [
+        "主体到场前已确认灯位和可用曝光",
+        "准备失败时能快速切回环境光或简化灯光"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-nikon-test-run",
+          "locator": "Dave Black tip; lines 26–31",
+          "support": "当重要肖像只给几分钟时，先搭灯、用替身测试并定好曝光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "field lighting practice; lines 127–133",
+          "support": "Harris 指出复杂闪光效果应提前练习，不应在重要委托中首次试验。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait lighting test before short session",
+        "Dave Black portrait test run"
+      ]
+    },
+    {
+      "id": "field-weather-contingency",
+      "skill_name": "按天气和现场不确定性准备拍摄备选",
+      "capability": "依据天气、室内光线不确定性和行程风险准备必要防护与可替代照明方案。",
+      "why_it_matters": "外景条件变化会影响器材安全、光线和可执行计划。",
+      "module_hint": "拍摄准备",
+      "domain_hint": "现场执行",
+      "prerequisites": [],
+      "failure_modes": [
+        "降雨或沙尘让器材受损",
+        "光线低于预期且无可行备选"
+      ],
+      "practice": "项目练习：为一次外景列出两个最可能的环境变化，并为每个变化准备一项轻量备选。",
+      "acceptance": [
+        "备选方案针对明确风险而非泛化携带所有器材",
+        "发生预设变化时仍可安全完成至少一种画面"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "‘Check your kit before every shoot’; lines 52–56",
+          "support": "Holt 查看天气并为雨天和未知室内光线准备防护与补光。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "gear prep; lines 207–209",
+          "support": "Block 按天气变化备雨具，并根据地点决定携带或当地租用设备。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photojournalist weather gear contingency shoot preparation"
+      ]
+    },
+    {
+      "id": "field-mobile-kit",
+      "skill_name": "按任务控制外拍器材体积并保留关键备份",
+      "capability": "根据任务挑选可携带的器材，保护必要冗余，并为大型灯具评估现场租用。",
+      "why_it_matters": "过重装备降低移动效率；没有备份则单点故障可能让任务无法完成。",
+      "module_hint": "拍摄准备",
+      "domain_hint": "现场执行",
+      "prerequisites": [],
+      "failure_modes": [
+        "携带与场景无关的大量器材",
+        "相机或介质故障后无法继续拍摄"
+      ],
+      "practice": "项目练习：为一小时拍摄写出最小器材清单、关键故障备份和不携带理由。",
+      "acceptance": [
+        "每件器材都能对应拍摄需求",
+        "关键相机或存储故障有可行替代步骤"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "gear preparation and on-location carry; lines 203–211",
+          "support": "Block 按任务选焦段和低光镜头，携带备份机身、卡、电池并考虑当地租灯。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "weather and kit checklist; lines 52–56",
+          "support": "器材选择要回应预期场景和天气，而非固定清单。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photographer location assignment gear redundancy lightweight kit"
+      ]
+    },
+    {
+      "id": "field-background-first",
+      "skill_name": "先选背景再等待人物进入合适位置",
+      "capability": "先识别能支撑主题且不干扰画面的背景，再观察或等待人物进入预想区域。",
+      "why_it_matters": "边拍边追着主体容易忽略杂乱背景，也可能错过主体与背景形成关系的时机。",
+      "module_hint": "现场观察",
+      "domain_hint": "环境人像",
+      "prerequisites": [
+        "field-scene-story-fit"
+      ],
+      "failure_modes": [
+        "背景干扰主题",
+        "每张照片都需依靠后期清理环境"
+      ],
+      "practice": "项目练习：选择一个背景固定站位等待人物进入构图范围，分别记录合适与不合适的进入位置。",
+      "acceptance": [
+        "主体进入时背景信息不遮断主题",
+        "摄影师能解释为什么选这块背景"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-sony-ira-block",
+          "locator": "‘During: Waiting For The Perfect Moment’; lines 210–218",
+          "support": "Block 先选择符合故事的背景，再等待能丰富故事的动作进入。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photographer find background wait for action environmental portrait"
+      ]
+    },
+    {
+      "id": "field-background-priority",
+      "skill_name": "在环境画面中维持人物视觉优先级",
+      "capability": "安排人物在场景中的位置与比例，使环境提供信息而不过度抢走注意力。",
+      "why_it_matters": "过多环境信息、鲜明图案或近似色会让人物和角色细节不突出。",
+      "module_hint": "环境构图",
+      "domain_hint": "环境人像",
+      "prerequisites": [
+        "field-scene-story-fit"
+      ],
+      "failure_modes": [
+        "背景成为第一视觉焦点",
+        "头发或服装边缘融入相近背景"
+      ],
+      "practice": "项目练习：固定人物姿势，尝试两个背景位置或画面比例，并比较主体先后顺序。",
+      "acceptance": [
+        "主要人物可快速辨认",
+        "背景仍可读但未压过人物",
+        "人物边缘未与背景中的高对比元素混淆"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "composition and scene relation; lines 103–120",
+          "support": "人物应为主兴趣点，摄影师应安排人物并处理人物与场景的关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "background color balance; lines 70–79",
+          "support": "头部与背景色应分开，并检查重复图案和人物边缘附近的干扰。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "url": "https://www.canon.com.cn/special/canon_portrait/3.html",
+          "description": "页面包含带文字说明的街景全身人像实例；本轮只读文字和说明，未检查图像像素。"
+        }
+      ],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "environmental portrait background competition head separation",
+        "full body street portrait background placement"
+      ]
+    },
+    {
+      "id": "field-frame-edge-audit",
+      "skill_name": "拍前检查画面边缘与人物重叠关系",
+      "capability": "通过取景器或实时显示检查人物周围是否有广告、深色块、重复图案或穿插边缘的背景物。",
+      "why_it_matters": "背景干扰可能让人物轮廓、头发、服装边缘或表情难以辨读。",
+      "module_hint": "现场画面检查",
+      "domain_hint": "环境构图",
+      "prerequisites": [],
+      "failure_modes": [
+        "人物头部与背景融合",
+        "广告牌或线条在人物周围形成干扰",
+        "边缘出现不必要物件"
+      ],
+      "practice": "项目练习：每个站位拍摄前停一秒扫描四边与人物轮廓，再与未扫描版本比较。",
+      "acceptance": [
+        "记录到的干扰能通过移动相机或人物位置消除",
+        "检查范围包括画面四边和人物轮廓"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "background inspection and Live View; lines 70–72, 94–98",
+          "support": "检查人物周围的深色背景、广告和多余物体，并用实时显示确认构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-nikon-kanayo-location",
+          "locator": "direction and distraction control; lines 136–140",
+          "support": "Adibe 把人物放进建筑框架并选择减少竞争元素的位置。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait background overlap inspect live view",
+        "avoid distracting objects around portrait subject"
+      ]
+    },
+    {
+      "id": "field-light-quality-outdoors",
+      "skill_name": "辨认户外人像的均匀遮阴与斑驳光",
+      "capability": "观察人物脸部光线是否连续、均匀，以及树叶或其他遮挡是否造成斑点和局部高光。",
+      "why_it_matters": "树荫和暮光不自动意味着脸部光线适合，斑驳光可能造成不均匀肤色与注意力分散。",
+      "module_hint": "户外光线观察",
+      "domain_hint": "环境人像",
+      "prerequisites": [],
+      "failure_modes": [
+        "脸部亮度有明显斑点",
+        "局部高光或眩光遮蔽表情"
+      ],
+      "practice": "项目练习：在一片树荫选择三个站位，拍摄测试照并比较脸部光线均匀程度。",
+      "acceptance": [
+        "能指出斑驳或眩光所在位置",
+        "选出的站位让脸部明暗过渡可控"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "‘LIGHT’; lines 127–136",
+          "support": "MacGregor 建议检查主体受光一致，避免斑驳和眩光，并指出树墙遮挡的开放阴影常提供高质量光线。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "outdoor portrait speckled light open shade trees professional photographer"
+      ]
+    },
+    {
+      "id": "field-move-face-light",
+      "skill_name": "优先移动人物解决不理想的脸部光线",
+      "capability": "当现场不受限且脸部受光不佳时，先尝试移动人物到较好光线，再判断是否需要补光。",
+      "why_it_matters": "留在坏光线中盲目加灯会增加技术复杂度，而且可能仍不利于人物表情。",
+      "module_hint": "户外光线调整",
+      "domain_hint": "环境人像",
+      "prerequisites": [
+        "field-light-quality-outdoors"
+      ],
+      "failure_modes": [
+        "人物面部仍处于不均匀或难看的阴影",
+        "无必要地加灯而未解决站位问题"
+      ],
+      "practice": "项目练习：对比原站位、移动人物后的自然光、再加补光三张测试照。",
+      "acceptance": [
+        "能说明移动人物是否改善面部明暗",
+        "选择补光时有不可移动或保留环境的具体原因"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "face light; lines 136–137",
+          "support": "若面部光线不好，MacGregor 建议移动人物；无法移动时再用闪光覆盖环境光。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait move subject to better light fill flash outdoor"
+      ]
+    },
+    {
+      "id": "field-match-flash-ambient",
+      "skill_name": "根据环境反差与色温决定闪光和环境光的关系",
+      "capability": "先测环境光，再明确选择平衡、压过或补充环境光，并调节闪光角度和色温以支持画面意图。",
+      "why_it_matters": "闪光若与场景反差或色彩不协调，会产生明显的人工闪光感或主体与环境分离。",
+      "module_hint": "现场光线整合",
+      "domain_hint": "环境人像",
+      "prerequisites": [],
+      "failure_modes": [
+        "主体光线看起来与环境不属于同一场景",
+        "面部色温与背景色温突兀",
+        "闪光把本来需要的环境光完全压掉"
+      ],
+      "practice": "项目练习：在同一地点拍摄环境光、补光、较强闪光三张，比较反差和色温。",
+      "acceptance": [
+        "能说清选择了哪种环境光关系",
+        "主体光与环境光的方向、反差和色温有可解释的联系"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "‘Go electric’; lines 134–137",
+          "support": "闪光质感应与场景反差相协调，晴天硬光和阴天柔和反差对应不同闪光处理。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "ambient/flash method; lines 102–121",
+          "support": "Harris 将环境曝光、颜色和人造光位置列为现场闪光的控制变量。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-nikon-kanayo-location",
+          "locator": "architecture/night captions; lines 89–110",
+          "support": "Adibe 在建筑暮光环境中用适量离机闪光保留场景氛围。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "environmental portrait match flash to ambient scene contrast color"
+      ]
+    },
+    {
+      "id": "field-window-light",
+      "skill_name": "用窗光控制室内人物与阴影的关系",
+      "capability": "在窗边决定是否排除其他顶灯、人物相对窗户的位置，以及曝光以人物受光还是阴影层次为主。",
+      "why_it_matters": "窗边自然光可以成为简单主光，但其他室内光源可能改变色彩和阴影。",
+      "module_hint": "室内环境光",
+      "domain_hint": "环境人像",
+      "prerequisites": [],
+      "failure_modes": [
+        "顶灯引入不受控色彩",
+        "面部被曝光到失去窗光反差",
+        "人物与室内背景光照脱节"
+      ],
+      "practice": "项目练习：在同一窗边分别开关室内顶灯，并各拍一张；比较面部明暗和环境颜色。",
+      "acceptance": [
+        "能指出所用主光来源",
+        "曝光和阴影效果与计划的情绪一致"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-nikon-window-portrait",
+          "locator": "Cliff Mautner tip; lines 26–31",
+          "support": "Mautner 的一种肖像方法是仅使用窗光、关闭顶灯，并按窗光曝光以保留阴影。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-nikon-todd-window",
+          "locator": "window-light case study; lines 44–48",
+          "support": "Owyoung 描述在朝南窗户的自然光中拍摄人物，并以人物风格为目标。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "‘Lighting and location’; lines 228–232",
+          "support": "室内可把人物放到窗边或引入另一光源，并考虑地点对光线的影响。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "window light portrait turn off overhead lighting photographer"
+      ]
+    },
+    {
+      "id": "field-mixed-whitebalance",
+      "skill_name": "在混合光室内确定白平衡参考",
+      "capability": "判断是否要使用自动、预设或自定义白平衡，并通过灰白参考或实时取景检查混合光结果。",
+      "why_it_matters": "窗光、荧光灯和钨丝灯混合时，画面不同区域可能出现不同色偏，单一自动设定未必表达预期。",
+      "module_hint": "室内色彩控制",
+      "domain_hint": "环境人像",
+      "prerequisites": [],
+      "failure_modes": [
+        "肤色或中性物体出现意外偏色",
+        "相机选择的白平衡不符合想要的色彩表达"
+      ],
+      "practice": "项目练习：在包含窗光和室内灯的房间拍摄自动、预设和白卡自定义三组测试，并比较中性物体与肤色。",
+      "acceptance": [
+        "摄影师能解释采用的白平衡参考",
+        "检查画面后能识别其对肤色和环境色的影响"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-nikon-whitebalance",
+          "locator": "PRE/custom white balance and LCD review; lines 145–155",
+          "support": "Nikon 说明不同灯种可选预设或 Kelvin；示例将 PRE 白卡用于窗光与荧光灯混合场景，并要求回看调整。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "field color balance; lines 111–121",
+          "support": "Harris 说明环境光色温会随时段和天气变化，并以 CTO/CTB 调整闪光使其与环境匹配。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "custom white balance mixed fluorescent window daylight",
+        "flash gel match ambient color temperature portrait"
+      ]
+    },
+    {
+      "id": "field-correct-mixed-color",
+      "skill_name": "识别混合光的局部色偏并选择修正方式",
+      "capability": "把现场色偏与其来源区域对应起来，并判断通过现场光线控制或局部后期遮罩修正。",
+      "why_it_matters": "整张照片统一调白平衡无法消除由不同位置光源造成的局部色偏。",
+      "module_hint": "色彩复核",
+      "domain_hint": "环境人像",
+      "prerequisites": [
+        "field-mixed-whitebalance"
+      ],
+      "failure_modes": [
+        "肤色与服装受到不同方向的色偏",
+        "全局白平衡调整损害另一侧区域"
+      ],
+      "practice": "项目练习：给一张混合光测试照标出两种光源区域，再用局部遮罩逐区修正或决定重拍。",
+      "acceptance": [
+        "局部修正没有明显侵入相邻区域",
+        "能区分现场控制问题和后期可修复问题"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-mixed-light",
+          "locator": "mixed window/incandescent example and color-range masks; lines 102–105, 139–158",
+          "support": "Furchgott 用局部颜色范围遮罩分别处理中性区域的蓝窗光和橙色灯光。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait correct mixed light local color mask window tungsten"
+      ]
+    },
+    {
+      "id": "field-architecture-frame",
+      "skill_name": "把人物放入建筑框架而保留环境层次",
+      "capability": "使用门洞、拱门、柱列等建筑结构定位人物，并控制画面线条和背景干扰。",
+      "why_it_matters": "建筑可交代尺度和地点，也容易产生压迫、杂乱或竞争注意力的线条。",
+      "module_hint": "建筑环境人像",
+      "domain_hint": "环境人像",
+      "prerequisites": [
+        "field-background-priority"
+      ],
+      "failure_modes": [
+        "人物被建筑线条切割",
+        "框架与主题无关或挤压人物",
+        "背景比人物更醒目"
+      ],
+      "practice": "项目练习：同一建筑处拍摄框内、柱列前和偏离结构三个版本，对比人物优先级。",
+      "acceptance": [
+        "建筑线条将注意力导向人物或场景故事",
+        "人物轮廓没有被不必要线条切断"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-nikon-kanayo-location",
+          "locator": "framing subjects in doorway/arch; lines 136–140",
+          "support": "Adibe 把人物放进门洞或拱门等框架，并通过形状和线条减少干扰。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "‘Framing’; lines 343–347",
+          "support": "取景框内细节应帮助讲述人物故事。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "architectural frame portrait doorway arch photographer",
+        "environmental portrait columns subject placement"
+      ]
+    },
+    {
+      "id": "field-location-liveview-check",
+      "skill_name": "用实时取景确认环境人像的实际构图",
+      "capability": "在调整相机位置或人物位置后检查完整画面，确认多余物体、人物边缘和背景虚化关系。",
+      "why_it_matters": "眼睛预览或想象中的构图可能遗漏人物周围物件和背景重叠。",
+      "module_hint": "现场画面检查",
+      "domain_hint": "环境人像",
+      "prerequisites": [],
+      "failure_modes": [
+        "画面中出现未发现的杂物",
+        "人物与背景出现意外重叠"
+      ],
+      "practice": "项目练习：固定人物和镜头，分别用取景器和大屏实时显示检查一张全身环境照，再比较遗漏。",
+      "acceptance": [
+        "能在快门前发现并解决至少一个实际构图问题",
+        "检查依据是完整画面而非只看人物脸部"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "Live View section; lines 94–98",
+          "support": "Canon 说明大屏实时显示便于确认构图、额外物件以及人物与背景的重叠关系。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-npg-portrait",
+          "locator": "framing; lines 343–347",
+          "support": "构图检查应关注整个画框内的细节是否帮助表达。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "live view environmental portrait composition background check"
+      ]
+    },
+    {
+      "id": "field-long-distance-direction",
+      "skill_name": "拍摄距离限制语言交流时改用可见提示",
+      "capability": "当人物与摄影师距离使正常交谈困难时，提前约定手势或身体方向作为简单提示，并检查人物是否理解。",
+      "why_it_matters": "远距离广角/长焦环境拍摄可能无法持续口头指导，但仍需维持协作。",
+      "module_hint": "现场指导",
+      "domain_hint": "人像沟通",
+      "prerequisites": [],
+      "failure_modes": [
+        "摄影师的口头指令无法传达",
+        "人物不清楚该保持还是更换姿势"
+      ],
+      "practice": "项目练习：与同伴预先约定三个清晰手势，在逐渐拉开距离后测试是否能无误表达。",
+      "acceptance": [
+        "提示在拍摄距离可被看见",
+        "被摄者能准确执行并确认提示含义"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-canon-cn-fullbody",
+          "locator": "distance/communication trade-off; lines 99–107",
+          "support": "远距拍摄难以语言交流，文章指出可通过手势和身体语言沟通。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "long distance portrait photographer gestures communication"
+      ]
+    },
+    {
+      "id": "field-direction-comfort",
+      "skill_name": "根据被摄者舒适度调整起始姿势和指导量",
+      "capability": "观察人物对镜头的舒适程度，选择更放松的起始姿势，并决定给予较多指导或留出动作自由。",
+      "why_it_matters": "对紧张的人直接要求复杂动作可能增加僵硬；对熟练表演者过多控制也可能压制自然变化。",
+      "module_hint": "人物沟通",
+      "domain_hint": "现场执行",
+      "prerequisites": [],
+      "failure_modes": [
+        "人物明显紧张或僵硬",
+        "摄影师给出的指导量与人物状态不匹配"
+      ],
+      "practice": "项目练习：与两位不同熟悉度的对象各拍一组，比较先轻量指导和先自由动作的反应。",
+      "acceptance": [
+        "起始动作符合被摄者意愿和能力",
+        "得到明确同意并在拍摄中确认是否继续"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "direction/freedom answer; lines 166–172",
+          "support": "Pugoffka 依据被摄者舒适度调整自由度，对紧张者从放松姿势开始。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-jeff-jenkins-cosplay",
+          "locator": "collaboration/consent; lines 39–53",
+          "support": "Jenkins 将角色知识、清晰边界、舒适度和拍摄中 check-in 纳入协作方式。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "cosplay photographer direction comfort consent portrait",
+        "photographer adapt pose direction to subject comfort"
+      ]
+    },
+    {
+      "id": "field-cosplay-collaboration",
+      "skill_name": "把 Cosplayer 的角色与服装知识纳入共同决策",
+      "capability": "在设计人物、灯光和姿势前，询问角色表达、服装特点、动作限制和被摄者期待，并共同修订拍摄想法。",
+      "why_it_matters": "摄影师不了解的服装结构或角色表达会被错误呈现；协作也能让边界更清楚。",
+      "module_hint": "Cosplay 现场协作",
+      "domain_hint": "漫展现场",
+      "prerequisites": [],
+      "failure_modes": [
+        "姿势或道具使用损伤服装",
+        "照片情绪不符合角色或被摄者想法",
+        "越过未确认的接触边界"
+      ],
+      "practice": "项目练习：拍前向 Cosplayer 询问角色目标、服装活动范围、不可触碰部位和可调整选项，再共同定一张主画面。",
+      "acceptance": [
+        "被摄者确认姿势/服装安排和边界",
+        "摄影师能说清哪些选择来自对方的角色或制作信息"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-jeff-jenkins-cosplay",
+          "locator": "‘Collaboration over direction’ and ‘Consent and comfort’; lines 39–60",
+          "support": "Jenkins 与 Cosplayer 商量角色、制作、姿势、舒适边界和灯光选择。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "locator": "collaborate and explain; lines 143–146",
+          "support": "MacGregor 建议解释摄影决定并询问意见、回应顾虑。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "core",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "cosplay photographer costume character communication collaboration"
+      ]
+    },
+    {
+      "id": "field-photowall-pose-ready",
+      "skill_name": "排队式拍摄前准备可快速执行的姿势",
+      "capability": "在有队列的固定背景拍摄中，预先准备少量可行姿势，并按场地已有灯位和站位调整。",
+      "why_it_matters": "队列拍摄中临时思考会拖延等待者，复杂动作也可能偏离既定灯位。",
+      "module_hint": "快节奏拍摄",
+      "domain_hint": "漫展现场",
+      "prerequisites": [
+        "field-venue-policy-check"
+      ],
+      "failure_modes": [
+        "队列停滞",
+        "姿势落在已设光区之外",
+        "姿势影响器材或背景"
+      ],
+      "practice": "来源练习：为固定 photowall 预备三种站姿，进场后按灯位微调；三种数量是 Keane 的个人建议。",
+      "acceptance": [
+        "被摄者能在短时间内开始拍摄",
+        "动作没有离开可用灯区或妨碍器材和客流"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-cosplay-keane-photowall",
+          "locator": "items 1–3; lines 11–17",
+          "support": "Keane 建议繁忙 photowall 提前准备三种姿势，并按灯位和队列速度进行调整。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "source_exercise",
+      "search_terms": [
+        "cosplay convention photowall prepared poses queue photographer"
+      ]
+    },
+    {
+      "id": "field-small-pose-variation",
+      "skill_name": "用小幅动作变化快速获得姿势版本",
+      "capability": "在主体基本位置不变时，一次只改变一个身体部位或让动作停顿，使摄影师能捕捉可比较的细节变化。",
+      "why_it_matters": "快速换大动作可能导致表情、服装和动作变化难以捕捉，也会耗费有限拍摄时间。",
+      "module_hint": "快节奏姿势变化",
+      "domain_hint": "漫展现场",
+      "prerequisites": [],
+      "failure_modes": [
+        "姿势变化太快导致没有清楚瞬间",
+        "每帧变化过多而难以判断哪种更有效"
+      ],
+      "practice": "项目练习：固定脚步位置，每次只改变手、肩、头或视线其中一项，逐帧比较。",
+      "acceptance": [
+        "每个版本变化可识别且主体仍舒适",
+        "摄影师能指出哪一项动作变化带来不同画面"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-cosplay-keane-photowall",
+          "locator": "item 1; lines 11–13",
+          "support": "Keane 建议即兴时每次移动一个身体部位以避免长时间想姿势。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "direction/freedom answer; lines 170–172",
+          "support": "Pugoffka 建议姿势转换不要太快，小幅变化就足以改变照片。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "cosplay photographer small pose transitions between frames"
+      ]
+    },
+    {
+      "id": "field-group-sequence",
+      "skill_name": "按单人、对子和组合逐步组织群体拍摄",
+      "capability": "面对多个 Cosplayer 时，将单人、组合和全组画面拆成可管理的拍摄顺序。",
+      "why_it_matters": "大群组同时调整人物和道具容易混乱，也可能遗漏个体表现。",
+      "module_hint": "多人现场调度",
+      "domain_hint": "漫展现场",
+      "prerequisites": [
+        "field-story-coverage-plan"
+      ],
+      "failure_modes": [
+        "多人等待时无明确顺序",
+        "全组照片完成但没有个体或小组合画面"
+      ],
+      "practice": "来源练习：为一个三人组排出单人、对子、全组的顺序，再按需要调整。",
+      "acceptance": [
+        "参与者知道当前和下一步安排",
+        "最终组图包含个体与组合层次"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "large-group workflow; lines 153–160",
+          "support": "Pugoffka 的大组顺序是先每人单拍，再全组，然后对子和三人组合。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "source_exercise",
+      "search_terms": [
+        "cosplay group photographer sequence singles pairs group"
+      ]
+    },
+    {
+      "id": "field-group-assistant",
+      "skill_name": "多人复杂拍摄时分配灯光协助职责",
+      "capability": "在多人、多个灯或复杂场面中评估是否需要助理，并明确助理负责的灯具或队列工作。",
+      "why_it_matters": "摄影师同时管理人物、相机和闪灯时可能难以维持拍摄节奏或灯光安全。",
+      "module_hint": "多人现场调度",
+      "domain_hint": "漫展现场",
+      "prerequisites": [
+        "field-group-sequence"
+      ],
+      "failure_modes": [
+        "摄影师离开相机去搬灯造成队列混乱",
+        "灯具无人看管或人物不知道动作顺序"
+      ],
+      "practice": "项目练习：用两名参与者和一盏灯演练摄影师与助理的职责交接。",
+      "acceptance": [
+        "助理职责可用一句话说清",
+        "人物调整和灯位调整不会同时失控"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "locator": "large-group workflow; lines 153–160",
+          "support": "Pugoffka 表示大型拍摄需要更多助理管理相机闪灯。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "advanced",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "cosplay photographer group shoot assistants flash management"
+      ]
+    },
+    {
+      "id": "field-focus-check",
+      "skill_name": "在离开当前站位前复核记录焦点",
+      "capability": "拍摄后回看焦点位置，确认相机选择的焦点是否落在预期区域，再决定是否需要重拍。",
+      "why_it_matters": "对眼睛或关键角色细节失焦可能直到后期筛片才发现。",
+      "module_hint": "现场图像检查",
+      "domain_hint": "拍摄后检查",
+      "prerequisites": [],
+      "failure_modes": [
+        "焦点落在背景或服装而非预定面部位置",
+        "没发现技术问题就离开可复拍位置"
+      ],
+      "practice": "项目练习：拍摄后回放并显示焦点框；在相机支持时核对焦点位置，并放大检查关键区域。",
+      "acceptance": [
+        "能指出焦点框和计划焦点位置的关系",
+        "不把焦点框位置误当成锐度或照片整体质量证明"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-nikon-focus-playback",
+          "locator": "playback focus-point check; lines 27–34",
+          "support": "Nikon 说明回放显示焦点框以确认选择焦点是否位于预想处。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "camera playback check focus point portrait photographer"
+      ]
+    },
+    {
+      "id": "field-critique-seeking",
+      "skill_name": "主动寻求针对具体照片的专业反馈",
+      "capability": "将选定照片交给可信评审或同行讨论，并区分针对作品的反馈和对个人的评价。",
+      "why_it_matters": "单独重复拍摄可能让同一失败模式长期没有被看见。",
+      "module_hint": "复盘与训练",
+      "domain_hint": "持续学习",
+      "prerequisites": [],
+      "failure_modes": [
+        "把沉默当作肯定或否定",
+        "只寻求赞美而没有改进信息",
+        "把作品反馈理解为个人否定"
+      ],
+      "practice": "项目练习：每轮选一张作品，请评审指出画面意图是否传达、一个有效选择和一个可测试改进点。",
+      "acceptance": [
+        "反馈具体到可控制的画面选择",
+        "记录下能检验的改进方向"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-critique-derryberry",
+          "locator": "critique reflection; lines 101–127",
+          "support": "Derryberry 长期寻求照片评审、记录意见并据此尝试新的技术。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-jeff-jenkins-cosplay",
+          "locator": "portfolio critique section; lines 171–176",
+          "support": "Jenkins 提供逐图、边拍边讲的作品反馈方式，涉及光线、姿势和后期。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "professional_consensus",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait photographer portfolio critique constructive feedback"
+      ]
+    },
+    {
+      "id": "field-feedback-to-experiment",
+      "skill_name": "把复盘意见转成下一次可验证的拍摄调整",
+      "capability": "从反馈中挑选一个自己能控制的变量，在下一轮有计划地尝试并保留前后对照。",
+      "why_it_matters": "收到意见本身不会改变拍摄结果；需要把建议转成可观察的行动。",
+      "module_hint": "复盘与训练",
+      "domain_hint": "持续学习",
+      "prerequisites": [
+        "field-critique-seeking"
+      ],
+      "failure_modes": [
+        "听完反馈没有后续行动",
+        "一次改变多个变量而不知道什么有效"
+      ],
+      "practice": "项目练习：将一条反馈转成一次只改一个变量的复拍实验，并记录新旧版本。",
+      "acceptance": [
+        "明确指出本次改变的变量",
+        "对照照片能观察到变量造成的差异或无差异"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-critique-derryberry",
+          "locator": "lines 102, 124–127",
+          "support": "Derryberry 描述将反馈转成更努力拍摄或尝试新技术的做法。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "practice before assignments; lines 127–133",
+          "support": "Harris 说明先练新技术，再在实际任务中检验和调整。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photography critique apply feedback next experiment practice"
+      ]
+    },
+    {
+      "id": "field-location-reflection",
+      "skill_name": "拍后对照画面意图检查故事线索是否成立",
+      "capability": "拍后逐张核对人物、环境和画面意图之间的关系，标记有效线索与未实现的设想。",
+      "why_it_matters": "拍摄现场容易专注于器材和动作，导致没有回看照片是否实际表达了主题。",
+      "module_hint": "拍后复盘",
+      "domain_hint": "持续学习",
+      "prerequisites": [
+        "field-brief-purpose",
+        "field-story-coverage-plan"
+      ],
+      "failure_modes": [
+        "照片漂亮但不符合原目标",
+        "场景中预期的故事线索没有进入成片"
+      ],
+      "practice": "项目练习：从一组片中选三张，分别写下意图、可见支持证据和一个未达成之处。",
+      "acceptance": [
+        "每条判断都指向实际画面或拍前记录",
+        "没有把拍前想法冒充成照片已经表达的事实"
+      ],
+      "evidence": [
+        {
+          "source_id": "field-ppa-critique-derryberry",
+          "locator": "lines 120–127",
+          "support": "评审和反馈可以帮助摄影师判断作品是否需要改变及下一步尝试。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "field-owm-kate-holt",
+          "locator": "‘Understand your purpose’; lines 65–69",
+          "support": "Holt 反复确认拍摄目的，以便持续寻找能表达故事的画面。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "photographer reflection compare photographs to assignment purpose"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "环境人像中环境与人物的视觉主次",
+      "positions": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "position": "环境肖像仍应以人物为主兴趣点，避免环境过度主导。"
+        },
+        {
+          "source_id": "field-owm-kate-holt",
+          "position": "在纪实叙事中，环境有时是故事主题不可替代的主体信息，人物肖像之外还要拍情境画面。"
+        }
+      ],
+      "resolution": "按照片用途和画面角色分别处理，不将单张肖像规则套到整组纪实覆盖。"
+    },
+    {
+      "topic": "现场环境光的色彩与闪光的处理",
+      "positions": [
+        {
+          "source_id": "field-ppa-macgregor-env",
+          "position": "优先让闪光的反差品质与环境匹配。"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "position": "可选择平衡、压过或填充环境光，并通过色温附件及曝光决定效果。"
+        }
+      ],
+      "resolution": "这是有意图与场景条件决定的选项差异，不存在统一闪光强度；先明确意图再做对照。"
+    },
+    {
+      "topic": "漫展快速变化的姿势数量与变化幅度",
+      "positions": [
+        {
+          "source_id": "field-cosplay-keane-photowall",
+          "position": "固定背景排队拍摄建议预备少量姿势，并在即兴时每次改变一个身体部位。"
+        },
+        {
+          "source_id": "field-cosplay-pugoffka",
+          "position": "允许动作自由时也建议不要过快移动，轻微变化可产生不同画面。"
+        }
+      ],
+      "resolution": "两者适用于受限时间环境；姿势数字属于个别摄影师方法，尚无独立多作者方法共识。"
+    }
+  ],
+  "gaps": [
+    "候选表涵盖一般户外、窗边、建筑和短时拍摄，但缺少能直接支持‘漫展人流中站位切换、背景避让和快速判断’的多位专业摄影师完整示范。活动规定仅支持该场活动的许可和通行限制。",
+    "中国漫展官方规则和中文一线摄影师教程仍未找到可直接打开且身份清楚的高质量来源；通用社区文章及陈旧活动页面没有作为正式技能证据。",
+    "混合光目前有相机白平衡、闪光色温以及 Lightroom 局部修正证据；展馆内不同 LED/荧光灯频闪、颜色变化和大面积混色光下的现场人像策略仍不足。",
+    "短时拍摄已有测试布光与关键画面优先的单一方法证据，尚缺多个独立专业作者对快速人物沟通、确认、动作设计及会话结束检查的完整流程。",
+    "现场回看只得到焦点框检查的设备操作证据；清晰度、曝光、闭眼、表情、服装/道具状态、背景和下一张是否重拍的综合失败检查仍需要更直接来源。",
+    "拍后反馈与意图复盘已有专业一手材料支持，但按失误类别记录、控制复拍变量和验证复盘改进的完整系统是项目设计，尚无独立摄影师来源规定的统一流程。",
+    "Pugoffka 的多人照片排序是单一摄影师方法，群体排列、服装/道具组织和助理分工仍需第二个独立摄影师来源再确认。",
+    "专业来源对环境人像和纪实照片用途不同；不要把新闻摄影的不可重拍或伦理规范直接当作合作式 Cosplay 摆拍规则。"
+  ]
+}

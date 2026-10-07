@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "resources": [
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-01",
+      "title": "COSGENIC 01：先明确画面意图，再安排角色、姿势与机位",
+      "original_title": "Lesson1 コツを覚えてコスジェニックな１枚を!!",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson1/",
+      "author": "摄影与后期：井上依子（YOL）、渡邉（yakul）；Nikon Imaging Japan / COSPLAY MODE",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读第1–3节：明确情绪/场景意图、角色动作、视线高度与空间使用；读到署名。"
+      },
+      "trust_reason": "Nikon Imaging Japan 与 COSPLAY MODE 合作的专业 Cosplay 摄影课程；页面署名摄影师，并以文字讲解示例方法。",
+      "summary": "学习先把希望表达的角色状态或场景说清，再选择人物动作、相机高度和空间关系；比较同一姿态在不同机位与动作幅度下的变化。",
+      "start_here": "从“明确影像”与“角色和动作”两节开始，再读不同视线高度的例子。",
+      "study_task": "项目练习：为一个角色写下两种画面意图；固定服装和背景，只改变姿态幅度或相机高度，拍摄并记录意图是否可读。",
+      "limitations": "教学示例带有角色类型与角度效果的简化分类，应当按角色、模特舒适度及实际画面验证；不是固定性格映射。未检查页面示例图片像素。",
+      "source_id": "posing-nikon-cosgenic-lesson1",
+      "skill_ids": [
+        "field-brief-purpose",
+        "posing-intent-elicitation",
+        "posing-character-appropriate-action",
+        "posing-body-angle-to-camera"
+      ],
+      "domain_ids": [
+        "posing",
+        "character",
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-03",
+      "title": "COSGENIC 03：从角色特点做姿态、表情与画面变化",
+      "original_title": "Lesson3 可愛いもシリアスも思い通り！女性キャラ撮影のコツ！",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson3/",
+      "author": "摄影与后期：井上依子（YOL）、渡邉（yakul）；Nikon Imaging Japan / COSPLAY MODE",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读第1–3节及署名：共同确定成片方向、姿势/表情/相机角度变体、手部动作与视线示例。"
+      },
+      "trust_reason": "Nikon Imaging Japan 与 Cosplay 专题媒体合作课程，展示由摄影师署名的角色肖像案例和文字分析。",
+      "summary": "通过先讨论成片目标，再对同一角色改变手部位置、视线、表情和拍摄角度，观察画面情绪如何改变；也讨论现场用前景调整画面氛围。",
+      "start_here": "先读“成片效果”和“共同讨论画面意图”，再看同衣装的表情与姿态对照。",
+      "study_task": "项目练习：保持同一景别，拍摄同一角色两种状态；每版只调整一组身体/表情变量，并让扮演者确认意图。",
+      "limitations": "示例主要是女性角色肖像与特定时代的审美表达；不应套用其性别化称谓或角色语义到所有扮演者。没有检查示例图片像素。",
+      "source_id": "posing-nikon-cosgenic-lesson3",
+      "skill_ids": [
+        "posing-intent-elicitation",
+        "posing-body-face-expression-alignment",
+        "posing-character-mood-variation",
+        "posing-purposeful-hand-placement"
+      ],
+      "domain_ids": [
+        "posing",
+        "character"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-04",
+      "title": "COSGENIC 04：和扮演者协作设计角色轮廓与拍摄场景",
+      "original_title": "Lesson4 カッコイイもセクシーも思いのまま!?男装撮影HowTo編",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson4/",
+      "author": "摄影与后期：井上依子（YOL）、渡邉（yakul）；Nikon Imaging Japan / COSPLAY MODE",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读意图协商、角色轮廓/场景、全身镜预演与自我拍摄建议（第1–3节及Tips）。"
+      },
+      "trust_reason": "Nikon/COSPLAY MODE 专业课程，页面标明摄影师与协作模特，并提供逐段拍摄指导。",
+      "summary": "课程展示摄影者和扮演者如何先对齐画面想法，再用姿势、服装轮廓、场景道具及镜前预演调整角色呈现。",
+      "start_here": "先读团队协作和场景设计，再读使用全身镜/相机预演姿态的 Tips。",
+      "study_task": "项目练习：请扮演者先提出想呈现的角色特征；共同选一个可见轮廓变量，镜前预演后从相机机位复查。",
+      "limitations": "文章把男装效果描述为压低女性化曲线等，带有明显二元性别审美；只取其共同设计、预演和视觉检查方法，不把身体标准当作普遍要求。",
+      "source_id": "posing-nikon-cosgenic-lesson4",
+      "skill_ids": [
+        "posing-intent-elicitation",
+        "posing-costume-representation-choice",
+        "posing-self-recording-review",
+        "posing-instruction-clarity"
+      ],
+      "domain_ids": [
+        "posing",
+        "character",
+        "costume"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-05",
+      "title": "COSGENIC 05：把多人角色关系组织成共同画面",
+      "original_title": "Lesson5 “合わせ”にチャレンジしてみよう！",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson5/",
+      "author": "Nikon Imaging Japan / COSPLAY MODE；系列摄影师井上依子（YOL）与渡邉（yakul）",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读多人组照的摄影者职责、平面排列与前后层次对照（第1–2节）；未检查图片像素。"
+      },
+      "trust_reason": "Nikon/COSPLAY MODE Cosplay 教学系列的完整一课，以四人角色组照的文字示例说明安排方法。",
+      "summary": "学习由摄影者把共同情境落实为画面安排，再通过人物前后位置、间距、动作与表情避免组照退化成平行站队。",
+      "start_here": "先读“组照的指挥者”与“不是普通合影”，关注人物排列和角色状态说明。",
+      "study_task": "项目练习：与每位参与者简短对齐共同情境，再只改变一人的站位或朝向，比较两版人物关系是否更明确。",
+      "limitations": "课程以四人室内角色组照为例，不等同于漫展拥挤人流中的调度流程，也不适用于需要快速轮换的摄影墙场景。",
+      "source_id": "cosplay-nikon-cosgenic-lesson5",
+      "skill_ids": [
+        "cosplay-c13-group-character-arrangement",
+        "field-group-sequence",
+        "field-group-assistant"
+      ],
+      "domain_ids": [
+        "costume",
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-nikon-cosgenic-11",
+      "title": "COSGENIC 11：日本刀角色照中的姿态、场景与快门动静",
+      "original_title": "Lesson11 動きのある剣劇作品を撮る―和装でシャッタースピードを極める―",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson11/",
+      "author": "摄影：山本哲也；Nikon Imaging Japan / COSPLAY MODE",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读刀姿、和装姿态/背景选择、快门冻结与残影及课程安全说明；未检查图片像素。"
+      },
+      "trust_reason": "Nikon/COSPLAY MODE 的摄影师署名课程，展示日本刀 Cosplay 的静态姿态、环境选择和快门示例，并注明使用木制仿刀及安全拍摄。",
+      "summary": "学习如何把角色动作与姿态意图联系起来，比较快门对刀具运动凝固/残影的影响，并考虑服装时代感与背景。",
+      "start_here": "先读“姿势与构图”，再读“快门速度与模糊”；将安全注记一并阅读。",
+      "study_task": "项目练习：仅在合规、空旷、经同伴确认的场地，用轻质钝头仿制道具对比静态定姿和受控小幅动作的快门效果。",
+      "limitations": "内容明确针对日本刀/和装，不支持短匕首的内扣外展或躯干关系规则；静态照片姿势也不是武器操作训练。",
+      "source_id": "posing-nikon-cosgenic-lesson11",
+      "skill_ids": [
+        "cosplay-c07-japanese-sword-character-pose",
+        "posing-action-stance-context",
+        "field-venue-policy-check"
+      ],
+      "domain_ids": [
+        "posing",
+        "costume",
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-rpg-weapons",
+      "title": "RPG 仿制道具姿态图鉴：按道具类别设计静态画面",
+      "original_title": "〖ポージング〗コスプレ撮影で使える！RPG風武器持ちポージング図鑑",
+      "url": "https://cosplaymode.net/howto/34432/",
+      "author": "指导/文字：まめまよ；摄影：涼子、大関敦",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读适用范围、教师资历、安全说明及按武器类别组织的姿态目录前段（lines 53–126）；未检查示例图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志文章，由有 World Cosplay Summit 获奖经历及动作姿态教学经验的指导者提供文字说明，并署名摄影师。",
+      "summary": "按剑、大型道具、长柄道具与弓等类别查找多种静态持物姿势；同时先看规则、安全和周围空间条件。",
+      "start_here": "先读适用范围及安全说明，再按自己持有的道具类别查看姿态目录。",
+      "study_task": "项目练习：选择合规的轻质钝头仿制道具和空旷区域，与扮演者确认一种静态画面姿势；拍摄前后各检查画面可读性与周边净空。",
+      "limitations": "文章声明这些是 Cosplay 静态画面姿势，不是武术训练；公开教学覆盖的类别不能代替短匕首特定镜头关系或宽袖规则。",
+      "source_id": "cosplay-cosplaymode-rpg-weapons",
+      "skill_ids": [
+        "cosplay-c06-large-prop-pose-variants",
+        "posing-outfit-prop-limit-negotiation",
+        "field-venue-policy-check"
+      ],
+      "domain_ids": [
+        "costume",
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-katana",
+      "title": "日本刀 Cosplay 姿态：动作顾问与摄影师示例",
+      "original_title": "コスプレで学ぶ日本刀 ポージング",
+      "url": "https://cosplaymode.net/howto/1680/",
+      "author": "文字：まめまよ；顾问：龍村自斎；摄影：涼子、大関敦；插画：あまね",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读文章范围、器具部位共享术语、基础姿态与刀身/刀鞘方向部分（lines 53–108）；未检查示例图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志教程，由兼任杀阵师的 Cosplayer 与动作顾问提供建议，并署名摄影师。",
+      "summary": "学习如何先统一日本刀部位名称，再用清晰的部位提示指导姿势；文章也说明日本刀姿态、持握和刀身方向的专用示例。",
+      "start_here": "先读部位名称共享，再读基础姿态；按角色动作需要选读刀具姿势示例。",
+      "study_task": "项目练习：与扮演者先确认日本刀仿制道具的部位叫法和角色姿态意图，再给一个部位明确的口头提示并复查画面。",
+      "limitations": "内容针对日本刀及其历史/动作语境，文章中的持刀规范不等于摄影普遍规则，也不能外推至短匕首、西洋剑或实际武器操作。",
+      "source_id": "cosplay-cosplaymode-katana",
+      "skill_ids": [
+        "cosplay-c07-japanese-sword-character-pose",
+        "posing-instruction-clarity"
+      ],
+      "domain_ids": [
+        "posing",
+        "costume"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-verbal-cues",
+      "title": "摄影师与 Cosplayer 的现场口令：把目标说成具体动作",
+      "original_title": "コスプレカメラマンとコスプレイヤー 声かけ指示のポイント",
+      "url": "https://cosplaymode.net/howto/184/",
+      "author": "COSPLAY MODE 编辑部；页面未见个人作者署名",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读文章中手臂与躯干间距、机位高度及对应摄影师/模特口令示例（lines 63–109），并浏览沟通总结。"
+      },
+      "trust_reason": "专业 Cosplay 杂志的全文实用案例，以摄影者与扮演者的对话展示口令和动作对应关系。",
+      "summary": "把“更好看”换成可执行的小指令，例如调整上身角度、手的位置或拍摄高度，并观察对应的轮廓变化。",
+      "start_here": "先看手臂与躯干留白的前后示例，再读明确机位高度的双向口令。",
+      "study_task": "项目练习：从同一张测试照中选一个可观察问题，只给一个明确短提示；与扮演者一起确认指令和变化是否清楚。",
+      "limitations": "页面未署名个人作者，属于单一杂志编辑体系；示例包含性别化身形措辞，提取时只使用画面间距和具体提示，不复用身体评判。它没有测量中国漫展的人流速度。",
+      "source_id": "cosplay-gap-cosplaymode-cues",
+      "skill_ids": [
+        "posing-instruction-clarity",
+        "posing-small-adjustments",
+        "posing-arm-torso-separation",
+        "posing-body-angle-to-camera"
+      ],
+      "domain_ids": [
+        "posing",
+        "character"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-pose-options",
+      "title": "Cosplay 姿态变化参考：手势、道具、服装轮廓与舒适范围",
+      "original_title": "簡単テクから魅せワザまで！困ったときのコスプレ撮影ポージング",
+      "url": "https://cosplaymode.net/howto/556/",
+      "author": "COSPLAY MODE 编辑部；页面列出示例模特，未列个人作者",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读扭转/动作、手和小道具、裙摆展开、回头姿势舒适度等正文（lines 80–127、190–206）；未检查图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志以全文给出可变姿势的操作和限制条件，并标出原刊期号及示例模特。",
+      "summary": "从躯干扭转、手部位置、普通小道具、裙摆展开和可承受的回头幅度寻找姿势变化；留意动作是否进入画框、服装是否仍清楚。",
+      "start_here": "按当前问题选读：姿态变化、普通小道具、裙摆/裙装轮廓或舒适范围；不必照搬整篇姿势目录。",
+      "study_task": "项目练习：与扮演者选择一个已同意的服装或普通道具重点，拍摄两种不同摆位；比较轮廓、面部可读性和扮演者舒适度。",
+      "limitations": "裙摆示例不能证明宽袖的整理方法；普通道具例子不提供匕首内扣/外展规则。页面有一些身材评价措辞，不作为身体审美标准。",
+      "source_id": "cosplay-gap-cosplaymode-prop-posing",
+      "skill_ids": [
+        "posing-directed-small-movement",
+        "posing-purposeful-hand-placement",
+        "cosplay-c11-costume-visibility-check",
+        "cosplay-gap-c01-small-prop-face-outline",
+        "field-direction-comfort"
+      ],
+      "domain_ids": [
+        "posing",
+        "character",
+        "costume"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-cosplaymode-wig-fabric-motion",
+      "title": "Cosplay 肖像中的姿态、假发/衣摆运动与现场沟通",
+      "original_title": "アイドル風コスプレポートレート かわいいコスプレイヤーを可愛く撮るには",
+      "url": "https://cosplaymode.net/howto/245/",
+      "author": "COSPLAY MODE 编辑部；署名摄影/后期为井上依子（YOL）、渡邉（yakul）",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读实拍方法中的姿态/服装与头发运动、助手协作、目线沟通与背景位置段落（lines 159–209）及署名；未检查图片像素。"
+      },
+      "trust_reason": "专业 Cosplay 杂志摄影专题，提供可读的拍摄说明、摄影/后期署名和现场协作建议。",
+      "summary": "学习如何把姿态、头发/衣摆运动和角色状态联系起来；衣摆需要帮助时由助手或摄影者遥控协助，并通过现场交流对齐画面感受。",
+      "start_here": "从“姿态和运动”读起，再看如何让被摄者与相机保持眼平沟通、调整人与背景关系。",
+      "study_task": "项目练习：在固定站姿下，由扮演者和助手共同选定轻质衣摆运动方向，拍摄并复查人物是否稳定、服装重点是否可读。",
+      "limitations": "文章示例是轻盈裙摆/发丝和偶像风 Cosplay；不能推导合成假发的整理、固定或反光控制，也不支持宽袖具体规则。只学习已说明的轻质衣料/头发运动和协作。",
+      "source_id": "cosplay-cosplaymode-gesture-motion",
+      "skill_ids": [
+        "cosplay-c09-assisted-fabric-motion",
+        "cosplay-c10-wig-costume-flow",
+        "posing-character-appropriate-action"
+      ],
+      "domain_ids": [
+        "posing",
+        "character",
+        "costume"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-muncy-convention-portrait",
+      "title": "C.S. Muncy：漫展 Cosplay 肖像的准备、勘景与场地协商",
+      "original_title": "C.S. Muncy on How to Shoot Cosplay Portraits",
+      "url": "https://www.adorama.com/alc/c-s-muncy-on-how-to-shoot-cosplay-portraits/",
+      "author": "C.S. Muncy",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读漫展计划、主办方许可、现场预勘、避让人流、备机备灯和参与者沟通部分（正文约 138–159 行）。"
+      },
+      "trust_reason": "作者为纽约自由摄影记者，有《纽约时报》《华尔街日报》等媒体客户及摄影奖/工作坊经历；以本人长期漫展肖像项目描述操作。",
+      "summary": "学习在漫展前确认拍摄计划与场地许可，先勘查人流和设备摆位，选择不妨碍通行的地点，并准备备份设备、尊重参与者时间。",
+      "start_here": "先读作者的漫展工作背景，再读计划/许可、场地预勘和设备准备。",
+      "study_task": "项目练习：为一个已获准的漫展拍摄点画出站位和设备占地示意，并预选不阻碍人流的邻近背景作为备选。",
+      "limitations": "案例来自美国大型漫展、经许可布景的新闻/商业肖像流程，不等于中国漫展规章或快速场照方法；需核对本地活动要求。",
+      "source_id": "root-muncy-convention-location",
+      "skill_ids": [
+        "field-brief-purpose",
+        "field-location-time-scout",
+        "field-venue-policy-check",
+        "field-location-feasibility",
+        "field-mobile-kit",
+        "field-cosplay-collaboration"
+      ],
+      "domain_ids": [
+        "field",
+        "character"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-erlien-one-light-con",
+      "title": "Jon Erlien：Comic Con 人像的一灯移动实拍案例",
+      "original_title": "How to Shoot Cosplay Portraits at Comic Con with Just One Light",
+      "url": "https://petapixel.com/2017/04/18/shoot-cosplay-portraits-comic-con-just-one-light/",
+      "author": "Jon Erlien",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读作者描述、出发前单灯方案、助手协作、设备/曝光设置和现场肖像流程（lines 21–43）。"
+      },
+      "trust_reason": "作者介绍为人像摄影师，专注戏剧化肖像并有商业修图经验；文章是本人一次 Comic Con 移动拍摄的完整方法记录。",
+      "summary": "观察摄影者如何为拥挤场馆预先规划轻便单灯、由同伴持灯、控制环境曝光，并根据现场光线调整快门。",
+      "start_here": "先读场馆限制与单灯构想，再看器材布置和固定曝光变量。",
+      "study_task": "项目练习：在允许的开放空间用一盏便携灯和一名助手做短肖像测试；分别记录环境曝光与人物光线的变化。",
+      "limitations": "这是一个摄影师的美国漫展案例，不证明单灯适用于所有展馆，也不提供中国现场的排队、审批或角色指导规则。附图没有进行像素级分析。",
+      "source_id": null,
+      "skill_ids": [
+        "field-mobile-kit",
+        "field-group-assistant",
+        "field-background-priority"
+      ],
+      "domain_ids": [
+        "field"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-jeff-jenkins-collaboration",
+      "title": "Jeff Jenkins：把 Cosplayer 当作共同创作者来规划拍摄",
+      "original_title": "Cosplay & Convention Photographer: How I Work",
+      "url": "https://www.jeffjenkinsphotography.com/?p=534",
+      "author": "Jeff Jenkins",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读其拍摄流程、角色/服装/舒适度规划、沟通与同意、与扮演者共同设计姿势等章节（lines 28–57）。"
+      },
+      "trust_reason": "Cosplay 与创意人像摄影师的第一人称工作流程，页面展示其漫展服务、作品与客户合作方式。",
+      "summary": "学习拍前围绕角色、服装、被摄者舒适度和成片表达规划；姿势由双方讨论，碰触/调整假发前先征求同意。",
+      "start_here": "从“Cosplayer 是合作者”开始，继续读如何沟通、确认边界和安排姿势。",
+      "study_task": "项目练习：拍前用两三个问题询问扮演者希望呈现的角色信息和服装重点，再提出一个可选择的姿势想法，由对方决定是否尝试。",
+      "limitations": "这是个人工作方法与自述，不能当作多摄影师共识或场照快速流程；相关成片不作为未经检查的视觉证据。",
+      "source_id": "posing-jeff-jenkins-cosplay-collaboration",
+      "skill_ids": [
+        "field-cosplay-collaboration",
+        "posing-intent-elicitation",
+        "posing-demonstrate-without-contact"
+      ],
+      "domain_ids": [
+        "character",
+        "field",
+        "costume"
+      ]
+    },
+    {
+      "id": "cosplay-tutorial-keane-photowall",
+      "title": "Keane：摄影墙排队场景中的快速姿态准备",
+      "original_title": "At the Convention Photowall",
+      "url": "https://capturingcosplay.com/at-the-convention-photowall/",
+      "author": "Keane",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读摄影墙快速贴士全文：繁忙时拍摄节奏、预备姿态、单变量小变化、灯位已预设与不占用背景区（lines 7–19）。"
+      },
+      "trust_reason": "作者以第一人称说明其漫展摄影墙及场照工作经验，并明确表示这些是个人建议而非通用规则。",
+      "summary": "摄影墙繁忙时先带着数个已想好的姿态；即兴变化时一次只动身体一个部位，并考虑队列时间和预设灯位。",
+      "start_here": "从“准备三个姿态”读起，再读站姿范围与灯光已设定的限制。",
+      "study_task": "项目练习：在模拟短时拍摄中先写出三个扮演者认可的姿势版本；每次只改变一个身体部位，记录实际用时和可读性。",
+      "limitations": "这是个人摄影墙经验，适用于该作者描述的排队式灯光区；不证明所有漫展都有相同布光或队列约定，也不是中国漫展专业共识。",
+      "source_id": "field-cosplay-keane-photowall",
+      "skill_ids": [
+        "field-photowall-pose-ready",
+        "field-small-pose-variation",
+        "field-short-slot-priorities"
+      ],
+      "domain_ids": [
+        "field",
+        "posing",
+        "character"
+      ]
+    }
+  ]
+}

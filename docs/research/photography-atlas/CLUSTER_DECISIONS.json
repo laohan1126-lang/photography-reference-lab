@@ -1,0 +1,1433 @@
+{
+  "meta": {
+    "title": "摄影能力地图",
+    "target": "真人 Cosplay / 人像现场摄影",
+    "research_date": "2026-10-08",
+    "personal_status_policy": "所有能力初始未评估；掌握状态由本人记录，不由研究资料推定。",
+    "exercise_policy": "练习与验收为项目设计的观察框架，非职业认证或普适审美分数。",
+    "research_stage": "two_coverage_rounds_completed_bounded_gaps_visible"
+  },
+  "domains": [
+    {
+      "id": "composition",
+      "name": "构图与视觉组织",
+      "description": "从边缘、层次与视觉重量，决定画面把注意力带到哪里。",
+      "cover_index": 0,
+      "modules": [
+        {
+          "id": "composition-1",
+          "name": "边缘与裁切",
+          "skill_ids": [
+            "composition-edge-sweep",
+            "composition-crop-intent",
+            "composition-tangent-check",
+            "composition-frame-orientation",
+            "perspective-gap-skill-knee-crop-choice"
+          ]
+        },
+        {
+          "id": "composition-2",
+          "name": "背景信息",
+          "skill_ids": [
+            "composition-remove-bg-distractions",
+            "composition-background-density"
+          ]
+        },
+        {
+          "id": "composition-3",
+          "name": "主体位置与空间",
+          "skill_ids": [
+            "composition-center-subject",
+            "composition-offcenter-negative-space",
+            "composition-gaze-action-room",
+            "composition-subject-context-scale"
+          ]
+        },
+        {
+          "id": "composition-4",
+          "name": "框景与遮挡",
+          "skill_ids": [
+            "composition-internal-frame",
+            "composition-frame-purpose",
+            "composition-layer-depth",
+            "composition-foreground-control"
+          ]
+        },
+        {
+          "id": "composition-5",
+          "name": "主体分离",
+          "skill_ids": [
+            "composition-focus-background-separation",
+            "composition-tonal-figure-ground",
+            "composition-color-separation"
+          ]
+        },
+        {
+          "id": "composition-6",
+          "name": "引导线与动势",
+          "skill_ids": [
+            "composition-leading-line-target",
+            "composition-line-exit-control",
+            "composition-line-character"
+          ]
+        },
+        {
+          "id": "composition-7",
+          "name": "图形与剪影",
+          "skill_ids": [
+            "composition-shape-reduction",
+            "composition-silhouette-readability",
+            "composition-monochrome-audit",
+            "composition-pattern-break"
+          ]
+        },
+        {
+          "id": "composition-8",
+          "name": "视觉重量与平衡",
+          "skill_ids": [
+            "composition-visual-weight-diagnosis",
+            "composition-asymmetric-balance",
+            "composition-intentional-imbalance",
+            "composition-symmetry-alignment"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "perspective",
+      "name": "机位、焦段与透视",
+      "description": "分开控制高度、轴线与距离，再判断人物比例。",
+      "cover_index": 1,
+      "modules": [
+        {
+          "id": "perspective-1",
+          "name": "高度与镜头轴线",
+          "skill_ids": [
+            "perspective-skill-height-vs-pitch",
+            "perspective-skill-crop-height",
+            "perspective-skill-lens-axis-level",
+            "perspective-skill-angle-comparison",
+            "perspective-skill-pitch-vs-roll",
+            "perspective-gap-skill-intentional-roll",
+            "perspective-gap-skill-low-view-expression-context"
+          ]
+        },
+        {
+          "id": "perspective-2",
+          "name": "比例失真诊断",
+          "skill_ids": [
+            "perspective-skill-height-proportion-diagnosis",
+            "perspective-skill-optical-vs-perspective"
+          ]
+        },
+        {
+          "id": "perspective-3",
+          "name": "视点距离与焦段",
+          "skill_ids": [
+            "perspective-skill-viewpoint-distance",
+            "perspective-skill-distance-before-focal",
+            "perspective-skill-focal-length-field-of-view",
+            "perspective-skill-fixed-position-focal-compare"
+          ]
+        },
+        {
+          "id": "perspective-4",
+          "name": "场地与工作距离",
+          "skill_ids": [
+            "perspective-skill-lens-working-distance"
+          ]
+        },
+        {
+          "id": "perspective-5",
+          "name": "景别与环境关系",
+          "skill_ids": [
+            "perspective-skill-environment-context",
+            "perspective-skill-shot-scale-vocabulary",
+            "perspective-skill-coverage-variation"
+          ]
+        },
+        {
+          "id": "perspective-6",
+          "name": "人物前后关系",
+          "skill_ids": [
+            "perspective-skill-wide-near-depth",
+            "perspective-skill-foreground-hand-scale",
+            "perspective-skill-lean-depth-control",
+            "perspective-skill-body-angle",
+            "perspective-skill-pose-distance-subject-goal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "focus",
+      "name": "对焦与清晰范围",
+      "description": "让需要看清的眼睛、人物和动作落在可用的清晰范围里。",
+      "cover_index": 6,
+      "modules": [
+        {
+          "id": "focus-1",
+          "name": "景深与主体范围",
+          "skill_ids": [
+            "perspective-skill-depth-of-field-control",
+            "perspective-skill-aperture-sharpness-tradeoff",
+            "perspective-skill-group-focus-plane"
+          ]
+        },
+        {
+          "id": "focus-2",
+          "name": "静态人物对焦",
+          "skill_ids": [
+            "perspective-skill-eye-focus-priority",
+            "perspective-skill-near-eye-selection",
+            "perspective-skill-autofocus-eye-detect",
+            "perspective-skill-focus-after-movement"
+          ]
+        },
+        {
+          "id": "focus-3",
+          "name": "运动对焦",
+          "skill_ids": [
+            "mot-09",
+            "mot-10",
+            "mot-11"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "posing",
+      "name": "姿态、重心与身体线条",
+      "description": "从支撑、躯干到手部，逐个变量检查姿势。",
+      "cover_index": 2,
+      "modules": [
+        {
+          "id": "posing-1",
+          "name": "个体与姿态起点",
+          "skill_ids": [
+            "posing-person-specific-adjustment",
+            "posing-current-natural-position",
+            "posing-photographer-check-and-correct"
+          ]
+        },
+        {
+          "id": "posing-2",
+          "name": "支撑与承重",
+          "skill_ids": [
+            "posing-feet-upward-sequence",
+            "posing-weight-transfer",
+            "posing-front-back-weight-variation",
+            "posing-shoulder-line-check"
+          ]
+        },
+        {
+          "id": "posing-3",
+          "name": "躯干朝向",
+          "skill_ids": [
+            "posing-body-angle-to-camera"
+          ]
+        },
+        {
+          "id": "posing-4",
+          "name": "倚靠与坐姿",
+          "skill_ids": [
+            "posing-supported-lean",
+            "posing-seated-entry",
+            "posing-seated-variation"
+          ]
+        },
+        {
+          "id": "posing-5",
+          "name": "手与手臂",
+          "skill_ids": [
+            "posing-purposeful-hand-placement",
+            "posing-hand-orientation",
+            "posing-relaxed-hand-shape",
+            "posing-arm-torso-separation",
+            "cosplay-c04-arm-torso-separation"
+          ]
+        },
+        {
+          "id": "posing-6",
+          "name": "预演与动作流",
+          "skill_ids": [
+            "posing-mirror-rehearsal",
+            "posing-self-recording-review",
+            "posing-between-pose-capture",
+            "posing-directed-small-movement",
+            "posing-gesture-task",
+            "cosplay-c05-pose-variation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "character",
+      "name": "角色、表情与人物指导",
+      "description": "由双方确认表达意图，再给出可执行的动作与眼神提示。",
+      "cover_index": 3,
+      "modules": [
+        {
+          "id": "character-1",
+          "name": "表达意图与协作",
+          "skill_ids": [
+            "posing-intent-elicitation",
+            "cosplay-c01-character-pose-translation",
+            "cosplay-c02-align-shot-intent",
+            "field-cosplay-collaboration"
+          ]
+        },
+        {
+          "id": "character-2",
+          "name": "头部、下颌与视线",
+          "skill_ids": [
+            "posing-head-gaze-selection",
+            "posing-hurley-squinch",
+            "posing-jawline-forward-method",
+            "posing-purposeful-gaze-target"
+          ]
+        },
+        {
+          "id": "character-3",
+          "name": "表情与身体语言",
+          "skill_ids": [
+            "posing-body-face-expression-alignment",
+            "posing-expression-range",
+            "posing-character-appropriate-action",
+            "posing-character-mood-variation",
+            "posing-action-stance-context",
+            "cosplay-c14-expression-message-match"
+          ]
+        },
+        {
+          "id": "character-4",
+          "name": "现场指导口令",
+          "skill_ids": [
+            "posing-question-led-expression",
+            "posing-demonstrate-without-contact",
+            "posing-small-adjustments",
+            "posing-instruction-clarity",
+            "cosplay-c03-specific-pose-cues",
+            "field-long-distance-direction",
+            "field-direction-comfort"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "costume",
+      "name": "服装、假发与仿制道具",
+      "description": "先确认活动限制与展示意图；具体短匕首、宽袖规则仍需研究。",
+      "cover_index": 4,
+      "modules": [
+        {
+          "id": "costume-1",
+          "name": "服装可见度与活动限制",
+          "skill_ids": [
+            "posing-movement-limits-check",
+            "posing-adapt-to-movement-limits",
+            "posing-costume-representation-choice",
+            "posing-outfit-prop-limit-negotiation",
+            "cosplay-c11-costume-visibility-check"
+          ]
+        },
+        {
+          "id": "costume-2",
+          "name": "大型道具的姿势选择",
+          "skill_ids": [
+            "cosplay-c06-large-prop-pose-variants",
+            "cosplay-c07-japanese-sword-character-pose"
+          ]
+        },
+        {
+          "id": "costume-3",
+          "name": "衣料与造型动态",
+          "skill_ids": [
+            "cosplay-c09-assisted-fabric-motion",
+            "cosplay-c10-wig-costume-flow"
+          ]
+        },
+        {
+          "id": "costume-4",
+          "name": "人物重叠与造型照明",
+          "skill_ids": [
+            "cosplay-c12-subject-set-overlap",
+            "cosplay-c13-group-character-arrangement",
+            "cosplay-c15-styled-hair-light-separation"
+          ]
+        },
+        {
+          "id": "costume-5",
+          "name": "非武器小道具与手势",
+          "skill_ids": [
+            "cosplay-gap-c01-small-prop-face-outline"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "natural-light",
+      "name": "自然光与环境人物塑形",
+      "description": "读出方向、光质与反差，再选择站位和遮挡。",
+      "cover_index": 5,
+      "modules": [
+        {
+          "id": "natural-light-1",
+          "name": "读光与光质",
+          "skill_ids": [
+            "light-001",
+            "light-002",
+            "light-003",
+            "light-004"
+          ]
+        },
+        {
+          "id": "natural-light-2",
+          "name": "光源尺寸与衰减",
+          "skill_ids": [
+            "light-005",
+            "light-006",
+            "light-007"
+          ]
+        },
+        {
+          "id": "natural-light-3",
+          "name": "阴影与窗光",
+          "skill_ids": [
+            "light-008",
+            "light-009",
+            "light-010",
+            "field-light-quality-outdoors",
+            "field-move-face-light",
+            "field-window-light"
+          ]
+        },
+        {
+          "id": "natural-light-4",
+          "name": "遮挡与反射补光",
+          "skill_ids": [
+            "light-011",
+            "light-012"
+          ]
+        },
+        {
+          "id": "natural-light-5",
+          "name": "逆光的表达选择",
+          "skill_ids": [
+            "light-022",
+            "light-023"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flash",
+      "name": "闪光与单灯控制",
+      "description": "区分环境光、闪光和同步条件，逐次验证补光效果。",
+      "cover_index": 7,
+      "modules": [
+        {
+          "id": "flash-1",
+          "name": "环境光与闪光平衡",
+          "skill_ids": [
+            "light-021",
+            "light-024",
+            "light-029",
+            "light-030",
+            "light-031",
+            "field-match-flash-ambient",
+            "lightgap-manual-flash-power",
+            "lightgap-flash-distance-power",
+            "lightgap-shared-aperture-iso-flash-ambient"
+          ]
+        },
+        {
+          "id": "flash-2",
+          "name": "单灯塑形与附件",
+          "skill_ids": [
+            "light-025",
+            "light-026",
+            "light-027",
+            "light-028"
+          ]
+        },
+        {
+          "id": "flash-3",
+          "name": "同步与HSS",
+          "skill_ids": [
+            "light-032",
+            "light-033",
+            "light-034"
+          ]
+        },
+        {
+          "id": "flash-4",
+          "name": "动作冻结与重影",
+          "skill_ids": [
+            "light-035",
+            "light-036",
+            "light-037",
+            "light-038"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exposure-color",
+      "name": "曝光与现场色彩判断",
+      "description": "明确测光参照、肤色目标和混合光条件。",
+      "cover_index": 8,
+      "modules": [
+        {
+          "id": "exposure-color-1",
+          "name": "测光与曝光参照",
+          "skill_ids": [
+            "light-017",
+            "light-018",
+            "light-019",
+            "light-020",
+            "lightgap-exposure-aperture-iso-tradeoff",
+            "lightgap-histogram-highlight-check"
+          ]
+        },
+        {
+          "id": "exposure-color-2",
+          "name": "肤色与多人曝光",
+          "skill_ids": [
+            "light-039",
+            "light-040"
+          ]
+        },
+        {
+          "id": "exposure-color-3",
+          "name": "光源颜色与显色",
+          "skill_ids": [
+            "light-013",
+            "light-014",
+            "field-mixed-whitebalance"
+          ]
+        },
+        {
+          "id": "exposure-color-4",
+          "name": "环境色光协调",
+          "skill_ids": [
+            "light-015",
+            "light-016",
+            "field-correct-mixed-color"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "field",
+      "name": "拍前设计、现场执行与复盘",
+      "description": "在现场条件里安排主画面、协作、检查和下一次验证。",
+      "cover_index": 9,
+      "modules": [
+        {
+          "id": "field-1",
+          "name": "拍摄用途与人物研究",
+          "skill_ids": [
+            "field-brief-purpose",
+            "field-subject-context"
+          ]
+        },
+        {
+          "id": "field-2",
+          "name": "地点与环境叙事",
+          "skill_ids": [
+            "field-scene-story-fit",
+            "field-location-time-scout",
+            "field-location-feasibility",
+            "field-background-first",
+            "field-background-priority",
+            "field-architecture-frame"
+          ]
+        },
+        {
+          "id": "field-3",
+          "name": "场馆规则与备选准备",
+          "skill_ids": [
+            "field-venue-policy-check",
+            "field-weather-contingency",
+            "field-mobile-kit",
+            "field-convention-approved-footprint",
+            "field-gap-nearby-background-reposition"
+          ]
+        },
+        {
+          "id": "field-4",
+          "name": "覆盖计划与短时优先级",
+          "skill_ids": [
+            "field-story-coverage-plan",
+            "field-short-slot-priorities",
+            "field-short-slot-prelight",
+            "field-photowall-pose-ready",
+            "field-small-pose-variation"
+          ]
+        },
+        {
+          "id": "field-5",
+          "name": "多人现场调度",
+          "skill_ids": [
+            "field-group-sequence",
+            "field-group-assistant"
+          ]
+        },
+        {
+          "id": "field-6",
+          "name": "现场复核",
+          "skill_ids": [
+            "field-frame-edge-audit",
+            "field-location-liveview-check",
+            "field-focus-check"
+          ]
+        },
+        {
+          "id": "field-7",
+          "name": "反馈与下一轮实验",
+          "skill_ids": [
+            "field-critique-seeking",
+            "field-feedback-to-experiment",
+            "field-location-reflection",
+            "field-intent-result-review",
+            "field-test-failure-hypothesis"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "color-retouch",
+      "name": "色彩、肤色与局部光影",
+      "description": "把颜色、纹理与明暗的问题分别定位，并保留可返回的版本。",
+      "cover_index": 10,
+      "modules": [
+        {
+          "id": "color-retouch-1",
+          "name": "RAW基础校正",
+          "skill_ids": [
+            "post-raw-group-lighting",
+            "post-raw-whitebalance-diagnosis",
+            "post-raw-exposure-detail",
+            "post-raw-contrast-control"
+          ]
+        },
+        {
+          "id": "color-retouch-2",
+          "name": "颜色范围与蒙版",
+          "skill_ids": [
+            "post-color-saturation-control",
+            "post-color-point-range",
+            "post-color-mask-boundary"
+          ]
+        },
+        {
+          "id": "color-retouch-3",
+          "name": "肤色差异诊断",
+          "skill_ids": [
+            "post-color-preserve-variation",
+            "post-skin-patch-diagnosis",
+            "post-skin-mask-color-correction"
+          ]
+        },
+        {
+          "id": "color-retouch-4",
+          "name": "皮肤纹理与修饰力度",
+          "skill_ids": [
+            "post-skin-frequency-separation",
+            "post-skin-local-dodge-burn",
+            "post-skin-dodge-burn-scope",
+            "post-local-light-emphasis",
+            "post-skin-edit-subtle-opacity",
+            "post-edit-layer-preservation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "post-workflow",
+      "name": "筛片、后期边界与交付",
+      "description": "比较照片、保留场景意图，按实际交付目标输出。",
+      "cover_index": 11,
+      "modules": [
+        {
+          "id": "post-workflow-1",
+          "name": "技术初筛与近似帧",
+          "skill_ids": [
+            "post-cull-technical-rejects",
+            "post-cull-near-duplicates",
+            "post-cull-separate-passes"
+          ]
+        },
+        {
+          "id": "post-workflow-2",
+          "name": "组照与保留决策",
+          "skill_ids": [
+            "post-cull-set-variety",
+            "post-cull-cohesion",
+            "post-cull-review-before-delete"
+          ]
+        },
+        {
+          "id": "post-workflow-3",
+          "name": "清理与人物修饰边界",
+          "skill_ids": [
+            "post-clean-distraction-tool",
+            "post-clean-source-texture",
+            "post-clean-scene-judgment",
+            "post-capture-fix-boundary",
+            "post-clean-near-face-selection",
+            "post-clean-person-feature-consent",
+            "post-purpose-edit-boundary"
+          ]
+        },
+        {
+          "id": "post-workflow-4",
+          "name": "合成元素匹配",
+          "skill_ids": [
+            "post-composite-light-match",
+            "post-composite-perspective-scale",
+            "post-composite-depth-of-field",
+            "post-composite-tone-check",
+            "post-composite-luminosity-correction",
+            "post-composite-framing"
+          ]
+        },
+        {
+          "id": "post-workflow-5",
+          "name": "主文件与输出",
+          "skill_ids": [
+            "post-master-resolution",
+            "post-output-crop-variants",
+            "post-output-sharpening",
+            "post-output-color-profile",
+            "post-output-file-spec"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dynamic-still",
+      "name": "动态人物与动作照片",
+      "description": "先确定要停住与要移动的部分，再安排时机和画面。",
+      "cover_index": 12,
+      "modules": [
+        {
+          "id": "dynamic-still-1",
+          "name": "快门与动作记录",
+          "skill_ids": [
+            "mot-01",
+            "mot-02",
+            "mot-05",
+            "mot-08",
+            "cosplay-c08-action-shutter-choice"
+          ]
+        },
+        {
+          "id": "dynamic-still-2",
+          "name": "追随与曝光窗口",
+          "skill_ids": [
+            "mot-03",
+            "mot-04",
+            "mot-06",
+            "mot-07",
+            "mot-32",
+            "mot-33"
+          ]
+        },
+        {
+          "id": "dynamic-still-3",
+          "name": "动作预判与视觉重点",
+          "skill_ids": [
+            "mot-12",
+            "mot-13",
+            "mot-14"
+          ]
+        },
+        {
+          "id": "dynamic-still-4",
+          "name": "动作组照变化",
+          "skill_ids": [
+            "mot-15",
+            "mot-16"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving-image",
+      "name": "基础运镜与动态画面",
+      "description": "面向基础角色短片，控制镜头目的、起止与空间连续性。",
+      "cover_index": 13,
+      "modules": [
+        {
+          "id": "moving-image-1",
+          "name": "静态与移动基准",
+          "skill_ids": [
+            "mot-17",
+            "mot-18"
+          ]
+        },
+        {
+          "id": "moving-image-2",
+          "name": "起点、路径与终点",
+          "skill_ids": [
+            "mot-19",
+            "mot-20"
+          ]
+        },
+        {
+          "id": "moving-image-3",
+          "name": "景别与覆盖",
+          "skill_ids": [
+            "mot-21",
+            "mot-22",
+            "mot-34"
+          ]
+        },
+        {
+          "id": "moving-image-4",
+          "name": "动作预演与节拍",
+          "skill_ids": [
+            "mot-23",
+            "mot-24",
+            "mot-26"
+          ]
+        },
+        {
+          "id": "moving-image-5",
+          "name": "镜头意图与空间关系",
+          "skill_ids": [
+            "mot-25",
+            "mot-27",
+            "mot-28"
+          ]
+        },
+        {
+          "id": "moving-image-6",
+          "name": "手动焦点转移",
+          "skill_ids": [
+            "mot-29",
+            "mot-30",
+            "mot-31"
+          ]
+        }
+      ]
+    }
+  ],
+  "source_corrections": {
+    "composition-john-harris-edges": {
+      "tier": "A"
+    },
+    "composition-todd-vorenkamp-framing": {
+      "tier": "A"
+    },
+    "composition-malwitz-portrait": {
+      "tier": "A"
+    },
+    "composition-bh-basics": {
+      "tier": "A"
+    },
+    "composition-bobby-kenney-portrait": {
+      "tier": "A"
+    },
+    "composition-nikon-diane-guidelines": {
+      "tier": "A",
+      "independence_key": "diane-berkenfeld"
+    },
+    "cosplay-nikon-cosgenic": {
+      "access": "index_only",
+      "eligible_for_skills": false,
+      "independence_key": "nikon-cosgenic-series"
+    },
+    "cosplay-cosplaymode-rpg-weapons": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "cosplay-cosplaymode-katana": {
+      "independence_key": "mame-mayo-jisai-tatsumura",
+      "notes": "Byline rechecked 2026-10-08: text Mame Mayo, adviser Jisai Tatsumura, article also describes a suit-actor adviser. COSGENIC is powered by COSPLAY MODE, so publisher lineage overlaps even where named practitioners differ. This narrow Japanese-sword cosplay posing material does not establish general weapon operation or dagger/sleeve expertise."
+    },
+    "cosplay-cosplaymode-handgun": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "cosplay-note-sutten-motion": {
+      "tier": "unranked",
+      "eligible_for_skills": false
+    },
+    "cosplay-note-kujira-posing": {
+      "tier": "unranked",
+      "eligible_for_skills": false
+    },
+    "cosplay-meihaku-sword": {
+      "tier": "unranked",
+      "eligible_for_skills": false
+    },
+    "cosplay-cosplaymode-posing-variations": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "cosplay-cosplaymode-gesture-motion": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "cosplay-cosplaymode-action-advisor": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "cosplay-cosplaymode-weapon-fight-poses": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "cosplay-cosplaymode-direction-cues": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "cosplay-note-background-overlap": {
+      "tier": "unranked",
+      "eligible_for_skills": false
+    },
+    "cosplay-cosplaymode-group-mame": {
+      "independence_key": "cosplaymode-contributor-line"
+    },
+    "field-cosplay-keane-photowall": {
+      "tier": "A"
+    },
+    "light-ppa-quality": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "light-ppa-techniques": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "light-ppa-flash-shutter": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "light-ppa-metering": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "motion-dcw-portrait-blur": {
+      "tier": "A"
+    },
+    "motion-hollywood-camerawork-syllabus": {
+      "tier": "unranked"
+    },
+    "perspective-ppa-lens-selection": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "perspective-ppa-capabilities": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "perspective-bh-perspective": {
+      "independence_key": "todd-vorenkamp"
+    },
+    "perspective-adler-course": {
+      "access": "partial",
+      "eligible_for_skills": false
+    },
+    "perspective-ppa-angle-of-view": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "perspective-tamron-portrait-guide": {
+      "tier": "A"
+    },
+    "perspective-hasselblad-position-guide": {
+      "tier": "A"
+    },
+    "posing-nikon-cosgenic-lesson1": {
+      "independence_key": "yoriko-inoue"
+    },
+    "posing-nikon-cosgenic-index": {
+      "independence_key": "nikon-cosgenic-series"
+    },
+    "posing-chris-orwig-bh-video": {
+      "tier": "unranked"
+    },
+    "posing-bh-eyes-portrait": {
+      "independence_key": "mathew-malwitz"
+    },
+    "posing-jerry-ghionis-bh-video": {
+      "tier": "unranked"
+    },
+    "posing-animek-coaching": {
+      "tier": "unranked"
+    },
+    "posing-nikon-cosgenic-lesson3": {
+      "independence_key": "yoriko-inoue"
+    },
+    "posing-nikon-cosgenic-lesson4": {
+      "independence_key": "yoriko-inoue"
+    },
+    "posing-nikon-cosgenic-lesson11": {
+      "independence_key": "tetsuya-yamamoto"
+    },
+    "posing-chinese-cosplay-photo-interview": {
+      "tier": "unranked"
+    },
+    "post-ppa-capture-fixes": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "post-ppa-workflow": {
+      "independence_key": "ppa-certification-guide"
+    },
+    "post-adobe-portrait": {
+      "independence_key": "adobe-education"
+    },
+    "post-adobe-local-light": {
+      "independence_key": "adobe-education"
+    },
+    "post-adobe-cleanup": {
+      "independence_key": "adobe-education"
+    },
+    "post-fstoppers-grimes": {
+      "tier": "unranked"
+    },
+    "post-fstoppers-needham-skin-color": {
+      "tier": "unranked"
+    },
+    "post-adobe-composite-principles": {
+      "independence_key": "adobe-education"
+    },
+    "post-adobe-lr-export": {
+      "independence_key": "adobe-education"
+    },
+    "post-adobe-ps-colorprofiles": {
+      "independence_key": "adobe-education"
+    },
+    "field-canon-posing-background": {
+      "author": "Laura Tillinghast",
+      "identity": "Professional commercial/fine-art photographer; named Canon education contributor",
+      "independence_key": "laura-tillinghast"
+    },
+    "perspective-canon-portrait-posing": {
+      "author": "Laura Tillinghast",
+      "identity": "Professional commercial/fine-art photographer; named Canon education contributor",
+      "independence_key": "laura-tillinghast"
+    },
+    "posing-canon-laura-tillinghast": {
+      "author": "Laura Tillinghast",
+      "identity": "Professional commercial/fine-art photographer; named Canon education contributor",
+      "independence_key": "laura-tillinghast"
+    },
+    "light-gap-ppa-exposure-4b": {
+      "independence_key": "ppa-certification-guide"
+    }
+  },
+  "skill_corrections": {
+    "composition-visual-weight-diagnosis": {
+      "capability": "预测画面第一注意区域，并指出导致这次预测的一个主要视觉重量因素。",
+      "acceptance": [
+        "先记录第一注意区域与一个主要权重因素，再请合作者只回答“第一眼看哪里”；记录是否一致。",
+        "没有合作者时标为作者自检，不把个人预测当成普遍观众结论。"
+      ]
+    },
+    "mot-33": {
+      "basis": "photographer_method"
+    },
+    "mot-19": {
+      "basis": "photographer_method"
+    },
+    "mot-20": {
+      "basis": "photographer_method"
+    },
+    "mot-31": {
+      "basis": "photographer_method"
+    },
+    "field-feedback-to-experiment": {
+      "skill_name": "根据照片反馈确定下一次要尝试的调整",
+      "capability": "从针对照片的反馈中，明确下一次拍摄要尝试的一项调整或技术，并记录反馈与尝试的关系。",
+      "evidence": [
+        {
+          "source_id": "field-ppa-critique-derryberry",
+          "locator": "lines 102, 124–127",
+          "support": "Kira Derryberry明确把建设性反馈用于再次拍摄、尝试新技术与改变；原文没有给出单变量实验规程。项目练习才将它组织为可记录的对照。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "field-ppa-harris-balance",
+          "locator": "practice before assignments; lines 127–133",
+          "support": "Harris 说明先练新技术，再在实际任务中检验和调整。",
+          "scope": "adapted"
+        }
+      ],
+      "basis": "project_adaptation",
+      "confidence": "medium"
+    },
+    "cosplay-c02-align-shot-intent": {
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "Lesson 3, lines 50–55",
+          "support": "文章指出同一角色的双方可能有不同想象，建议在拍摄前讨论并对齐。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-mirror-check",
+          "locator": "lines 87–104, 168–178",
+          "support": "现场报道描述摄影师与模特在镜前核对服装可见度、沟通立姿并协作完成作品。",
+          "scope": "direct"
+        }
+      ]
+    },
+    "cosplay-c07-japanese-sword-character-pose": {
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson11",
+          "locator": "Lesson 11, lines 42–59",
+          "support": "摄影指导建议使刀具姿势与角色/作品特性相符，并调整姿态组织和构图。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-katana",
+          "locator": "lines 69–71, 110–124",
+          "support": "指导者建议团队共享刀具部位名称以便清晰指导，并按角色性格区分姿势。",
+          "scope": "direct"
+        }
+      ]
+    },
+    "cosplay-c08-action-shutter-choice": {
+      "evidence": [
+        {
+          "source_id": "posing-nikon-cosgenic-lesson11",
+          "locator": "Lesson 11, lines 84–106, 142–158; lines 187–188",
+          "support": "摄影师使用快门速度呈现刀的凝固/残影差异，也演示局部运动模糊；该课程以木制模造刀在适当环境中拍摄并强调安全。",
+          "scope": "direct"
+        }
+      ]
+    },
+    "cosplay-c14-expression-message-match": {
+      "evidence": [
+        {
+          "source_id": "cosplay-ppa-body-language",
+          "locator": "lines 97–134",
+          "support": "专业肖像案例按目标信息调整头部倾斜、手臂姿势和笑容，并说明姿势含义依语境而异。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "posing-nikon-cosgenic-lesson3",
+          "locator": "Lesson 3, lines 35–55; Lesson 11, lines 44–46",
+          "support": "Cosplay拍摄以角色/场景意图为起点，动作和锐利视线随角色状态设计。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-mirror-check",
+          "locator": "lines 106–112, 125–141",
+          "support": "被观察的拍摄方法通过相机方向的交流与扮演者自行调整视线捕捉表情变化。",
+          "scope": "direct"
+        }
+      ]
+    },
+    "cosplay-c13-group-character-arrangement": {
+      "evidence": [
+        {
+          "source_id": "cosplay-nikon-cosgenic-lesson5",
+          "locator": "Lesson5, group placement and variation, lines41–51,63–101",
+          "support": "摄影者被描述为多人组照构图的组织者，负责把共同想法落实为画面构图和指示。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-group-mame",
+          "locator": "lines 72–97",
+          "support": "Mame Mayo 的Cosplay多人拍摄文章按人数提供姿势/构图方案；其简介说明她教授动作与姿势工作坊。",
+          "scope": "direct"
+        }
+      ],
+      "confidence": "medium",
+      "basis": "photographer_method"
+    },
+    "mot-17": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "mot-18": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "mot-21": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "mot-22": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "mot-23": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "mot-27": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "mot-34": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "mot-28": {
+      "confidence": "medium",
+      "basis": "photographer_method"
+    },
+    "perspective-gap-skill-intentional-roll": {
+      "confidence": "medium",
+      "basis": "photographer_method"
+    },
+    "perspective-skill-shot-scale-vocabulary": {
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "capability": "识别教材里的全景、中景、近景等取景术语，并在自己的肖像照片里描述主体被保留的范围；这些命名来自电影教材，使用于肖像是项目适配。"
+    },
+    "lightgap-exposure-aperture-iso-tradeoff": {
+      "skill_name": "在既定景深与快门下选择ISO并核查噪点代价",
+      "capability": "在已经按清晰范围和动作确定光圈、快门后，调整ISO到所需曝光，并检查噪点与细节是否适合当前成片用途。",
+      "practice": "固定场景、光圈和快门，只改变ISO拍摄三个版本；对比亮度、暗部噪点与颜色细节，记录当前用途可以接受的版本。",
+      "acceptance": [
+        "能在固定光圈和快门下指出ISO改变带来的亮度和噪点差异",
+        "能结合当前输出用途选择一个版本并说明取舍"
+      ],
+      "prerequisites": [
+        "perspective-skill-depth-of-field-control",
+        "mot-02"
+      ],
+      "evidence": [
+        {
+          "source_id": "light-gap-ppa-exposure-4b",
+          "locator": "Equivalent exposure choices lines 84–114; ISO adjustment lines 140–143",
+          "support": "展示同等曝光下为景深或冻结动作改变光圈/快门组合，并提醒慢门可能带来手持抖动。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "light-canon-tillinghast-settings",
+          "locator": "§ Shutter Speed & ISO, lines 667–672",
+          "support": "人像教育文建议根据低光/移动人物提高ISO以换取更快快门，同时说明噪点代价。",
+          "scope": "direct"
+        }
+      ]
+    },
+    "lightgap-manual-flash-power": {
+      "acceptance": [
+        "仅改变手动功率时能辨别人物受光的变化并复现选定设置",
+        "能区别环境光曝光与闪光照到的背景区域；不假定背景永远不受闪光功率影响"
+      ]
+    },
+    "lightgap-shared-aperture-iso-flash-ambient": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "lightgap-histogram-highlight-check": {
+      "confidence": "medium",
+      "basis": "project_adaptation"
+    },
+    "post-composite-luminosity-correction": {
+      "prerequisites": [
+        "post-composite-tone-check"
+      ]
+    },
+    "field-test-failure-hypothesis": {
+      "evidence": [
+        {
+          "source_id": "root-mcnally-portrait-error",
+          "locator": "Ballerina setup, error and flagging/feathering correction, lines 74–80",
+          "support": "McNally在舞者肖像中识别背景亮斑、说明光源贴近背景的原因，并用遮光与灯向修正后比较；这是具体人像案例中的诊断—干预链。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "root-duchemin-intent-review",
+          "locator": "lines38,42",
+          "support": "作者由未实现的意图提出更换视点、取景、时机或光线等后续选择。",
+          "scope": "adapted"
+        }
+      ]
+    },
+    "perspective-skill-angle-comparison": {
+      "evidence": [
+        {
+          "source_id": "perspective-ppa-angle-of-view",
+          "locator": "Module 3D: Angle of View → Perspective, lower/higher camera-angle discussion and portrait camera placement (lines 59–64, rechecked 2026-10-08)",
+          "support": "给出低视点显高、高视点压缩的条件性比例说明。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds interview, contrasting posing goals (lines 87–104)",
+          "support": "摄影师针对不同主体目标分别使用较高或较低机位，体现效果取决于对象和目标。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-navy-posing-manual",
+          "locator": "Chapter 7, visible high/low angle results (lines 18–24)",
+          "support": "提供俯拍和仰拍对身体部位显著度的具体描述。",
+          "scope": "direct"
+        }
+      ]
+    }
+  },
+  "merges": {
+    "cosplay-c04-arm-torso-separation": "posing-arm-torso-separation",
+    "cosplay-c02-align-shot-intent": "posing-intent-elicitation",
+    "cosplay-c03-specific-pose-cues": "posing-instruction-clarity",
+    "perspective-skill-body-angle": "posing-body-angle-to-camera",
+    "mot-14": "composition-gaze-action-room",
+    "perspective-skill-environment-context": "composition-subject-context-scale",
+    "perspective-skill-pose-distance-subject-goal": "perspective-skill-lean-depth-control",
+    "perspective-skill-foreground-hand-scale": "perspective-skill-wide-near-depth",
+    "cosplay-c14-expression-message-match": "posing-body-face-expression-alignment",
+    "cosplay-c08-action-shutter-choice": "mot-01"
+  },
+  "excluded_skills": {
+    "mot-09": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. mot-09同时要求诊断动作可预测性并在预对焦与连续追焦中二选一，是决策模块；mot-10与mot-11是两个相反、各自可训练的对焦执行技能，不应再把父项作为第三个重复L3。",
+    "cosplay-c01-character-pose-translation": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. c01一次列出站姿方向、步幅、重心、肩姿、动作幅度多个独立变量，达不到单一L3；posing-character-appropriate-action更窄，只控制动作幅度与角色意图的对应。",
+    "cosplay-c05-pose-variation": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 候选要求分别改变躯干转向、关节弯曲和动作幅度，三项独立操控；且现有posing候选已覆盖承重、身体转角和短步/转向。",
+    "posing-feet-upward-sequence": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 从脚到脸的检查顺序是多项技能的流程，不是一个独立可控变量；候选本身覆盖脚、髋肩、手臂、头、视线和表情。",
+    "posing-person-specific-adjustment": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 按个体舒适度调整姿势是跨姿势技能的个体化原则，可能同时改变承重、手、头、表情等不同变量，粒度更像模块级准则。",
+    "posing-seated-variation": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. 单项同时改变躯干、手臂和头部，且验收关注连续成片的总变化，无法定位失败来自哪个变量。",
+    "light-006": "Atomicity audit: retained as research workflow/module guidance rather than a redundant multi-variable L3. light-006把灯距对光质、主体亮度、脸部近远侧差与背景亮度的多种结果并列，和相邻两个候选重复涵盖表观光源尺寸/软硬及背景衰减。",
+    "cosplay-c12-subject-set-overlap": "Discovery only: unclear professional identity of note.com original; no eligible full-text direct evidence.",
+    "post-skin-dodge-burn-scope": "Discovery only: relevant instruction is partial/index material; no directly read full professional teaching supporting this claimed scope.",
+    "field-location-reflection": "Only adapted support for original broad location/story review; replaced by narrower directly sourced field-intent-result-review.",
+    "posing-adapt-to-movement-limits": "Sources support discussing limits but not the claimed replacement method; retain project checklist instead of formal skill."
+  },
+  "rationale": "L1按实际控制范围拆分，L2聚类已抽取的变量；没有以十个原型专题限制研究。单来源、外延迁移和缺口不因节点数量提升可信度。 ISO比较练习的光圈/快门须先固定，项目先修链接景深与动作快门控制；不是职业标准学习顺序。",
+  "conflict_skill_ids": {
+    "居中与偏置/三分法": [
+      "composition-center-subject",
+      "composition-offcenter-negative-space"
+    ],
+    "平衡与表达性失衡": [
+      "composition-visual-weight-diagnosis",
+      "composition-asymmetric-balance",
+      "composition-intentional-imbalance"
+    ],
+    "阅读方向与画面左右重量": [
+      "composition-visual-weight-diagnosis",
+      "composition-asymmetric-balance"
+    ],
+    "图形层次与前景重量": [
+      "composition-layer-depth",
+      "composition-foreground-control",
+      "composition-visual-weight-diagnosis"
+    ],
+    "颜色与形状是否主导": [
+      "composition-shape-reduction",
+      "composition-monochrome-audit",
+      "composition-tonal-figure-ground",
+      "composition-color-separation"
+    ],
+    "姿势语义是否固定": [
+      "posing-character-appropriate-action",
+      "posing-character-mood-variation",
+      "posing-action-stance-context"
+    ],
+    "专业形式与Cosplay夸张姿态": [
+      "cosplay-c06-large-prop-pose-variants",
+      "cosplay-c07-japanese-sword-character-pose",
+      "posing-action-stance-context"
+    ],
+    "环境人像中环境与人物的视觉主次": [
+      "field-background-priority",
+      "field-story-coverage-plan"
+    ],
+    "现场环境光的色彩与闪光的处理": [
+      "field-match-flash-ambient",
+      "light-021",
+      "light-015",
+      "light-016"
+    ],
+    "漫展快速变化的姿势数量与变化幅度": [
+      "field-photowall-pose-ready",
+      "field-small-pose-variation"
+    ],
+    "现场回看节奏取决于拍摄情境": [
+      "field-intent-result-review",
+      "field-feedback-to-experiment"
+    ],
+    "不同肤色的固定曝光补偿值是否存在": [
+      "light-039",
+      "light-040",
+      "light-017",
+      "light-019"
+    ],
+    "自然光/闪光应作为主光还是补光": [
+      "field-match-flash-ambient",
+      "light-021",
+      "light-027"
+    ],
+    "柔光与硬光的肖像偏好": [
+      "light-003",
+      "light-004"
+    ],
+    "HSS与短闪光持续时间的动作冻结机制": [
+      "light-033",
+      "light-034",
+      "light-035",
+      "light-036",
+      "light-037",
+      "light-038"
+    ],
+    "直方图右侧信息与实际文件高光剪切边界": [
+      "lightgap-histogram-highlight-check"
+    ],
+    "静态照片里追随摇摄与固定机位长曝光都能表现运动": [
+      "mot-03",
+      "mot-06"
+    ],
+    "相机运动要服务叙事，但自由移动也可能是明确风格": [
+      "mot-25"
+    ],
+    "焦段与“压缩”": [
+      "perspective-skill-distance-before-focal",
+      "perspective-skill-fixed-position-focal-compare",
+      "perspective-skill-viewpoint-distance",
+      "perspective-skill-focal-length-field-of-view",
+      "perspective-skill-optical-vs-perspective"
+    ],
+    "低机位与仰拍的表达效果": [
+      "perspective-skill-angle-comparison",
+      "perspective-gap-skill-low-view-expression-context"
+    ],
+    "肖像机位高度建议": [
+      "perspective-skill-crop-height",
+      "perspective-skill-lens-axis-level",
+      "perspective-skill-height-proportion-diagnosis"
+    ],
+    "浅景深与主体清晰范围": [
+      "perspective-skill-depth-of-field-control",
+      "perspective-skill-aperture-sharpness-tradeoff",
+      "perspective-skill-group-focus-plane"
+    ],
+    "荷兰角/人像滚转建议的角度幅度": [
+      "perspective-gap-skill-intentional-roll",
+      "perspective-skill-pitch-vs-roll"
+    ],
+    "膝部/关节裁切的边界": [
+      "perspective-gap-skill-knee-crop-choice",
+      "composition-crop-intent"
+    ],
+    "低机位的情绪读法": [
+      "perspective-gap-skill-low-view-expression-context",
+      "perspective-skill-angle-comparison"
+    ],
+    "站姿承重方向": [
+      "posing-weight-transfer",
+      "posing-front-back-weight-variation",
+      "posing-action-stance-context"
+    ],
+    "把手臂从躯干分开": [
+      "posing-arm-torso-separation"
+    ],
+    "下颌前移": [
+      "posing-jawline-forward-method"
+    ],
+    "筛片后是否立即删除拒绝项": [
+      "post-cull-review-before-delete"
+    ],
+    "皮肤修饰方法与处理程度": [
+      "post-skin-patch-diagnosis",
+      "post-skin-frequency-separation",
+      "post-skin-local-dodge-burn",
+      "post-skin-edit-subtle-opacity"
+    ],
+    "局部肤色均匀与自然差异": [
+      "post-skin-patch-diagnosis",
+      "post-skin-mask-color-correction",
+      "post-color-preserve-variation"
+    ],
+    "合成光线诊断的条件": [
+      "post-composite-light-match",
+      "post-composite-tone-check",
+      "post-composite-luminosity-correction"
+    ]
+  }
+}

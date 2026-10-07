@@ -1,0 +1,294 @@
+{
+  "schema_version": "photography_atlas_project_checklists_v1",
+  "purpose": "保留atomicity审计中降级/合并后仍必要的流程顺序和未定义前置映射；这些是项目设计的检查表，不作为独立L3技能或普适职业标准。",
+  "tree_snapshot": {
+    "path": "docs/research/photography-atlas/SKILL_TREE.json",
+    "skill_count": 247,
+    "source_map_path": "docs/research/photography-atlas/SOURCE_MAP.json",
+    "source_count": 205,
+    "research_stage": "two_coverage_rounds_completed_bounded_gaps_visible",
+    "snapshot_date": "2026-10-08"
+  },
+  "checklists": [
+    {
+      "id": "project-checklist-cosplay-intent-to-visible-cue",
+      "title": "角色意图到可见线索",
+      "when": "在角色、服装、道具或多人姿势设计前",
+      "items": [
+        "与扮演者确认角色/场景表达目标",
+        "选择一个主要可见身体或道具线索",
+        "询问动作、服装、道具限制并协商替代方案",
+        "检查脸部、服装和道具轮廓是否清晰可读"
+      ],
+      "source_claims": [
+        {
+          "source_id": "cosplay-nikon-cosgenic",
+          "claim": "角色设定可转译为姿势、表情和动作等可见表达线索。",
+          "relation": "discovery_only",
+          "limitation": "目录、摘要或身份未确认资料；不能作为这条流程的直接专业依据。"
+        },
+        {
+          "source_id": "cosplay-cosplaymode-katana",
+          "claim": "日式刀剑角色姿势需结合角色定位、持刀姿势与动作表现。",
+          "relation": "direct"
+        },
+        {
+          "source_id": "cosplay-ppa-body-language",
+          "claim": "身体语言线索会影响肖像表达。",
+          "relation": "adapted; broad support only, not corroboration of exact Cosplay translation"
+        }
+      ],
+      "source_supported_skill_ids": [
+        "field-cosplay-collaboration",
+        "posing-intent-elicitation",
+        "posing-character-appropriate-action",
+        "posing-outfit-prop-limit-negotiation",
+        "posing-movement-limits-check",
+        "cosplay-c11-costume-visibility-check"
+      ],
+      "project_designed": {
+        "sequence": "intent → visible cue → limits/alternatives → readability review",
+        "acceptance_checks": [
+          "拍摄者能用一句话说出共同确认的角色/场景意图",
+          "画面中能指出选定的身体或道具线索",
+          "限制及替代方案已由扮演者确认",
+          "脸部/服装/道具轮廓检查结果有明确通过或需调整记录"
+        ],
+        "not_a_source_claim": "该四步顺序和验收门槛是项目工作流，不声称为统一专业标准。"
+      },
+      "prerequisite_mapping": {
+        "removed_or_demoted_candidate_ids": [
+          "cosplay-c01-character-pose-translation"
+        ],
+        "recommendation": "把角色意图到线索的流程保留为项目清单；关联通用意图访谈、角色动作、限制协商技能，不复活为单一L3控制点。"
+      }
+    },
+    {
+      "id": "project-checklist-af-strategy",
+      "title": "移动主体自动对焦策略",
+      "when": "拍摄移动主体前，尤其路径、距离或遮挡条件变化时",
+      "items": [
+        "判断主体路径是否重复且位置可预测",
+        "判断拍摄距离是否变化",
+        "检查近处遮挡是否可能短暂遮住主体",
+        "按可预测程度选择预对焦或连续追焦，并拍摄验证"
+      ],
+      "source_claims": [
+        {
+          "source_id": "motion-nikon-panning",
+          "claim": "对重复、可预测的动作路径可预先对焦；动作不可预测时使用连续自动对焦。",
+          "relation": "direct"
+        }
+      ],
+      "source_supported_skill_ids": [
+        "mot-10",
+        "mot-11"
+      ],
+      "project_designed": {
+        "sequence": "路径/距离/遮挡诊断 → 模式选择 → 试拍验证",
+        "acceptance_checks": [
+          "已记录路径是否重复/可预测",
+          "已记录距离变化与近处遮挡条件",
+          "试拍后检查主体焦点是否落在预期区域"
+        ],
+        "not_a_source_claim": "路径分类表、遮挡记录和固定试拍验收是项目设计。来源支持预对焦与连续追焦的条件差异，不支持把整段诊断当作新的AF技能。"
+      },
+      "prerequisite_mapping": {
+        "removed_or_demoted_candidate_ids": [
+          "mot-09"
+        ],
+        "dependent_candidate_ids": [
+          "mot-10",
+          "mot-11"
+        ],
+        "recommendation": "保留策略决策为前置清单；mot-10/11各自仍训练对焦执行，不把已降级的决策候选强行设成硬性技能前置。"
+      }
+    },
+    {
+      "id": "project-checklist-flash-distance-test",
+      "title": "闪光距离变化对照",
+      "when": "改变灯到主体或主体到背景距离时",
+      "items": [
+        "记录人物脸部曝光并按测试目标维持或补偿",
+        "分别记录脸部明暗与背景亮度变化",
+        "把光质变化和曝光/光衰变化分开判断"
+      ],
+      "source_claims": [
+        {
+          "source_id": "light-ppa-quality",
+          "claim": "光源相对尺寸及距离会影响光质，距离也影响照度变化。",
+          "relation": "direct"
+        },
+        {
+          "source_id": "light-cambridge-portrait",
+          "claim": "光源位置/距离改变会影响光照效果及主体与背景的相对亮度。",
+          "relation": "direct"
+        },
+        {
+          "source_id": "light-fuji-portrait-guide",
+          "claim": "人像布光距离和光源大小会改变光线效果与阴影表现。",
+          "relation": "direct"
+        }
+      ],
+      "source_supported_skill_ids": [
+        "light-007",
+        "light-040"
+      ],
+      "project_designed": {
+        "sequence": "设定脸部曝光 → 改变一个距离 → 分开观察人物与背景 → 区分光质和曝光",
+        "acceptance_checks": [
+          "对照照片中脸部亮度有记录",
+          "背景亮度单独有记录",
+          "结论分别写明光质与曝光/光衰变化"
+        ],
+        "not_a_source_claim": "单变量对照的顺序、记录模板和通过标准由项目设计。来源支持距离相关变量，不强制此实验顺序。"
+      },
+      "prerequisite_mapping": {
+        "removed_or_demoted_candidate_ids": [
+          "light-006"
+        ],
+        "dependent_candidate_ids": [
+          "light-007",
+          "light-040"
+        ],
+        "recommendation": "保留作为light-007/light-040的可选练习前清单；如具体L3已经包含同样距离对照，则链接而不重复设技能前置。"
+      }
+    },
+    {
+      "id": "project-checklist-full-body-pose-scan",
+      "title": "全身姿势快速扫描",
+      "when": "拍摄全身或较宽景别姿势前",
+      "items": [
+        "先确认支撑/足部和扮演者舒适度",
+        "检查重心与躯干方向",
+        "检查手臂、手部和道具轮廓",
+        "最后确认头部、视线和服装信息"
+      ],
+      "source_claims": [
+        {
+          "source_id": "posing-society-joe-lenton",
+          "claim": "从脚部向上检查全身姿势是可用的姿势检查顺序。",
+          "relation": "direct"
+        }
+      ],
+      "source_supported_skill_ids": [
+        "posing-weight-transfer",
+        "posing-arm-torso-separation",
+        "posing-purposeful-hand-placement",
+        "posing-head-gaze-selection",
+        "posing-small-adjustments"
+      ],
+      "project_designed": {
+        "sequence": "足部/舒适 → 重心/躯干 → 四肢/道具 → 头部/视线/服装",
+        "acceptance_checks": [
+          "画面中能检查到支撑脚与重心是否符合预期",
+          "手臂或道具未意外贴并身体轮廓",
+          "头部和视线方向与当前表达目的相容",
+          "扮演者报告姿势可维持且无不适"
+        ],
+        "not_a_source_claim": "来源支持脚部向上的检查顺序；此处的逐项验收门槛、舒适度复核和特定顺序分组是项目化操作。"
+      },
+      "prerequisite_mapping": {
+        "removed_or_demoted_candidate_ids": [
+          "posing-feet-upward-sequence"
+        ],
+        "dependent_candidate_ids": [
+          "posing-weight-transfer",
+          "posing-small-adjustments"
+        ],
+        "recommendation": "保留顺序提醒为拍摄前清单，不作为姿势变量的硬性先修技能。"
+      }
+    },
+    {
+      "id": "project-checklist-composite-tone",
+      "title": "合成亮度关系检查",
+      "when": "合成图进行亮度/明暗调整前",
+      "items": [
+        "检查主体高光细节是否保留",
+        "检查主体阴影细节是否保留",
+        "比较主体与背景的整体明暗关系"
+      ],
+      "source_claims": [
+        {
+          "source_id": "post-phlearn-composite-light",
+          "claim": "合成时应比较并匹配主体与背景的照明及明暗关系。",
+          "relation": "direct"
+        },
+        {
+          "source_id": "post-adobe-composite-principles",
+          "claim": "合成图需要关注光影匹配等总体一致性。",
+          "relation": "adapted; broad context, not exact highlight/shadow-check corroboration"
+        }
+      ],
+      "source_supported_skill_ids": [
+        "post-composite-tone-check",
+        "post-composite-luminosity-correction"
+      ],
+      "project_designed": {
+        "sequence": "主体高光 → 主体阴影 → 主体/背景关系 → 再修正",
+        "acceptance_checks": [
+          "主体高光区域没有因调整而丢失预期纹理",
+          "主体阴影区域没有因调整而失去预期层次",
+          "缩小查看时主体和背景明暗关系仍符合目标"
+        ],
+        "not_a_source_claim": "检查次序和通过条件由项目设计；Adobe适配来源不作为精确检查项的独立佐证。"
+      },
+      "prerequisite_mapping": {
+        "unresolved_candidate_prerequisite_ids": [
+          "post-composite-highlight-check",
+          "post-composite-shadow-check"
+        ],
+        "recommendation": "将两个未定义依赖映射为现有post-composite-tone-check或本清单步骤；不要保留悬空依赖，也不要因此删除亮度修正技能。"
+      }
+    },
+    {
+      "id": "project-checklist-image-intent-review",
+      "title": "意图与成片复核",
+      "when": "拍摄后复核人物、环境或故事表达时",
+      "items": [
+        "把拍前意图对应到实际画面中可观察的证据",
+        "区分作者意图、观者反馈和自己的解释",
+        "对未实现的地点故事或因果推断标为假设",
+        "据复核结果记录一个可验证的下一次尝试"
+      ],
+      "source_claims": [
+        {
+          "source_id": "root-duchemin-intent-review",
+          "claim": "作者可设定照片意图，检查作品是否实现；若未实现，可考虑改变视点、镜头、时机或光线。",
+          "relation": "direct"
+        },
+        {
+          "source_id": "root-mcnally-portrait-error",
+          "claim": "具体人像案例展示了识别不想要的背景结果、解释光线原因并调整拍摄方法。",
+          "relation": "direct; case-specific, not a universal causal rubric"
+        }
+      ],
+      "source_supported_skill_ids": [
+        "field-intent-result-review",
+        "field-test-failure-hypothesis",
+        "field-feedback-to-experiment"
+      ],
+      "project_designed": {
+        "sequence": "意图 → 可观察结果 → 反馈/解释分开 → 假设 → 下次测试",
+        "acceptance_checks": [
+          "至少指出一项画面证据支持或未支持意图",
+          "作者意图和观者反馈分栏记录",
+          "地点故事因果没有证据时标记为假设而非事实",
+          "下一次尝试写成可观察且有限的变化"
+        ],
+        "not_a_source_claim": "四栏工作表、单变量下一步和地点故事假设门槛均为项目设计；来源没有提出统一根因分类法。"
+      },
+      "prerequisite_mapping": {
+        "excluded_candidate_ids": [
+          "field-location-reflection"
+        ],
+        "recommendation": "保留一般意图复核流程及已有direct技能；不把未有直接证据的地点故事因果复盘单独映射为正式技能。"
+      }
+    }
+  ],
+  "mapping_policy": {
+    "source_claims": "只记录每条来源直接支持的范围；adapted 来源仅作相邻背景，不计为同一精确主张的独立佐证。",
+    "project_designed": "顺序、项目验收清单和本地操作阈值显式标为项目设计。",
+    "prerequisites": "策略性决策保留为练习前检查，不自动成为L3硬依赖；悬空前置应映射到已有直接相关节点或本清单，不得静默删除相关训练目标。"
+  }
+}

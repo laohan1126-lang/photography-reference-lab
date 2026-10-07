@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 
-STATIC_FILES = {"learning.css", "learning.js", "learning-icons.json"}
+STATIC_FILES = {"learning.css", "learning.js", "learning-icons.json", "learning-atlas.json"}
 
 
 def preview_router(web_dir: Path) -> APIRouter:

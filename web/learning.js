@@ -1,300 +1,641 @@
 'use strict';
 (() => {
-    const $ = id => document.getElementById(id);
-    const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    // Topic content and case annotations are explicit UI examples, not image observations.
-    const topics = [
-        {id:'composition', title:'构图与画面组织', description:'先看画面的秩序，再看人物的位置。', hint:'线条、留白与层次，怎样引导视线？', cover:['P97'], shape:'wide', cases:['P97','P317','P339','P107'],
-            question:'人物之外的空间，怎样成为画面的一部分？', rules:['先找画面里最吸引视线的位置。','比较人物、前景和背景的关系。','试着保留一种清晰的画面秩序。'], problem:'拍摄时只盯着人物，忘记检查画面边缘。', conclusion:'先整理背景与边缘，再决定把人物放在哪里。', next:'在同一个场景里，分别尝试居中、偏置与大量留白。'},
-        {id:'perspective', title:'机位、焦段与透视', description:'把相机放在哪里，比“蹲得多低”更重要。', hint:'把高度、俯仰与距离，分开看。', cover:['P338','P332'], shape:'tall duo', cases:['P338','P94','P104','P97','P332','P336','P359','P339','P92'],
-            question:'为什么低机位并不天然产生威严感，有时反而会让人物出现头大身小、画面倾斜和比例怪异？',
-            rules:['相机高度与镜头俯仰是两个变量。','广角近距离会强化前后距离差。','仰拍是否产生气势，与人物姿态、画面垂直线、焦段和主体占比共同相关。','低机位不等于必须让相机剧烈上仰。'],
-            problem:'想拍出气势时，只顾着降低机位；靠近人物后，没有重新检查脸、身体与道具的前后关系。',
-            conclusion:'先确定人物比例与姿态，再分别调整相机高度、距离和俯仰。',
-            next:'固定姿态，分别拍平视、低机位微仰、低机位明显仰拍；再换远一点的位置，比较人物比例与背景垂直线。'},
-        {id:'pose', title:'人物姿态与重心', description:'让身体有落点，让动作有方向。', hint:'从肩、手与支撑点开始观察。', cover:['P359','P104'], shape:'square duo', cases:['P359','P104','P364','P348'],
-            question:'同样的姿势，为什么有时自然，有时像在用力摆拍？', rules:['先观察支撑身体的落点。','分开看肩、胯与视线的方向。','让手的动作服务于人物正在做的事。'], problem:'只模仿手的位置，没有交代身体重心。', conclusion:'从稳定的站姿或坐姿开始，再添加一个小动作。', next:'保持机位，让人物分别改变支撑腿、肩向与视线，比较差异。'},
-        {id:'props', title:'人物与武器 / 道具空间', description:'道具不是附件，它也参与画面的结构。', hint:'看清手、道具与脸的前后关系。', cover:['P364'], shape:'tall', cases:['P338','P332','P364','P104','P336'],
-            question:'怎样让道具进入画面，又不遮挡人物的表达？', rules:['检查道具和身体的轮廓是否重叠。','观察道具指向哪里。','比较靠近镜头和贴近身体的不同关系。'], problem:'只确认道具入镜，没有留意它与脸部的重叠。', conclusion:'先理清空间关系，再强调道具的存在感。', next:'固定身体姿态，只改变道具方向与前后距离，拍三张对照。'},
-        {id:'light', title:'光线与人物塑形', description:'沿着明暗的边界，读出人物的体积。', hint:'光落在哪里，视线就去哪里。', cover:['P291','P360'], shape:'square duo', cases:['P291','P360','P327','P92'],
-            question:'光已经够亮了，人物为什么还是显得平？', rules:['观察主光从哪一个方向进入。','同时看亮部的形状与阴影的落点。','比较人物与背景的明暗关系。'], problem:'关注亮度多于光的方向与层次。', conclusion:'先找能描述脸部和身体的光，再决定曝光。', next:'在同一扇窗边缓慢转身，比较三个朝向的光影。'},
-        {id:'scale', title:'景别与人物比例', description:'靠近或退后，都在改变故事的重点。', hint:'人物在画面里，应该占多大？', cover:['P336','P317'], shape:'square stack', cases:['P336','P97','P317','P339','P332'],
-            question:'环境值得保留多少，人物才不会被淹没？', rules:['先决定此刻最想让人看见什么。','比较全身、半身和近景的叙述重点。','留意头顶、脚下与画面边缘的空间。'], problem:'每张照片都用相近的主体占比。', conclusion:'让景别回应内容，而不是习惯。', next:'在同一个场景完成环境、全身、半身和细节四张照片。'},
-        {id:'expression', title:'角色表达与气势', description:'让眼神、姿态与环境说同一句话。', hint:'画面里的情绪，是否指向同一个方向？', cover:['P92'], shape:'tall', cases:['P92','P338','P291','P327'],
-            question:'服装与道具都到位后，角色感还来自哪里？', rules:['先说清这张画面里的情绪。','检查视线、肩向与手部动作是否一致。','把背景也纳入角色的情境。'], problem:'动作很多，但情绪并不明确。', conclusion:'先确定一个意图，再让画面元素支持它。', next:'只改变视线与呼吸节奏，尝试安静、警觉、坚定三种表达。'},
-        {id:'direction', title:'现场执行与调度', description:'把脑海里的画面，变成清楚的现场沟通。', hint:'一次只给一个可以执行的动作。', cover:['P363','P94'], shape:'wide stack', cases:['P363','P94','P348','P359'],
-            question:'怎样让对方听懂指令，又保留自然的反应？', rules:['先说明站位与动作的起点。','用具体方向替代模糊的形容词。','每次调整一个地方，并观察反馈。'], problem:'连续给出太多要求，让动作变得僵硬。', conclusion:'减少同时变化的条件，让沟通有节奏。', next:'用三条短指令完成一次站位、视线和手部动作的调整。'},
-        {id:'post', title:'后期与最终呈现', description:'让处理后的画面，仍然服务于最初的意图。', hint:'保留什么，比加上什么更重要。', cover:['P327'], shape:'wide', cases:['P327','P336','P97','P107'],
-            question:'怎样判断一次调整是在强化表达，还是在分散注意？', rules:['先确定希望保留的画面感受。','比较调整前后的视线落点。','在一组照片里检查色彩与明暗关系。'], problem:'对局部反复调整，却忘记回看整体。', conclusion:'每一步处理都应有一个明确的视觉目的。', next:'先写下一句画面意图，再比较两种克制的处理方向。'},
-        {id:'motion', title:'运镜与动态画面', description:'让人物的动作和相机的移动发生关系。', hint:'从动作开始之前，看到动作结束之后。', cover:['P348','P94'], shape:'square duo', cases:['P94','P348','P92','P104'],
-            question:'相机该跟着人物走，还是留在原地等动作发生？', rules:['先观察动作的起点与终点。','分别考虑人物移动和相机移动。','留意进入、经过和离开画面的节奏。'], problem:'追着动作走，却没有预留结束的位置。', conclusion:'先设计一个完整的小动作，再决定相机的路线。', next:'用固定机位和缓慢跟随各拍一次相同动作，比较叙述感。'}
-    ];
-    const byTopic = id => topics.find(topic => topic.id === id);
-    const storageKey = 'reference-lab.learning-map.v2';
-    let assets = [], icons = {}, recent = [], lastRoute = '', activeTopic = null, activeCase = null;
-    let returnTarget = null, returnTopicId = '', mapScroll = 0, searchTimer, ready = false;
-    let ignoreDialogClose = false, initialRoute = true, openedFromTopic = false;
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const STATUSES = ['unassessed','unstarted','learning','practicing','field_verified','mastered'];
+  const STATUS_LABEL = {unassessed:'未评估',unstarted:'未开始',learning:'学习中',practicing:'正在练',field_verified:'实拍验证',mastered:'已掌握',unavailable:'状态不可读'};
+  const STATUS_NOTE = {unassessed:'状态尚未由你评估。',unstarted:'由你标记为尚未开始。',learning:'由你标记为正在学习。',practicing:'由你标记为正在练习。',field_verified:'由你确认已在实拍中验证。',mastered:'由你确认已掌握。'};
+  const api = {
+    atlas:'/static/learning-atlas.json', state:'/api/learning-state', session:'/api/session',
+    preview:'/api/learning-preview', photos:'/api/learning-state'
+  };
+  let atlas = null, state = {revision:0,skills:{}}, csrf = '', sessionReady = false, stateReady = false;
+  let assets = [], activeSkill = null, returnFocus = null, photoReturnFocus = null, searchTimer = 0, recent = [];
+  let profileWriteInFlight = false, recordWriteInFlight = false, dialogPhotoSaved = '', recordDialogSkill = null;
+  const maps = {domains:new Map(),modules:new Map(),skills:new Map(),sources:new Map()};
+  const canWrite = () => stateReady && sessionReady && !!csrf;
+  const canEditProfile = () => canWrite() && !profileWriteInFlight && !recordWriteInFlight;
+
+  function errorText(body, fallback) {
+    return typeof body?.detail === 'string' ? body.detail : typeof body?.message === 'string' ? body.message : fallback;
+  }
+  async function responseJson(response) {
+    let body = {};
+    try { body = await response.json(); } catch {}
+    if (!response.ok) throw Object.assign(new Error(errorText(body, `请求失败（${response.status}）`)), {status:response.status});
+    return body;
+  }
+  function statusOf(skillId) { return stateReady ? (state.skills?.[skillId]?.status || 'unassessed') : 'unavailable'; }
+  function recordOf(skillId) { return state.skills?.[skillId] || {status:'unassessed',weak:false,focus:false,logs:[],photos:[]}; }
+  function statusSelect(value, id='skill-status') {
+    if (!canWrite()) return `<select id="${id}" aria-label="我的学习状态" disabled><option value="${value}">${stateReady?STATUS_LABEL[value]:'个人记录不可读'}</option></select>`;
+    return `<select id="${id}" aria-label="我的学习状态"${canEditProfile()?'':' disabled'}>${STATUSES.map(status => `<option value="${status}"${status===value?' selected':''}>${STATUS_LABEL[status]}</option>`).join('')}</select>`;
+  }
+  function safeExternal(url) {
+    try { const parsed = new URL(url); return ['http:','https:'].includes(parsed.protocol) ? parsed.href : ''; } catch { return ''; }
+  }
+  function sourceAccess(value) {
+    return ({full_text:'已读全文',partial_text:'已读部分正文',index_only:'仅目录/索引',metadata_only:'仅元数据',syllabus:'课程目录',video_unwatched:'未观看视频',unavailable:'无法访问'})[value] || value || '';
+  }
+  function evidenceScope(value) {
+    return ({direct:'直接文本依据',adapted:'有限迁用',discovery_only:'发现线索（不支持技能结论）',method:'方法说明',inferred:'推断'})[value] || value || '';
+  }
+  function claimRelation(value) {
+    if (value === 'direct') return '直接支持';
+    if (value === 'discovery_only') return '发现线索，不支持技能结论';
+    if (typeof value === 'string' && value.startsWith('adapted')) return '有限迁用，不能视为同一专题的交叉印证';
+    return value || '';
+  }
+  function route(kind, id='') { return kind === 'map' ? '#map' : `#${kind}=${encodeURIComponent(id)}`; }
+  function findSkill(id) { return maps.skills.get(id); }
+  function readRecent() {
+    try { const value = JSON.parse(sessionStorage.getItem('learning-atlas-recent') || '[]');
+      return Array.isArray(value) ? [...new Set(value.filter(id => maps.skills.has(id) || maps.modules.has(id) || maps.domains.has(id)))].slice(0,8) : [];
+    } catch { return []; }
+  }
+  function saveRecent(id) {
+    recent = [id,...recent.filter(item => item !== id)].slice(0,8);
+    try { sessionStorage.setItem('learning-atlas-recent', JSON.stringify(recent)); } catch {}
+  }
+  function allModules(domain) { return (domain.module_ids || []).map(id => maps.modules.get(id)).filter(Boolean); }
+  function moduleSkills(module) { return (module.skill_ids || []).map(id => maps.skills.get(id)).filter(Boolean); }
+  function currentDomainForModule(module) { return maps.domains.get(module.domain_id); }
+  function domainCover(domain) {
+    if (!assets.length || !Number.isInteger(domain.cover_index)) return null;
+    return assets[((domain.cover_index % assets.length) + assets.length) % assets.length];
+  }
+  function stateNotice(message, kind='') {
+    const node = $('state-notice');
+    node.textContent = message;
+    node.dataset.kind = kind;
+  }
+  function detailNotice(message, isError=false) {
+    const node = $('skill-save-message');
+    if (node) { node.textContent = message; node.dataset.error = String(isError); }
+  }
+  function setProfileControlsDisabled(disabled) {
+    ['skill-status','skill-weak','skill-focus','skill-notes','notes-save','record-open'].forEach(id=>{
+      const control=$(id); if(control) control.disabled=disabled || !canEditProfile();
+    });
+  }
+  function showMainError(message) {
+    $('load-error').hidden = false;
+    $('load-error').textContent = message;
+  }
+  function buildMaps() {
+    maps.domains = new Map((atlas.domains || []).map(item => [item.id,item]));
+    maps.modules = new Map((atlas.modules || []).map(item => [item.id,item]));
+    maps.skills = new Map((atlas.skills || []).map(item => [item.id,item]));
+    maps.sources = new Map((atlas.sources || []).map(item => [item.id,item]));
+  }
+  function renderDomainGrid() {
+    $('domain-grid').innerHTML = (atlas.domains || []).map((domain,index) => {
+      const image = domainCover(domain);
+      const count = allModules(domain).reduce((sum,module) => sum + (module.skill_ids || []).length,0);
+      return `<article class="domain-card" data-domain-card="${esc(domain.id)}">
+        <a class="domain-link" data-domain="${esc(domain.id)}" href="${route('domain',domain.id)}" aria-label="浏览领域：${esc(domain.name)}">
+          <div class="domain-image">${image ? `<img src="${esc(image.src)}" width="${Number(image.width)||0}" height="${Number(image.height)||0}" alt="" loading="${index<4?'eager':'lazy'}">` : '<span class="domain-placeholder">FIELD IMAGE</span>'}</div>
+          <div class="domain-label"><h3>${esc(domain.name)}</h3><span>${String(index+1).padStart(2,'0')} / ${allModules(domain).length}</span></div>
+          <p class="domain-desc">${esc(domain.description || '')}</p>
+        </a>
+        <span class="sr-only">${count} 项能力</span>
+      </article>`;
+    }).join('');
+  }
+  function renderNextPractice() {
+    if (!stateReady) {
+      $('next-practice').innerHTML = '<p class="eyebrow">NEXT PRACTICE</p><h2>个人学习记录暂不可读</h2><p>现在不能安全地依据你的重点或薄弱项推荐练习。解锁私人参考库后再查看。</p><a href="/">打开拍摄参考</a>';
+      return;
+    }
+    const focused = (atlas.skills || []).find(skill => recordOf(skill.id).focus);
+    const weak = (atlas.skills || []).find(skill => !focused && recordOf(skill.id).weak);
+    const firstCore = (atlas.skills || []).find(skill => skill.relevance === 'core' && statusOf(skill.id) === 'unassessed');
+    const candidate = focused || weak || firstCore;
+    const box = $('next-practice');
+    if (!candidate) {
+      box.innerHTML = '<p class="eyebrow">NEXT PRACTICE</p><h2>从一个具体问题开始</h2><p>可以搜索现场遇到的困难，或打开一个领域，自己选择想研究的能力。</p><a href="#map">浏览能力领域</a>';
+      return;
+    }
+    const reason = focused ? '按你标记的当前重点推荐' : weak ? '按你标记的薄弱项推荐' : '首次评估邀请，尚未判断你的水平。';
+    box.innerHTML = `<p class="eyebrow">NEXT PRACTICE · ${focused?'你的重点':weak?'你的薄弱项':'核心能力邀请'}</p><h2>${esc(candidate.skill_name)}</h2><p>${esc(reason)}</p><a class="skill-open" data-skill="${esc(candidate.id)}" href="${route('skill',candidate.id)}">打开能力记录</a>`;
+  }
+  function renderMine(filter = '') {
+    const value = filter.startsWith('status:') ? filter.slice(7) : filter;
+    $('mine-status-filter').value = value;
+    $('mine-status-filter').disabled = !stateReady;
+    document.querySelectorAll('[data-mine-filter]').forEach(button => {
+      button.disabled = !stateReady;
+      button.setAttribute('aria-pressed',String(button.dataset.mineFilter === value));
+    });
+    if (!stateReady) {
+      $('mine-results').innerHTML = '<p class="empty-result">个人记录暂不可读；请解锁私人参考库后再查看这些筛选。</p>';
+      return;
+    }
+    const records = (atlas.skills || []).filter(skill => {
+      const record = recordOf(skill.id);
+      if (value === 'focus') return !!record.focus;
+      if (value === 'weak') return !!record.weak;
+      if (STATUSES.includes(value)) return statusOf(skill.id) === value;
+      return false;
+    });
+    $('mine-results').innerHTML = records.length ? records.map(skill => skillResult(skill)).join('') : '<p class="empty-result">这里还没有符合条件的项目。个人标记只按你的选择更新。</p>';
+  }
+  function skillResult(skill) {
+    const record = recordOf(skill.id);
+    return `<a class="result-row skill-open" data-skill="${esc(skill.id)}" href="${route('skill',skill.id)}"><span class="result-kind">${esc(STATUS_LABEL[statusOf(skill.id)])}${record.focus?' · 当前重点':''}${record.weak?' · 薄弱项':''}</span><span><strong>${esc(skill.skill_name)}</strong><p>${esc(skill.capability || '')}</p></span><span aria-hidden="true">↗</span></a>`;
+  }
+  function renderRecent() {
+    const items = recent.map(id => findSkill(id)).filter(Boolean);
+    $('recent-list').innerHTML = items.length ? items.map(skill => `<a class="recent-link skill-open" data-skill="${esc(skill.id)}" href="${route('skill',skill.id)}">${esc(skill.skill_name)}</a>`).join('') : '<p>打开一个技能页后，会在这里保留最近访问入口。</p>';
+  }
+  function renderDomain(id) {
+    const domain = maps.domains.get(id);
+    if (!domain) return false;
+    $('domain-crumb').textContent = domain.name;
+    $('domain-module-count').textContent = `${allModules(domain).length} 个模块`;
+    const cover = domainCover(domain);
+    $('domain-hero').innerHTML = `<div><p class="eyebrow">FIELD ${String((atlas.domains||[]).indexOf(domain)+1).padStart(2,'0')} / ${String(atlas.domains.length).padStart(2,'0')}</p><h1 id="domain-title" tabindex="-1">${esc(domain.name)}</h1><p>${esc(domain.description || '')}</p></div><p class="domain-hero-meta">${cover ? '图片用于视觉导航<br>未作像素核验，不作技能证据' : '尚无可用的图片预览'}</p>`;
+    $('module-list').innerHTML = allModules(domain).map((module,index) => `<a class="module-row module-link" data-module="${esc(module.id)}" href="${route('module',module.id)}"><span class="module-number">${String(index+1).padStart(2,'0')}</span><span><h3>${esc(module.name)}</h3><p>${moduleSkills(module).length} 项技能</p></span><span class="arrow" aria-hidden="true">→</span></a>`).join('');
+    return true;
+  }
+  function renderModule(id) {
+    const module = maps.modules.get(id);
+    const domain = module && currentDomainForModule(module);
+    if (!module || !domain) return false;
+    $('module-domain-link').textContent = domain.name;
+    $('module-domain-link').href = route('domain',domain.id);
+    $('module-crumb').textContent = module.name;
+    $('module-title').textContent = module.name;
+    $('module-intro').textContent = `${domain.name} · 按具体能力查看研究证据、练习方法与个人记录。`;
+    renderSkillList(module);
+    return true;
+  }
+  function renderSkillList(module) {
+    let skills = moduleSkills(module);
+    $('status-filter').disabled = !stateReady;
+    const filter = $('status-filter').value;
+    if (filter && stateReady) skills = skills.filter(skill => statusOf(skill.id) === filter);
+    $('skill-count').textContent = `${skills.length} 项能力`;
+    $('skill-list').innerHTML = skills.length ? skills.map(skill => {
+      const record = recordOf(skill.id), status = statusOf(skill.id);
+      return `<article class="skill-row" data-status="${esc(status)}" data-skill-row="${esc(skill.id)}">
+        <a class="skill-open" data-skill="${esc(skill.id)}" href="${route('skill',skill.id)}"><h3>${esc(skill.skill_name)}</h3><p>${esc(skill.capability || '')}</p></a>
+        <div class="skill-markers">${record.weak?'<span class="marker active">薄弱项</span>':''}${record.focus?'<span class="marker active">当前重点</span>':''}</div>
+        <span class="status-label">${esc(STATUS_LABEL[status])}</span>
+      </article>`;
+    }).join('') : '<p class="empty-result">这个状态下暂时没有技能。</p>';
+  }
+  function renderEvidence(skill) {
+    const evidence = Array.isArray(skill.evidence) ? skill.evidence : [];
+    if (!evidence.length) return '<p>此技能没有可展示的直接证据记录。</p>';
+    return `<div class="evidence-list">${evidence.map(item => {
+      const source = maps.sources.get(item.source_id) || {};
+      const href = safeExternal(source.url);
+      const title = source.title || item.source_id || '来源记录';
+      const text = typeof item.support === 'string' ? item.support : item.summary || '';
+      return `<article class="evidence-item"><p>${esc(text)}</p><div class="evidence-meta"><span>${esc(item.locator || '')}</span><span>${esc(evidenceScope(item.scope))}</span></div><div class="evidence-meta">${href ? `<a class="source-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(title)}</a>` : `<span>${esc(title)}</span>`}${source.author?`<span>${esc(source.author)}</span>`:''}${source.access?`<span>来源访问：${esc(sourceAccess(source.access))}</span>`:''}${source.read_depth?`<details><summary>来源阅读范围</summary><p>${esc(source.read_depth)}</p></details>`:''}</div></article>`;
+    }).join('')}</div>`;
+  }
+  function renderTutorials(skill) {
+    const kinds = {article:'图文教程',video:'视频教程',course:'课程章节',paper:'研究论文',case_study:'实拍解析'};
+    const access = {free:'公开免费',paid:'付费内容',preview:'仅公开预览',login_required:'需要登录'};
+    const checked = {full_text:'已核对正文',page_and_description:'已核对简介，未观看',transcript:'已核对文字稿',watched:'已观看所标范围'};
+    const lessons = (atlas.tutorials || []).filter(item => item.skill_ids.includes(skill.id));
+    lessons.sort((a,b) => Number(a.verification.level==='page_and_description')-Number(b.verification.level==='page_and_description') || Number(a.kind==='paper')-Number(b.kind==='paper'));
+    const lessonRow = (item,index) => `<article class="tutorial-row" data-tutorial="${esc(item.id)}">
+      <span class="tutorial-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><div>
+      <p class="tutorial-meta">${esc(kinds[item.kind])} · ${esc(item.language)} · ${esc(access[item.access])}</p>
+      <h3><a href="${esc(safeExternal(item.url))}" target="_blank" rel="noopener noreferrer">${esc(item.title)} <span aria-hidden="true">↗</span></a></h3>
+      <p class="tutorial-author">${esc(item.author)}</p><p>${esc(item.summary)}</p>
+      <dl class="tutorial-guide"><dt>从这里开始</dt><dd>${esc(item.start_here)}</dd><dt>看完试一遍</dt><dd>${esc(item.study_task)}</dd></dl>
+      <details class="tutorial-check"><summary>${esc(checked[item.verification.level])} · 推荐理由与范围</summary><p>${esc(item.trust_reason)}</p><p>${esc(item.limitations)}</p><p>${esc(item.verification.locator)} · ${esc(item.verification.checked_at)}</p></details>
+      </div></article>`;
+    let content;
+    if (lessons.length) {
+      content=lessons.slice(0,2).map(lessonRow).join('')+(lessons.length>2?`<details class="more-tutorials"><summary>再看 ${lessons.length-2} 份延伸材料</summary>${lessons.slice(2).map((item,index)=>lessonRow(item,index+2)).join('')}</details>`:'');
+    } else {
+      const readings=(skill.evidence || []).map(e=>({e,source:maps.sources.get(e.source_id)})).filter(({source})=>source?.access==='full_text'&&source.eligible_for_skills!==false&&safeExternal(source.url)).slice(0,2);
+      content=`<p class="tutorial-intro">这项能力尚未精选到专门教程，先从研究引用的原文读起。</p>${readings.map(({e,source},index)=>`<article class="tutorial-row original-reading"><span class="tutorial-number">${String(index+1).padStart(2,'0')}</span><div><p class="tutorial-meta">原文阅读 · ${esc(source.language || '')}</p><h3><a href="${esc(safeExternal(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.title)} ↗</a></h3><p class="tutorial-author">${esc(source.author || '')}</p><dl class="tutorial-guide"><dt>找到这一段</dt><dd>${esc(e.locator)}</dd><dt>带着问题读</dt><dd>${esc(e.support)}</dd></dl></div></article>`).join('')}`;
+    }
+    return `<section class="dossier-section tutorial-section" id="skill-tutorials"><p class="eyebrow">STUDY COMPANION</p><h2>配套教程</h2><p class="tutorial-intro">先学一个具体方法，再用下面的最小训练验证。推荐材料不改变你的学习状态。</p>${content}</section>`;
+  }
+  function renderVisualExamples(skill) {
+    const examples = Array.isArray(skill.visual_examples) ? skill.visual_examples : [];
+    if (!examples.length) return '<p>当前没有关联的专业图例链接。</p>';
+    return `<div class="visual-examples">${examples.map(item => {
+      const source = maps.sources.get(item.source_id) || {};
+      const href = safeExternal(item.url || source.url);
+      const review=({linked_text_only_no_pixel_review:'仅关联文本与图注；未作像素核验',pixel_reviewed:'已作像素核验'})[item.review_state] || item.review_state || '';
+      return `<article class="visual-example">${href?`<a class="visual-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(source.title || item.source_id || '打开来源页面')}</a>`:`<span>${esc(source.title || item.source_id || '来源记录')}</span>`}<p>${esc(item.description || '')}</p><div class="evidence-meta"><span>${esc(review)}</span></div></article>`;
+    }).join('')}</div><p class="example-warning">研究图例链接不表示已检查图片像素；封面照片也不用于支撑专业结论。</p>`;
+  }
+  function renderConflicts(skill) {
+    const conflicts = (atlas.conflicts || []).filter(item => item.skill_ids?.includes(skill.id));
+    if (!conflicts.length) return '';
+    return `<section class="dossier-section"><h2>来源之间的分歧与适用范围</h2><div class="evidence-list">${conflicts.map(item => {
+      const record = item.record || {};
+      const positions = item.positions || record.positions || [];
+      const title = item.title || record.topic || '来源范围提示';
+      const description = item.description || record.description || record.detail || '';
+      const resolution = item.resolution || record.resolution || record.handling || '';
+      const limitation = item.limitation || record.limitation || '';
+      const sources = item.source_ids || item.sources || record.source_ids || record.sources || [];
+      const sourceRows = sources.map(sourceId=>{
+        const source=maps.sources.get(sourceId)||{}, href=safeExternal(source.url);
+        return `<li>${href?`<a class="source-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(source.title || sourceId)}</a>`:esc(source.title || sourceId)}${source.access?` · 来源访问：${esc(source.access)}`:''}${source.read_depth?` · <details><summary>阅读范围</summary><p>${esc(source.read_depth)}</p></details>`:''}</li>`;
+      }).join('');
+      return `<article class="evidence-item"><strong>${esc(title)}</strong>${description?`<p>${esc(description)}</p>`:''}${positions.length?`<ul>${positions.map(position=>{const sourceId=typeof position==='string'?'':position.source_id;const source=maps.sources.get(sourceId)||{};const href=safeExternal(source.url);return `<li>${typeof position==='string'?esc(position):esc(position.text || position.summary || position.position || '')}${href?` · <a class="source-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(source.title || sourceId)}</a>`:''}</li>`;}).join('')}</ul>`:''}${sourceRows?`<details><summary>关联来源</summary><ul>${sourceRows}</ul></details>`:''}${resolution?`<p>${esc(resolution)}</p>`:''}${limitation?`<p class="example-warning">${esc(limitation)} 未据此扩展为完整理论或统一规则。</p>`:''}</article>`;
+    }).join('')}</div></section>`;
+  }
+  function renderWorkflow(skill) {
+    const prereqs = Array.isArray(skill.workflow_prerequisites) ? skill.workflow_prerequisites : [];
+    if (!prereqs.length) return '';
+    const wanted = new Set(prereqs);
+    const checklists = (atlas.project_checklists || []).filter(checklist =>
+      (checklist.prerequisite_mapping?.removed_or_demoted_candidate_ids || []).some(id => wanted.has(id)));
+    const checklistHtml = checklists.map(checklist => {
+      const design = checklist.project_designed || {};
+      const claims = (checklist.source_claims || []).map(claim => {
+        const source = maps.sources.get(claim.source_id) || {}, href=safeExternal(source.url);
+        return `<li>${href?`<a class="source-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(source.title || claim.source_id)}</a>`:esc(source.title || claim.source_id || '')} · ${esc(claimRelation(claim.relation))}${claim.claim?`<p>${esc(claim.claim)}</p>`:''}${claim.limitation?`<small>${esc(claim.limitation)}</small>`:''}</li>`;
+      }).join('');
+      return `<article class="evidence-item"><strong>${esc(checklist.title || checklist.id)}</strong>${checklist.when?`<p>${esc(checklist.when)}</p>`:''}${checklist.items?.length?`<ul>${checklist.items.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`:''}${design.sequence?`<p>项目流程：${esc(design.sequence)}</p>`:''}${design.acceptance_checks?.length?`<ul>${design.acceptance_checks.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`:''}${design.not_a_source_claim?`<p>${esc(design.not_a_source_claim)}</p>`:''}${claims?`<details><summary>来源声明与关系</summary><ul>${claims}</ul></details>`:''}</article>`;
+    }).join('');
+    return checklistHtml ? `<details class="dossier-section research-notes"><summary>拍摄前的流程核对</summary><p class="example-warning">以下为项目流程建议，并非统一专业标准。</p><div class="evidence-list">${checklistHtml}</div></details>` : '';
+  }
+  function safePhotoSrc(src) { return typeof src === 'string' && /^\/api\/learning-photos\/[0-9a-f]{64}\.(?:jpg|png|webp)$/.test(src) ? src : ''; }
+  function personalPhoto(photo) {
+    const src=safePhotoSrc(photo.src);
+    return src?`<figure class="record-photo-figure"><button class="photo-open personal-photo-open" data-photo-id="${esc(photo.id)}" type="button" aria-label="放大个人练习照片"><img src="${esc(src)}" alt="" loading="lazy"></button><figcaption>${esc(photo.caption || '')}</figcaption></figure>`:'';
+  }
+  function renderRecordList(skill) {
+    const record = recordOf(skill.id), logs = Array.isArray(record.logs) ? record.logs : [], photos = Array.isArray(record.photos) ? record.photos : [];
+    const photoFor = id => photos.find(photo => photo.id === id);
+    if (!stateReady) return '<p class="empty-records">个人记录暂不可读；解锁后才能查看已保存的内容。</p>';
+    const loggedPhotoIds = new Set(logs.flatMap(log => log.photo_ids || []));
+    const unlinkedPhotos = photos.filter(photo => !loggedPhotoIds.has(photo.id));
+    const logHtml = logs.length ? logs.slice().reverse().map(log => {
+      const date = new Date(log.created_at);
+      const display = Number.isNaN(date.getTime()) ? '' : date.toLocaleString('zh-CN',{dateStyle:'medium',timeStyle:'short'});
+      const attached = (log.photo_ids || []).map(photoFor).filter(Boolean);
+      return `<article class="record-entry"><time>${esc(display)}</time><p>${esc(log.text)}</p>${attached.length?`<div class="record-photos">${attached.map(personalPhoto).join('')}</div>`:''}</article>`;
+    }).join('') : '<p class="empty-records">还没有个人练习记录。</p>';
+    const photoHtml = unlinkedPhotos.length ? `<section class="record-entry"><p>尚未关联到练习记录的个人照片</p><div class="record-photos">${unlinkedPhotos.map(personalPhoto).join('')}</div></section>` : '';
+    return logHtml + photoHtml;
+  }
+  function renderSkill(id, options={}) {
+    const skill = maps.skills.get(id);
+    if (!skill) return false;
+    activeSkill = skill;
+    saveRecent(skill.id);
+    renderRecent();
+    const module = maps.modules.get(skill.module_id);
+    const domain = module && currentDomainForModule(module);
+    const record = recordOf(skill.id), status = statusOf(skill.id);
+    const prereqs = (skill.prerequisites || []).map(prereq => maps.skills.get(prereq) || {id:prereq,skill_name:prereq});
+    const confidence = ({high:'高',medium:'中',low:'低'})[skill.confidence] || skill.confidence || '未提供';
+    const basis = ({professional_consensus:'专业来源共识',photographer_method:'摄影师方法',project_adaptation:'项目适配'})[skill.basis] || '未提供';
+    $('skill-view').innerHTML = `<nav class="breadcrumbs" aria-label="面包屑"><a href="#map">能力地图</a>${domain?`<span aria-hidden="true">/</span><a href="${route('domain',domain.id)}">${esc(domain.name)}</a>`:''}${module?`<span aria-hidden="true">/</span><a href="${route('module',module.id)}">${esc(module.name)}</a>`:''}<span aria-hidden="true">/</span><span>${esc(skill.skill_name)}</span></nav>
+      <header class="skill-heading"><div><p class="eyebrow">技能研究 · ${esc({core:'核心',important:'重要',advanced:'进阶',optional:'可选'}[skill.relevance] || '')}</p><h1 id="skill-title" tabindex="-1">${esc(skill.skill_name)}</h1><p class="skill-capability">${esc(skill.capability || '')}</p>${skill.why_it_matters?`<p class="skill-why">${esc(skill.why_it_matters)}</p>`:''}</div>
+        <aside class="skill-controls" aria-label="我的自评"><label>我的状态${statusSelect(status)}</label><div class="toggle-row"><button id="skill-weak" class="toggle-button" type="button" aria-pressed="${Boolean(record.weak)}"${canEditProfile()?'':' disabled'}>${record.weak?'✓ ':''}薄弱项</button><button id="skill-focus" class="toggle-button" type="button" aria-pressed="${Boolean(record.focus)}"${canEditProfile()?'':' disabled'}>${record.focus?'✓ ':''}当前重点</button></div><p class="saved-indicator" id="skill-save-message">${esc(stateReady?(STATUS_NOTE[status] || ''):'个人状态暂不可读。')}</p></aside>
+      </header>
+      <nav class="skill-jump-links" aria-label="技能内容"><button type="button" data-section-target="skill-tutorials">配套教程</button><button type="button" data-section-target="skill-practice">最小训练</button><button type="button" data-section-target="skill-research">研究依据</button><button type="button" data-section-target="skill-records">我的记录</button></nav>
+      <div class="skill-columns"><div class="skill-dossier">
+        ${renderTutorials(skill)}
+        ${renderWorkflow(skill)}
+        ${skill.failure_modes?.length?`<section class="dossier-section"><h2>容易遇到的失败表现</h2><ul>${skill.failure_modes.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section>`:''}
+        ${skill.practice?`<section class="dossier-section" id="skill-practice"><h2>最小训练</h2><p>${esc(skill.practice)}</p>${skill.practice_basis?`<p class="evidence-meta">练习依据：${esc({project_designed:'项目设计',source_exercise:'原作者练习'}[skill.practice_basis] || skill.practice_basis)}</p>`:''}</section>`:''}
+        ${skill.acceptance?.length?`<section class="dossier-section"><h2>项目验收</h2><ul>${skill.acceptance.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section>`:''}
+        <details class="dossier-section research-notes" id="skill-research"><summary>研究依据 <span>${(skill.evidence || []).length} 个来源</span></summary><p class="evidence-meta">置信度：${esc(confidence)} · 依据：${esc(basis)}</p><p class="evidence-meta">来源共识仅指所收录资料一致；项目验收不是职业认证。</p>${renderEvidence(skill)}</details>
+        ${renderConflicts(skill)}
+        <section class="dossier-section"><h2>关联图例与案例链接</h2>${renderVisualExamples(skill)}</section>
+        <section class="dossier-section"><h2>先修能力</h2>${prereqs.length?`<ul>${prereqs.map(item=>`<li><a class="skill-open source-link" data-skill="${esc(item.id)}" href="${route('skill',item.id)}">${esc(item.skill_name)}</a></li>`).join('')}</ul>`:'<p>研究树未列出先修能力。</p>'}</section>
+      </div><aside class="my-records" id="skill-records"><h2>我的记录</h2><p>只记录你的练习与自评，不改写专业依据。</p><form class="notes-form" id="notes-form"><label for="skill-notes">技能备注</label><textarea id="skill-notes" maxlength="12000" placeholder="记录自己的观察。"${canEditProfile()?'':' disabled'}>${esc(record.notes || '')}</textarea><button class="secondary-button" id="notes-save" type="submit"${canEditProfile()?'':' disabled'}>保存备注</button></form><button id="record-open" class="add-record" type="button"${canEditProfile()?'':' disabled'}>＋ 写一条练习记录</button><div id="record-list" class="record-list">${renderRecordList(skill)}</div></aside></div>`;
+    $('skill-status').addEventListener('change', event => updateProfile(skill.id,{status:event.target.value},'状态已保存。'));
+    $('skill-weak').addEventListener('click', event => updateProfile(skill.id,{weak:!recordOf(skill.id).weak},'薄弱项标记已保存。'));
+    $('skill-focus').addEventListener('click', event => updateProfile(skill.id,{focus:!recordOf(skill.id).focus},'当前重点标记已保存。'));
+    $('notes-form').addEventListener('submit', event => { event.preventDefault(); updateProfile(skill.id,{notes:$('skill-notes').value},'备注已保存。'); });
+    $('record-open').addEventListener('click', () => openRecordDialog(skill));
+    if (options.focus === 'record-open') $('record-open').focus({preventScroll:true});
+    return true;
+  }
+  function renderProblem(index) {
+    const list = atlas.problem_index || [];
+    const item = /^\d+$/.test(String(index)) ? list[Number(index)] : list.find(problem=>problem.id===String(index));
+    if (!item) return false;
+    const skillIds = Array.isArray(item.skill_ids) ? item.skill_ids : [];
+    const related = skillIds.map(id => maps.skills.get(id)).filter(Boolean);
+    const gapIds = Array.isArray(item.gap_ids) ? item.gap_ids : [];
+    const gaps = (atlas.gaps || []).filter((gap, i) => gapIds.includes(gap.id) || gapIds.includes(String(i)));
+    $('problem-view').innerHTML = `<nav class="breadcrumbs"><a href="#map">能力地图</a><span>/</span><a href="#q=${encodeURIComponent(item.problem || '')}">问题搜索</a></nav><article class="problem-panel"><p class="eyebrow">PROBLEM INDEX</p><h1 id="problem-title" tabindex="-1">${esc(item.problem || '实际问题')}</h1>${item.synonyms?.length?`<p>相关说法：${item.synonyms.map(esc).join('、')}</p>`:''}<section class="problem-matches"><p class="eyebrow">关联技能</p>${related.length?related.map(skill=>skillResult(skill)).join(''):'<p class="empty-result">研究索引未关联技能。</p>'}</section>${gaps.length?`<section class="problem-matches"><p class="eyebrow">尚待补足的资料</p>${gaps.map(gap=>`<article class="result-gap"><span class="gap-label">资料不足</span><span><strong>${esc(gap.title || gap.problem || '研究缺口')}</strong><p>${esc(gap.description || '')}</p></span></article>`).join('')}</section>`:''}<p class="problem-disclaimer">问题与技能的关联来自研究索引；当资料不足时会明确标出，不以相邻技能替代答案。</p></article>`;
+    return true;
+  }
+  function normalized(value) { return String(value || '').toLocaleLowerCase('zh-CN'); }
+  function search(query) {
+    const q = normalized(query.trim());
+    if (!q) { $('search-view').hidden = true; return; }
+    $('search-view').hidden = false;
+    $('search-summary').textContent = `搜索问题、失败表现、能力与研究缺口：${query.trim()}`;
+    const results = [];
+    (atlas.problem_index || []).forEach((item,index) => {
+      const haystack = normalized([item.problem,...(item.synonyms || [])].join(' '));
+      if (haystack.includes(q)) results.push({type:'problem',item,index});
+    });
+    (atlas.gaps || []).forEach((item,index) => {
+      if (normalized([item.title,item.description,...(item.synonyms || [])].join(' ')).includes(q)) results.push({type:'gap',item,index});
+    });
+    (atlas.skills || []).forEach(item => {
+      if (normalized([item.skill_name,item.capability,item.why_it_matters,...(item.failure_modes || []),...(item.search_terms || [])].join(' ')).includes(q)) results.push({type:'skill',item});
+    });
+    (atlas.modules || []).forEach(item => {
+      if (normalized(item.name).includes(q)) results.push({type:'module',item});
+    });
+    (atlas.domains || []).forEach(item => {
+      if (normalized([item.name,item.description].join(' ')).includes(q)) results.push({type:'domain',item});
+    });
+    const problems = results.filter(item=>item.type==='problem');
+    const gaps = results.filter(item=>item.type==='gap');
+    const skills = results.filter(item=>item.type==='skill');
+    const other = results.filter(item=>['module','domain'].includes(item.type));
+    const group = (name,items,render) => items.length?`<section class="result-group"><h3>${name} · ${items.length}</h3>${items.slice(0,60).map(render).join('')}</section>`:'';
+    const gapRow = ({item,index}) => `<a class="result-gap" href="#gap=${index}"><span class="gap-label">资料不足</span><span><strong>${esc(item.title || item.problem || '研究缺口')}</strong><p>${esc(item.description || (item.synonyms || []).join('、'))}</p></span></a>`;
+    const otherRow = entry => entry.type==='module' ? `<a class="result-row" href="${route('module',entry.item.id)}"><span class="result-kind">模块</span><span><strong>${esc(entry.item.name)}</strong></span><span>↗</span></a>` : `<a class="result-row" href="${route('domain',entry.item.id)}"><span class="result-kind">领域</span><span><strong>${esc(entry.item.name)}</strong><p>${esc(entry.item.description || '')}</p></span><span>↗</span></a>`;
+    $('search-results').innerHTML = group('问题索引（优先匹配）',problems,({item,index})=>`<a class="result-row" data-problem="${index}" href="#problem=${index}"><span class="result-kind">问题 → ${item.skill_ids?.length || 0} 项技能</span><span><strong>${esc(item.problem)}</strong><p>${esc((item.synonyms || []).join(' · '))}</p></span><span>↗</span></a>`) +
+      group('资料不足',gaps,gapRow) + group('技能',skills,({item})=>skillResult(item)) + group('领域与模块',other,otherRow) || '<p class="empty-result">没有匹配结果。试试缩短问题，或改用失败表现中的关键词。</p>';
+  }
+  async function refreshState() {
     try {
-        const raw = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
-        recent = Array.isArray(raw.recent) ? [...new Set(raw.recent.filter(id => byTopic(id)))].slice(0,5) : [];
-        lastRoute = typeof raw.route === 'string' && raw.route.startsWith('#') && raw.route.length < 1000 ? raw.route : '';
-    } catch { /* The two pages also work when tab storage is unavailable. */ }
-    const icon = name => '<span class="icon" aria-hidden="true">' + (icons[name] || '') + '</span>';
-    function hydrate(root = document) {
-        root.querySelectorAll('i[data-icon]').forEach(node => { node.outerHTML = icon(node.dataset.icon); });
+      state = await responseJson(await fetch(api.state,{credentials:'same-origin',cache:'no-store'}));
+      stateReady = true;
+      stateNotice('个人学习记录已读取。','ok');
+    } catch (error) {
+      stateReady = false;
+      stateNotice(error.status === 401 ? '请先解锁私人参考库；当前仅可浏览研究内容。' : `个人记录暂不可用：${error.message}`,'error');
+      throw error;
     }
-    function remember() {
-        try { sessionStorage.setItem(storageKey, JSON.stringify({recent, route:location.hash})); }
-        catch { /* No server writes or fake persistent-save confirmation. */ }
+  }
+  async function updateProfile(skillId, updates, success) {
+    if (!canWrite()) { detailNotice('私人记录尚未解锁，未保存。',true); return; }
+    if (profileWriteInFlight || recordWriteInFlight) return;
+    profileWriteInFlight = true;
+    setProfileControlsDisabled(true);
+    try {
+      const result = await responseJson(await fetch(`${api.state}/${encodeURIComponent(skillId)}`,{
+        method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Lab-CSRF':csrf},
+        body:JSON.stringify({expected_revision:state.revision,...updates})
+      }));
+      state = result;
+      renderNextPractice();
+      const current = parseRoute();
+      if (current.kind === 'skill' && current.id === skillId) {
+        const profile = recordOf(skillId);
+        const weakButton = $('skill-weak'), focusButton = $('skill-focus'), status = $('skill-status');
+        if (weakButton) { weakButton.setAttribute('aria-pressed',String(!!profile.weak)); weakButton.textContent=`${profile.weak?'✓ ':''}薄弱项`; }
+        if (focusButton) { focusButton.setAttribute('aria-pressed',String(!!profile.focus)); focusButton.textContent=`${profile.focus?'✓ ':''}当前重点`; }
+        if (status && status.value !== profile.status) status.value = profile.status;
+        detailNotice(success,false);
+      }
+      stateNotice('个人学习记录已保存。','ok');
+      renderMine(parseRoute().kind === 'mine' ? parseRoute().id : '');
+    } catch (error) {
+      if (error.status === 409) {
+        await refreshState().catch(()=>{});
+        renderNextPractice();
+        const current=parseRoute();
+        if(current.kind==='skill' && current.id===skillId) detailNotice('记录已在其他页面更新。此处保留了你的选择和备注草稿；核对后再次操作即可保存。',true);
+      } else {
+        const current=parseRoute();
+        if(current.kind==='skill' && current.id===skillId) detailNotice(`${error.message} 未覆盖当前记录。`,true);
+      }
+    } finally { profileWriteInFlight=false; setProfileControlsDisabled(false); }
+  }
+  function openRecordDialog(skill) {
+    if (!stateReady || !sessionReady || !csrf) { detailNotice('私人记录尚未解锁，未保存。',true); return; }
+    recordDialogSkill = skill;
+    returnFocus = $('record-open');
+    $('record-skill-name').textContent = skill.skill_name;
+    $('record-text').value = '';
+    $('record-photo').value = '';
+    $('record-caption').value = '';
+    dialogPhotoSaved = '';
+    $('record-message').textContent = '';
+    $('record-save').disabled = false;
+    $('record-dialog').showModal();
+    $('record-text').focus();
+  }
+  function openPhotoViewer(photo, trigger) {
+    const src = safePhotoSrc(photo?.src);
+    if (!src) return;
+    photoReturnFocus = trigger;
+    $('photo-view-image').src = src;
+    $('photo-view-image').alt = photo.caption || '个人练习照片';
+    $('photo-caption').textContent = photo.caption || '个人练习照片';
+    $('photo-dialog').showModal();
+    $('photo-close').focus();
+  }
+  function closePhotoViewer() {
+    if ($('photo-dialog').open) $('photo-dialog').close();
+  }
+  async function saveRecord(event) {
+    event.preventDefault();
+    const skill = recordDialogSkill;
+    if (!skill || !stateReady || !csrf) return;
+    if (recordWriteInFlight || profileWriteInFlight) return;
+    const text = $('record-text').value.trim();
+    if (!text) { $('record-message').textContent = '请先写下练习内容。'; $('record-text').focus(); return; }
+    recordWriteInFlight = true;
+    setProfileControlsDisabled(true);
+    const save = $('record-save'); save.disabled = true;
+    $('record-message').textContent = '正在保存…';
+    let photoId = dialogPhotoSaved;
+    try {
+      const photo = $('record-photo').files?.[0];
+      if (photo && !photoId) {
+        const form = new FormData();
+        form.append('expected_revision',String(state.revision));
+        form.append('caption',$('record-caption').value);
+        form.append('file',photo);
+        state = await responseJson(await fetch(`${api.photos}/${encodeURIComponent(skill.id)}/photos`,{method:'POST',credentials:'same-origin',headers:{'X-Lab-CSRF':csrf},body:form}));
+        photoId = state.skills?.[skill.id]?.photos?.at(-1)?.id || '';
+        dialogPhotoSaved = photoId;
+      }
+      const logBody = {expected_revision:state.revision,text,...(photoId?{photo_ids:[photoId]}:{})};
+      state = await responseJson(await fetch(`${api.photos}/${encodeURIComponent(skill.id)}/logs`,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Lab-CSRF':csrf},body:JSON.stringify(logBody)}));
+      dialogPhotoSaved = '';
+      closeRecordDialog(false);
+      const current = parseRoute();
+      if (current.kind === 'skill' && current.id === skill.id) {
+        $('record-list').innerHTML = renderRecordList(skill);
+        $('record-open').focus({preventScroll:true});
+      }
+      renderNextPractice();
+      renderMine(parseRoute().kind === 'mine' ? parseRoute().id : '');
+      stateNotice('练习记录已保存；状态仍由你单独评估。','ok');
+    } catch (error) {
+      if (error.status === 409) {
+        await refreshState().catch(()=>{});
+        $('record-message').textContent = `${dialogPhotoSaved?'照片已保存并保留，不会重复上传。':''}记录已在其他页面更新；已重新读取，请核对后再次提交。`;
+      } else $('record-message').textContent = `${error.message}。未覆盖较新的记录。`;
+    } finally { recordWriteInFlight=false; setProfileControlsDisabled(false); if ($('record-dialog').open) save.disabled = false; }
+  }
+  function closeRecordDialog(restore=true) {
+    if (!$('record-dialog').open) return;
+    $('record-dialog').close();
+    const current = parseRoute();
+    if (dialogPhotoSaved && recordDialogSkill && current.kind === 'skill' && current.id === recordDialogSkill.id && $('record-list')) {
+      $('record-list').innerHTML = renderRecordList(recordDialogSkill);
     }
-    function safeSource(value) {
-        try { const url = new URL(value); return ['http:','https:'].includes(url.protocol) ? url.href : ''; }
-        catch { return ''; }
+    if (restore && returnFocus?.isConnected) returnFocus.focus({preventScroll:true});
+  }
+  function parseRoute() {
+    const raw = location.hash.slice(1);
+    if (raw.startsWith('topic=')) {
+      const legacy = new URLSearchParams(raw).get('topic');
+      if (maps.domains.has(legacy)) { history.replaceState(null,'',route('domain',legacy)); return {kind:'domain',id:legacy}; }
+      return {kind:'map',id:''};
     }
-    function topicHash(id) { return '#topic=' + encodeURIComponent(id); }
-    function caseItems(topic) {
-        const preferred = topic.cases.map(id => assets.find(item => item.id === id)).filter(Boolean);
-        return [...preferred, ...assets.filter(item => !preferred.includes(item))].slice(0,9);
+    if (!raw || raw === 'map') return {kind:'map',id:''};
+    if (raw.startsWith('q=')) return {kind:'search',id:new URLSearchParams(raw).get('q') || ''};
+    if (raw.startsWith('gap=')) return {kind:'gap',id:new URLSearchParams(raw).get('gap') || ''};
+    const [kind,...rest] = raw.split('=');
+    if (['domain','module','skill','problem','mine'].includes(kind)) {
+      try { return {kind,id:decodeURIComponent(rest.join('='))}; } catch { return {kind:'map',id:''}; }
     }
-    function layoutMap() {
-        if ($('map-view').hidden) return;
-        const style = getComputedStyle($('topic-grid'));
-        const unit = parseFloat(style.getPropertyValue('--masonry-unit')) || 4;
-        const gap = parseFloat(style.getPropertyValue('--map-row-gap')) || 32;
-        $('topic-grid').querySelectorAll('.topic-entry').forEach(entry => {
-            const span = Math.ceil((entry.firstElementChild.getBoundingClientRect().height + gap) / unit);
-            const value = 'span ' + span;
-            if (entry.style.gridRowEnd !== value) entry.style.gridRowEnd = value;
-        });
+    return {kind:'map',id:''};
+  }
+  function renderRoute(focus=false) {
+    if (!atlas) return;
+    const current = parseRoute();
+    const inMap = ['map','search','mine'].includes(current.kind);
+    $('map-view').hidden = !inMap;
+    $('map-view').setAttribute('aria-labelledby',current.kind === 'search' ? 'search-title' : current.kind === 'mine' ? 'mine-title' : 'map-title');
+    document.querySelector('.masthead').hidden = current.kind !== 'map';
+    document.querySelector('.mine-strip').hidden = !['map','mine'].includes(current.kind);
+    $('domain-view').hidden = current.kind !== 'domain';
+    $('module-view').hidden = current.kind !== 'module';
+    $('skill-view').hidden = current.kind !== 'skill';
+    $('problem-view').hidden = current.kind !== 'problem' && current.kind !== 'gap';
+    $('home-view').hidden = current.kind !== 'map';
+    $('search-view').hidden = current.kind !== 'search';
+    $('mine-view').hidden = current.kind !== 'mine';
+    renderMine(current.kind === 'mine' ? current.id : '');
+    $('search').value = current.kind === 'search' ? current.id : '';
+    let valid = true;
+    if (current.kind === 'domain') valid = renderDomain(current.id);
+    if (current.kind === 'module') valid = renderModule(current.id);
+    if (current.kind === 'skill') valid = renderSkill(current.id);
+    if (current.kind === 'problem') valid = renderProblem(current.id);
+    if (current.kind === 'gap') valid = renderGap(current.id);
+    if (current.kind === 'search') search(current.id);
+    if (!valid) { history.replaceState(null,'','#map'); renderRoute(focus); return; }
+    $('recent-panel').hidden = true;
+    $('recent-toggle').setAttribute('aria-expanded','false');
+    if (focus) {
+      const target = current.kind==='domain' ? $('domain-title') : current.kind==='module' ? $('module-title') : current.kind==='skill' ? $('skill-title') : current.kind==='problem'||current.kind==='gap' ? $('problem-title') : current.kind==='search' ? $('search-title') : current.kind==='mine' ? $('mine-title') : $('map-title');
+      // A new route begins at its heading, not at the previous page's scroll offset.
+      window.scrollTo({top:0,behavior:'instant'});
+      requestAnimationFrame(()=>{ if (!$('record-dialog').open) target?.focus({preventScroll:true}); });
     }
-    function fitStickyNote() {
-        const note = $('research-note');
-        const header = document.querySelector('.site-header').getBoundingClientRect().height;
-        note.classList.toggle('can-stick', innerWidth > 850 && note.scrollHeight < innerHeight - header - 48);
+    const title = current.kind==='skill' ? `${findSkill(current.id)?.skill_name || '技能'} · 摄影学习` : current.kind==='domain' ? `${maps.domains.get(current.id)?.name || '领域'} · 摄影学习` : current.kind==='module' ? `${maps.modules.get(current.id)?.name || '模块'} · 摄影学习` : '摄影能力地图 · 摄影学习';
+    document.title = title;
+  }
+  function renderGap(index) {
+    const list = atlas.gaps || [];
+    const gap = /^\d+$/.test(String(index)) ? list[Number(index)] : list.find(item=>item.id===String(index) || item.gap_id===String(index));
+    if (!gap) return false;
+    const ids = gap.related_skill_ids || [];
+    const skills = ids.map(id=>maps.skills.get(id)).filter(Boolean);
+    $('problem-view').innerHTML = `<nav class="breadcrumbs"><a href="#map">能力地图</a><span>/</span><a href="#q=${encodeURIComponent(gap.title || '')}">问题搜索</a></nav><article class="problem-panel"><p class="eyebrow">RESEARCH GAP</p><h1 id="problem-title" tabindex="-1">${esc(gap.title || '研究缺口')}</h1><p>${esc(gap.description || '')}</p>${gap.synonyms?.length?`<p>相关说法：${gap.synonyms.map(esc).join('、')}</p>`:''}<p class="problem-disclaimer">资料不足。此缺口不会自动转为相邻方法或未经证实的操作建议。</p><section class="problem-matches"><p class="eyebrow">关联技能</p>${skills.length?skills.map(skill=>skillResult(skill)).join(''):'<p class="empty-result">暂未关联技能。</p>'}</section></article>`;
+    return true;
+  }
+  function wire() {
+    document.addEventListener('click',event=>{
+      const sectionLink=event.target.closest('[data-section-target]');
+      if(sectionLink) {
+        const section=$(sectionLink.dataset.sectionTarget);
+        if(section?.tagName==='DETAILS') section.open=true;
+        section?.scrollIntoView({behavior:'instant',block:'start'});
+        section?.querySelector('textarea,summary')?.focus({preventScroll:true});
+        return;
+      }
+      const photoButton=event.target.closest('[data-photo-id]');
+      if(photoButton && activeSkill) {
+        const photo=recordOf(activeSkill.id).photos?.find(item=>item.id===photoButton.dataset.photoId);
+        if(photo){event.preventDefault();openPhotoViewer(photo,photoButton);return;}
+      }
+      const link = event.target.closest('a[href^="#"]');
+      if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button===0) {
+        if (link.classList.contains('skip-link')) { event.preventDefault(); $('main').focus(); return; }
+        event.preventDefault();
+        if (location.hash !== link.getAttribute('href')) history.pushState(null,'',link.getAttribute('href'));
+        renderRoute(true);
+        return;
+      }
+      const mine = event.target.closest('[data-mine-filter]');
+      if (mine) { const current=parseRoute(); const same=current.kind==='mine' && current.id===mine.dataset.mineFilter; history.pushState(null,'',same?'#map':route('mine',mine.dataset.mineFilter)); renderRoute(true); }
+      if (event.target.id === 'clear-search') { event.preventDefault(); history.pushState(null,'','#map'); renderRoute(true); $('search').focus(); }
+      if (event.target.id === 'clear-mine') { history.pushState(null,'','#map'); renderRoute(true); }
+      if (event.target.id === 'recent-toggle') {
+        const panel = $('recent-panel'), opening = panel.hidden;
+        if (opening) renderRecent();
+        panel.hidden = !opening;
+        event.target.setAttribute('aria-expanded',String(opening));
+      } else if (!event.target.closest('#recent-panel')) {
+        $('recent-panel').hidden = true; $('recent-toggle').setAttribute('aria-expanded','false');
+      }
+    });
+    $('search').addEventListener('input',()=>{
+      clearTimeout(searchTimer);
+      searchTimer=setTimeout(()=>{
+        const value=$('search').value.trim();
+        history.replaceState(null,'',value?`#q=${encodeURIComponent(value)}`:'#map');
+        renderRoute(false);
+        window.scrollTo({top:0,behavior:'instant'});
+        $('search').focus({preventScroll:true});
+      },100);
+    });
+    $('status-filter').addEventListener('change',()=>{const routeNow=parseRoute();if(routeNow.kind==='module')renderModule(routeNow.id);});
+    $('mine-status-filter').addEventListener('change',event=>{history.pushState(null,'',event.target.value?route('mine',event.target.value):'#map');renderRoute(true);});
+    $('record-form').addEventListener('submit',saveRecord);
+    $('record-close').addEventListener('click',closeRecordDialog);
+    $('record-cancel').addEventListener('click',closeRecordDialog);
+    $('record-dialog').addEventListener('close',()=>{if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
+    $('record-dialog').addEventListener('click',event=>{if(event.target===$('record-dialog'))closeRecordDialog();});
+    $('photo-close').addEventListener('click',closePhotoViewer);
+    $('photo-dialog').addEventListener('close',()=>{if(photoReturnFocus?.isConnected)photoReturnFocus.focus({preventScroll:true});});
+    $('photo-dialog').addEventListener('click',event=>{if(event.target===$('photo-dialog'))closePhotoViewer();});
+    document.addEventListener('keydown',event=>{
+      if (event.key==='/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) {event.preventDefault();$('search').focus();}
+      if (event.key==='Escape' && !$('recent-panel').hidden) { $('recent-panel').hidden=true;$('recent-toggle').setAttribute('aria-expanded','false');$('recent-toggle').focus(); }
+    });
+    window.addEventListener('popstate',()=>renderRoute(true));
+    window.addEventListener('hashchange',()=>renderRoute(true));
+  }
+  async function boot() {
+    wire();
+    stateNotice('正在读取个人学习记录…');
+    const [atlasResult,sessionResult,stateResult,previewResult] = await Promise.allSettled([
+      fetch(api.atlas,{credentials:'same-origin',cache:'no-store'}).then(responseJson),
+      fetch(api.session,{credentials:'same-origin',cache:'no-store'}).then(responseJson),
+      fetch(api.state,{credentials:'same-origin',cache:'no-store'}).then(responseJson),
+      fetch(api.preview,{credentials:'same-origin',cache:'no-store'}).then(responseJson)
+    ]);
+    if (atlasResult.status !== 'fulfilled' || !atlasResult.value || atlasResult.value.schema_version !== 1 || !Array.isArray(atlasResult.value.skills)) {
+      showMainError(atlasResult.status==='rejected' ? `研究数据暂不可用：${atlasResult.reason.message}` : '研究数据格式无效。请在构建并验证学习数据包后重新加载。');
+      $('home-view').hidden=true; return;
     }
-    function renderMap(query) {
-        const matches = topics.filter(topic => (topic.title + topic.description + topic.hint).includes(query.trim()));
-        $('topic-grid').innerHTML = matches.map(topic => {
-            const index = topics.indexOf(topic);
-            const covers = topic.cover.map((id, n) => assets.find(item => item.id === id) || assets[(index * 2 + n) % assets.length]).filter(Boolean);
-            const classes = topic.shape.split(' ').map(shape => 'cover-' + shape).join(' ');
-            return '<article class="topic-entry"><a class="topic-link" data-topic="' + topic.id + '" href="' + topicHash(topic.id) + '" aria-label="' + escape(topic.title) + '"><div class="topic-cover ' + classes + '">' +
-                (covers.length ? covers.map(item => '<img src="' + escape(item.src) + '" alt="" width="' + item.width + '" height="' + item.height + '" loading="' + (index < 4 ? 'eager' : 'lazy') + '">').join('') : '<span class="cover-placeholder">专题封面</span>') +
-                '<span class="cover-hint">' + escape(topic.hint) + '</span></div><div class="topic-label"><h2>' + escape(topic.title) + '</h2>' + icon('arrow-up-right') + '</div></a></article>';
-        }).join('');
-        $('empty-state').hidden = matches.length !== 0;
-        $('topic-grid').hidden = matches.length === 0;
-        requestAnimationFrame(layoutMap);
+    atlas=atlasResult.value; buildMaps(); recent=readRecent(); renderDomainGrid(); renderRecent();
+    if (sessionResult.status==='fulfilled') { csrf=sessionResult.value.csrf || ''; sessionReady=!!csrf; }
+    if (stateResult.status==='fulfilled') { state=stateResult.value; stateReady=true; stateNotice('个人学习记录已读取。','ok'); }
+    else { stateReady=false; stateNotice(stateResult.reason.status===401?'请先解锁私人参考库；当前仅可浏览研究内容。':`个人记录暂不可用：${stateResult.reason.message}`,'error'); }
+    if (!sessionReady && stateReady) stateNotice('个人记录可读取，但会话校验暂不可用，暂不能写入。','error');
+    if (previewResult.status==='fulfilled' && Array.isArray(previewResult.value.items)) {
+      assets=previewResult.value.items.filter(item=>typeof item.src==='string'&&/^\/api\/learning-preview\/P\d+\.(?:jpg|jpeg|png|webp|avif)$/.test(item.src)&&Number.isFinite(item.width)&&Number.isFinite(item.height));
+      renderDomainGrid();
     }
-    function caseAnnotation(index) {
-        // Mock labels explicitly marked in hover, gallery note and lightbox.
-        const labels = [
-            ['成功案例', '低机位 · 35mm · 人物占比高', '相机高度改变时，人物轮廓与背景垂直线会怎样变化？'],
-            ['失败案例', '镜头俯仰 · 画面倾斜', '画面倾斜是在帮助表达，还是让你忽略了人物比例？'],
-            ['成功案例', '身体方向 · 空间层次', '人物、道具与环境分别处在怎样的前后关系里？'],
-            ['成功案例', '环境比例 · 留白', '如果靠近人物一些，画面的重点会发生什么变化？'],
-            ['失败案例', '近距离 · 透视关系', '靠近镜头的部位是否吸引了过多注意？'],
-            ['成功案例', '人物占比 · 景别', '这张照片保留了多少环境，又让你看见了多少人物？']
-        ];
-        const [kind, tags, question] = labels[index % labels.length];
-        return {kind, tags, question};
-    }
-    function renderTopic(topic) {
-        $('topic-view').dataset.topic = topic.id;
-        $('research-note').innerHTML = '<header class="note-heading"><h1 id="topic-title" tabindex="-1">' + escape(topic.title) + '</h1><p>' + escape(topic.description) + '</p></header>' +
-            '<section data-section="question"><h2>当前核心问题</h2><p class="core-question">' + escape(topic.question) + '</p></section>' +
-            '<section data-section="rules" class="ruled"><h2>关键规律</h2><ul>' + topic.rules.map(rule => '<li>' + escape(rule) + '</li>').join('') + '</ul></section>' +
-            '<section data-section="problems"><h2>我目前容易出现的问题</h2><p>' + escape(topic.problem) + '</p></section>' +
-            '<section data-section="conclusion" class="conclusion"><h2>当前结论</h2><p>' + escape(topic.conclusion) + '</p></section>' +
-            '<section data-section="next"><h2>下一次实拍需要验证什么</h2><p>' + escape(topic.next) + '</p></section>' +
-            '<p class="note-meta">示例研究笔记 · ' + (topic.id === 'perspective' ? '核心问题与关键规律采用本轮给定内容' : '用于体验同一套专题模板') + '</p>';
-        const items = caseItems(topic);
-        $('case-gallery').innerHTML = items.length ? items.map((item, index) => {
-            const label = caseAnnotation(index);
-            return '<figure class="case-figure"><button class="case-open" data-case="' + index + '" aria-label="查看案例：' + escape(item.originalTitle || item.title) + '"><img src="' + escape(item.src) + '" width="' + item.width + '" height="' + item.height + '" alt="' + escape(item.originalTitle || item.title) + '" loading="' + (index < 4 ? 'eager' : 'lazy') + '"><span class="case-overlay">' + icon('arrows-maximize') + '<strong>' + label.kind + ' · 示例</strong><small>' + label.tags + '</small></span></button></figure>';
-        }).join('') : '<p class="asset-notice">案例图片暂时不可用，研究笔记仍可浏览。</p>';
-        $('case-gallery').querySelectorAll('[data-case]').forEach(button => button.onclick = () => {
-            returnTarget = button;
-            openedFromTopic = true;
-            navigate(topicHash(topic.id) + '&case=' + button.dataset.case, false, false);
-        });
-        requestAnimationFrame(fitStickyNote);
-    }
-    function renderRecent() {
-        $('recent-panel').innerHTML = '<h2>最近学习</h2>' + (recent.length ? recent.map(id => '<a data-recent="' + id + '" href="' + topicHash(id) + '">' + escape(byTopic(id).title) + '</a>').join('') : '<p>还没有最近学习。打开一个专题，从这里继续。</p>');
-    }
-    function closeRecent() {
-        $('recent-panel').hidden = true;
-        $('recent-toggle').setAttribute('aria-expanded', 'false');
-    }
-    function showCase(index) {
-        const items = caseItems(activeTopic);
-        const item = items[index];
-        if (!item) return;
-        activeCase = index;
-        const label = caseAnnotation(index);
-        $('viewer-title').textContent = item.originalTitle || item.title;
-        $('viewer-kind').textContent = label.kind + ' · 示例标注';
-        $('viewer-tags').textContent = label.tags;
-        $('viewer-note').textContent = label.question;
-        $('viewer-author').textContent = item.author || '摄影署名待补充';
-        $('viewer-source').hidden = !safeSource(item.sourceUrl);
-        if (safeSource(item.sourceUrl)) $('viewer-source').href = safeSource(item.sourceUrl);
-        else $('viewer-source').removeAttribute('href');
-        $('viewer-rights').open = false;
-        $('viewer-restrictions').textContent = item.restrictions || '沿用本地素材的原始出处，仅用于私人视觉原型，不代表新增使用许可。';
-        $('viewer-position').textContent = (index + 1) + ' / ' + items.length;
-        $('viewer-prev').disabled = index === 0;
-        $('viewer-next').disabled = index === items.length - 1;
-        $('viewer-image-error').hidden = true;
-        $('viewer-image').alt = item.originalTitle || item.title;
-        $('viewer-image').src = item.src;
-        if (!$('case-viewer').open) $('case-viewer').showModal();
-    }
-    function hideCase() {
-        if (!$('case-viewer').open) return;
-        ignoreDialogClose = true;
-        $('case-viewer').close();
-        activeCase = null;
-        if (returnTarget?.isConnected) returnTarget.focus({preventScroll:true});
-    }
-    function renderRoute(focus = false) {
-        if (!ready) return;
-        const params = new URLSearchParams(location.hash.slice(1));
-        const topic = byTopic(params.get('topic'));
-        const query = (params.get('q') || '').slice(0,100);
-        const changedTopic = activeTopic?.id !== topic?.id;
-        const wasTopic = !!activeTopic;
-        if (changedTopic || !topic) hideCase();
-        activeTopic = topic || null;
-        $('map-view').hidden = !!topic;
-        $('topic-view').hidden = !topic;
-        $('search').value = topic ? '' : query;
-        closeRecent();
-        if (topic) {
-            if (changedTopic) {
-                returnTopicId = topic.id;
-                renderTopic(topic);
-                recent = [topic.id, ...recent.filter(id => id !== topic.id)].slice(0,5);
-            }
-            document.title = topic.title + ' · 摄影学习';
-            const value = params.get('case');
-            const index = value !== null && /^\d+$/.test(value) ? Number(value) : -1;
-            if (index >= 0 && index < caseItems(topic).length) showCase(index);
-            else { hideCase(); activeCase = null; }
-            if (changedTopic) {
-                window.scrollTo(0,0);
-                if (focus) $('topic-title').focus({preventScroll:true});
-            }
-        } else {
-            document.title = '摄影能力地图 · 摄影学习';
-            renderMap(query);
-            if (wasTopic && focus) {
-                requestAnimationFrame(() => {
-                    window.scrollTo(0,mapScroll);
-                    const target = $('topic-grid').querySelector('[data-topic="' + returnTopicId + '"]');
-                    (target || $('map-title')).focus({preventScroll:true});
-                });
-            } else if (focus) window.scrollTo(0,0);
-        }
-        if (initialRoute) { initialRoute = false; openedFromTopic = false; }
-        remember();
-    }
-    function navigate(hash, replace = false, focus = true) {
-        clearTimeout(searchTimer);
-        if (location.hash !== hash) history[replace ? 'replaceState' : 'pushState'](null,'',hash);
-        renderRoute(focus);
-    }
-    function closeViewer() {
-        if (!$('case-viewer').open) return;
-        if (openedFromTopic) {
-            openedFromTopic = false;
-            history.back();
-        } else navigate(topicHash(activeTopic.id), true, false);
-    }
-    function nextCase(delta) {
-        const next = activeCase + delta;
-        if (activeTopic && next >= 0 && next < caseItems(activeTopic).length)
-            navigate(topicHash(activeTopic.id) + '&case=' + next, true, false);
-    }
-    function wire() {
-        document.addEventListener('click', event => {
-            const link = event.target.closest('a[href^="#"]');
-            if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) {
-                if (link.classList.contains('skip-link')) {
-                    event.preventDefault(); $('main').focus(); return;
-                }
-                event.preventDefault();
-                if (link.dataset.topic) mapScroll = scrollY;
-                navigate(link.getAttribute('href'));
-            }
-            if (!event.target.closest('.recent-wrap')) closeRecent();
-        });
-        $('search').oninput = () => {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                const query = $('search').value.slice(0,100);
-                const hash = query ? '#' + new URLSearchParams({q:query}) : '#map';
-                navigate(hash, !activeTopic, false);
-            },120);
-        };
-        $('clear-search').onclick = () => { navigate('#map'); $('search').focus(); };
-        $('recent-toggle').onclick = () => {
-            renderRecent();
-            const open = $('recent-panel').hidden;
-            $('recent-panel').hidden = !open;
-            $('recent-toggle').setAttribute('aria-expanded', String(open));
-        };
-        $('viewer-close').onclick = closeViewer;
-        $('viewer-prev').onclick = () => nextCase(-1);
-        $('viewer-next').onclick = () => nextCase(1);
-        $('viewer-image').onerror = () => { $('viewer-image-error').hidden = false; };
-        $('case-viewer').addEventListener('cancel', event => { event.preventDefault(); closeViewer(); });
-        $('case-viewer').addEventListener('close', () => {
-            if (ignoreDialogClose) { ignoreDialogClose = false; return; }
-            if (activeCase !== null && activeTopic) navigate(topicHash(activeTopic.id), true, false);
-        });
-        $('case-viewer').onclick = event => { if (event.target === $('case-viewer')) closeViewer(); };
-        document.addEventListener('keydown', event => {
-            if (event.ctrlKey || event.metaKey || event.altKey) return;
-            if ($('case-viewer').open) {
-                if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); nextCase(event.key === 'ArrowRight' ? 1 : -1); }
-                return;
-            }
-            if (event.key === 'Escape' && !$('recent-panel').hidden) { closeRecent(); $('recent-toggle').focus(); }
-            if (event.key === '/' && !/INPUT|TEXTAREA/.test(document.activeElement?.tagName)) { event.preventDefault(); $('search').focus(); }
-        });
-        window.addEventListener('popstate', () => renderRoute(true));
-        window.addEventListener('hashchange', () => renderRoute(true));
-        window.addEventListener('pagehide', remember);
-        new ResizeObserver(() => requestAnimationFrame(layoutMap)).observe($('topic-grid'));
-        new ResizeObserver(fitStickyNote).observe($('research-note'));
-        window.addEventListener('resize', fitStickyNote);
-    }
-    async function boot() {
-        wire();
-        const results = await Promise.allSettled([
-            fetch('/static/learning-icons.json').then(response => response.ok ? response.json() : {}),
-            fetch('/api/learning-preview', {credentials:'same-origin'}).then(response => {
-                if (!response.ok) throw new Error(response.status === 401 ? '请先在拍摄参考中打开私人工作区，专题文字仍可预览。' : '暂时无法读取本地案例图片，专题文字仍可预览。');
-                return response.json();
-            })
-        ]);
-        if (results[0].status === 'fulfilled') icons = results[0].value;
-        hydrate();
-        if (results[1].status === 'fulfilled') {
-            const items = results[1].value?.items;
-            assets = (Array.isArray(items) ? items : []).filter(item => typeof item.id === 'string' && /^P\d+$/.test(item.id)
-                && typeof item.src === 'string' && /^\/api\/learning-preview\/P\d+\.(jpg|jpeg|png|webp|avif)$/.test(item.src)
-                && Number.isFinite(item.width) && item.width > 0 && Number.isFinite(item.height) && item.height > 0);
-        }
-        if (!assets.length) {
-            $('asset-notice').hidden = false;
-            $('asset-notice').textContent = results[1].status === 'rejected' ? results[1].reason.message : '尚无本地示例图片，先用封面占位预览专题结构。';
-        }
-        if (!location.hash) history.replaceState(null,'',lastRoute || '#map');
-        ready = true;
-        renderRoute();
-    }
-    boot();
+    renderNextPractice();
+    if (atlas.domains.length) { $('load-error').hidden=true; renderRoute(); }
+    else showMainError('研究数据中没有能力领域。');
+  }
+  boot();
 })();

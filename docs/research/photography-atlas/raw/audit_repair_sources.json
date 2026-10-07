@@ -1,0 +1,31 @@
+{
+  "scope": "quality_repair",
+  "sources": [
+    {
+      "id": "cosplay-nikon-cosgenic-lesson5",
+      "title": "COSGENIC Lesson 5: group cosplay photography",
+      "author": "井上依子（YOL）、渡邉（yakul）",
+      "identity": "Credited working photographers in Nikon Imaging Japan COSGENIC Lesson5; same instructor team as Lesson3, not a second independent authority.",
+      "kind": "manufacturer-published illustrated professional cosplay lesson",
+      "tier": "A",
+      "language": "Japanese",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson5/",
+      "coverage": [
+        "character intent and photographer-subject alignment",
+        "pose, expression and gaze as mood variables",
+        "expressive hands and fingertips",
+        "controlled variation while holding costume and scene",
+        "pose and angle variation"
+      ],
+      "trust_reason": "Nikon Imaging Japan publishes the lesson and credits the photographers; full instructional text explicitly compares posing/expression/gaze changes for character mood.",
+      "independence_key": "yoriko-inoue-yakul",
+      "access": "full_text",
+      "read_depth": "Root reopened full actual Nikon lesson on2026-10-08, read group placement lines41–122 and credits135; auditor also reopened; pixels not inspected.",
+      "worth_deep_read": true,
+      "notes": "Source-quality PASS2 source-ID repair; exact instructor attribution remains institutional pending verification.",
+      "accessed_at": "2026-10-07"
+    }
+  ],
+  "queries": [],
+  "gaps": []
+}

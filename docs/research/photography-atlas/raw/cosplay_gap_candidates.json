@@ -1,0 +1,51 @@
+{
+  "scope": "cosplay_gap_supplement",
+  "candidates": [
+    {
+      "id": "cosplay-gap-c01-small-prop-face-outline",
+      "skill_name": "用小道具持握位置表达角色并控制面部轮廓遮挡",
+      "capability": "对适合入镜的一般小道具，比较持握位置与朝向如何影响角色气质表达和面部轮廓遮挡；先由扮演者确认道具与表达意图，不把一般小道具结论扩展为匕首方向规则。",
+      "why_it_matters": "小道具可能帮助建立角色特征，也可能不经意遮住脸部或关键表情；先明确道具在画面中的作用，能减少无意遮挡。",
+      "module_hint": "小道具与人物关系",
+      "domain_hint": "Cosplay角色道具呈现",
+      "prerequisites": [],
+      "failure_modes": ["道具虽入镜但与角色表达无关", "道具遮住脸部或表情的程度超出双方预期", "将一般小道具示例误用成短匕首内扣/外展规则"],
+      "practice": "用非武器、轻质小道具固定人物和机位；让扮演者同意两个不同的持握位置/朝向并各拍一帧，对照道具是否传达预期角色状态、面部轮廓或嘴部遮挡是否仍可接受。记录差异，不推广为其他道具的规范。",
+      "acceptance": ["能说明当前道具的画面作用是表达角色、形成遮挡或两者兼有", "对照帧能辨认持握位置变化及其对脸部轮廓/表情的影响", "扮演者确认遮挡与姿态可接受", "不声称该证据确定了短匕首的镜头朝向"],
+      "evidence": [
+        {
+          "source_id": "cosplay-gap-cosplaymode-prop-posing",
+          "locator": "lines 121–127",
+          "support": "COSPLAY MODE称角色特有或普通小道具均可用于拍摄，并指出持握方式可以表现性格，也可轻微遮住轮廓或嘴部。原文没有给出短匕首的持握方向规则。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": ["COSPLAY 小道具 持ち方 性格 輪郭", "cosplay small prop pose face outline photographer"]
+    }
+  ],
+  "conflicts": [],
+  "gaps": [
+    {
+      "area": "短匕首专门的入镜方向与躯干关系",
+      "detail": "小道具直接来源只支持一般的持握位置影响与面部轮廓遮挡；它不支持匕首内扣/外展或匕首—躯干方向关系。短匕首问题仍待直接专业摄影来源。"
+    },
+    {
+      "area": "宽袖/和服袖片的摄影呈现",
+      "detail": "本轮没有发现可直接支持宽袖、袖口、手部区分或袖片与躯干遮挡关系的专业全文。一般裙摆动作和肖像姿势不能代替此缺口。"
+    },
+    {
+      "area": "中国漫展拥挤现场流程",
+      "detail": "本轮没有找到可读取的专业全文，明确教授中国漫展拥挤环境下的快拍短句、轮换节奏或拍后失败复盘；Canon课程页是提纲，媒体材料是现场报道。"
+    },
+    {
+      "area": "假发静态/动态工作流",
+      "detail": "本轮没有发现可公开读取且具体到cosplay假发的职业摄影师全文，支持假发整理、运动方向、遮眼检查或合成纤维布光。"
+    }
+  ]
+}

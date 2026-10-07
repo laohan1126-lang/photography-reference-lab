@@ -1,0 +1,193 @@
+{
+  "scope": "perspective-gap",
+  "candidates": [
+    {
+      "id": "perspective-gap-skill-knee-crop-choice",
+      "skill_name": "判断膝部关节附近的裁切是否显得意外",
+      "capability": "能比较画框穿过膝关节、落在大腿或小腿中段、以及完整保留腿部的版本；根据姿势、可见肢体信息与画面意图判断是否需要改裁，而不把“永不截关节”当作硬规则。",
+      "why_it_matters": "膝部恰被画框切过时，有时会形成突兀断点；更合适的切点又受姿势、服装边缘、手指/道具位置和目标画面影响。",
+      "module_hint": "景别与裁切",
+      "domain_hint": "crop_boundary",
+      "prerequisites": [],
+      "failure_modes": [
+        "人物膝/小腿像被截断或像意外缺失",
+        "为了遵守规则留下细小、看起来更像失误的皮肤/肢体残片",
+        "只套用固定“上/下膝”模板，忽略姿态和视觉意图"
+      ],
+      "practice": "用同一张全身或半身照片做三版：膝关节处、邻近肢体段中部、完整保留膝部。分别标注姿势、其他肢体是否被切断、哪版看起来最有意图。允许把“有意抽象/动作截取”作为测试条件。",
+      "acceptance": [
+        "能准确指出边缘与膝关节的关系",
+        "能解释裁切是否让肢体读成意外中断，并用邻近裁切对照支持判断",
+        "能在必要时选择故意切过关节，同时说明画面目的"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-gap-lessner-joints",
+          "locator": "正文 lines 67–98, especially captions at 92–98",
+          "support": "Lessner展示膝部/脚踝关节裁切与大腿/小腿中段备选，并解释她认为前者会分散注意；作为一位家庭肖像摄影师的方法，不是普遍禁令。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-gap-milicia-crop",
+          "locator": "sections “If it bends, don’t crop it” lines 71–84 and “Make your crops deliberate” lines 116–134; author bio line 681",
+          "support": "Milicia解释关节附近裁切可能造成肢体缺失感，也提供膝部与大腿中段例子；随后明确建议按个案判断并允许有意打破规则。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait knee crop joint crop intentional portrait crop alternatives"
+      ]
+    },
+    {
+      "id": "perspective-gap-skill-intentional-roll",
+      "skill_name": "有意控制画面滚转并判断它是否服务构图",
+      "capability": "能将水平画面作为基准，主动施加小幅或明显滚转，并检查背景垂直线、人物姿态和观看感是否共同支持所需的动态/失衡效果；区分测试选择与未察觉的歪斜。",
+      "why_it_matters": "轻微、不一致或没有构图目的的滚转可能像水平校正失误；明确滚转也可能破坏稳定感或与主体姿态相冲突。",
+      "module_hint": "相机方向",
+      "domain_hint": "camera_roll",
+      "prerequisites": [],
+      "failure_modes": [
+        "画面水平线/背景竖线倾斜但没有可说明的目的",
+        "同时调整机位、俯仰和滚转，难以判断哪个变量改变效果",
+        "为了套用某摄影师给出的角度数值而忽略主体与场景"
+      ],
+      "practice": "固定相机位置、主体姿势和焦段，分别拍水平、轻微滚转和更明显滚转；比较背景竖线、角色姿态和预期情绪。各版本都标记角度/意图，再做水平校正前后对照。",
+      "acceptance": [
+        "能识别倾斜方向及其对主要背景线条的影响",
+        "能说出滚转是否强化、削弱或未改变预定表达",
+        "能保留角度建议之间的差异，不把某个度数设为通用阈值"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-gap-photofacts-roll",
+          "locator": "Dutch original, paragraphs 28–35",
+          "support": "Elja Trum讨论人像中旋转相机使背景线条斜置，并把清楚的旋转与看似错误的轻微旋转作比较；角度数值是他的个人方法。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-gap-nikon-tilt",
+          "locator": "“Tilt the camera” section, around line 187",
+          "support": "Nikon编辑建议轻微滚转可给人像增加动态感，同时提出与Elja Trum不同的角度上限。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-gap-norton-camera-angle",
+          "locator": "“Dutch Angle” section, lines 144–155",
+          "support": "电影教材说明滚转会令水平/垂直线成为对角线，并在电影语境中用于失衡/混乱场景；对静态人像属于迁移证据。",
+          "scope": "adapted"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "high",
+      "basis": "photographer_method",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "Dutch angle portrait roll tilt intentional crooked horizon background verticals"
+      ]
+    },
+    {
+      "id": "perspective-gap-skill-low-view-expression-context",
+      "skill_name": "按人物姿态与场景判断低视点的表达效果",
+      "capability": "能将低视点作为待验证的表达选择，结合人物姿态、与镜头的关系、背景线条和画面目标判断结果，不假设低视点必然显得威严或有力量。",
+      "why_it_matters": "机位降低但人物姿态、表情和背景仍可能让照片显得脆弱、滑稽、压迫或无明显变化。",
+      "module_hint": "机位与表达",
+      "domain_hint": "portrait_expression",
+      "prerequisites": [],
+      "failure_modes": [
+        "只降低相机却未检查主体姿态和背景",
+        "把电影中的高低角度语义直接套用到Cosplay静态人像",
+        "看到低角度就默认“更强大”"
+      ],
+      "practice": "固定焦段、距离、姿势和背景，拍眼平与低视点版本；再换一组姿势重复比较。记录比例、人物朝向、背景竖线和主观读法。",
+      "acceptance": [
+        "能区分几何比例变化与表达解释",
+        "至少指出一个低视点未产生预期效果的条件",
+        "明确将表达判断留给具体画面而非预设统一语义"
+      ],
+      "evidence": [
+        {
+          "source_id": "perspective-gap-norton-camera-angle",
+          "locator": "“High Angle” and “Low Angle” sections, lines 115–141",
+          "support": "教材给出高/低角度常见表达含义，并明确上下文可改变含义、举出低角度反而加强脆弱感的例子；属于电影案例。",
+          "scope": "adapted"
+        },
+        {
+          "source_id": "perspective-gap-nikon-tilt",
+          "locator": "“Viewpoint and perspective” section, around line 192",
+          "support": "Nikon人像教育说明视点可改变人物的大小感，并给出从下方向上拍强调身高的建议；这支持变量测试，不证明威严感。",
+          "scope": "direct"
+        },
+        {
+          "source_id": "perspective-ppa-fauld-corrective",
+          "locator": "Andrew Faulds interview, lines 87–104",
+          "support": "人像摄影师针对不同主体呈现目标改变机位和身体关系，说明机位选择需结合人物目标。",
+          "scope": "direct"
+        }
+      ],
+      "visual_examples": [],
+      "relevance": "important",
+      "status": "unassessed",
+      "confidence": "medium",
+      "basis": "project_adaptation",
+      "practice_basis": "project_designed",
+      "search_terms": [
+        "portrait low angle pose expression context background verticals"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "荷兰角/人像滚转建议的角度幅度",
+      "positions": [
+        "Elja Trum在Photofacts人像提示中说较明显的30–45°常显得明确有意，而5–10°可能看起来像失误。",
+        "Nikon Europe的人像教材建议倾斜保持较轻，并警告不要超过约5–10°。",
+        "Barsam与Monahan的电影教材强调倾斜画框在叙事中的失衡/混乱意味，但不提出适用于静态肖像的角度数值。"
+      ],
+      "handling": "保留来源、媒介和目标差异。只训练滚转变量、线条效果和意图是否可读；不统一或平均角度数字。",
+      "source_ids": [
+        "perspective-gap-photofacts-roll",
+        "perspective-gap-nikon-tilt",
+        "perspective-gap-norton-camera-angle"
+      ]
+    },
+    {
+      "topic": "膝部/关节裁切的边界",
+      "positions": [
+        "Amanda Lessner强烈建议避开膝、踝、肘等关节，并用字幕案例说明她的偏好。",
+        "Gina Milicia也把关节裁切作为通常需要谨慎的起点，但明确说应逐张判断、可有意打破规则，并给出衣袖边缘会使理论上安全裁切看起来意外的例子。"
+      ],
+      "handling": "正式节点训练的是判断和比较裁切效果；不能记成“永远不得截膝”。",
+      "source_ids": [
+        "perspective-gap-lessner-joints",
+        "perspective-gap-milicia-crop"
+      ]
+    },
+    {
+      "topic": "低机位的情绪读法",
+      "positions": [
+        "电影教材列出低角度常见的强势/威胁读法，同时展示低角度令角色显得脆弱的例子，并指出解释受上下文控制。",
+        "Nikon人像教学的低机位建议主要围绕显高/视觉动态；Faulds使用低机位服务不同身形目标。"
+      ],
+      "handling": "将静态Cosplay人像的表达效果作为项目验证，避免把电影叙事和常见象征当作普遍肖像规则。",
+      "source_ids": [
+        "perspective-gap-norton-camera-angle",
+        "perspective-gap-nikon-tilt",
+        "perspective-ppa-fauld-corrective"
+      ]
+    }
+  ],
+  "gaps": [
+    "Independent portrait photography sources for Dutch tilt agree that roll can be a deliberate compositional variable, but they conflict on useful angles (Elja Trum: larger tilt for clear intention; Nikon Europe: keep it slight). There is no defensible universal degree threshold or tested rule for cosplay stills.",
+    "A film textbook explains that Dutch angle can signal imbalance/chaos and that high/low-angle meanings depend on scene context, but this does not establish a universal still-portrait or cosplay interpretation. More named portrait-photographer examples tying body pose, background verticals and tilt to a specific intended effect would improve coverage.",
+    "Two named portrait photographers discuss joint-adjacent cropping, including knees, and one explicitly permits deliberate exceptions. Current evidence supports comparing crop choices, not a categorical ban. A controlled or independently documented comparison focused on different poses, motion, costume and intentional abstraction remains absent.",
+    "The new sources are general portrait/family photography, Nikon editorial and cinematography; none address cosplay costume construction, posed action, armor, skirts or convention constraints. Keep such applications as project-designed tests."
+  ]
+}

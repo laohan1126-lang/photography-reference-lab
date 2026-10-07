@@ -1,0 +1,1546 @@
+{
+  "schema_version": "photography_atlas_gap_audit_v1",
+  "purpose": "Round 1 + Round 2 coverage audit integration. Coverage gaps are bounded task variants and source gaps, not claims that parent domains lack training foundations.",
+  "integrated_snapshot": {
+    "canonical_tree_path": "docs/research/photography-atlas/SKILL_TREE.json",
+    "skill_count": 247,
+    "source_map_path": "docs/research/photography-atlas/SOURCE_MAP.json",
+    "source_count": 205,
+    "research_stage": "two_coverage_rounds_completed_bounded_gaps_visible",
+    "snapshot_date": "2026-10-08",
+    "independent_audit_snapshot_path": "research/atomicity_audit_final.json",
+    "independent_audit_snapshot_skill_count": 241,
+    "snapshot_note": "Canonical tree continued changing after the earlier atomicity audit; counts above describe the current integrated snapshot, and embedded rounds preserve their own historical counts."
+  },
+  "remaining_gaps": [
+    {
+      "gap_id": "field-mobile-convention-location-and-rotation",
+      "title": "漫展人流中的移动选点与轮换",
+      "description": "缺少高质量职业摄影来源，直接说明如何在拥挤且持续变化的漫展现场移动选点，同时兼顾背景控制、人流通行、短时交流与获准范围；中国漫展情境尤需本地规则核验。固定获准拍点和排队摄影墙已有边界性基础，但不等于完整移动工作流。 本轮新增Rigsby的邻近低杂背景点移步方法，仅为海外摄影师单一方法，仍不支持完整中国漫展场控协议。",
+      "synonyms": [
+        "漫展移动拍摄选点",
+        "人流中的拍摄位置轮换",
+        "拥挤展会现场背景与通行管理",
+        "convention floor mobile location rotation"
+      ],
+      "related_skill_ids": [
+        "field-convention-approved-footprint",
+        "field-venue-policy-check",
+        "field-background-first",
+        "field-background-priority",
+        "field-mobile-kit",
+        "field-short-slot-priorities",
+        "field-long-distance-direction",
+        "composition-remove-bg-distractions",
+        "composition-edge-sweep",
+        "field-gap-nearby-background-reposition"
+      ],
+      "evidence_status": "bounded_source_gap",
+      "coverage_note": "Round 2 found direct Muncy support for a fixed permitted footprint and Keane for controlled photowall/queue; neither establishes full mobile-floor rotation.",
+      "next_action": "按活动规则进行本地化演练；只有出现有资质且直接讨论该工作流的来源时再发展专门技能。",
+      "id": "field-mobile-convention-location-and-rotation"
+    },
+    {
+      "gap_id": "cosplay-short-dagger-orientation",
+      "title": "短匕首朝向与手腕轴线",
+      "description": "现有小道具轮廓、手部方向、通用武器/日式刀剑姿势提供相邻基础，但没有直接来源支持短匕首刃面朝向、手腕/前臂/躯干轴线及镜头关系的具体规则。不能用武士刀握法替代短匕首控制。",
+      "synonyms": [
+        "短刀刃面朝向",
+        "匕首内扣外展",
+        "短匕首对镜头角度",
+        "dagger orientation for cosplay portrait"
+      ],
+      "related_skill_ids": [
+        "cosplay-gap-c01-small-prop-face-outline",
+        "posing-hand-orientation",
+        "posing-purposeful-hand-placement",
+        "cosplay-c07-japanese-sword-character-pose"
+      ],
+      "evidence_status": "bounded_variant_gap",
+      "next_action": "保留相邻基础练习；有直接摄影师方法证据后再加专门控制点。",
+      "id": "cosplay-short-dagger-orientation"
+    },
+    {
+      "gap_id": "cosplay-wide-sleeve-hand-and-silhouette",
+      "title": "宽袖手位、袖口与剪影",
+      "description": "通用服装可见度、布料动态和手臂/躯干分离均可训练，但未找到直接讨论宽袖中手部位置、袖口方向与整体剪影控制的已读专业来源。",
+      "synonyms": [
+        "宽袖姿势",
+        "袖口与手部关系",
+        "宽袖人物剪影",
+        "wide sleeve hand cuff silhouette posing"
+      ],
+      "related_skill_ids": [
+        "cosplay-c11-costume-visibility-check",
+        "cosplay-c09-assisted-fabric-motion",
+        "cosplay-c10-wig-costume-flow",
+        "posing-arm-torso-separation",
+        "posing-hand-orientation"
+      ],
+      "evidence_status": "bounded_variant_gap",
+      "next_action": "一般服装轮廓练习可继续；宽袖具体法不作职业共识声明。",
+      "id": "cosplay-wide-sleeve-hand-and-silhouette"
+    },
+    {
+      "gap_id": "cosplay-wig-static-control",
+      "title": "假发静电与遮脸控制",
+      "description": "已有造型假发与光线分离、服装流动等相邻内容，但不覆盖静电飞发、反光、遮脸与现场整理的完整控制流程。",
+      "synonyms": [
+        "假发飞发",
+        "假发静电",
+        "假发反光和遮脸",
+        "wig static flyaway control"
+      ],
+      "related_skill_ids": [
+        "cosplay-c10-wig-costume-flow",
+        "cosplay-c15-styled-hair-light-separation",
+        "field-photowall-pose-ready"
+      ],
+      "evidence_status": "optional_specialization_gap",
+      "next_action": "有实用需求且来源直接时再补充；不视为Cosplay基础能力整体缺失。",
+      "id": "cosplay-wig-static-control"
+    },
+    {
+      "gap_id": "post-cosplay-material-fidelity",
+      "title": "盔甲与仿制道具材质保真修图",
+      "description": "已有通用清理、合成匹配和修图边界，但缺少针对Cosplay盔甲、假发、仿制道具的材质纹理保真修复流程。",
+      "synonyms": [
+        "盔甲材质修复",
+        "道具纹理保真",
+        "Cosplay材质后期",
+        "cosplay armor prop material fidelity retouch"
+      ],
+      "related_skill_ids": [
+        "post-clean-source-texture",
+        "post-purpose-edit-boundary",
+        "post-composite-light-match",
+        "post-capture-fix-boundary"
+      ],
+      "evidence_status": "optional_specialization_gap",
+      "next_action": "按用户实际修图任务补证；保持现有后期基础训练。",
+      "id": "post-cosplay-material-fidelity"
+    },
+    {
+      "gap_id": "gap-large-prop-scale-clearance-tight-space",
+      "title": "狭小空间中的大型道具尺度与净空",
+      "description": "大型道具姿势、主体与环境尺度、透视控制已有基础，但狭小空间内道具净空、画面占比、遮挡与现场安全没有统一的来源支持公式。",
+      "synonyms": [
+        "大剑入画人物显小",
+        "大型道具净空",
+        "狭小空间道具构图",
+        "large prop scale clearance"
+      ],
+      "related_skill_ids": [
+        "composition-subject-context-scale",
+        "cosplay-c06-large-prop-pose-variants",
+        "cosplay-c07-japanese-sword-character-pose",
+        "perspective-skill-wide-near-depth",
+        "perspective-skill-viewpoint-distance",
+        "field-venue-policy-check"
+      ],
+      "evidence_status": "task_variant_residual",
+      "next_action": "现场许可、安全距离和画面意图逐项判断；不推断统一比例阈值。",
+      "id": "gap-large-prop-scale-clearance-tight-space"
+    },
+    {
+      "gap_id": "gap-cosplay-hand-to-camera-integrated-protocol",
+      "title": "手伸向镜头的角色表达整合",
+      "description": "透视夸张、手位/手形和角色表达已有独立基础，但没有直接来源把近大远小、手部遮挡与角色沟通整合成一个完整摄影流程。",
+      "synonyms": [
+        "手伸向镜头",
+        "近手透视",
+        "前景手部遮挡",
+        "cosplay hand-to-camera gesture"
+      ],
+      "related_skill_ids": [
+        "perspective-skill-wide-near-depth",
+        "posing-hand-orientation",
+        "posing-purposeful-hand-placement",
+        "perspective-skill-viewpoint-distance",
+        "cosplay-gap-c01-small-prop-face-outline",
+        "posing-character-appropriate-action"
+      ],
+      "evidence_status": "integration_residual",
+      "next_action": "分别练习有来源支持的变量；整合流程保持为待补证任务变体。",
+      "id": "gap-cosplay-hand-to-camera-integrated-protocol"
+    }
+  ],
+  "rounds": {
+    "round1": {
+      "source_path": "D:\\AI PROJECTS\\photography-reference-lab\\.local\\atlas-audit-coverage\\research\\coverage_round1.json",
+      "report": {
+        "audit": "Independent Round 1 skill-tree coverage audit",
+        "date": "2026-10-08",
+        "tree_snapshot": {
+          "path": "docs/research/photography-atlas/SKILL_TREE.json",
+          "l1": 14,
+          "l2": 71,
+          "l3": 238,
+          "target": "真人 Cosplay / 人像现场摄影；重点适配中国漫展、外景与场馆拍摄",
+          "stage": "clustered_draft_under_independent_audit"
+        },
+        "method": [
+          "Read USER_BRIEF.txt, RESEARCH_PROTOCOL.md, SKILL_TREE.json, SOURCE_MAP.json, CONFLICTS.json and CLUSTER_DECISIONS.json.",
+          "Audited the tree against all A-I dimensions and mapped all ten supplied real problems to explicit current node paths.",
+          "Performed fresh web searches and opened accessible professional source text. Course pages, videos not watched, and inaccessible pages are treated as leads rather than detailed evidence.",
+          "Cross-checked the parent-created raw/cosplay_gap_candidates.json and raw/cosplay_gap_sources.json; those 16 focused searches count as parent research, not this independent audit's new searches.",
+          "No sample-image pixels were reviewed; no personal skill status or aesthetic acceptance was inferred."
+        ],
+        "dimension_audit": [
+          {
+            "id": "A",
+            "name": "拍摄流程",
+            "status": "strong foundation; important post-shoot reflection gap",
+            "nodes": [
+              "field-1..field-7",
+              "post-workflow-1..post-workflow-5"
+            ],
+            "evidence_examples": [
+              "field-brief-purpose",
+              "field-location-time-scout",
+              "field-venue-policy-check",
+              "field-short-slot-priorities",
+              "field-frame-edge-audit",
+              "field-critique-seeking",
+              "field-feedback-to-experiment",
+              "post-cull-separate-passes"
+            ],
+            "finding": "拍前、地点、规则、短时优先级、现场检查、筛片及反馈→下一次尝试均有节点。当前缺少有来源支撑的自我复盘方法：将原定角色/场景表达与成片比较，诊断自己造成差异的原因，再明确下一次验证。不能以泛节点 field-location-liveview-check 或 field-feedback-to-experiment 冒充这段能力。"
+          },
+          {
+            "id": "B",
+            "name": "技术",
+            "status": "broad core coverage; some venue-condition variants remain",
+            "nodes": [
+              "focus-1..focus-3",
+              "perspective-1..perspective-6",
+              "flash-1..flash-4",
+              "exposure-color-1..exposure-color-4",
+              "natural-light-1..natural-light-5"
+            ],
+            "evidence_examples": [
+              "perspective-skill-distance-before-focal",
+              "perspective-skill-depth-of-field-control",
+              "perspective-skill-eye-focus-priority",
+              "light-017",
+              "light-022",
+              "light-032",
+              "mot-01"
+            ],
+            "finding": "曝光、对焦、快门、景深、焦段/透视、闪光同步/冻结与色彩均有明确训练项；未见大块基础技术空白。中国场馆 LED 频闪/电子快门兼容、自动追焦和混合灯肤色需按实际设备/场馆条件定向补源，属于重要条件变体。"
+          },
+          {
+            "id": "C",
+            "name": "视觉",
+            "status": "broad coverage",
+            "nodes": [
+              "composition-1..composition-8",
+              "natural-light-1..natural-light-5",
+              "exposure-color-3..exposure-color-4"
+            ],
+            "evidence_examples": [
+              "composition-edge-sweep",
+              "composition-background-density",
+              "composition-layer-depth",
+              "composition-silhouette-readability",
+              "composition-visual-weight-diagnosis"
+            ],
+            "finding": "边缘、背景密度、留白/位置、层次、主体分离、线条、图形、视觉重量与平衡均覆盖；保留居中/偏置、平衡/表达性失衡等条件性冲突。没有声称对树中作品做过视觉验收。"
+          },
+          {
+            "id": "D",
+            "name": "人物",
+            "status": "broad portrait/cosplay foundation; lower-body and costume-specific limits",
+            "nodes": [
+              "posing-1..posing-6",
+              "character-1..character-4",
+              "costume-1"
+            ],
+            "evidence_examples": [
+              "posing-weight-transfer",
+              "posing-shoulder-line-check",
+              "posing-hand-orientation",
+              "posing-arm-torso-separation",
+              "posing-character-appropriate-action",
+              "posing-instruction-clarity"
+            ],
+            "finding": "承重、躯干角度、手臂分离、头/眼神、表情、角色意图、无接触指导及动作流覆盖。足/腿/关节的细分姿态力学与具体宽袖/长裙动作边界未达到相同粒度；现有节点不宜宣称覆盖每类服装限制。"
+          },
+          {
+            "id": "E",
+            "name": "Cosplay 特殊能力",
+            "status": "general foundation exists; short-dagger/wide-sleeve/wig constraints are bounded gaps",
+            "nodes": [
+              "costume-1..costume-5",
+              "character-1..character-4",
+              "perspective-6"
+            ],
+            "evidence_examples": [
+              "cosplay-c06-large-prop-pose-variants",
+              "cosplay-c07-japanese-sword-character-pose",
+              "cosplay-c09-assisted-fabric-motion",
+              "cosplay-c11-costume-visibility-check",
+              "cosplay-gap-c01-small-prop-face-outline"
+            ],
+            "finding": "服装可见度、协作布料动态、大型道具、日本刀角色姿势、一般非武器小道具及角色表现有基础。新小道具节点的明确边界是非武器及脸部轮廓遮挡；不能延伸成匕首刃尖方向/腕部/身体关系。未找到宽袖专门手势与袖口剪影、假发静态整理/风致控制的充分直接材料。"
+          },
+          {
+            "id": "F",
+            "name": "场景",
+            "status": "broad locations; crowded China convention method is a serious target-context gap",
+            "nodes": [
+              "field-2..field-3",
+              "natural-light-1..natural-light-5",
+              "flash-1..flash-4",
+              "composition-2"
+            ],
+            "evidence_examples": [
+              "field-location-feasibility",
+              "field-background-first",
+              "field-venue-policy-check",
+              "field-weather-contingency",
+              "field-mobile-kit"
+            ],
+            "finding": "外景、窗光、建筑、阴影、逆光、夜景及规则核对有一般基础。复杂漫展背景可做减法，但缺少中国高密度场馆里如何选取可拍位置、避开人流/他人入镜、快速重构背景并轮转拍摄的直接完整方法。场馆政策节点不等于场馆摄影技术。"
+          },
+          {
+            "id": "G",
+            "name": "执行",
+            "status": "partial-to-strong; integrated rapid-floor operation and self-review gaps",
+            "nodes": [
+              "field-3..field-7",
+              "character-4",
+              "posing-6"
+            ],
+            "evidence_examples": [
+              "field-short-slot-priorities",
+              "field-photowall-pose-ready",
+              "field-long-distance-direction",
+              "field-direction-comfort",
+              "field-critique-seeking",
+              "field-feedback-to-experiment"
+            ],
+            "finding": "短时优先级、方向口令、舒适度、现场检查、寻求反馈及下一轮尝试均有节点。缺少在拥挤/嘈杂/短时、道具与场馆约束下整合成一条经过来源支持的快速执行流程；拍后个人原因诊断也未被独立建立。"
+          },
+          {
+            "id": "H",
+            "name": "后期",
+            "status": "broad workflow and technical foundations; cosplay-specific retouch constraints remain",
+            "nodes": [
+              "color-retouch-1..color-retouch-4",
+              "post-workflow-1..post-workflow-5"
+            ],
+            "evidence_examples": [
+              "post-cull-separate-passes",
+              "post-cull-set-variety",
+              "post-clean-source-texture",
+              "post-purpose-edit-boundary",
+              "post-composite-light-match",
+              "post-output-color-profile"
+            ],
+            "finding": "筛片、组照多样性/连贯、颜色与局部光影、背景清理、合成匹配及按用途交付都有模块。新加入的用途边界来自 PPA 官方规则。Cosplay 假发/盔甲/仿制武器材质的保真修饰和授权语境仍未被专门覆盖，但不是整个后期流程空白。"
+          },
+          {
+            "id": "I",
+            "name": "动态",
+            "status": "broad foundations; practical target transfer is bounded",
+            "nodes": [
+              "dynamic-still-1..dynamic-still-4",
+              "moving-image-1..moving-image-6",
+              "focus-3"
+            ],
+            "evidence_examples": [
+              "mot-01..mot-16",
+              "mot-17..mot-34"
+            ],
+            "finding": "动作冻结/模糊/追随、时机预判、动作组照变化、视频起点/路径/终点、景别覆盖、预演及手动拉焦均有节点。部分来自电影教材或设备教育适配，不能直接等同于漫展现场的安全、空间与服装交互实战方法。"
+          }
+        ],
+        "reflection_loop_audit": {
+          "verdict": "partial; enough to establish critique-to-next-attempt, insufficient for a full self-diagnosis loop",
+          "covered_now": [
+            {
+              "node": "field-critique-seeking",
+              "support": "The tree asks the photographer to seek specific professional feedback on photographs."
+            },
+            {
+              "node": "field-feedback-to-experiment",
+              "support": "Current wording is appropriately narrow: use photo-specific feedback to name an adjustment/technique to try next time and record the link. Derryberry directly supports using constructive critique to shoot again/try new techniques; Harris supports practicing a new technique and testing/adjusting in real assignments. The one-variable procedure is expressly project-designed, not attributed to either source."
+            },
+            {
+              "node": "post-cull-separate-passes",
+              "support": "Supports revisiting/selecting work in passes, but not causal self-diagnosis."
+            },
+            {
+              "node": "field-frame-edge-audit / field-location-liveview-check / field-focus-check",
+              "support": "Supports selected in-field checks; these are not a post-shoot review of story/character intent."
+            }
+          ],
+          "still_missing": "A sourced and atomic capability to review an intended expression/story against the delivered frames, identify whether the mismatch arose from direction, pose, framing, light, timing, setting or post, and choose an evidence-based next check. No generic node should be counted as coverage for this full chain.",
+          "severity": "important/core-loop gap for the user's explicit target; not evidence that technical photography domains are broadly empty",
+          "recommendation": "Keep field-location-reflection excluded as a formal professional skill until exact direct evidence is found. A project review worksheet may be designed separately with fields for intent, observed result, supported diagnosis/uncertainty and next attempt, explicitly labeled project-designed. Do not call it professional consensus or a sourced L3.",
+          "new_primary_source_leads": [
+            {
+              "id": "supp-ppa-richard-wood",
+              "title": "6 Photography Tips from Richard Wood",
+              "url": "https://www.ppa.com/ppmag/articles/richard-woods-6-tips-to-improve-your-photography",
+              "read": "Opened full accessible PPA article text; Wood is identified as a New Zealand Grand Master/award-winning photographer and educator.",
+              "support": "Seek qualified critique, implement advice, and continue a feedback loop.",
+              "limit": "Supports external critique→improvement, not a post-shoot self-review rubric or root-cause method."
+            },
+            {
+              "id": "supp-ppa-parker-pfister",
+              "title": "Make Work That Matters: 5 Photography Lessons from Parker Pfister",
+              "url": "https://www.ppa.com/articles/make-work-that-matters-5-photography-lessons-from-parker-pfister-on-service-trust-and-art-that-shows-up",
+              "read": "Opened full accessible PPA article text.",
+              "support": "Intent-sensitive critique and experimentation (e.g. changing angle/light choices and refining a later project).",
+              "limit": "Interview-derived photographer method; does not establish a repeatable self-audit rubric."
+            },
+            {
+              "id": "supp-duchemin-sketch-frames",
+              "title": "Failure Rates? Keeper Rates? There is a better way of thinking about this.",
+              "url": "https://davidduchemin.com/2021/11/failure-rates-keeper-rates-there-is-a-better-way-of-thinking-about-this/",
+              "read": "Opened full accessible first-party article text.",
+              "support": "A working photographer discusses learning from frames that did not achieve the hoped-for result and doing repeated edits with fresh eyes.",
+              "limit": "Reflective essay, not a diagnostic checklist; its wildlife context must not be presented as Cosplay-specific."
+            },
+            {
+              "id": "supp-ppa-derryberry",
+              "title": "President’s Message: Critique Is Your Friend",
+              "url": "https://www.ppa.com/ppmag/articles/presidents-message-critique-is-your-friend",
+              "read": "Existing tree source was rechecked via its recorded opened text; this turn's fresh targeted searches surfaced it again.",
+              "support": "Constructive critique can prompt shooting again, trying techniques and change.",
+              "limit": "No explicit single-variable protocol or own-cause diagnosis."
+            }
+          ]
+        },
+        "pathreverseaudit": [
+          {
+            "problem": "人物前倾导致头大身小",
+            "status": "mapped foundation; exact adaptation remains contextual",
+            "path": [
+              "perspective > perspective-6 人物前后关系 > perspective-skill-lean-depth-control",
+              "perspective > perspective-6 > perspective-skill-wide-near-depth"
+            ],
+            "covers": "Diagnose near/far exaggeration and manage lean depth / close wide-angle magnification.",
+            "residual": "Does not guarantee a specific pose fix for every subject, lens, camera distance or intended stylization."
+          },
+          {
+            "problem": "低机位没有产生气势",
+            "status": "mapped, medium confidence",
+            "path": [
+              "perspective > perspective-1 高度与镜头轴线 > perspective-skill-height-vs-pitch",
+              "perspective > perspective-1 > perspective-skill-angle-comparison",
+              "perspective > perspective-1 > perspective-gap-skill-low-view-expression-context"
+            ],
+            "covers": "Distinguish camera height from pitch and compare low viewpoint effects in relation to pose/context.",
+            "residual": "Strong/heroic impression is conditional; tree appropriately avoids treating lower camera as an automatic effect."
+          },
+          {
+            "problem": "大剑入画后人物显小",
+            "status": "partial; prop-specific scale/clearance gap",
+            "path": [
+              "composition > composition-3 主体位置与空间 > composition-subject-context-scale",
+              "costume > costume-2 大型道具的姿势选择 > cosplay-c06-large-prop-pose-variants",
+              "costume > costume-2 > cosplay-c07-japanese-sword-character-pose",
+              "perspective > perspective-3/6"
+            ],
+            "covers": "General subject-context scale and several large-prop/static pose variants; sword character pose is separately represented.",
+            "residual": "No explicit camera-subject-prop distance, overlap/occlusion and framing method for keeping actor legible with a large sword in tight space; c06 is single-source method."
+          },
+          {
+            "problem": "匕首内扣/外展",
+            "status": "not specifically covered; generic adjacent foundation only",
+            "path": [
+              "costume > costume-5 非武器小道具与手势 > cosplay-gap-c01-small-prop-face-outline",
+              "posing > posing-5 手与手臂 > posing-hand-orientation / posing-purposeful-hand-placement"
+            ],
+            "covers": "General nonweapon small prop hand placement/face-outline occlusion and hand orientation.",
+            "residual": "Cannot infer dagger blade direction, wrist/forearm axis, torso relation or safe handling from C01. Keep the exact weapon variant as a bounded evidence gap."
+          },
+          {
+            "problem": "逆光脸部曝光",
+            "status": "strongly mapped",
+            "path": [
+              "natural-light > natural-light-5 逆光的表达选择 > light-022 / light-023",
+              "flash > flash-1 环境光与闪光平衡 > field-match-flash-ambient",
+              "exposure-color > exposure-color-1/2"
+            ],
+            "covers": "Choose face exposure against bright background and balance ambient/flash with subject and background intent.",
+            "residual": "Actual venue light, skin tone, flash permission and preferred background exposure remain situational choices."
+          },
+          {
+            "problem": "荷兰角什么时候成立",
+            "status": "mapped as conditional photographer-method skill; conflict retained",
+            "path": [
+              "perspective > perspective-1 高度与镜头轴线 > perspective-gap-skill-intentional-roll / perspective-skill-pitch-vs-roll"
+            ],
+            "covers": "Intentionally control roll and judge whether it serves the composition.",
+            "residual": "Sources differ on useful angle magnitude (Elja Trum's larger stylized tilt vs Nikon's much smaller limits); do not average to one normative angle."
+          },
+          {
+            "problem": "膝盖截断",
+            "status": "mapped and appropriately conditional",
+            "path": [
+              "composition > composition-1 边缘与裁切 > perspective-gap-skill-knee-crop-choice"
+            ],
+            "covers": "Test whether crop near a joint reads as accidental in a given frame.",
+            "residual": "Not a blanket rule against knee crops; no universal crop threshold."
+          },
+          {
+            "problem": "背景杂乱",
+            "status": "strong/core mapped",
+            "path": [
+              "composition > composition-2 背景信息 > composition-remove-bg-distractions / composition-background-density",
+              "composition > composition-1 边缘与裁切 > composition-edge-sweep",
+              "field > field-2 地点与环境叙事 > field-background-first / field-background-priority"
+            ],
+            "covers": "Reduce distractions, manage information density, sweep frame edges and prioritize background selection.",
+            "residual": "Dense con-floor practice is still a target context gap; generic background reduction is not the same as a crowd floor method."
+          },
+          {
+            "problem": "宽袖人物姿态",
+            "status": "partial adjacent foundation; specific sleeve gap",
+            "path": [
+              "costume > costume-1 服装可见度与活动限制 > cosplay-c11-costume-visibility-check",
+              "costume > costume-3 衣料与造型动态 > cosplay-c09-assisted-fabric-motion / cosplay-c10-wig-costume-flow",
+              "posing > posing-5 > posing-arm-torso-separation"
+            ],
+            "covers": "Outfit visibility, assisted fabric movement, general garment flow and arm/torso separation.",
+            "residual": "No direct broad-sleeve hand, cuff-angle, sleeve-face silhouette or occlusion method; do not make generic fabric-motion evidence carry that claim."
+          },
+          {
+            "problem": "手伸向镜头",
+            "status": "partial geometric and posing foundations",
+            "path": [
+              "perspective > perspective-6 人物前后关系 > perspective-skill-wide-near-depth",
+              "posing > posing-5 手与手臂 > posing-hand-orientation / posing-purposeful-hand-placement",
+              "perspective > perspective-3 视点距离与焦段"
+            ],
+            "covers": "Near-wide size exaggeration, hand shape/orientation and placement as separate variables.",
+            "residual": "No single source-backed Cosplay gesture protocol for hand-to-camera foreshortening, occlusion and character readability; treat as a context-sensitive combination, not fully solved."
+          }
+        ],
+        "task_readiness": [
+          {
+            "task": "户外开放阴影环境 Cosplay 单人肖像，无道具",
+            "readiness": "practice-ready from mapped foundation; personal readiness unassessed",
+            "paths": [
+              "field-1",
+              "field-2",
+              "field-6",
+              "composition-2/3",
+              "posing-2/3/5",
+              "natural-light-1/3"
+            ],
+            "limits": "This is a tree-path check, not proof the photographer can execute it in field."
+          },
+          {
+            "task": "强逆光单人肖像，用一盏闪灯保留背景",
+            "readiness": "practice-ready foundation",
+            "paths": [
+              "light-022",
+              "light-023",
+              "field-match-flash-ambient",
+              "light-021",
+              "flash-1/2",
+              "exposure-color-1/2"
+            ],
+            "limits": "Requires venue permission and choosing subject/background exposure intent; neither is a fixed formula."
+          },
+          {
+            "task": "拥挤漫展快速拍一张，角色带大型剑",
+            "readiness": "partially ready; not reliably ready for crowded-floor operation",
+            "paths": [
+              "field-short-slot-priorities",
+              "field-venue-policy-check",
+              "field-mobile-kit",
+              "field-background-first",
+              "composition-subject-context-scale",
+              "cosplay-c06-large-prop-pose-variants",
+              "field-6"
+            ],
+            "limits": "No integrated, directly evidenced China-con floor location/traffic/rotation method or prop scale/clearance method in confined space."
+          },
+          {
+            "task": "角色手持短匕首、穿宽袖并把手伸向镜头",
+            "readiness": "not ready as a fully sourced skill task",
+            "paths": [
+              "cosplay-gap-c01-small-prop-face-outline",
+              "posing-hand-orientation",
+              "posing-arm-torso-separation",
+              "perspective-skill-wide-near-depth",
+              "cosplay-c11-costume-visibility-check",
+              "cosplay-c09-assisted-fabric-motion"
+            ],
+            "limits": "Each path supplies adjacent fundamentals; exact dagger orientation, sleeve-specific silhouette and gesture integration remain unsupported variants."
+          },
+          {
+            "task": "十秒角色短片，包含动作起点/过程/终点及焦点转移",
+            "readiness": "bounded practice-ready for basic camera exercise; cosplay-floor production readiness unproven",
+            "paths": [
+              "moving-image-2/3/4/5/6",
+              "mot-19",
+              "mot-20",
+              "mot-23",
+              "mot-29..mot-31",
+              "focus-3"
+            ],
+            "limits": "Some sources are general cinematography or camera instruction adaptations; crowd, prop safety, consent and costume movement need a separate local plan."
+          }
+        ],
+        "core_gaps": [
+          {
+            "severity": "high",
+            "domain": "field / execution / reflection",
+            "candidate_ids": [
+              "field-location-reflection"
+            ],
+            "gap": "Complete post-shoot self-review chain: stated intended character/story → what the delivered frames actually communicate → evidence-based diagnosis of the photographer-controlled cause or explicit uncertainty → next verification. Existing nodes cover critique seeking and trying a next change, but not this self-diagnosis bridge.",
+            "source_leads": [
+              "supp-ppa-richard-wood",
+              "supp-ppa-parker-pfister",
+              "supp-duchemin-sketch-frames"
+            ],
+            "action": "Search for primary, first-person portrait/Cosplay professional practice that explicitly describes reviewing own shoot results against intent and choosing next actions. Until then keep as an explicit gap; a project worksheet may be labeled project-designed."
+          },
+          {
+            "severity": "high",
+            "domain": "field / scene / execution",
+            "candidate_ids": [
+              "field-con-floor-rapid-location",
+              "field-con-floor-traffic-and-rotation"
+            ],
+            "gap": "A usable method for fast portrait-making on a dense Chinese convention floor: choose a workable background/position, avoid blocking traffic and including others, share/rotate a location and preserve time for each subject.",
+            "source_leads": [
+              "supp-cs-muncy-adorama",
+              "supp-cosplaymode-event-video-manners"
+            ],
+            "action": "Sources are bounded leads only. Continue targeted Chinese/Japanese convention-floor field reports or professional event photographer first-person guidance; do not formalize the candidate from a rule page or a staged backdrop setup."
+          }
+        ],
+        "bounded_known_gaps": [
+          {
+            "severity": "important",
+            "domain": "costume / prop",
+            "candidate_ids": [
+              "cosplay-gap-c02-short-dagger-orientation"
+            ],
+            "gap": "Short dagger blade direction and wrist/forearm/torso relationship in a readable portrait.",
+            "source_leads": [
+              "COSPLAY MODE prop-posing page supports generic small props, not dagger orientation; parent cosplay_gap_sources records 16 focused queries without a sufficient direct source."
+            ],
+            "disposition": "Known narrow variant; does not imply no large-prop or general hand-posing foundation."
+          },
+          {
+            "severity": "important",
+            "domain": "costume / posing",
+            "candidate_ids": [
+              "cosplay-gap-wide-sleeve-silhouette"
+            ],
+            "gap": "Wide sleeve-specific hand/cuff orientation, silhouette and occlusion.",
+            "source_leads": [
+              "PPA fabric-motion article and COSPLAY MODE generic pose pages are adjacent only; parent gap search is insufficient."
+            ],
+            "disposition": "Known narrow garment variant; do not derive from generic fabric motion."
+          },
+          {
+            "severity": "important",
+            "domain": "costume / wig",
+            "candidate_ids": [
+              "cosplay-gap-wig-static-control"
+            ],
+            "gap": "Static portrait control of wig flyaways, face occlusion, shine and wind interaction.",
+            "source_leads": [
+              "Current wig/costume flow and styling-light nodes cover flow/separation, not this whole maintenance procedure."
+            ],
+            "disposition": "Continue sourcing if a direct professional method is located; avoid treating a checklist as fully evidenced."
+          },
+          {
+            "severity": "important",
+            "domain": "scene / venue",
+            "candidate_ids": [
+              "field-con-floor-rapid-location"
+            ],
+            "gap": "The Chinese high-density convention adaptation of location scouting and frame/background control.",
+            "source_leads": [
+              "supp-cs-muncy-adorama; supp-cosplaymode-event-video-manners; Canon Guangzhou workshop listing (syllabus only)."
+            ],
+            "disposition": "Distinct from general outdoor scouting and event-rule compliance."
+          },
+          {
+            "severity": "important",
+            "domain": "post-workflow / cosplay",
+            "candidate_ids": [
+              "post-cosplay-material-fidelity"
+            ],
+            "gap": "Texture/color/shape fidelity boundaries for wigs, armor and replica-prop cleanup in delivered images.",
+            "source_leads": [
+              "post-purpose-edit-boundary provides general usage-specific boundary, not material-specific Cosplay protocol."
+            ],
+            "disposition": "Bounded specialization, not a blank post-processing domain."
+          }
+        ],
+        "new_searches": [
+          {
+            "query": "professional photographer self critique own photos intent feedback what to change next shoot photographer first person article",
+            "result": "Found PPA Richard Wood, PPA Parker Pfister and David duChemin first-party leads; no direct formal rubric for self-diagnosis."
+          },
+          {
+            "query": "site:ppa.com PPA photographer critique photos feedback next shoot practice professional photographer",
+            "result": "Found PPA Wood critique/improvement source and existing Derryberry source; supports external critique to next action."
+          },
+          {
+            "query": "photographer reviews contact sheet identifies mistakes after portrait shoot own work reflection professional",
+            "result": "Found contact-sheet features and photographer reflections; accessible results did not establish a full causal self-review method."
+          },
+          {
+            "query": "working photographer practice new technique make photographs review mistakes next assignment photo critique first person",
+            "result": "Found Parker Pfister interview and Duchemin reflective essay; both inform experimentation/reflection but not the missing structured method."
+          },
+          {
+            "query": "professional photographer self critique after photoshoot compare intended image to final work next project",
+            "result": "Search results were dominated by SEO self-help pages; excluded from evidence. PPA/first-party reflective sources remain better leads."
+          },
+          {
+            "query": "site:ppa.com photographer critique own work after shoot lessons next time photography",
+            "result": "Found PPA Seth Miranda on deciding intended shot and adapting on set; useful adjacent planning/feedback, not post-shoot self-audit."
+          },
+          {
+            "query": "China cosplay convention photography crowded floor location background people in frame rules",
+            "result": "No opened source located that teaches the integrated Chinese convention-floor method; event listing and manners pages are bounded leads."
+          },
+          {
+            "query": "COSPLAY MODE 短剣 ダガー ナイフ ポージング 撮影 手首",
+            "result": "Found adjacent sword/RPG weapon content, not a directly supported short-dagger orientation rule."
+          }
+        ],
+        "source_leads": [
+          {
+            "id": "supp-cs-muncy-adorama",
+            "title": "C.S. Muncy on How to Shoot Cosplay Portraits",
+            "url": "https://www.adorama.com/alc/c-s-muncy-on-how-to-shoot-cosplay-portraits/",
+            "read": "Opened full accessible text; first-person photographer account includes years photographing cosplay at conventions.",
+            "supports": "Plan/permission, scouting a location, avoid blocking flow, prepare gear/backup and respect subject commitments.",
+            "limit": "Example is an authorized backdrop-and-light setup at a convention, not a mobile dense-floor workflow or Chinese-convention method."
+          },
+          {
+            "id": "supp-cosplaymode-direction",
+            "title": "コスプレカメラマンとコスプレイヤー 声かけ指示のポイント",
+            "url": "https://cosplaymode.net/howto/184/",
+            "read": "Opened full article text; no named byline; no pixels reviewed.",
+            "supports": "Cosplay-specific verbal cues, arm/body separation and camera-height direction examples.",
+            "limit": "Magazine editorial advice, not a demonstrated high-speed convention rotation protocol."
+          },
+          {
+            "id": "supp-cosplaymode-event-video-manners",
+            "title": "コスプレイベントでの動画撮影マナーを知ろう！気をつけるべき8つのポイント",
+            "url": "https://cosplaymode.net/howto/21220/",
+            "read": "Opened full accessible text by creator かぼちゃ.",
+            "supports": "Crowded event constraints: avoid vigorous weapon motion, avoid other people in frame, compact equipment, do not displace others, limit occupying a spot, obtain consent.",
+            "limit": "Video creator/editorial etiquette, not still-photo technical guidance; adaptation must be labeled and not presented as a China-specific technique."
+          },
+          {
+            "id": "supp-cosplaymode-generic-prop",
+            "title": "困ったときのコスプレ撮影ポージング",
+            "url": "https://cosplaymode.net/howto/556/",
+            "read": "Opened full text; no named author; no pixels reviewed.",
+            "supports": "General small props can support character expression and partly hide facial contours; comfort matters in floor/twist poses.",
+            "limit": "Does not specify daggers, blade direction, wide sleeves or weapon hand mechanics."
+          },
+          {
+            "id": "supp-canon-guangzhou-listing",
+            "title": "Canon Guangzhou event listing for beginner convention photography",
+            "url": "https://www.canon.com.cn/purchase/show/guangzhou/event33.html",
+            "read": "Opened event page.",
+            "supports": "Discovery lead that a local workshop addressed convention photography, venue location and equipment choice.",
+            "limit": "Syllabus/listing only; no specific lesson content can be claimed."
+          }
+        ],
+        "qualitative_95_point_review": {
+          "verdict": "Not yet defensible as a 95-point-complete target tree; suitable as a substantial interim atlas under active audit.",
+          "reasons": "Core composition, perspective, posing, lighting, exposure, dynamic, field planning and post-workflow are populated with real trainable nodes. However, the user's explicit failure-learning loop lacks direct support for self-review and photographer-controlled cause diagnosis; the target venue context (dense Chinese convention floor) lacks an integrated sourced method; and short-dagger/wide-sleeve variants remain clear known gaps. These limitations affect relevant tasks without making all of their parent domains empty.",
+          "not_claimed": [
+            "No numeric score was calculated.",
+            "No owner-photo or aesthetic acceptance was tested.",
+            "Node count does not demonstrate complete target coverage.",
+            "Project-designed exercises are not professional consensus."
+          ],
+          "next_loop_priority": [
+            "Search for a first-party portrait/Cosplay self-review example explicitly linking intent, observed output, cause and next test.",
+            "Continue direct Chinese/Japanese professional field research for dense convention floor operation.",
+            "Only promote dagger/wide-sleeve/wig variants when a source supports their actual controllable variable."
+          ]
+        }
+      }
+    },
+    "round2": {
+      "source_path": "D:\\AI PROJECTS\\photography-reference-lab\\.local\\atlas-audit-coverage\\research\\coverage_round2.json",
+      "report": {
+        "audit": "Independent Round 2 coverage audit and source-quality recheck",
+        "date": "2026-10-08",
+        "tree_snapshot": {
+          "path": "docs/research/photography-atlas/SKILL_TREE.json",
+          "l1": 14,
+          "l2": 71,
+          "l3": 241,
+          "stage": "clustered_draft_under_independent_audit",
+          "target": "真人 Cosplay / 人像现场摄影，适配外景及场馆/漫展现场"
+        },
+        "method": [
+          "Re-read the current USER_BRIEF.txt, RESEARCH_PROTOCOL.md, revised SKILL_TREE.json, SOURCE_MAP.json and raw/loop2_root_sources.json plus raw/loop2_root_candidates.json.",
+          "Independently reopened David duChemin's article and bio, Joe McNally's full article and bio, and C.S. Muncy's convention article; checked the exact support against all three newly added nodes.",
+          "Performed new searches on Chinese convention floor methods, convention-floor portrait guidance, broad-sleeve cosplay, and short dagger posing; opened Keane's first-person convention photowall article and the Nagoya Sword Museum's katana-cosplay article.",
+          "Re-audited all A-I dimensions, ten real-problem reverse paths and five practical shooting tasks. Compared remaining gaps against Round 1 rather than carrying forward its severity unchanged.",
+          "No sample-image pixels were reviewed. Source claims below use author text, not visual interpretation of embedded images."
+        ],
+        "round1_to_round2": {
+          "resolved_or_materially_improved": [
+            {
+              "topic": "意图与成片对照",
+              "before": "Round 1 had critique-seeking and feedback-to-next-experiment but no sourced intent/result reflection skill.",
+              "after": "field-intent-result-review now maps directly to duChemin's explicit questions: what did I want to say, did I say it, and if not, what view/lens/timing/light might help. This closes the previously identified missing bridge at the skill-tree level, while remaining a photographer's reflective method adapted to cosplay portrait review."
+            },
+            {
+              "topic": "失败诊断到下一次拍摄",
+              "before": "Round 1 had feedback-to-next-experiment but did not explicitly distinguish observed issue from untested cause.",
+              "after": "field-test-failure-hypothesis separates observation, suspected controllable choice, and later comparison. McNally gives a concrete portrait-lighting diagnosis/intervention case; duChemin gives multiple next photographic choices after an image misses its intent. The comparison log and single-variable discipline are transparently project-designed, not professional consensus."
+            },
+            {
+              "topic": "获准漫展拍点",
+              "before": "Round 1 treated convention operational guidance as a broad target-context gap; Muncy was a bounded lead.",
+              "after": "field-convention-approved-footprint is a valid narrow skill: get approval for the fixed setup, verify venue/security, and choose a slightly tucked-away location that does not impede flow. Keane adds firsthand convention photowall queue/pose/lighting constraints. These improve convention readiness without implying a general Chinese mobile-floor playbook."
+            }
+          ],
+          "still_bounded": [
+            "No universally professional or scientific root-cause rubric was located; the tree no longer needs one to support a modest, explicit project hypothesis exercise.",
+            "Dense, mobile Chinese convention floor shooting still has fewer direct sources for background selection, movement/rotation and efficient subject direction than outdoor or fixed photowall work. Venue-specific rules must remain event-specific.",
+            "Short dagger, wide sleeves and wig-specific handling remain narrow evidence gaps. Adjacent sword/prop/garment foundations are present and should be counted as foundations, while the variants stay visible as bounded unknowns.",
+            "Exposure/color has broad formal coverage; detailed LED flicker and mixed venue-light behavior remain equipment/venue conditions, not a general exposure-domain void."
+          ]
+        },
+        "source_recheck": [
+          {
+            "id": "root-duchemin-intent-review",
+            "source": "David duChemin, Is It Any Good?",
+            "url": "https://davidduchemin.com/2018/07/is-it-any-good/",
+            "identity_check": "First-party bio https://davidduchemin.com/about-david/ identifies him as photographer, author, former humanitarian photographer, and photography educator/workshop host.",
+            "opened": "Full article and bio opened directly; article lines 24-42, 48-61 were checked.",
+            "direct_support": "The author replaces the vague quality question with whether he succeeded at what he wanted to say; when no intent is clear, he says to continue exploring. If the image did not succeed, he names possible changes including excluding more, changing point of view or lens, waiting for a stronger moment or more suitable light, or slowing shutter/multiple exposure.",
+            "scope_limit": "Direct evidence for a photographer's intent/result reflection and possible next photographic choices. It is a reflective essay, not a standardized review rubric, causal proof, or Cosplay-specific method. The tree's practice prompt and acceptance tests are project-designed adaptation."
+          },
+          {
+            "id": "root-mcnally-portrait-error",
+            "source": "Joe McNally, More From Corregidor",
+            "url": "https://joemcnally.com/2008/02/19/more-from-corregidor/",
+            "identity_check": "First-party bio https://joemcnally.com/about/ identifies him as an award-winning photographer/educator, National Geographic and LIFE cover photographer, and commercial assignment photographer.",
+            "opened": "Full article, biography and specific article passage opened; article lines 74-80 checked.",
+            "direct_support": "In a ballerina portrait, the author identifies an unwanted bright background highlight/reverse gradation caused by aiming spill toward the wall, then describes adding a flag and feathering light toward the subject; he states the warmer version is his own preference.",
+            "scope_limit": "Good concrete portrait example of noticing an unwanted visual result and changing light direction/flag. It illustrates a diagnosis, not a general root-cause procedure. The stated preference must remain McNally's, not consensus. I did not inspect image pixels, so the report only attributes his text description."
+          },
+          {
+            "id": "root-muncy-convention-location",
+            "source": "C.S. Muncy, C.S. Muncy on How to Shoot Cosplay Portraits",
+            "url": "https://www.adorama.com/alc/c-s-muncy-on-how-to-shoot-cosplay-portraits/",
+            "identity_check": "Article is byline-attributed to Muncy and states his five-to-six-year convention cosplay portrait project; author describes his professional photojournalism work. No separate author bio page was needed for the actual narrow claim.",
+            "opened": "Full accessible article opened; lines 146-155 checked.",
+            "direct_support": "Muncy describes contacting the convention PR representative to request room for lights/backdrop, confirming with venue security, surveying the site, and selecting a high-traffic but tucked-away area that does not impede crowd flow.",
+            "scope_limit": "Supports a fixed, approved portrait footprint and location choice in an American convention example. It does not support unrestricted equipment, a Chinese event's rules, a mobile walkaround/rotation system, or a general queue protocol."
+          },
+          {
+            "id": "supp-keane-convention-photowall",
+            "source": "Keane, At the Convention Photowall",
+            "url": "https://capturingcosplay.com/at-the-convention-photowall/",
+            "identity_check": "First-person Cosplay photographer site; byline Keane. Professional credentials are not independently established, so treat as a practitioner method, not Tier A consensus.",
+            "opened": "Full short article opened; lines 7-19 checked.",
+            "direct_support": "For a busy, first-come photowall, Keane asks subjects to arrive with three poses, changes pace with queue load, suggests changing one body part between variations, discourages floor poses that risk falling outside the preset light zone or hitting equipment, and explains that lighting is mostly predetermined.",
+            "scope_limit": "Very useful direct convention/photowall method, but a controlled backdrop queue rather than an unstructured crowded floor. The source explicitly says photographers differ. Supports field-photowall-pose-ready/short-slot priorities as a photographer method; not a universal rule."
+          },
+          {
+            "id": "supp-nagoya-sword-museum",
+            "source": "名古屋刀剣博物館, 刀剣コスプレを撮影する",
+            "url": "https://www.meihaku.jp/cosplay/cosplay-photograph/",
+            "identity_check": "Institutional sword-museum website, but no individual photographer byline or photography credentials were evident on the page.",
+            "opened": "Full accessible Japanese article opened; lines 124-163 and 175-179 checked.",
+            "direct_support": "The article discusses checking event rules, not occupying locations, pose research, self-checking, character posture and katana grip/movement safety.",
+            "scope_limit": "A useful Japanese Cosplay/katana discovery source, but not an identified professional photographer's method under the source-quality contract. It does not address a short dagger. Keep as a lead or contextual corroboration, not a new formal L3 basis without source-tier adjudication."
+          }
+        ],
+        "dimension_audit": [
+          {
+            "id": "A",
+            "name": "拍摄流程",
+            "status": "substantially covered; self-review and project hypothesis loop now represented",
+            "paths": [
+              "field-1..field-7",
+              "post-workflow-1..post-workflow-5"
+            ],
+            "specific_nodes": [
+              "field-brief-purpose",
+              "field-location-time-scout",
+              "field-venue-policy-check",
+              "field-convention-approved-footprint",
+              "field-short-slot-priorities",
+              "field-frame-edge-audit",
+              "field-critique-seeking",
+              "field-feedback-to-experiment",
+              "field-intent-result-review",
+              "field-test-failure-hypothesis",
+              "post-cull-separate-passes"
+            ],
+            "finding": "当前有拍前目的、场地和许可、准备、现场检查、反馈、按意图复看、把可能原因保留为假设并计划复拍的训练路径。反思量表和单变量记录是项目工具，不声称为职业摄影师提出的统一标准。"
+          },
+          {
+            "id": "B",
+            "name": "技术",
+            "status": "broad core coverage; selected equipment/venue conditions remain",
+            "paths": [
+              "focus-1..focus-3",
+              "perspective-1..perspective-6",
+              "flash-1..flash-4",
+              "exposure-color-1..exposure-color-4",
+              "natural-light-1..natural-light-5"
+            ],
+            "specific_nodes": [
+              "light-017..light-020",
+              "light-022..light-024",
+              "light-032..light-038",
+              "perspective-skill-distance-before-focal",
+              "perspective-skill-depth-of-field-control",
+              "perspective-skill-eye-focus-priority",
+              "mot-01"
+            ],
+            "finding": "曝光、测光、快门、景深、焦段/透视、对焦、闪光同步/冻结与混合色彩都有可练节点；曝光/色彩模块有基础覆盖。LED频闪和实际设备设置属于后续具体化条件，不能据此认定缺少曝光能力领域。"
+          },
+          {
+            "id": "C",
+            "name": "视觉",
+            "status": "broad coverage",
+            "paths": [
+              "composition-1..composition-8",
+              "natural-light-1..natural-light-5",
+              "exposure-color-3..exposure-color-4"
+            ],
+            "specific_nodes": [
+              "composition-edge-sweep",
+              "composition-background-density",
+              "composition-layer-depth",
+              "composition-silhouette-readability",
+              "composition-visual-weight-diagnosis"
+            ],
+            "finding": "边缘、背景、位置/空间、层次、主体分离、线条、图形、视觉重量与平衡均有路径；冲突和条件性建议继续保留。未检查树中示例图像像素。"
+          },
+          {
+            "id": "D",
+            "name": "人物",
+            "status": "broad portrait/Cosplay foundation; some garment and lower-body variants remain",
+            "paths": [
+              "posing-1..posing-6",
+              "character-1..character-4",
+              "costume-1"
+            ],
+            "specific_nodes": [
+              "posing-weight-transfer",
+              "posing-shoulder-line-check",
+              "posing-hand-orientation",
+              "posing-arm-torso-separation",
+              "posing-character-appropriate-action",
+              "posing-instruction-clarity"
+            ],
+            "finding": "承重、肩线、手臂、头/视线、表情、角色意图、无接触口令和动作变化均可定位。腿/足力学和具体袖型不是无基础，而是当前粒度较少的具体场景。"
+          },
+          {
+            "id": "E",
+            "name": "Cosplay 特殊能力",
+            "status": "general foundations broad; exact prop/garment variants remain bounded",
+            "paths": [
+              "costume-1..costume-5",
+              "character-1..character-4",
+              "perspective-6"
+            ],
+            "specific_nodes": [
+              "cosplay-c06-large-prop-pose-variants",
+              "cosplay-c07-japanese-sword-character-pose",
+              "cosplay-c09-assisted-fabric-motion",
+              "cosplay-c11-costume-visibility-check",
+              "cosplay-gap-c01-small-prop-face-outline"
+            ],
+            "finding": "有大型道具、多种刀剑角色姿势、服装可见度、布料动态、小道具和角色表达节点。名古屋刀剑博物馆文本提供日式刀剑姿势与安全的相邻 lead，但身份和证据 tier 不足以替代摄影师方法；匕首方向、宽袖和假发具体控制仍有局部不确定。"
+          },
+          {
+            "id": "F",
+            "name": "场景",
+            "status": "broad scene foundations; convention floor now has a narrow approved-footprint path",
+            "paths": [
+              "field-2..field-3",
+              "natural-light-1..natural-light-5",
+              "flash-1..flash-4",
+              "composition-2"
+            ],
+            "specific_nodes": [
+              "field-location-feasibility",
+              "field-background-first",
+              "field-venue-policy-check",
+              "field-convention-approved-footprint",
+              "field-weather-contingency",
+              "field-mobile-kit"
+            ],
+            "finding": "室内/室外、窗光、建筑、阴影、逆光、夜景有基础；Muncy使“获准固定拍点且不阻碍人流”有直接证据。尚没有充分来源覆盖中国漫展中移动拍摄、跟随人群变化和位置轮换的完整执行法。"
+          },
+          {
+            "id": "G",
+            "name": "执行",
+            "status": "stronger partial; controlled queues/fixed locations better covered than free-flow floors",
+            "paths": [
+              "field-3..field-7",
+              "character-4",
+              "posing-6"
+            ],
+            "specific_nodes": [
+              "field-convention-approved-footprint",
+              "field-short-slot-priorities",
+              "field-photowall-pose-ready",
+              "field-long-distance-direction",
+              "field-direction-comfort",
+              "field-feedback-to-experiment",
+              "field-intent-result-review",
+              "field-test-failure-hypothesis"
+            ],
+            "finding": "场馆许可、固定拍点、短时预备、协作口令、照片复看及假设复拍现有明确节点。Keane提供队列繁忙程度、预备姿势及固定灯位的实践方法。若任务改为移动地面随机拍摄，依然需要按现场规则和人流作本地调整。"
+          },
+          {
+            "id": "H",
+            "name": "后期",
+            "status": "broad workflow; target-specific fidelity boundaries remain optional specialization",
+            "paths": [
+              "color-retouch-1..color-retouch-4",
+              "post-workflow-1..post-workflow-5"
+            ],
+            "specific_nodes": [
+              "post-cull-separate-passes",
+              "post-cull-set-variety",
+              "post-clean-source-texture",
+              "post-purpose-edit-boundary",
+              "post-composite-light-match",
+              "post-output-color-profile"
+            ],
+            "finding": "筛片、组照多样性/连贯、色彩和局部光影、背景清理、合成匹配、用途边界及输出均有模块。假发/盔甲/道具材质修复可继续补充，但不属于后期流程整体空白。"
+          },
+          {
+            "id": "I",
+            "name": "动态",
+            "status": "broad foundation; on-floor costume/prop safety remains context planning",
+            "paths": [
+              "dynamic-still-1..dynamic-still-4",
+              "moving-image-1..moving-image-6",
+              "focus-3"
+            ],
+            "specific_nodes": [
+              "mot-01..mot-16",
+              "mot-17..mot-34"
+            ],
+            "finding": "动作照片与基础短片均有起点、过程、终点、景别、预演、运动模糊和焦点转移路径。特殊道具与人群安全要根据具体场地安排，不影响基础动态技能树覆盖。"
+          }
+        ],
+        "reflection_loop_review": {
+          "verdict": "Round 1 gap substantially resolved at the appropriate level; no universal causal/root-cause rubric is required or claimed.",
+          "node_quality": [
+            {
+              "id": "field-intent-result-review",
+              "decision": "retain; source fit good, medium confidence appropriate",
+              "reason": "DuChemin directly describes setting an intended message, checking whether the photograph achieved it, allowing exploration when no intention is yet clear, and considering changed point of view/lens/moment/light if it did not. The node preserves the reflective author's method and treats the exercise/acceptance wording as project adaptation."
+            },
+            {
+              "id": "field-test-failure-hypothesis",
+              "decision": "retain with current explicit project-tool boundary; medium confidence appropriate",
+              "reason": "McNally's portrait example directly shows a specific unwanted background result, his explanation of light spill and corrective lighting change. DuChemin adds a reflective route from a missed intent to changed photographic choices. Neither source proposes a formal one-variable rubric. The tree correctly says hypothesis until tested and labels the single-variable worksheet project-designed; this is a useful training adaptation rather than a false universal rule."
+            },
+            {
+              "id": "field-convention-approved-footprint",
+              "decision": "retain; narrow enough to match Muncy",
+              "reason": "Authorization, security confirmation, site survey and selecting a slightly tucked-away area that does not impede crowd flow are explicitly in the source. The node does not claim Chinese event policy or mobile floor workflow."
+            }
+          ],
+          "remaining_uncertainty": "A local photo session can have several interacting causes; the project practice appropriately preserves uncertainty when conditions change. This is a calibration/recording limit, not a missing professional theory that must be invented before the tree can be strong."
+        },
+        "pathreverseaudit": [
+          {
+            "problem": "人物前倾导致头大身小",
+            "status": "mapped foundation",
+            "path": [
+              "perspective > perspective-6 人物前后关系 > perspective-skill-lean-depth-control",
+              "perspective > perspective-6 > perspective-skill-wide-near-depth"
+            ],
+            "covers": "Near/far exaggeration and close-wide magnification; supports diagnosing lean depth and camera-distance effects.",
+            "residual": "Exact correction depends on lens, distance, pose and intended stylization; a universal pose prescription is not required."
+          },
+          {
+            "problem": "低机位没有产生气势",
+            "status": "mapped, conditional",
+            "path": [
+              "perspective > perspective-1 高度与镜头轴线 > perspective-skill-height-vs-pitch / perspective-skill-angle-comparison / perspective-gap-skill-low-view-expression-context"
+            ],
+            "covers": "Separate camera height and pitch; compare effect in pose and scene context.",
+            "residual": "The low viewpoint is not an automatic heroic effect; expression remains a contextual decision."
+          },
+          {
+            "problem": "大剑入画后人物显小",
+            "status": "foundation mapped; large-prop scale/clearance can be practiced but is not a precise specialized protocol",
+            "path": [
+              "composition > composition-3 > composition-subject-context-scale",
+              "costume > costume-2 > cosplay-c06-large-prop-pose-variants / cosplay-c07-japanese-sword-character-pose",
+              "perspective > perspective-3 / perspective-6"
+            ],
+            "covers": "Subject-context scale, large-prop pose variants and sword-role posture plus perspective controls.",
+            "residual": "Tight-space clearance/overlap decisions remain situational; do not claim a source-backed single formula. This is an important task variant, not absence of prop skills."
+          },
+          {
+            "problem": "匕首内扣/外展",
+            "status": "partial adjacent foundation; exact short-dagger mechanics remain unproven",
+            "path": [
+              "costume > costume-5 > cosplay-gap-c01-small-prop-face-outline",
+              "posing > posing-5 > posing-hand-orientation / posing-purposeful-hand-placement",
+              "costume > costume-2 > cosplay-c07-japanese-sword-character-pose"
+            ],
+            "covers": "Generic nonweapon small-prop hand position/face outline, hand orientation and Japanese sword character poses. The newly reopened museum article adds direct katana grip details only as an unranked lead.",
+            "residual": "Short dagger blade-to-camera orientation and wrist/forearm/torso axis are not interchangeable with katana grip. Keep dagger-specific unknown visible; no need to exclude the adjacent foundations."
+          },
+          {
+            "problem": "逆光脸部曝光",
+            "status": "strongly mapped",
+            "path": [
+              "natural-light > natural-light-5 > light-022 / light-023",
+              "flash > flash-1 > field-match-flash-ambient",
+              "exposure-color > exposure-color-1 / exposure-color-2"
+            ],
+            "covers": "Expose face relative to bright background and balance fill/ambient according to chosen intent.",
+            "residual": "Venue permission, background tone and skin exposure remain field decisions, not a missing skill domain."
+          },
+          {
+            "problem": "荷兰角什么时候成立",
+            "status": "mapped conditional photographer-method skill",
+            "path": [
+              "perspective > perspective-1 > perspective-gap-skill-intentional-roll / perspective-skill-pitch-vs-roll"
+            ],
+            "covers": "Distinguish roll from pitch and decide whether intentional roll serves the frame.",
+            "residual": "Source angle recommendations conflict; preserve the conflict and avoid a fixed-degree rule."
+          },
+          {
+            "problem": "膝盖截断",
+            "status": "mapped conditional skill",
+            "path": [
+              "composition > composition-1 > perspective-gap-skill-knee-crop-choice"
+            ],
+            "covers": "Judge whether a joint-adjacent crop reads as unintended in the specific frame.",
+            "residual": "No universal ban or threshold; the current conditional treatment is appropriate."
+          },
+          {
+            "problem": "背景杂乱",
+            "status": "strongly mapped general skill; crowded venue application is contextual",
+            "path": [
+              "composition > composition-2 > composition-remove-bg-distractions / composition-background-density",
+              "composition > composition-1 > composition-edge-sweep",
+              "field > field-2 > field-background-first / field-background-priority"
+            ],
+            "covers": "Background reduction, density, frame-edge review and deliberate background-first location choice.",
+            "residual": "The tree supports practice; venue-specific traffic and permitted-location choices still need local rules."
+          },
+          {
+            "problem": "宽袖人物姿态",
+            "status": "partial foundation; wide-sleeve-specific detail is bounded uncertainty",
+            "path": [
+              "costume > costume-1 > cosplay-c11-costume-visibility-check",
+              "costume > costume-3 > cosplay-c09-assisted-fabric-motion / cosplay-c10-wig-costume-flow",
+              "posing > posing-5 > posing-arm-torso-separation"
+            ],
+            "covers": "Garment visibility, fabric motion, costume flow and arm/torso line control.",
+            "residual": "No directly opened source specifies wide-sleeve hand/cuff orientation or sleeve silhouette; do not overclaim from general fabric movement."
+          },
+          {
+            "problem": "手伸向镜头",
+            "status": "mapped foundations, combined expression remains contextual",
+            "path": [
+              "perspective > perspective-6 > perspective-skill-wide-near-depth",
+              "posing > posing-5 > posing-hand-orientation / posing-purposeful-hand-placement",
+              "perspective > perspective-3"
+            ],
+            "covers": "Perspective exaggeration and hand shape/orientation as separable controls.",
+            "residual": "No direct source bundles foreshortening, hand occlusion and character communication into one protocol; the mapped components are useful, not a complete recipe."
+          }
+        ],
+        "task_readiness": [
+          {
+            "task": "户外开放阴影单人 Cosplay 人像，无道具",
+            "readiness": "practice-ready from the tree; personal ability unassessed",
+            "paths": [
+              "field-1",
+              "field-2",
+              "field-6",
+              "composition-2/3",
+              "posing-2/3/5",
+              "natural-light-1/3"
+            ],
+            "limits": "Path completeness is not proof of field execution."
+          },
+          {
+            "task": "强逆光单人肖像，用单灯补脸并保留背景",
+            "readiness": "practice-ready foundation",
+            "paths": [
+              "light-022",
+              "light-023",
+              "field-match-flash-ambient",
+              "light-021",
+              "flash-1/2",
+              "exposure-color-1/2"
+            ],
+            "limits": "Choose subject/background relationship and confirm venue flash permission."
+          },
+          {
+            "task": "漫展获准固定拍点，一人一灯/背景，快速完成短肖像",
+            "readiness": "stronger practice-ready foundation after Round 2",
+            "paths": [
+              "field-venue-policy-check",
+              "field-convention-approved-footprint",
+              "field-short-slot-priorities",
+              "field-photowall-pose-ready",
+              "character-4",
+              "cosplay-c06"
+            ],
+            "limits": "Muncy supports permission/site survey/non-obstruction; Keane supports queue/pose/preset-light constraints. Both are bounded photographer methods; confirm local rules and adapt."
+          },
+          {
+            "task": "拥挤漫展移动拍摄大型剑 Cosplay",
+            "readiness": "partly supported, with local floor-layout uncertainty",
+            "paths": [
+              "field-convention-approved-footprint",
+              "field-mobile-kit",
+              "field-background-first",
+              "field-short-slot-priorities",
+              "composition-subject-context-scale",
+              "cosplay-c06-large-prop-pose-variants",
+              "cosplay-c07-japanese-sword-character-pose"
+            ],
+            "limits": "No general permission or rotation assumed. Need choose only a locally allowed non-obstructing space; tight-space sword clearance and rapidly changing crowd remain situational."
+          },
+          {
+            "task": "短匕首 + 宽袖 + 手伸镜头的角色肖像",
+            "readiness": "foundationally practiceable, exact variant not fully sourced",
+            "paths": [
+              "cosplay-gap-c01-small-prop-face-outline",
+              "posing-hand-orientation",
+              "posing-arm-torso-separation",
+              "perspective-skill-wide-near-depth",
+              "cosplay-c11-costume-visibility-check",
+              "cosplay-c09-assisted-fabric-motion"
+            ],
+            "limits": "Can test component skills with the subject's comfort and prop safety; no claim that a universal source-backed dagger/sleeve recipe exists."
+          }
+        ],
+        "remaining_gaps": [
+          {
+            "severity": "important, bounded",
+            "domain": "field / convention",
+            "candidate_ids": [
+              "field-mobile-convention-location-and-rotation"
+            ],
+            "gap": "Direct professional guidance for changing locations on a dense, mobile convention floor while preserving background control, crowd flow and short subject interactions, especially in China.",
+            "new_search_result": "Fresh searches found Muncy (fixed approved station), Keane (controlled photowall/queue), local official policy pages and uncredentialed SEO advice. No high-quality source for the complete mobile-floor workflow was established.",
+            "next_action": "Retain a visible research lead if needed, but do not make this a blocker to a strong general portrait skill tree; apply event-specific policies and practice the already-supported background/communication/short-slot skills."
+          },
+          {
+            "severity": "bounded variant",
+            "domain": "prop / costume",
+            "candidate_ids": [
+              "cosplay-short-dagger-orientation",
+              "cosplay-wide-sleeve-hand-and-silhouette"
+            ],
+            "gap": "Short dagger orientation and wide-sleeve-specific hand/cuff/silhouette control.",
+            "new_search_result": "Japanese search surfaced a museum article with katana grip/posture and safety detail, but no short dagger method; other results were generic or low-trust. No opened source directly covered broad sleeves.",
+            "next_action": "Count general props, Japanese sword pose, hand orientation, fabric movement and clothing visibility as meaningful foundation. Add the exact variants only when source quality and directness permit."
+          },
+          {
+            "severity": "optional specialization",
+            "domain": "costume / post",
+            "candidate_ids": [
+              "cosplay-wig-static-control",
+              "post-cosplay-material-fidelity"
+            ],
+            "gap": "Static wig flyaway/shine/face-occlusion management and texture fidelity when retouching armor/replica props.",
+            "new_search_result": "The current source set supports costume flow, styled-hair separation and general retouch boundaries, not the full specialized workflow.",
+            "next_action": "Useful future enrichment; not evidence of a broad costume or post-processing void."
+          }
+        ],
+        "new_searches": [
+          {
+            "query": "中国 漫展 摄影 人流 现场 拍摄 机位 摄影师 经验",
+            "finding": "No authoritative first-person how-to for crowd-aware mobile portrait location/rotation surfaced; results included news/policy and generic advice."
+          },
+          {
+            "query": "cosplay convention floor portrait photographer crowd traffic location site survey professional photographer",
+            "finding": "Reconfirmed Muncy; found controlled photowall practitioner article, event policy pages, and a suspicious uncredentialed SEO page. Opened the useful Keane page; excluded SEO tips as formal evidence."
+          },
+          {
+            "query": "COSPLAY MODE 広い袖 ポーズ 袖 しぐさ カメラマン",
+            "finding": "No exact wide-sleeve posing article surfaced in this pass; generic garment/pose results not accepted as direct evidence."
+          },
+          {
+            "query": "短剣 ダガー コスプレ 撮影 ポーズ 手首 刃先 撮影",
+            "finding": "Search surfaced Japanese katana cosplay guidance, not short dagger orientation. Opened the Nagoya Sword Museum article; kept it a lead because no named photographer/credential was established."
+          }
+        ],
+        "qualitative_95_point_review": {
+          "verdict": "The revised tree is a credible strong portrait/Cosplay skill-tree draft; 95-point completeness remains unproven, and no numeric score is assigned.",
+          "why": "The key Round 1 reflection omission now has appropriately scoped, source-backed L3 nodes. Broad composition, perspective, people direction, lighting/exposure, field planning, post and motion foundations are present. The newly added convention footprint is carefully bounded and supported. Remaining exact prop/clothing and mobile convention-floor uncertainties affect those task variants, but should not be inflated into claims that their parent domains lack foundations or that every variation needs a unified professional protocol.",
+          "not_claimed": [
+            "No numeric 95-point score or user aesthetic acceptance was made.",
+            "No owner photographs or pixels from linked examples were visually reviewed.",
+            "The project's one-variable comparison log is not a sourced professional standard.",
+            "Local convention permission and safety rules vary; no blanket event policy is inferred."
+          ],
+          "next_loop_priority": [
+            "Continue targeted Chinese convention-floor source work only if the intended task mix requires mobile crowd navigation beyond fixed photowall and approved-footprint basics.",
+            "Keep short-dagger/wide-sleeve/wig variants legible as bounded gaps without suppressing general prop, pose, garment and perspective training.",
+            "Complete the planned exposure/color evidence depth check as a follow-up; current tree has broad exposure nodes and this audit found no large technical blank."
+          ]
+        }
+      }
+    }
+  },
+  "qualitative_95_point_reviews": {
+    "round1": {
+      "verdict": "Not yet defensible as a 95-point-complete target tree; suitable as a substantial interim atlas under active audit.",
+      "reasons": "Core composition, perspective, posing, lighting, exposure, dynamic, field planning and post-workflow are populated with real trainable nodes. However, the user's explicit failure-learning loop lacks direct support for self-review and photographer-controlled cause diagnosis; the target venue context (dense Chinese convention floor) lacks an integrated sourced method; and short-dagger/wide-sleeve variants remain clear known gaps. These limitations affect relevant tasks without making all of their parent domains empty.",
+      "not_claimed": [
+        "No numeric score was calculated.",
+        "No owner-photo or aesthetic acceptance was tested.",
+        "Node count does not demonstrate complete target coverage.",
+        "Project-designed exercises are not professional consensus."
+      ],
+      "next_loop_priority": [
+        "Search for a first-party portrait/Cosplay self-review example explicitly linking intent, observed output, cause and next test.",
+        "Continue direct Chinese/Japanese professional field research for dense convention floor operation.",
+        "Only promote dagger/wide-sleeve/wig variants when a source supports their actual controllable variable."
+      ]
+    },
+    "round2": {
+      "verdict": "The revised tree is a credible strong portrait/Cosplay skill-tree draft; 95-point completeness remains unproven, and no numeric score is assigned.",
+      "why": "The key Round 1 reflection omission now has appropriately scoped, source-backed L3 nodes. Broad composition, perspective, people direction, lighting/exposure, field planning, post and motion foundations are present. The newly added convention footprint is carefully bounded and supported. Remaining exact prop/clothing and mobile convention-floor uncertainties affect those task variants, but should not be inflated into claims that their parent domains lack foundations or that every variation needs a unified professional protocol.",
+      "not_claimed": [
+        "No numeric 95-point score or user aesthetic acceptance was made.",
+        "No owner photographs or pixels from linked examples were visually reviewed.",
+        "The project's one-variable comparison log is not a sourced professional standard.",
+        "Local convention permission and safety rules vary; no blanket event policy is inferred."
+      ],
+      "next_loop_priority": [
+        "Continue targeted Chinese convention-floor source work only if the intended task mix requires mobile crowd navigation beyond fixed photowall and approved-footprint basics.",
+        "Keep short-dagger/wide-sleeve/wig variants legible as bounded gaps without suppressing general prop, pose, garment and perspective training.",
+        "Complete the planned exposure/color evidence depth check as a follow-up; current tree has broad exposure nodes and this audit found no large technical blank."
+      ]
+    }
+  },
+  "pending_parent_work_not_claimed_as_existing": [
+    {
+      "description": "Five additional lighting controls planned by parent.",
+      "status": "not claimed as present in this audit output; verify exact IDs in canonical tree after parent integration."
+    },
+    {
+      "description": "Possible Mark Rigsby venue-communication addition.",
+      "status": "not claimed as present or sourced until parent confirms integration."
+    }
+  ],
+  "evidence_and_scope_notes": [
+    "Both complete source audit reports are embedded unchanged, including audit paths, all reverse-problem residuals and qualitative reviews.",
+    "No numeric 95-point score is assigned; the included reviews explicitly state that completeness remains unproven.",
+    "The current tree snapshot contains 247 skills and 205 source records; these are inventory counts, not a quality score.",
+    "No owner photographs, linked example pixels or user aesthetic acceptance were reviewed in these coverage audits.",
+    "Fixed approved convention footprints and controlled photowalls do not establish a general mobile convention-floor method.",
+    "Exact short-dagger and wide-sleeve methods remain gaps; adjacent general prop, pose, perspective and garment skills remain useful."
+  ],
+  "problem_index": [
+    {
+      "problem": "人物前倾导致头大身小",
+      "skill_ids": [
+        "perspective-skill-lean-depth-control",
+        "perspective-skill-wide-near-depth"
+      ],
+      "gap_ids": [],
+      "residual": "精确修正取决于镜头、距离、姿势与有意风格化；无统一矫正姿势。",
+      "id": "problem-1",
+      "synonyms": [
+        "前倾头大身小",
+        "身体前倾比例"
+      ]
+    },
+    {
+      "problem": "低机位没有产生气势",
+      "skill_ids": [
+        "perspective-skill-height-vs-pitch",
+        "perspective-skill-angle-comparison",
+        "perspective-gap-skill-low-view-expression-context"
+      ],
+      "gap_ids": [],
+      "residual": "低视点不自动等于英雄感，表达取决于人物和场景。",
+      "id": "problem-2",
+      "synonyms": [
+        "仰拍为什么没有气势",
+        "仰拍没有气势",
+        "低机位不威严",
+        "低角度人物气势"
+      ]
+    },
+    {
+      "problem": "大剑入画后人物显小",
+      "skill_ids": [
+        "composition-subject-context-scale",
+        "cosplay-c06-large-prop-pose-variants",
+        "cosplay-c07-japanese-sword-character-pose",
+        "perspective-skill-wide-near-depth",
+        "perspective-skill-viewpoint-distance"
+      ],
+      "gap_ids": [
+        "gap-large-prop-scale-clearance-tight-space"
+      ],
+      "residual": "狭小空间净空/遮挡仍是情境判断，无来源公式。",
+      "id": "problem-3",
+      "synonyms": [
+        "大剑人物太小"
+      ]
+    },
+    {
+      "problem": "匕首内扣/外展",
+      "skill_ids": [
+        "cosplay-gap-c01-small-prop-face-outline",
+        "posing-hand-orientation",
+        "posing-purposeful-hand-placement",
+        "cosplay-c07-japanese-sword-character-pose"
+      ],
+      "gap_ids": [
+        "cosplay-short-dagger-orientation"
+      ],
+      "residual": "短匕首朝向不可由日式长刀握法代替。",
+      "id": "problem-4",
+      "synonyms": [
+        "匕首内扣外展",
+        "短匕首"
+      ]
+    },
+    {
+      "problem": "逆光脸部曝光",
+      "skill_ids": [
+        "light-022",
+        "light-023",
+        "field-match-flash-ambient",
+        "light-021"
+      ],
+      "gap_ids": [],
+      "residual": "背景亮度、肤色目标和场地闪光许可是现场判断。",
+      "id": "problem-5",
+      "synonyms": [
+        "逆光脸太黑",
+        "逆光脸部曝光"
+      ]
+    },
+    {
+      "problem": "荷兰角什么时候成立",
+      "skill_ids": [
+        "perspective-gap-skill-intentional-roll",
+        "perspective-skill-pitch-vs-roll"
+      ],
+      "gap_ids": [],
+      "residual": "保留不同来源对倾斜建议的分歧，不设固定角度阈值。",
+      "id": "problem-6",
+      "synonyms": [
+        "荷兰角",
+        "画面倾斜"
+      ]
+    },
+    {
+      "problem": "膝盖截断",
+      "skill_ids": [
+        "perspective-gap-skill-knee-crop-choice"
+      ],
+      "gap_ids": [],
+      "residual": "按具体画面判断，不设普遍禁令。",
+      "id": "problem-7",
+      "synonyms": [
+        "膝盖裁切",
+        "膝盖截断"
+      ]
+    },
+    {
+      "problem": "背景杂乱",
+      "skill_ids": [
+        "composition-remove-bg-distractions",
+        "composition-background-density",
+        "composition-edge-sweep",
+        "field-background-first",
+        "field-background-priority"
+      ],
+      "gap_ids": [
+        "field-mobile-convention-location-and-rotation"
+      ],
+      "residual": "通用背景整理已覆盖；拥挤场地的移动选点需要本地规则及人流判断。",
+      "id": "problem-8",
+      "synonyms": [
+        "背景杂乱",
+        "背景太乱"
+      ]
+    },
+    {
+      "problem": "宽袖人物姿态",
+      "skill_ids": [
+        "cosplay-c11-costume-visibility-check",
+        "cosplay-c09-assisted-fabric-motion",
+        "cosplay-c10-wig-costume-flow",
+        "posing-arm-torso-separation",
+        "posing-hand-orientation"
+      ],
+      "gap_ids": [
+        "cosplay-wide-sleeve-hand-and-silhouette"
+      ],
+      "residual": "宽袖手位/袖口/剪影没有直接已读来源。",
+      "id": "problem-9",
+      "synonyms": [
+        "宽袖",
+        "宽袖人物姿态"
+      ]
+    },
+    {
+      "problem": "手伸向镜头",
+      "skill_ids": [
+        "perspective-skill-wide-near-depth",
+        "posing-hand-orientation",
+        "posing-purposeful-hand-placement",
+        "perspective-skill-viewpoint-distance",
+        "cosplay-gap-c01-small-prop-face-outline",
+        "posing-character-appropriate-action"
+      ],
+      "gap_ids": [
+        "gap-cosplay-hand-to-camera-integrated-protocol"
+      ],
+      "residual": "透视、手形、遮挡与角色表达可拆练；无直接整合协议。",
+      "id": "problem-10",
+      "synonyms": [
+        "手伸向镜头",
+        "近手透视"
+      ]
+    }
+  ],
+  "later_reviewed_additions": {
+    "skills": [
+      "lightgap-exposure-aperture-iso-tradeoff",
+      "lightgap-manual-flash-power",
+      "lightgap-flash-distance-power",
+      "lightgap-shared-aperture-iso-flash-ambient",
+      "lightgap-histogram-highlight-check",
+      "field-gap-nearby-background-reposition"
+    ],
+    "scope": "Root narrowed single-variable exposure practice and preserved scope limitations; independent source addendum follows in audits.",
+    "snapshot": {
+      "domains": 14,
+      "modules": 71,
+      "skills": 247,
+      "sources": 205
+    }
+  }
+}

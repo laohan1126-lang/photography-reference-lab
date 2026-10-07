@@ -1,0 +1,422 @@
+{
+  "schema_version": 1,
+  "resources": [
+    {
+      "id": "tutorial-composition-nikon-guidelines",
+      "title": "五条构图指导：主体、留白与视线",
+      "original_title": "5 Easy Composition Guidelines",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/5-easy-composition-guidelines",
+      "author": "Diane Berkenfeld / Nikon Learn & Explore",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文，尤其 The Rule of Thirds、Lean Into the Frame、Leading Lines、Patterns & Textures 与 Look Carefully。页面内示例图未逐张检查像素。"
+      },
+      "trust_reason": "Nikon 教育页面署名摄影作者，正文配有作者作品和构图说明。",
+      "summary": "以确定主体为起点，讨论三分位置、水平/垂直校准、视线或动作前方留白、引导线及重复图案变化，并提醒这些是可打破的指导。",
+      "start_here": "先读 Lean Into the Frame 和 Leading Lines，再读末段对规则边界的说明。",
+      "study_task": "项目练习：给同一张人像安排视线前方留白与较紧裁切两个版本，记录哪版更符合角色动作；这是本项目练习，不是作者规定的验收法。",
+      "limitations": "示例主要是野生动物和风景，迁移到人像需按动作与场景判断；页面规则不构成硬性构图标准。",
+      "source_id": "composition-nikon-diane-guidelines",
+      "skill_ids": [
+        "composition-gaze-action-room",
+        "composition-leading-line-target",
+        "composition-line-exit-control",
+        "composition-pattern-break"
+      ],
+      "domain_ids": [
+        "composition"
+      ]
+    },
+    {
+      "id": "tutorial-composition-bh-edges",
+      "title": "从画面边缘组织摄影构图",
+      "original_title": "Working the Edges in Photographic Composition",
+      "url": "https://www.bhphotovideo.com/explora/photography/tips-and-solutions/working-edges-photographic-composition",
+      "author": "John R. Harris",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "阅读全文，重点 lines 47–73 的边缘、画外关系、加入或裁去次要信息、负空间与线条出框；页面示例照片仅读文字说明。"
+      },
+      "trust_reason": "由署名摄影师撰写，页面署名其作品并以多个具体构图案例论述边缘如何参与画面意义。",
+      "summary": "说明边缘不仅用于清除干扰，也可让次要线索进入画面、制造画外关系、改变留白和视觉方向；作者明确反对把规则当作通用处方。",
+      "start_here": "从文章中段‘摄影首先是一个框’的论述读起，再看手臂入框、主体压边和线条出框的例子。",
+      "study_task": "项目练习：选一张现场人像，分别做边缘清理版与保留一个有意义边缘线索版，比较画外信息是否更清楚。",
+      "limitations": "作者职业履历未在本次核验中独立确认；文章的街拍、纪实和婚礼例子需谨慎迁移到角色肖像。",
+      "source_id": "composition-john-harris-edges",
+      "skill_ids": [
+        "composition-edge-sweep",
+        "composition-crop-intent",
+        "composition-line-exit-control",
+        "composition-intentional-imbalance"
+      ],
+      "domain_ids": [
+        "composition"
+      ]
+    },
+    {
+      "id": "tutorial-composition-adobe-lines",
+      "title": "摄影引导线：让线条把注意力带向主体",
+      "original_title": "A guide to leading lines in photography",
+      "url": "https://www.adobe.com/creativecloud/photography/technique/leading-lines.html",
+      "author": "Adobe editorial，含摄影师 Lukas Kosslow 与 Felipe Silva 的署名建议",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文中 line types、photographer contributions 与 practice sections；示例图片未逐张像素审查。"
+      },
+      "trust_reason": "Adobe 摄影教育文章引用署名摄影师并区分多种线条走向，提供具体应用和练习说明。",
+      "summary": "讲解直线、对角线、曲线及汇聚线如何产生深度、动势或视觉路径；建议先明确主体，再判断线条能否把视线带到该处。",
+      "start_here": "先读线条类型和‘leading to the subject’的段落，再看练习部分。",
+      "study_task": "项目练习：在一处外景中拍三张同一角色照片，分别让线条指向角色、离开角色或形成曲线环绕，比较注意力路径。",
+      "limitations": "编辑文章与两位摄影师贡献属于同一资源包，不计为多个独立来源；示例偏风景和建筑。",
+      "source_id": "composition-leading-lines-adobe",
+      "skill_ids": [
+        "composition-leading-line-target",
+        "composition-line-exit-control",
+        "composition-line-character"
+      ],
+      "domain_ids": [
+        "composition"
+      ]
+    },
+    {
+      "id": "tutorial-perspective-ppa-angle",
+      "title": "人像视点与角度：机位高度如何改变比例",
+      "original_title": "Photography Certification Guide, Module 3D: Angle of View",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-3d-angle-of-view",
+      "author": "Jessica Avery（页面编辑）；Professional Photographers of America",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文 Module 3D: Angle of View，重点 Perspective、人像高低视点、前倾近远关系及按全身/半身裁切的机位起点；页面配图未逐张像素审查。"
+      },
+      "trust_reason": "PPA 面向职业摄影师的公开认证课程模块，署名页面编辑，提供完整正文和人像相关说明。",
+      "summary": "把机位高度与近远比例联系起来，并以全身和头肩画幅举例讨论机位起点；文中权力感、显高等解释是特定示例而非低机位的普遍效果。",
+      "start_here": "先读 Perspective 部分，再读 full length 与 head-and-shoulders 两种裁切的相机位置说明。",
+      "study_task": "项目练习：固定人物姿势和构图目标，比较低位、眼平、高位视点，再单独改变镜头俯仰；标注人物比例和背景垂直线变化。",
+      "limitations": "同一 PPA 认证课程源家族；起始高度是一般指导，需按人物身形、镜头距离与目标画幅验证，不能从角度直接推定气势。",
+      "source_id": "perspective-ppa-angle-of-view",
+      "skill_ids": [
+        "perspective-skill-angle-comparison",
+        "perspective-skill-height-proportion-diagnosis",
+        "perspective-skill-crop-height",
+        "perspective-skill-lean-depth-control"
+      ],
+      "domain_ids": [
+        "perspective"
+      ]
+    },
+    {
+      "id": "tutorial-perspective-ppa-lens",
+      "title": "镜头选择：焦距、视角和工作距离",
+      "original_title": "Photography Certification Guide, Module 1E: Lens Selection",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-1e-lens-selection",
+      "author": "Jessica Avery（页面编辑）；Professional Photographers of America",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文 Module 1E: Lens Selection，重点 normal/wide/telephoto lens 和透视、近远物体大小段落。"
+      },
+      "trust_reason": "PPA 公开职业摄影认证课程的署名模块，完整讲解不同焦距与画面范围，并提供图表。",
+      "summary": "介绍焦距与传感器画幅、视角范围及近远元素呈现之间的关系，帮助摄影者按现场空间选择可用镜头。",
+      "start_here": "从 Focal Length 与 Wide-angle/Telephoto 部分读起，并将文中透视措辞与相机视点距离区分开来。",
+      "study_task": "项目练习：记录同一人物在可用工作距离下用两档焦段取景的结果，再移动机位匹配人物占幅；分别记录背景范围和比例变化。",
+      "limitations": "正文部分关于长焦压缩和畸变的表述较概括，不能单独用于证明固定机位下焦距会改变几何透视；术语需结合研究论文理解。",
+      "source_id": "perspective-ppa-lens-selection",
+      "skill_ids": [
+        "perspective-skill-focal-length-field-of-view",
+        "perspective-skill-lens-working-distance"
+      ],
+      "domain_ids": [
+        "perspective"
+      ]
+    },
+    {
+      "id": "tutorial-perspective-banks-paper",
+      "title": "相机焦距与照片透视感知：实验研究",
+      "original_title": "Camera Focal Length and the Perception of Pictures",
+      "url": "https://www.princeton.edu/~epiazza/papers/Banks%20et%20al%20%282014%29.pdf",
+      "author": "Martin S. Banks、Emily A. Cooper、Elise A. Piazza",
+      "kind": "paper",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已打开19页全文；阅读摘要、投影/观看几何、实验设置与讨论段落，重点比较相机位置、焦距及观看距离的控制条件。"
+      },
+      "trust_reason": "视觉科学研究者发表于同行评审期刊 Ecological Psychology 的原始研究，合作者大学页面提供完整 PDF。",
+      "summary": "实验分析焦距与拍摄视点、照片观看距离共同如何影响图像中的深度感知；支持把投影几何、拍摄距离与观看条件分开比较，而不是把压缩简单归因于镜头名称。",
+      "start_here": "先读摘要与实验设计，再看讨论中不同观看距离和相机位置控制条件的结果。",
+      "study_task": "项目练习：固定机位拍同一场景不同焦距，再改变机位并匹配画面取景；把两组比较分开记录，这是为理解变量设计的项目实验。",
+      "limitations": "论文研究的是受控图像与观看知觉，不是人像摆姿手册，也不指定通用焦段；不能把其结论简化成焦距完全无影响。",
+      "source_id": "perspective-cooper-banks-pictures",
+      "skill_ids": [
+        "perspective-skill-optical-vs-perspective",
+        "perspective-skill-viewpoint-distance",
+        "perspective-skill-distance-before-focal",
+        "perspective-skill-fixed-position-focal-compare"
+      ],
+      "domain_ids": [
+        "perspective"
+      ]
+    },
+    {
+      "id": "tutorial-focus-ppa-capabilities",
+      "title": "镜头能力：景深、光圈与主体清晰范围",
+      "original_title": "Photography Certification Guide, Module 1F: Capabilities of Lenses",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-1f-capabilities-of-lenses",
+      "author": "Jessica Avery（页面编辑）；Professional Photographers of America",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文 Module 1F，重点 Depth of Field、Three Factors that Influence Depth of Field、F-Stops 与不同清晰范围示例。"
+      },
+      "trust_reason": "PPA 职业摄影认证模块公开全文，按光圈、焦距、拍摄距离等变量分节说明并附例图。",
+      "summary": "解释景深作为可用清晰范围的概念，并讨论光圈、焦距与拍摄距离的控制作用，帮助按主体与背景是否都需辨认来选取景深。",
+      "start_here": "从 Depth of Field 与 Three Factors 部分开始，再读不同光圈对背景清晰程度的对照。",
+      "study_task": "项目练习：人物和机位保持一致，比较两档光圈的眼睛与服装细节清晰度；再安排两人前后站位，检查所需清晰范围。",
+      "limitations": "文中景深前后比例等数字是近似教学简化，受格式、对焦距离和可接受清晰标准影响；不要把例图效果当作通用数值。",
+      "source_id": "perspective-ppa-capabilities",
+      "skill_ids": [
+        "perspective-skill-depth-of-field-control",
+        "perspective-skill-aperture-sharpness-tradeoff"
+      ],
+      "domain_ids": [
+        "focus"
+      ]
+    },
+    {
+      "id": "tutorial-focus-nikon-eye-af",
+      "title": "眼部识别自动对焦在人像中的使用",
+      "original_title": "Eye-Detection Autofocus Makes Taking Portraits Easy",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/eye-detection-autofocus-makes-taking-portraits-easy",
+      "author": "Nikon Learn & Explore 编辑部（页面未署个人作者）",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文关于开启眼部识别、AF区域、选眼和运动主体追踪的操作说明。"
+      },
+      "trust_reason": "Nikon 官方技术教育页面，说明其眼部识别功能的操作方式和识别框反馈。",
+      "summary": "示范如何在支持该功能的相机上启用眼部识别、观察被选中的眼睛并用于人像对焦工作流。",
+      "start_here": "先读功能启用和眼部识别框说明，再看 AF 区域模式与运动主体部分。",
+      "study_task": "项目练习：让人物分别正脸、侧脸和小幅移动，拍后放大确认实际清晰的眼睛；同时保存未启用识别的对照组。",
+      "limitations": "厂商特定功能说明，型号行为存在差异；这是自动对焦工具的操作教程，不代表所有情况下系统都会选中预期眼睛。",
+      "source_id": "perspective-nikon-eye-af",
+      "skill_ids": [
+        "perspective-skill-autofocus-eye-detect",
+        "perspective-skill-near-eye-selection",
+        "perspective-skill-focus-after-movement"
+      ],
+      "domain_ids": [
+        "focus"
+      ]
+    },
+    {
+      "id": "tutorial-dynamic-nikon-panning",
+      "title": "追随摇摄：动作预判、对焦与平顺跟随",
+      "original_title": "10 Tips for Better Camera Panning",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/10-tips-for-better-camera-panning",
+      "author": "Dave Black",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文追随摇摄技巧，重点拍摄前对焦选择、在曝光前后持续跟随、保留清晰锚点和反复练习。"
+      },
+      "trust_reason": "Nikon 页面署名职业运动摄影师 Dave Black，并以其动作摄影方法解释摇摄步骤。",
+      "summary": "讲解先判断动作路线和对焦方式，再在曝光开始前建立跟随并贯穿曝光后继续移动；反复练习以控制主体与背景的相对拖影。",
+      "start_here": "按文章编号顺序读，重点留意运动可预测时预对焦与连续自动对焦的选择，以及曝光前后跟随动作。",
+      "study_task": "项目练习：让模特按固定路线重复走过，逐轮练习预判、平移跟随和曝光后延续动作；记录可辨认主体与背景拖影的比例。",
+      "limitations": "文章以体育/动作摄影为背景，应用到 Cosplay 动作需按空间、安全距离和模特动作速度调整；快门值没有普适处方。",
+      "source_id": "motion-nikon-panning",
+      "skill_ids": [
+        "mot-03",
+        "mot-04",
+        "mot-05",
+        "mot-10",
+        "mot-11",
+        "mot-12"
+      ],
+      "domain_ids": [
+        "dynamic-still",
+        "focus"
+      ]
+    },
+    {
+      "id": "tutorial-dynamic-nikon-slow-shutter",
+      "title": "慢门练习：决定冻结与移动的画面部分",
+      "original_title": "＜スローシャッター＞ブレを生かして、時間の流れを描く写真表現",
+      "url": "https://nij.nikon.com/learn/phototech/atoz/atoz35.html",
+      "author": "鎌田風花（摄影师、Nikon College 讲师）",
+      "kind": "article",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文主教程、拍摄要点、拍摄变体及摄影师简介；包括花卉、环绕相机运动和行人慢门案例。"
+      },
+      "trust_reason": "署名职业摄影师页面，提供具体拍摄过程、参数和作者职业简介。",
+      "summary": "建议拍前决定哪些元素冻结、哪些元素移动，并用背景简洁度、曝光时长和动作时机控制拖影；作者示范多种慢门变化。",
+      "start_here": "先读前两段及拍摄时要点，再比较花卉、相机转动和行人三种变体。",
+      "study_task": "项目练习：让角色只移动道具或手臂，分别尝试定住主体与背景、拖动主体与定住背景两种表达，记录可读性变化。",
+      "limitations": "作者示例以花、街头行人和相机运动为主，不提供 Cosplay 姿态规则；文章参数依场景而变。",
+      "source_id": "motion-nikon-jp-slow-shutter",
+      "skill_ids": [
+        "mot-01",
+        "mot-02",
+        "mot-06",
+        "mot-07"
+      ],
+      "domain_ids": [
+        "dynamic-still"
+      ]
+    },
+    {
+      "id": "tutorial-dynamic-nikon-cosgenic-sword",
+      "title": "Cosplay 剑剧动作：姿势、道具与快门表达",
+      "original_title": "Lesson 11: 動きのある剣劇作品を撮る―和装でシャッタースピードを極める―",
+      "url": "https://nij.nikon.com/cms/sp/cosgenic/lesson11/",
+      "author": "山本哲也（摄影）；模特 Mahio、Mariko",
+      "kind": "case_study",
+      "language": "日文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文和信用说明；重点和装剑姿、站姿与重心描述、静止/动作拖影和安全说明。示例照片仅按文字说明，未独立检查像素。"
+      },
+      "trust_reason": "Nikon Imaging Japan 的 Cosplay 专题，署名摄影师和模特，正文直接讨论角色动作与快门选择，并说明使用木制模造刀及安全措施。",
+      "summary": "以和装剑剧为限定案例，展示如何把角色风格、持刀姿势、脚步重心和局部拖影结合；并区分主体模糊是否属于预期表达。",
+      "start_here": "先读‘和装剑剧特有的姿势与构图’，再读‘被摄体的一部分模糊’和流动追拍部分。",
+      "study_task": "项目练习：在安全场地用软质道具排演一个慢速挥动动作，拍清晰版与仅道具拖影版；提前与模特确认动作停止点。",
+      "limitations": "站姿和重心建议仅适用于文中的和装剑剧示例；木制模造刀的拍摄案例不代表公共活动允许携带或挥动道具。",
+      "source_id": "posing-nikon-cosgenic-lesson11",
+      "skill_ids": [
+        "mot-01",
+        "mot-02",
+        "mot-07",
+        "mot-13"
+      ],
+      "domain_ids": [
+        "dynamic-still"
+      ]
+    },
+    {
+      "id": "tutorial-moving-asc-camera-tools",
+      "title": "电影摄影机运动工具：滑轨、云台、稳定器与摇臂",
+      "original_title": "Shot Craft: Tools for Camera Movement",
+      "url": "https://theasc.com/article/shot-craft-camera-movement/",
+      "author": "Jay Holben",
+      "kind": "article",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "全文，重点 handheld、slider、gimbal、stabilizer、crane 和 aerial movement 段落及其适用限制。"
+      },
+      "trust_reason": "American Cinematographer（美国电影摄影师协会出版物）的署名工艺文章，围绕专业片场设备和真实制作案例说明选择。",
+      "summary": "对比不同移动设备在灵活度、平稳度、空间限制和镜头用途上的差异，并强调移动方案从场景目标与制作条件出发。",
+      "start_here": "从文章开头关于镜头意图和工具选择的讨论开始，再对照 gimbal、stabilizer 与 crane 各节。",
+      "study_task": "项目练习：为一段角色入场动作分别设计固定机位、手持跟随和小范围滑移方案，写下每种方案传递的信息与执行风险。",
+      "limitations": "设备指南面向电影片场，部分设备不适合个人漫展拍摄；文章工具介绍不能替代具体场地许可、人员配合或安全判断。",
+      "source_id": "motion-asc-camera-movement",
+      "skill_ids": [
+        "mot-18",
+        "mot-25",
+        "mot-27"
+      ],
+      "domain_ids": [
+        "moving-image"
+      ]
+    },
+    {
+      "id": "tutorial-moving-acmi-film-it",
+      "title": "ACMI 电影摄影在线课程：景别、角度、运动与构图练习",
+      "original_title": "Cinematography: Film It online learning",
+      "url": "https://www.acmi.net.au/education/school-program-and-resources/film-it-cinematography/",
+      "author": "Australian Centre for the Moving Image 教育团队",
+      "kind": "course",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "已读课程页正文中 shot types、camera angles、camera movement、composition 和 activities；嵌入视频只核对页面标题和简介，未观看。"
+      },
+      "trust_reason": "澳大利亚电影与移动影像中心提供的结构化公共影像教育课程，有文字说明和可执行活动。",
+      "summary": "从常见景别和视角讲到固定、摇摄与跟移的观众感受，并安排拍摄对照和回看讨论；也介绍对称构图和焦点转移等基础影像语言。",
+      "start_here": "先读 shot types 与 camera movement，再按 camera movement activity 拍同一行走动作的固定、摇摄和跟移版本。",
+      "study_task": "项目练习：用同一角色动作拍远景、中景、近景，再以静止机位、固定轴摇摄和跟移重拍，回看每版新增的信息。",
+      "limitations": "课程面向学校初学者；低角度威严、荷兰角等文字描述是入门概括，需结合具体姿态和场景，不是普遍表达法。嵌入视频未观看。",
+      "source_id": "motion-acmi-cinematography",
+      "skill_ids": [
+        "perspective-skill-shot-scale-vocabulary",
+        "perspective-skill-coverage-variation",
+        "mot-18",
+        "mot-21",
+        "mot-17"
+      ],
+      "domain_ids": [
+        "perspective",
+        "moving-image"
+      ]
+    },
+    {
+      "id": "tutorial-moving-lubezki-birdman",
+      "title": "《鸟人》长镜头：演员调度、预演与摄影机提示",
+      "original_title": "Emmanuel Lubezki ASC, AMC on Birdman",
+      "url": "https://www.arri.com/news-en/emmanuel-lubezki-asc-amc-on-birdman-",
+      "author": "Emmanuel Lubezki, ASC, AMC（访谈对象）；ARRI 编辑",
+      "kind": "case_study",
+      "language": "英文",
+      "access": "free",
+      "verification": {
+        "checked_at": "2026-10-08",
+        "level": "full_text",
+        "locator": "阅读全文中关于主观机位、演员走位、长镜头协同、摄影机操作者提示和预演的问答；页面影片图未作像素审查。"
+      },
+      "trust_reason": "奥斯卡获奖摄影指导 Emmanuel Lubezki 在 ARRI 访谈中复盘本人电影《鸟人》的拍摄与现场协作。",
+      "summary": "通过电影案例说明长镜头要求演员、摄影、灯光和道具部门共同排演；摄影机操作者需要记提示并同时检查取景，镜头移动和主体路径需协同。",
+      "start_here": "先读采访开头关于长镜头与制作选择的问答，再读演员调度、操作者记提示及反复排练的段落。",
+      "study_task": "项目练习：把一段 10 秒角色动作拆成演员路径和摄影机路径，先不移动拍一次，再排练一次同步跟随；这是低复杂度项目适配。",
+      "limitations": "电影长镜头的人员、设备和排练条件远高于个人拍摄；适合作为协作案例，不构成必须使用长镜头的建议。",
+      "source_id": "motion-arri-birdman-lubezki",
+      "skill_ids": [
+        "mot-24",
+        "mot-26",
+        "mot-25"
+      ],
+      "domain_ids": [
+        "moving-image"
+      ]
+    }
+  ]
+}
