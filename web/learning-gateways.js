@@ -34,10 +34,15 @@ window.LearningGateways = (() => {
   function caseHTML(gateway, id) {
     const item = gateway.cases.find(c => c.id === id);
     if (!item) return '';
-    const url = safeURL(item.url), src = safeURL(item.src);
-    const image = item.display === 'licensed_remote' && item.rights.allowed === true && src;
-    const dimensions = Number.isInteger(item.width) && Number.isInteger(item.height) ? ` width="${item.width}" height="${item.height}"` : '';
-    return `<figure class="gateway-case" data-case="${esc(id)}">${image ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="查看 ${esc(item.title)} 的原图与出处"><img src="${esc(src)}" alt="${esc(item.alt)}" loading="lazy"${dimensions} referrerpolicy="no-referrer"><span class="case-loading" role="status">正在从图像来源加载照片…</span><span class="case-load-error" hidden>图片暂时无法加载，请打开下方原案例。</span></a>` : `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
+    const url = safeURL(item.url);
+    const images = item.display === 'source_remote' ? item.images || []
+      : item.display === 'licensed_remote' && item.rights.allowed === true ? [item] : [];
+    const media = images.filter(image=>safeURL(image.src)).map(image=>{
+      const dimensions = Number.isInteger(image.width) && Number.isInteger(image.height) ? ` width="${image.width}" height="${image.height}"` : '';
+      return `<div class="case-media">${image.label?`<p class="case-media-label">${esc(image.label)}</p>`:''}<div class="case-image"><img src="${esc(safeURL(image.src))}" alt="${esc(image.alt)}" loading="lazy"${dimensions} referrerpolicy="no-referrer"><span class="case-loading" role="status">正在加载原案例照片…</span><span class="case-load-error" hidden>这张图片暂时无法加载。中文要点仍可阅读，原案例链接在下方。</span></div></div>`;
+    }).join('');
+    const summary = item.source_summary;
+    return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span>${summary?`<details class="case-source-summary"><summary>原文要点 · 中文转述</summary><p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span></details>`:''}<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
   }
   function citations(ids) {
     return (ids || []).map(id => sources.get(id)).filter(Boolean).map(source => `<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title)} ↗</a>`).join(' · ');
@@ -70,7 +75,10 @@ window.LearningGateways = (() => {
       const loading=img.parentElement.querySelector('.case-loading'), error=img.parentElement.querySelector('.case-load-error');
       img.addEventListener('load',()=>{loading.hidden=true;});
       img.addEventListener('error',()=>{img.hidden=true;loading.hidden=true;error.hidden=false;});
-      if(img.complete && img.naturalWidth) loading.hidden=true;
+      if(img.complete) {
+        loading.hidden=true;
+        if(!img.naturalWidth) {img.hidden=true;error.hidden=false;}
+      }
     });
     dialog.querySelectorAll('[data-gw-reveal]').forEach(details=>details.addEventListener('toggle',()=>{
       const active = getDraft(gateway.id), id = details.dataset.gwReveal;

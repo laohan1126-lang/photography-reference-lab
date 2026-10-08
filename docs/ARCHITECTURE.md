@@ -86,6 +86,8 @@
 
 `GATEWAYS.json` 不替换技能树：每个认知入口显式关联多个现有 skill ID，独立记录教学来源、原始案例、图像许可及像素复核范围。构建器将课程与 `gateway_sources` 加入同一内容指纹；`validate_learning_gateways.py` 校验关系、章节、观察/对照/迁移活动与未提前使用的新案例。结构通过不等于原理、图像判断或教学效果通过，三类人工/Agent复核另有记录。
 
+案例显示机制与转载许可分开：`source_remote` 的 `images` 引用原站公开的精确媒体地址，`rights.allowed` 不被改成许可；`licensed_remote` 仍要求明确许可。`source_summary` 记录中文转述、来源 ID、阅读定位和核对日期，在图下按需展开以保留观察题的节奏。`ref_lab/learning_media.py` 统一登记七案例的九个媒体地址，供构建校验和仅 `/learning` 文档的 `img-src` 共用；不开放其他 CDN 文件、脚本或 API 网络请求，不代理、下载或服务端缓存图片。失败状态保留要点、署名和原页链接；站内引用不保证离线可用或未来原站持续可达。
+
 `learning-gateways.js` 负责阅读对话框、章节定位、原页焦点/位置和每入口草稿；主 `learning.js` 仍独占路由、身份、共享 revision 和写入协调。草稿只用 sessionStorage 保持同一标签页连续性；显式保存走 `PUT /api/learning-gateways/{id}`。迟到响应绑定发送时的入口，不能覆盖请求中产生的新编辑或其他入口草稿。409 保留本页草稿，明确加载服务器版本后再编辑。
 
 私有 JSON 的可选 `gateways` 字段保存 stage、answers、revealed、last_section，沿用单进程锁、原子替换、认证及 CSRF。旧 skills/日志/照片内容不变；未知历史 ID 留在磁盘但不作为当前可编辑条目。六种认知自评另加 unassessed，不推导原技能状态。数据库和照片资产没有迁移。

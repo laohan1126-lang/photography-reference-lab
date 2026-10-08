@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from urllib.parse import urlparse
+from ref_lab.learning_media import SOURCE_CASE_MEDIA
 
 CHAPTERS = ('problem', 'observe', 'principle', 'contrast', 'boundary', 'transfer', 'reflect', 'sources')
 ACTIVITIES = {'observation', 'comparison', 'transfer'}
@@ -72,7 +73,26 @@ def validate_gateways(catalog: dict, tree: dict) -> list[str]:
                         errors.append(f'Image outside the learning page policy: {cid}')
                 if any(type(case.get(k)) is not int or case[k] <= 0 for k in ('width', 'height')):
                     errors.append(f'Missing intrinsic image dimensions: {cid}')
-            elif case.get('display') != 'external_only' or case.get('src'):
+            elif case.get('display') == 'source_remote':
+                images = case.get('images', [])
+                registered = SOURCE_CASE_MEDIA.get(cid)
+                if (not isinstance(images, list) or not images or not registered
+                        or tuple(i.get('src') for i in images if isinstance(i, dict)) != registered
+                        or case.get('src')):
+                    errors.append(f'Source image outside the learning page policy: {cid}')
+                for image in images if isinstance(images, list) else []:
+                    if (not isinstance(image, dict) or not public_url(image.get('src'))
+                            or not image.get('alt')
+                            or any(type(image.get(k)) is not int or image[k] <= 0 for k in ('width', 'height'))):
+                        errors.append(f'Missing source image metadata/dimensions: {cid}')
+                summary = case.get('source_summary', {})
+                if (not isinstance(summary, dict)
+                        or any(not isinstance(summary.get(k), str) or not summary[k].strip()
+                               for k in ('text', 'locator', 'source_id', 'checked_at'))
+                        or summary.get('source_id') not in source_ids
+                        or sources.get(summary.get('source_id'), {}).get('url') != case.get('url')):
+                    errors.append(f'Missing or mismatched source summary: {cid}')
+            elif case.get('display') != 'external_only' or case.get('src') or case.get('images'):
                 errors.append(f'Invalid case display/rights: {cid}')
             for name in ('author', 'title', 'caption', 'alt'):
                 if not case.get(name):

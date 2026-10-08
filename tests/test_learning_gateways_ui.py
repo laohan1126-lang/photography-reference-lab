@@ -12,9 +12,10 @@ from test_learning_ui import learning_app, learning_site, _unlock, _open_path
 def test_gateway_endpoint_requires_session_and_csrf(learning_app):
     app, _, origin, _, _ = learning_app
     with TestClient(app, base_url=origin) as client:
+        from ref_lab.learning_media import SOURCE_IMAGE_CSP
         policy = client.get('/learning').headers['content-security-policy']
         reference_policy = client.get('/').headers['content-security-policy']
-        assert 'img-src \'self\' data: blob: https://thumb.wikimedia.org/wikipedia/commons/thumb/;' in policy
+        assert f"img-src 'self' data: blob: {SOURCE_IMAGE_CSP};" in policy
         assert 'wikimedia' not in reference_policy
         assert "script-src 'self';" in policy and "connect-src 'self';" in policy
         gateway = client.get('/static/learning-atlas.json').json()['gateways'][0]['id']
@@ -43,6 +44,113 @@ def test_transfer_image_is_allowed_by_the_actual_page_policy(learning_site, gate
         page.wait_for_function('() => document.querySelector("#gw-transfer img").naturalWidth > 0', timeout=5000)
         expect(page.locator('#gw-transfer img')).to_be_visible()
         expect(page.locator('#gw-transfer .case-load-error')).not_to_be_visible()
+        browser.close()
+
+
+@pytest.mark.parametrize('gateway_index', [0, 1, 2])
+def test_original_case_photos_and_source_summaries_render_inside_each_gateway(learning_site, gateway_index):
+    """Synthetic SVG responses prove inline rendering; root Edge QA checks the real source pixels."""
+    from ref_lab.learning_media import SOURCE_CASE_MEDIA
+
+    app, _, origin, _ = learning_site
+    gateway_ids = ('attention-and-occlusion', 'position-before-angle', 'separate-light-contributions')
+    gateway_id = gateway_ids[gateway_index]
+    # Pull the actual shipped catalog so this assertion follows the gateway-to-case mapping.
+    from fastapi.testclient import TestClient
+    with TestClient(app, base_url=origin) as client:
+        atlas = client.get('/static/learning-atlas.json').json()
+    gateway = next(item for item in atlas['gateways'] if item['id'] == gateway_id)
+    source_cases = [case for case in gateway['cases'] if case.get('display') == 'source_remote']
+    gateway_case_ids = {case['id'] for case in source_cases}
+    source_urls = {image['src'] for case in source_cases for image in case['images']}
+    assert source_urls == {url for case_id in gateway_case_ids for url in SOURCE_CASE_MEDIA[case_id]}
+    licensed_urls = {case['src'] for case in gateway['cases'] if case.get('display') == 'licensed_remote'}
+    expected_urls = source_urls | licensed_urls
+    expected_dimensions = {image['src']: (image['width'], image['height'])
+                           for case in source_cases for image in case['images']}
+    expected_dimensions.update({case['src']: (case['width'], case['height'])
+                                for case in gateway['cases'] if case.get('display') == 'licensed_remote'})
+    assert expected_urls
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        page = browser.new_page()
+        for url in expected_urls:
+            page.route(url, lambda route: route.fulfill(
+                status=200, content_type='image/svg+xml',
+                body='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="32"><rect width="24" height="32" fill="#496b55"/></svg>'))
+        _unlock(page, origin)
+        page.locator('#gateway-index [data-open-gateway]').nth(gateway_index).click()
+        source_figures = page.locator('.gateway-case[data-case] .case-media img')
+        rendered_urls = {source_figures.nth(index).get_attribute('src')
+                         for index in range(source_figures.count())}
+        # A teaching case can be deliberately revisited in multiple chapters.
+        assert expected_urls <= rendered_urls
+        assert rendered_urls <= expected_urls
+        for index in range(source_figures.count()):
+            image = source_figures.nth(index)
+            src = image.get_attribute('src')
+            assert (int(image.get_attribute('width')), int(image.get_attribute('height'))) == expected_dimensions[src]
+            image.scroll_into_view_if_needed()
+            page.wait_for_function(
+                '(src) => [...document.querySelectorAll(".case-media img")].some(img => img.src === src && img.complete && img.naturalWidth > 0)',
+                arg=src,
+            )
+            expect(image).to_be_visible()
+            assert image.evaluate('(img) => img.closest("a") === null')
+            expect(image.locator('xpath=..').locator('.case-loading')).to_be_hidden()
+        for url in expected_urls:
+            assert page.locator(f'.case-media img[src="{url}"]').count() >= 1
+        for case in source_cases:
+            summaries = page.locator(f'.gateway-case[data-case="{case["id"]}"] details.case-source-summary')
+            assert summaries.count() >= 1
+            summary = summaries.first
+            expect(summary.locator('summary')).to_have_text('原文要点 · 中文转述')
+            summary.locator('summary').click()
+            expect(summary.get_by_text(case['source_summary']['text'])).to_be_visible()
+            expect(summary).to_contain_text(case['source_summary']['locator'])
+        assert page.url.startswith(origin + '/learning')
+        browser.close()
+
+
+def test_one_original_photo_failure_keeps_sibling_images_summary_and_returning_draft(learning_site):
+    from ref_lab.learning_media import SOURCE_CASE_MEDIA
+
+    _, _, origin, _ = learning_site
+    urls = SOURCE_CASE_MEDIA['hobby-ambient-sequence']
+    assert len(urls) == 3
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.route(urls[0], lambda route: route.abort())
+        for url in urls[1:]:
+            page.route(url, lambda route: route.fulfill(
+                status=200, content_type='image/svg+xml',
+                body='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="32"><rect width="24" height="32" fill="#496b55"/></svg>'))
+        _unlock(page, origin)
+        page.locator('#gateway-index [data-open-gateway]').nth(2).click()
+        figure = page.locator('.gateway-case[data-case="hobby-ambient-sequence"]')
+        images = figure.locator('.case-media img')
+        assert images.count() == 3
+        figure.scroll_into_view_if_needed()
+        expect(figure.locator('.case-load-error').first).to_be_visible()
+        summary = figure.locator('details.case-source-summary')
+        summary.locator('summary').click()
+        expect(summary.get_by_text('原文要点 · 中文转述')).to_be_visible()
+        expect(summary).to_contain_text('Hobby')
+        for index in (1, 2):
+            image = images.nth(index)
+            image.scroll_into_view_if_needed()
+            src = image.get_attribute('src')
+            page.wait_for_function(
+                '(src) => [...document.querySelectorAll(".case-media img")].some(img => img.src === src && img.complete && img.naturalWidth > 0)',
+                arg=src,
+            )
+            expect(image).to_be_visible()
+        page.locator('#gw-answer-observation').fill('原图暂时失败时，正文和其余照片仍可观察。')
+        page.keyboard.press('Escape')
+        page.locator('#gateway-index [data-open-gateway]').nth(2).click()
+        expect(page.locator('#gw-answer-observation')).to_have_value('原图暂时失败时，正文和其余照片仍可观察。')
         browser.close()
 
 

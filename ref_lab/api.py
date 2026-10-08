@@ -20,6 +20,7 @@ from . import __version__
 from .config import Settings
 from .learning_preview import STATIC_FILES as LEARNING_STATIC_FILES, preview_router
 from .learning_state import router as learning_state_router
+from .learning_media import SOURCE_IMAGE_CSP
 from .export import build_job_pack, build_pack, build_contact_board
 from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
 from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardInput, JobInput, JobResult,
@@ -107,11 +108,11 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Frame-Options"] = "DENY"
-        # Only the teaching document embeds reviewed, licensed Commons thumbnails.
+        # Only the teaching document references reviewed source photos and Commons.
         # The private reference app and all executable/network directives stay local.
         image_sources = "'self' data: blob:"
         if path == "/learning":
-            image_sources += " https://thumb.wikimedia.org/wikipedia/commons/thumb/"
+            image_sources += " " + SOURCE_IMAGE_CSP
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
             f"img-src {image_sources}; connect-src 'self'; object-src 'none'; "

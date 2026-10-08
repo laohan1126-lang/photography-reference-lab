@@ -45,7 +45,15 @@
 .gateway-observations p+p {margin-top:var(--space-1)}
 .gateway-observations .gateway-small:nth-of-type(3) {margin-top:var(--space-3)}
 .gateway-case {margin:var(--space-4) 0;min-width:0}
-.gateway-case img {width:100%;height:auto;max-height:600px;object-fit:contain;background:var(--soft)}
+.gateway-case img {width:auto;max-width:100%;height:auto;max-height:600px;object-fit:contain;margin-inline:auto}
+.case-image {position:relative}
+.case-image img {display:block}
+.case-media+.case-media {margin-top:var(--space-4)}
+.case-media-label {font:12px/1.8 var(--mono);color:var(--muted);margin-bottom:var(--space-2)}
+.gateway-case .case-source-summary {margin:var(--space-3) 0;font-size:13px;line-height:1.85;color:var(--ink)}
+.case-source-summary summary {font-size:12px;color:var(--blue)}
+.case-source-summary p+p {margin-top:var(--space-1)}
+.case-source-locator {margin-top:var(--space-2);font-size:11px;color:var(--muted)}
 .gateway-case figcaption {margin-top:var(--space-2);font-size:12px;line-height:1.75;color:var(--muted)}
 .gateway-case figcaption strong,.gateway-case figcaption span {display:block}
 .gateway-case figcaption strong {font-weight:500;color:var(--ink)}
@@ -56,7 +64,7 @@
 .gateway-case-link {display:block;padding:var(--space-4) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:15px;color:var(--blue)}
 .gateway-case-link span {display:block;font-size:12px;color:var(--muted)}
 .case-load-error {display:block;padding:var(--space-5);background:var(--soft);color:var(--muted);font-size:13px}
-.case-loading {display:block;font-size:12px;color:var(--muted);padding:var(--space-2) 0}
+.case-loading {position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--muted);padding:var(--space-3)}
 .gateway-exercise {margin:var(--space-4) 0}
 .gateway-exercise label,.gateway-reflection label {display:block;margin:var(--space-3) 0 var(--space-2);font-size:13px;color:var(--blue)}
 .gateway-reading textarea {width:100%;resize:vertical;min-height:100px;padding:var(--space-3);background:var(--white);border:1px solid var(--line);border-radius:0;line-height:1.8;font-size:14px}

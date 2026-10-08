@@ -35,7 +35,7 @@
       "checked_at": "2026-10-09",
       "locator": "正文关于孩子笑容、引导线/秋色、拥抱儿童及浅景深分离背景的案例段落与配图。",
       "support": "职业摄影师举例说明居中可以把表情作为明确焦点；通过清理干扰、线条/色彩和景深安排主体与背景。",
-      "limitation": "作者案例及意图说明，不是同场景 A/B 或观看者测量。照片署名 © Tamara Lackey，未见通用转载许可，样板只外链。"
+      "limitation": "作者案例及意图说明，不是同场景 A/B 或观看者测量。照片署名 © Tamara Lackey，未见通用转载许可，本页引用原站图片，不代表取得转载许可。"
     },
     {
       "id": "src-berkenfeld-composing",
@@ -47,7 +47,7 @@
       "checked_at": "2026-10-09",
       "locator": "文章开头 distraction-1-before.jpg 与 distraction-1-after-fixed.jpg 对照及作者说明；同段 EXIF。",
       "support": "作者指出背景绿草、水面和远岸细节会与目标争夺注意，改变机位后背景关系减弱；可用于真实摄影师如何发现竞争并改变取景的案例。",
-      "limitation": "不是单变量实验：图像机位/背景投影与场景关系改变，快门也不同；两张标注同为 D5100、同镜头、ISO 400、f/5.6。摄影版权未授权转载，只外链。"
+      "limitation": "不是单变量实验：图像机位/背景投影与场景关系改变，快门也不同；两张标注同为 D5100、同镜头、ISO 400、f/5.6。摄影版权未授权转载，本页引用原站图片。"
     },
     {
       "id": "src-abeln-saliency",
@@ -155,7 +155,7 @@
       "checked_at": "2026-10-09",
       "locator": "§ Facial features affected by butterfly lighting；§ Position of the light；§ Controlling butterfly lighting shadows；§ What if the subject moves?；butterfly-light-portraits.jpg",
       "support": "支持从鼻影、眼窝和脸颊明暗读相对脸部的光向；作者展示头部朝向变化时阴影图案随之变化，并讨论五官结构、扩散与填光。",
-      "limitation": "职业摄影师的教程与个人经验，不是控制实验；图中姿势、表情和曝光略变，不能反推精确灯角。脸型修饰建议属审美经验；图片版权保留，只链接原页。"
+      "limitation": "职业摄影师的教程与个人经验，不是控制实验；图中姿势、表情和曝光略变，不能反推精确灯角。脸型修饰建议属审美经验；图片版权保留，本页引用原站图片。"
     },
     {
       "id": "gw-light-hobby",
@@ -167,7 +167,7 @@
       "checked_at": "2026-10-09",
       "locator": "§ Two Exposures Happen at the Same Time；§ Let’s Give This a Test Drive；步骤1–3；Shade/Dark/Final原图",
       "support": "真人实拍展示先设环境、压低环境曝光，再添加人物和背景闪光；在文中设定下解释环境层与闪光层共同构成成片。",
-      "limitation": "为入门简化，限文中常规同步/手动闪光语境。三张图人物姿势、取景和灯数变化，不是单变量比较，不能量化固定光比。原图版权属各摄影者，只链接。"
+      "limitation": "为入门简化，限文中常规同步/手动闪光语境。三张图人物姿势、取景和灯数变化，不是单变量比较，不能量化固定光比。原图版权属各摄影者，本页引用原站图片。"
     },
     {
       "id": "gw-light-tejada",
@@ -234,22 +234,36 @@
       "cases": [
         {
           "id": "marsh-before",
-          "title": "盐沼草茎：较宽取景",
+          "title": "盐沼草茎：最初取景",
           "author": "Diane Berkenfeld",
           "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
-          "display": "external_only",
-          "alt": "横幅盐沼照片中，两根细直立草茎前有浅色水面、柔化的绿带与近处植物。",
+          "display": "source_remote",
+          "alt": "竖幅盐沼照片中，两根细直立草茎分处左右，中间是浅灰水面，上缘有柔化绿带，底部有近处植物。",
           "caption": "摄影师记录的一帧盐沼取景；先观察画面本身。",
           "rights": {
             "allowed": false,
             "license": "© Diane Berkenfeld；未发现可转载许可",
             "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
-            "statement": "原文及照片受其权利人控制；本样板仅链接原案例，不复制图像。"
+            "statement": "署名与版权归原权利人；这里引用原站公开图片地址，原样显示，未取得转载或离线复制许可。本站不将图片复制进项目资产，不代理或提供离线副本；公开可访问不等于自由许可。"
           },
           "review": {
             "level": "pixel_reviewed",
             "checked_at": "2026-10-09",
-            "detail": "重新在 Nikon 原页复看实际像素：宽幅中有两根较细直立草茎分处左右；中间大面积浅灰/白色水面，上缘可见柔化绿带，底部有较近的草茎/草叶。远处细节并不都清晰可辨。实际像素观察不等于该帧必然失败。"
+            "detail": "本轮重新打开650×981精确原图核对：这是竖幅，不是旧记录所写的横幅。细直立草茎分处左右，浅灰水面占中部，上缘是柔化绿带，下方有近处植被。此像素观察不等于该帧必然失败。旧横幅描述撤回。"
+          },
+          "images": [
+            {
+              "src": "https://images.contentstack.io/v3/assets/blt0e5ec1de4817c440/bltfd6b7105c060e86e/65cf8ca6cf0d4229544a68bf/distraction-1-before.jpg",
+              "width": 650,
+              "height": 981,
+              "alt": "竖幅盐沼照片中，两根细直立草茎分处左右，中间是浅灰水面，上缘有柔化绿带，底部有近处植物。"
+            }
+          ],
+          "source_summary": {
+            "text": "作者注意到细草茎，但取景中的河面、绿草与远岸建筑也参与争夺注意。拍摄前，先明确真正想表现的对象。",
+            "locator": "第一组对照：distraction-1-before 图注及其相邻段落",
+            "source_id": "src-berkenfeld-composing",
+            "checked_at": "2026-10-09"
           }
         },
         {
@@ -257,19 +271,33 @@
           "title": "盐沼草茎：另一机位取景",
           "author": "Diane Berkenfeld",
           "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
-          "display": "external_only",
-          "alt": "横幅盐沼照片中，一根较长的弧形草茎斜穿画面，背景为柔化的绿色草地与小型植株。",
+          "display": "source_remote",
+          "alt": "竖幅盐沼照片中，较长的弧形草茎向右下延伸，背景是柔化但纹理仍丰富的绿色植被。",
           "caption": "摄影师记录的另一帧盐沼取景；注意主体方向、大小及邻接背景。",
           "rights": {
             "allowed": false,
             "license": "© Diane Berkenfeld；未发现可转载许可",
             "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
-            "statement": "原文及照片受其权利人控制；本样板仅链接原案例，不复制图像。"
+            "statement": "署名与版权归原权利人；这里引用原站公开图片地址，原样显示，未取得转载或离线复制许可。本站不将图片复制进项目资产，不代理或提供离线副本；公开可访问不等于自由许可。"
           },
           "review": {
             "level": "pixel_reviewed",
             "checked_at": "2026-10-09",
-            "detail": "重新在 Nikon 原页复看实际像素：一根较粗、较长的弧形草茎从上方斜穿至右下，背景是柔化但更绿、更有细碎植被纹理的草地。它不是“整体更暗、更平、更空”的背景；主体尺度/方向与背景邻接共同变化。作者图注称自己改变角度以减轻干扰，课程把作者判断和像素观察分开呈现。"
+            "detail": "本轮重新打开650×981精确原图核对：这是竖幅，旧横幅描述撤回。较长弧形草茎向右下延伸，背景柔化但更绿且仍有细碎纹理，并非整体更暗、更平、更空。作者说改变角度以减轻干扰；主体尺度、方向、背景邻接和曝光并非单变量控制。"
+          },
+          "images": [
+            {
+              "src": "https://images.contentstack.io/v3/assets/blt0e5ec1de4817c440/bltdd0e01250b80f2a4/65cf8ca8d9d2ef4f1d250d6d/distraction-1-after-fixed.jpg",
+              "width": 650,
+              "height": 981,
+              "alt": "竖幅盐沼照片中，较长的弧形草茎向右下延伸，背景是柔化但纹理仍丰富的绿色植被。"
+            }
+          ],
+          "source_summary": {
+            "text": "作者改变拍摄角度，以减轻背景对草茎的干扰。这是重新选择主体与背景关系的实际取景例子。",
+            "locator": "第一组对照：distraction-1-after-fixed 图注",
+            "source_id": "src-berkenfeld-composing",
+            "checked_at": "2026-10-09"
           }
         },
         {
@@ -277,19 +305,33 @@
           "title": "笑容位于画面中央的儿童肖像",
           "author": "Tamara Lackey",
           "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/when-center-composition-can-elevate-a-portrait",
-          "display": "external_only",
-          "alt": "儿童笑脸居中，暖色衣物位于下方，树叶背景柔和。",
+          "display": "source_remote",
+          "alt": "穿绿色上衣、蓝色牛仔裤的女孩盘腿坐在白色看台上笑着，身后有横向栏杆和橙色树叶。",
           "caption": "职业摄影师选择居中呈现笑容；它是偏离三分法处方的反例，不是对照实验。",
           "rights": {
             "allowed": false,
             "license": "© Tamara Lackey；未发现可转载许可",
             "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/when-center-composition-can-elevate-a-portrait",
-            "statement": "照片由 Tamara Lackey 署名；本样板只链接原站案例。"
+            "statement": "署名与版权归原权利人；这里引用原站公开图片地址，原样显示，未取得转载或离线复制许可。本站不将图片复制进项目资产，不代理或提供离线副本；公开可访问不等于自由许可。"
           },
           "review": {
             "level": "pixel_reviewed",
             "checked_at": "2026-10-09",
-            "detail": "实际打开第一张案例像素：脸和开放笑容处于中心，眼口表情清楚；下方暖色衣物形成次级色块，背景叶片/线条与浅景深支持主体。与其他非同场景照片比较不能隔离中心位置的因果作用。"
+            "detail": "本轮重新打开650×792精确原图：女孩穿绿色上衣和蓝色牛仔裤，盘腿坐在白色看台上笑着，背景为横向栏杆与橙色树叶。旧记录的暖色衣物描述撤回。它展示居中构图的一种选择，不能隔离中心位置的因果作用。"
+          },
+          "images": [
+            {
+              "src": "https://images.contentstack.io/v3/assets/blt0e5ec1de4817c440/blt9b80b5c24625373e/65cf7e6ae7cf9557c40d8f6c/Tamara-Lackey-laughing-girl-portrait.jpg",
+              "width": 650,
+              "height": 792,
+              "alt": "穿绿色上衣、蓝色牛仔裤的女孩盘腿坐在白色看台上笑着，身后有横向栏杆和橙色树叶。"
+            }
+          ],
+          "source_summary": {
+            "text": "Lackey 把笑容与喜悦作为明确主体，用居中位置、引导线和秋色背景组织这幅肖像。居中也可以服务表达目标。",
+            "locator": "首幅 laughing girl 肖像、其图注及首段构图说明",
+            "source_id": "src-lackey-center",
+            "checked_at": "2026-10-09"
           }
         },
         {
@@ -341,7 +383,7 @@
               "type": "exercise",
               "id": "observation",
               "title": "先记录你看到的线索",
-              "prompt": "不点开原文解释，分别观察两张盐沼照片。写下你第一眼注意的区域、最容易辨认的轮廓、背景里最抢眼的两种线索；再写一句你希望观者先读到什么。不要猜作者答案。",
+              "prompt": "先不展开图下原文要点，分别观察两张盐沼照片。写下你第一眼注意的区域、最容易辨认的轮廓、背景里最抢眼的两种线索；再写一句你希望观者先读到什么。不要猜作者答案。",
               "label": "观察记录"
             },
             {
@@ -349,7 +391,7 @@
               "activity_id": "observation",
               "title": "展开：观察可以怎样变成问题",
               "paragraphs": [
-                "Berkenfeld 在原文中说，最初取景时背景里的草、河流和远岸建筑与她注意到的草茎竞争；随后她改变机位。复看像素时，宽景里两根细直立草茎与浅色水面、上缘绿带和近处植物同在；另一帧则让一根较长的弧形斜茎更突出，背景是柔化但更绿、纹理更细碎的草地。后帧并没有变成整体更暗、更平的空背景。",
+                "Berkenfeld 在原文中说，最初取景时背景里的草、河流和远岸建筑与她注意到的草茎竞争；随后她改变机位。复看像素时，最初竖幅取景里两根细直立草茎与浅色水面、上缘绿带和近处植物同在；另一帧则让一根较长的弧形斜茎更突出，背景是柔化但更绿、纹理更细碎的草地。后帧并没有变成整体更暗、更平的空背景。",
                 "这组照片适合讨论“摄影师怎样重新组织主体与背景关系”，不宜把作者的“干扰减弱”改写成普遍视觉事实。画面视角、主体方向/尺度和背景邻接都变了；观察者可以解释为何后一帧对自己更清楚，也可以指出仍有竞争的纹理。"
               ],
               "source_ids": [
@@ -555,7 +597,7 @@
           "blocks": [
             {
               "type": "paragraph",
-              "text": "以下专业来源用于支撑摄影师的可见控制建议或限定研究结论。作者案例、实验发现和本项目原创教学整理保持分开；摘要阅读不冒充全文精读。照片权利状态逐图记录，无授权图只给原站链接。"
+              "text": "以下专业来源用于支撑摄影师的可见控制建议或限定研究结论。作者案例、实验发现和本项目原创教学整理保持分开；摘要阅读不冒充全文精读。照片权利状态逐图记录。实拍案例在此引用原站图片，中文原文要点可在图下注释展开；这不表示取得转载许可。"
             }
           ]
         }
@@ -591,19 +633,33 @@
           "title": "同一人物的16幅视点对照",
           "author": "Ed Gregory / Photos in Color",
           "url": "https://petapixel.com/2017/04/24/photographer-uses-science-find-perfect-portrait-angle/",
-          "display": "external_only",
-          "alt": "灰背景前同一人物的16幅肖像网格",
+          "display": "source_remote",
+          "alt": "同一女性在灰背景前的十六幅肖像，排列为四行五列，四个角落被红色叉号划掉。",
           "caption": "原页第一张网格；请比较可见变化，再读下方分析。",
           "rights": {
             "allowed": false,
             "license": "未取得转载许可",
             "url": "https://petapixel.com/2017/04/24/photographer-uses-science-find-perfect-portrait-angle/",
-            "statement": "版权归原摄影者；本站仅链接原案例，不复制图片。"
+            "statement": "署名与版权归原权利人；这里引用原站公开图片地址，原样显示，未取得转载或离线复制许可。本站不将图片复制进项目资产，不代理或提供离线副本；公开可访问不等于自由许可。"
           },
           "review": {
             "level": "pixel_reviewed",
             "checked_at": "2026-10-09",
             "detail": "已查看网格：同一女性、灰背景，脸部可见侧面和头顶范围随画格变化；表情、头部朝向也并不完全一致。没有足以给每格分配精确角度的标签。未观看视频。"
+          },
+          "images": [
+            {
+              "src": "https://petapixel.com/assets/uploads/2017/04/portraittest_1.jpg",
+              "width": 1600,
+              "height": 867,
+              "alt": "同一女性在灰背景前的十六幅肖像，排列为四行五列，四个角落被红色叉号划掉。"
+            }
+          ],
+          "source_summary": {
+            "text": "报道介绍 Ed Gregory 在同一模特和布光条件下比较不同拍摄视点。角度会改变画面中的可见关系；报道所称的最佳角度仍包含摄影师的偏好。",
+            "locator": "正文前半与第一张16幅 portraittest_1 网格；未观看嵌入视频",
+            "source_id": "gw-perspective-ed",
+            "checked_at": "2026-10-09"
           }
         },
         {
@@ -611,19 +667,33 @@
           "title": "另一种戏剧性人像",
           "author": "Andrew Faulds",
           "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
-          "display": "external_only",
-          "alt": "深色背景中的人物上半身与冷暖光",
+          "display": "source_remote",
+          "alt": "戴墨镜的女性侧身望向左方，一只手臂弯到脑后，灰色衣物旁有暖色轮廓光，背景呈蓝色。",
           "caption": "原文顶部照片；用于检查表达中的多个变量。",
           "rights": {
             "allowed": false,
             "license": "未取得转载许可",
             "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
-            "statement": "© Andrew Faulds；只提供原文入口，不转载照片。"
+            "statement": "署名与版权归原权利人；这里引用原站公开图片地址，原样显示，未取得转载或离线复制许可。本站不将图片复制进项目资产，不代理或提供离线副本；公开可访问不等于自由许可。"
           },
           "review": {
             "level": "pixel_reviewed",
             "checked_at": "2026-10-09",
             "detail": "实际查看1200×675主图：人物侧转、手臂靠近头部，暖色轮廓光与冷色环境光并存；画面无足够地平或竖直参照来推断机位。"
+          },
+          "images": [
+            {
+              "src": "https://d1kw7y14plrcrj.cloudfront.net/assets/images/ppmag_articles/201711-8vh_1901_header.jpg",
+              "width": 1200,
+              "height": 675,
+              "alt": "戴墨镜的女性侧身望向左方，一只手臂弯到脑后，灰色衣物旁有暖色轮廓光，背景呈蓝色。"
+            }
+          ],
+          "source_summary": {
+            "text": "Faulds 从人物特征与希望呈现的效果出发，结合姿态和布光作调整。文章讨论的是这些选择如何配合，而非某一种机位对所有人都有效。",
+            "locator": "文章标题图与 corrective posing and lighting 正文",
+            "source_id": "gw-perspective-faulds",
+            "checked_at": "2026-10-09"
           }
         },
         {
@@ -667,7 +737,7 @@
               "type": "exercise",
               "id": "observation",
               "title": "先作一个判断",
-              "prompt": "打开网格，任选中列的两幅，写下鼻部、下颌、头顶或肩部哪个可见关系发生了变化。再写一项你不能仅凭网格确定的拍摄条件。无需先猜“哪张更好”。",
+              "prompt": "观察上方网格，任选中列的两幅，写下鼻部、下颌、头顶或肩部哪个可见关系发生了变化。再写一项你不能仅凭网格确定的拍摄条件。无需先猜“哪张更好”。",
               "options": [
                 "机位高度变了",
                 "镜头朝向也可能变了",
@@ -933,39 +1003,82 @@
           "title": "同一日光下的脸部朝向对照",
           "author": "Jane Allan / The Lens Lounge",
           "url": "https://thelenslounge.com/butterfly-lighting-pattern/",
-          "display": "external_only",
-          "alt": "同一位穿蓝色外衣、戴深色太阳镜的人物在户外的两幅相邻人像",
-          "caption": "打开原文中头部转动的并列例图；先比较面部局部，再读解释。版权归作者，本站只链接原页。",
+          "display": "source_remote",
+          "alt": "同一位穿蓝色外衣、戴深色太阳镜的人物在户外的两幅相邻肖像，头部朝向与鼻下阴影略有差别。",
+          "caption": "先比较这张并列例图的面部局部，再展开原文要点或下方分析。",
           "rights": {
             "allowed": false,
             "license": "版权所有；未取得复制许可",
             "url": "https://thelenslounge.com/butterfly-lighting-pattern/",
-            "statement": "页面和照片版权归 Jane Allan / The Lens Lounge；不复制或缓存，只链接原案例。"
+            "statement": "署名与版权归原权利人；这里引用原站公开图片地址，原样显示，未取得转载或离线复制许可。本站不将图片复制进项目资产，不代理或提供离线副本；公开可访问不等于自由许可。"
           },
           "review": {
             "level": "pixel_reviewed",
             "checked_at": "2026-10-09",
             "detail": "研究者与主代理均实际打开800×565原图；可见深色太阳镜遮住眼部，鼻下阴影和头部朝向有细微差异。表情、姿态及构图并非完全一致，不是严格单变量实验。"
+          },
+          "images": [
+            {
+              "src": "https://thelenslounge.com/wp-content/uploads/2020/03/butterfly-light-portraits.jpg",
+              "width": 800,
+              "height": 565,
+              "alt": "同一位穿蓝色外衣、戴深色太阳镜的人物在户外的两幅相邻肖像，头部朝向与鼻下阴影略有差别。"
+            }
+          ],
+          "source_summary": {
+            "text": "Allan 用同一日光下轻微转脸的并列照片说明光型变化。观察的重点是光相对于脸的方向，而不是摄影师站在哪里。",
+            "locator": "Using natural light for butterfly lighting 小节、并列例图及说明",
+            "source_id": "gw-light-allan",
+            "checked_at": "2026-10-09"
           }
         },
         {
           "id": "hobby-ambient-sequence",
           "title": "环境曝光与闪光工作序列",
-          "author": "David Hobby / Strobist；原图由多位摄影者创作",
+          "author": "David Hobby / Strobist；署名与版权见原页",
           "url": "https://strobist.blogspot.com/2006/03/lighting-101-balancing-flash-and.html",
-          "display": "external_only",
-          "alt": "教程中依次展示的环境光基准、压暗环境和闪光混合人像",
-          "caption": "原文的 Shade、Dark、Final 三阶段照片；本站不复制图片。",
+          "display": "source_remote",
+          "alt": "粉色上衣、蓝色牛仔裤的女性靠在石柱边，双臂交叉在腹前，人物与背景都由环境光照明。；同一场景里人物与石墙都较暗，女性双手放在身前，身体姿态和画框与上一张不同。；石柱边的女性一手放在腰侧，脸和粉色上衣较亮，旁边墙面也获得照明，画框与前两张不同。",
+          "caption": "原文 Shade、Dark、Final 三阶段照片；原始比例分别保留。",
           "rights": {
             "allowed": false,
             "license": "各照片版权归原摄影者；未取得转载许可",
             "url": "https://strobist.blogspot.com/2006/03/lighting-101-balancing-flash-and.html",
-            "statement": "Strobist注明照片版权归各自创作者；只提供原教程链接。"
+            "statement": "署名与版权归原权利人；这里引用原站公开图片地址，原样显示，未取得转载或离线复制许可。本站不将图片复制进项目资产，不代理或提供离线副本；公开可访问不等于自由许可。"
           },
           "review": {
             "level": "pixel_reviewed",
             "checked_at": "2026-10-09",
-            "detail": "已分别打开并查看三张原图像素；因果分析在comparison揭示中。姿势/构图和灯数并非固定。"
+            "detail": "本轮主代理在正常Edge页面读到原文与三张链接，分别打开原图：Shade/Dark为800×534，Final为800×555。人物手臂姿态、画框、环境曝光和灯数都变化，不是严格单变量实验。中文要点转述工作顺序，因果边界在下方对照解析。"
+          },
+          "images": [
+            {
+              "src": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjMEM1vTKrvAcH32joHeDALxRlnrb-hOk0rnMrJdSZmRKPvbc9fhUHBcMLOAHdzuJbbhOIOxJsWe8olSSr-KsaUCJo_o_P7-VfhkhXUapaD0aoY-hc25a4WXKOrz9hCc1eFnoVHew/s1600/Shade.jpg",
+              "width": 800,
+              "height": 534,
+              "alt": "粉色上衣、蓝色牛仔裤的女性靠在石柱边，双臂交叉在腹前，人物与背景都由环境光照明。",
+              "label": "01 环境光基准 · Shade"
+            },
+            {
+              "src": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhnoYibIPZhFZM35edo5JqGvXsUDV_oyNVowML1fI0a8-vR21fpnhhOJ0ffJPP4KeLSaSJOkgUV9VyTqJ1FvN1gEAggm4m6xXiTlr-geWHYW3e9sA29nuxo9yMutGmxJvxkFP67XQ/s1600/Dark.jpg",
+              "width": 800,
+              "height": 534,
+              "alt": "同一场景里人物与石墙都较暗，女性双手放在身前，身体姿态和画框与上一张不同。",
+              "label": "02 压低环境曝光 · Dark"
+            },
+            {
+              "src": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjJQmg_5EoGsaHWS9y9kKJoowzCifY9kDyNqY6tJ0V0JPL6K9T4cmXNuUOqcg0JCSPpeMusbHUpoojbWe2MzjE5lZC5gYgtXcPdDk8b1N-9PzX1OMgtSqX-qaUwC2Y36Io3xuzGiA/s1600/Final.jpg",
+              "width": 800,
+              "height": 555,
+              "alt": "石柱边的女性一手放在腰侧，脸和粉色上衣较亮，旁边墙面也获得照明，画框与前两张不同。",
+              "label": "03 加入人物与背景闪光 · Final"
+            }
+          ],
+          "source_summary": {
+            "text": "Hobby 先测定阴影中的环境曝光，再压低环境层，最后加入手动闪光照亮人物与背景。这个工作顺序帮助分别思考环境光和闪光的贡献。",
+            "locator": "Shade、Dark、Final 三图及相邻的测光、f/5 到 f/11 和双灯说明",
+            "source_id": "gw-light-hobby",
+            "checked_at": "2026-10-09"
           }
         },
         {
@@ -1012,7 +1125,7 @@
               "type": "exercise",
               "id": "observation",
               "title": "先预测阴影会去哪儿",
-              "prompt": "打开 Jane Allan 原文里的并列照片。先在鼻下、两侧脸颊或下颌找一处可见的细微变化；结合头部朝向，提出一个原因假设，并写出一项无法仅凭照片确认的条件。图中人物戴墨镜，眼部不适合用来比较。"
+              "prompt": "观察上方 Jane Allan 的并列照片，先不展开原文要点。先在鼻下、两侧脸颊或下颌找一处可见的细微变化；结合头部朝向，提出一个原因假设，并写出一项无法仅凭照片确认的条件。图中人物戴墨镜，眼部不适合用来比较。"
             },
             {
               "type": "reveal",
@@ -1124,7 +1237,7 @@
               "type": "exercise",
               "id": "comparison",
               "title": "拆开亮度变化和灯位变化",
-              "prompt": "在原文比较 Shade、Dark、Final，分别写人物与背景发生的变化，再指出哪些由文字设定确认，哪些不能仅凭成片归因。若只想提高脸部暗侧并保留背景层次，先调闪光输出还是重新选环境曝光？"
+              "prompt": "在本页比较上方的 Shade、Dark、Final 三张照片，分别写人物与背景发生的变化，再指出哪些由文字设定确认，哪些不能仅凭成片归因。若只想提高脸部暗侧并保留背景层次，先调闪光输出还是重新选环境曝光？"
             },
             {
               "type": "reveal",
@@ -1235,7 +1348,7 @@
           "blocks": [
             {
               "type": "paragraph",
-              "text": "本页为原创中文讲解。Allan实拍支持面部朝向观察；Hobby序列、Tejada和Nikon School支持环境与闪光流程。Jane Allan与Strobist图片只链接原文。"
+              "text": "本页为原创中文讲解。Allan实拍支持面部朝向观察；Hobby序列、Tejada和Nikon School支持环境与闪光流程。Jane Allan与Strobist案例照片直接显示在本页；中文原文要点与出处在图下注释中。"
             },
             {
               "type": "paragraph",
