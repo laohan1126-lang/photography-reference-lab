@@ -82,6 +82,14 @@
 
 `ref_lab/learning_state.py` 在 `data_dir/learning/` 单独保存修订号、本人状态、薄弱/重点、学习日志和原始上传照片。现有 API 中间件负责身份与 CSRF；更新必须匹配修订号，冲突返回 409。JSON 原子替换和进程内共享锁支持当前单进程运行，不宣称多进程写入协调。上传不自动提升掌握状态，不改参考库的 Asset、Reference、人工选择或图片事实。研究封面与专业案例也不能替代私人作品的视觉审阅。
 
+## 摄影学习 V2：独立教学层
+
+`GATEWAYS.json` 不替换技能树：每个认知入口显式关联多个现有 skill ID，独立记录教学来源、原始案例、图像许可及像素复核范围。构建器将课程与 `gateway_sources` 加入同一内容指纹；`validate_learning_gateways.py` 校验关系、章节、观察/对照/迁移活动与未提前使用的新案例。结构通过不等于原理、图像判断或教学效果通过，三类人工/Agent复核另有记录。
+
+`learning-gateways.js` 负责阅读对话框、章节定位、原页焦点/位置和每入口草稿；主 `learning.js` 仍独占路由、身份、共享 revision 和写入协调。草稿只用 sessionStorage 保持同一标签页连续性；显式保存走 `PUT /api/learning-gateways/{id}`。迟到响应绑定发送时的入口，不能覆盖请求中产生的新编辑或其他入口草稿。409 保留本页草稿，明确加载服务器版本后再编辑。
+
+私有 JSON 的可选 `gateways` 字段保存 stage、answers、revealed、last_section，沿用单进程锁、原子替换、认证及 CSRF。旧 skills/日志/照片内容不变；未知历史 ID 留在磁盘但不作为当前可编辑条目。六种认知自评另加 unassessed，不推导原技能状态。数据库和照片资产没有迁移。
+
 ## 外部能力边界
 
 BrowserSkill + 本地 Agent 执行，网站是任务与结果系统，不是 BrowserSkill 远程浏览器服务或自动 Agent 调度器。不上传 Cookie，不操作隐藏接口，不猜 CDN 高清地址，不替用户购买订阅。来源状态由每轮真实会话报告，静态来源建议不等于成功采集。保持默认不收费、不公开部署、不重绘人物、不自动操作 Photoshop、不开多人平台。旧 collector/provider 仅兼容入口。

@@ -1,0 +1,1253 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "src-rackham-weight",
+      "title": "Visual Weight: Why So Many Photographers Overlook Its Importance",
+      "short_title": "Rackham · Visual Weight",
+      "author": "Ivor Rackham / Fstoppers",
+      "url": "https://fstoppers.com/education/visual-weight-why-so-many-photographers-overlook-its-importance-686937",
+      "reading_depth": "公开全文精读；另检查海鸟、浮标等配图像素及相关评论",
+      "checked_at": "2026-10-09",
+      "locator": "正文从 The Concept of Visual Weight 至 Getting It Wrong and The Delayed Reveal；文末评论区讨论大小与对比的相反判断。",
+      "support": "摄影师将视觉重量作为注意吸引与平衡的诊断概念，讨论大小、明暗/颜色反差、细节纹理、孤立、形状、深度和方向等相互竞争的线索；也允许刻意失衡与延迟揭示。",
+      "limitation": "作者的因素清单和实例是工作模型，不是普遍权重排序；评论区本身显示不同线索会改写判断。非眼动实测，照片受版权保护，仅外链。"
+    },
+    {
+      "id": "src-wilkinson-balance",
+      "title": "Foundations: Visual Balance",
+      "short_title": "Wilkinson · Balance",
+      "author": "Paul Wilkinson / Mastering Portrait Photography",
+      "url": "https://masteringportraitphotography.com/foundations/foundations-composition/foundations-visual-balance/",
+      "reading_depth": "公开短文全文阅读",
+      "checked_at": "2026-10-09",
+      "locator": "页面中 Visual weight、Subject placement 与 Reading directions 小节。",
+      "support": "把肖像中主体位置、负空间、阅读方向与视觉平衡联系起来，并承认居中可服务对称与平衡。",
+      "limitation": "摄影教育者建议，不是实验结论；阅读方向具有文化和阅读习惯边界。"
+    },
+    {
+      "id": "src-lackey-center",
+      "title": "When Center Composition Can Elevate a Portrait",
+      "short_title": "Lackey · Center Portrait",
+      "author": "Tamara Lackey / Nikon",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/when-center-composition-can-elevate-a-portrait",
+      "reading_depth": "公开全文及图注阅读；实际打开查看三个案例像素",
+      "checked_at": "2026-10-09",
+      "locator": "正文关于孩子笑容、引导线/秋色、拥抱儿童及浅景深分离背景的案例段落与配图。",
+      "support": "职业摄影师举例说明居中可以把表情作为明确焦点；通过清理干扰、线条/色彩和景深安排主体与背景。",
+      "limitation": "作者案例及意图说明，不是同场景 A/B 或观看者测量。照片署名 © Tamara Lackey，未见通用转载许可，样板只外链。"
+    },
+    {
+      "id": "src-berkenfeld-composing",
+      "title": "Composing Photographs",
+      "short_title": "Berkenfeld · Marsh Grasses",
+      "author": "Diane Berkenfeld / Nikon",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
+      "reading_depth": "公开相关全文和图注阅读；实际打开并逐张检查盐沼细草前后照片像素",
+      "checked_at": "2026-10-09",
+      "locator": "文章开头 distraction-1-before.jpg 与 distraction-1-after-fixed.jpg 对照及作者说明；同段 EXIF。",
+      "support": "作者指出背景绿草、水面和远岸细节会与目标争夺注意，改变机位后背景关系减弱；可用于真实摄影师如何发现竞争并改变取景的案例。",
+      "limitation": "不是单变量实验：图像机位/背景投影与场景关系改变，快门也不同；两张标注同为 D5100、同镜头、ISO 400、f/5.6。摄影版权未授权转载，只外链。"
+    },
+    {
+      "id": "src-abeln-saliency",
+      "title": "Preference for Well-Balanced Saliency in Details Cropped from Photographs",
+      "short_title": "Abeln et al. · Cropping Study",
+      "author": "Abeln et al. / Frontiers in Human Neuroscience",
+      "url": "https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2015.00704/full",
+      "reading_depth": "出版社开放全文；阅读方法、结果和讨论",
+      "checked_at": "2026-10-09",
+      "locator": "全文关于照片裁切偏好、显著性与注视分布的结果和讨论（约网页 327–369、530–569 行）。",
+      "support": "特定照片裁切数据中，受试者选择的区域包含更多计算显著性/注视停留，且分布更接近画面中心；专家样本的偏好更分散且更依赖语义。",
+      "limitation": "固定兴趣区的照片裁切任务，不是拍摄自由构图；不能推出中心构图处方、单一视觉重量分值或摄影教学效果。"
+    },
+    {
+      "id": "src-tseng-closed-frame",
+      "title": "Using Eye Movement to Determine Whether Closed-Frame Shots Attract Viewers’ Attention",
+      "short_title": "Tseng et al. · Closed Frames",
+      "author": "Tseng et al. / SAGE Open",
+      "url": "https://doi.org/10.1177/21582440241290629",
+      "reading_depth": "SAGE 网页全文阅读：方法、结果与讨论",
+      "checked_at": "2026-10-09",
+      "locator": "方法与结果：30 张专家预选闭合/开放构图照片、11 位 18–24 岁参与者；讨论和限制部分。",
+      "support": "此小样本研究中闭合框景条件呈现较集中注视、开放构图更分散，为“画面边界/框景可能改变注意分布”提供局部眼动证据。",
+      "limitation": "图片经专家筛选、参与者少且年龄窄；不证明所有遮挡都有效，不证明观看者一定追随摄影师意图，亦未比较新手/专家。"
+    },
+    {
+      "id": "gw-perspective-ppa",
+      "title": "Module 3D: Angle of View",
+      "short_title": "PPA · 视点",
+      "author": "Professional Photographers of America",
+      "url": "https://wiki.ppa.com/books/photography-certification-guide/page/module-3d-angle-of-view",
+      "reading_depth": "已读相关正文；浏览器访问可能受站点限制",
+      "checked_at": "2026-10-09",
+      "locator": "Perspective；全身与头像的机位起始建议",
+      "support": "近镜头部位较大，视点选择与景别、人物呈现相关。",
+      "limitation": "教材中的权威/天真等情绪例子不是普遍心理定律；同协会文章不计作独立重复证据。"
+    },
+    {
+      "id": "gw-perspective-banks",
+      "title": "Camera Focal Length and the Perception of Pictures (2014)",
+      "short_title": "Banks 等 · 投影与观看",
+      "author": "Martin S. Banks、Emily A. Cooper、Elise A. Piazza",
+      "url": "https://www.princeton.edu/~epiazza/papers/Banks%20et%20al%20%282014%29.pdf",
+      "reading_depth": "已定向阅读论文正文；不转载全文",
+      "checked_at": "2026-10-09",
+      "locator": "印刷页31 Figure 1B；透视投影与观看距离部分（PDF第4–10页）",
+      "support": "相机视点、取景及观看距离必须分开讨论；同构图换焦距通常伴随走位。",
+      "limitation": "视觉感知论文不判定肖像是否有气势；页面中的数字小例子为项目自行推演。"
+    },
+    {
+      "id": "gw-perspective-faulds",
+      "title": "3 corrective posing and lighting tips for portraits",
+      "short_title": "Andrew Faulds · 姿态选择",
+      "author": "Jeff Kent 报道 Andrew Faulds 的职业方法",
+      "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
+      "reading_depth": "已读正文；实际查看主图",
+      "checked_at": "2026-10-09",
+      "locator": "Pose the client’s best side；顶部 Andrew Faulds 人像",
+      "support": "职业人像方法把机位与躯干朝向、前倾及想突出的特征一起选择。",
+      "limitation": "体型呈现建议依目标而定，不规定理想身体；配图不能用于反推机位。"
+    },
+    {
+      "id": "gw-perspective-lim",
+      "title": "Beauty in the Basics: Scott Robert Lim Teaches the Fundamentals",
+      "short_title": "Scott Robert Lim · 背景形状",
+      "author": "PPA / Scott Robert Lim",
+      "url": "https://www.ppa.com/ppmag/articles/beauty-in-the-basics-scott-robert-lim-teaches-the-fundamentals",
+      "reading_depth": "已读相关正文；配图未核验",
+      "checked_at": "2026-10-09",
+      "locator": "构图中寻找最大形状、降低机位的段落",
+      "support": "降低机位也可为把人物放进干净背景形状服务。",
+      "limitation": "仅采用文字方法，未查看的配图不作视觉证据。"
+    },
+    {
+      "id": "gw-perspective-ed",
+      "title": "Photographer Uses “Science” to Find the “Perfect” Portrait Angle",
+      "short_title": "Ed Gregory · 同人机位网格",
+      "author": "摄影 Ed Gregory / Photos in Color；报道 DL Cade",
+      "url": "https://petapixel.com/2017/04/24/photographer-uses-science-find-perfect-portrait-angle/",
+      "reading_depth": "已读报道并实际查看16格照片；未观看嵌入视频",
+      "checked_at": "2026-10-09",
+      "locator": "正文拍摄设置与第一张16格网格图",
+      "support": "为原摄影师真人机位对照提供图像出处和设置报道。",
+      "limitation": "此报道不作为几何原理的技术依据；角度情绪标签是主观选择，未观看视频或核验逐帧角度。"
+    },
+    {
+      "id": "gw-perspective-transfer",
+      "title": "Steampunk character 12.jpg",
+      "short_title": "Evan Butterfield · 迁移照片",
+      "author": "Evan Butterfield / EButterfieldPhotography",
+      "url": "https://commons.wikimedia.org/wiki/File:Steampunk_character_12.jpg",
+      "reading_depth": "文件页许可、EXIF和图像像素已查看",
+      "checked_at": "2026-10-09",
+      "locator": "文件页原图预览、Licensing、Metadata",
+      "support": "提供新的真人角色场景与CC BY-SA 4.0图像许可。",
+      "limitation": "EXIF不证明机位、距离、布光或处理过程；分析为项目观察，不是作者对其作品的讲评。"
+    },
+    {
+      "id": "gw-light-allan",
+      "title": "Butterfly lighting for portraits (how and when to use it)",
+      "short_title": "Jane Allan · 人脸与光向",
+      "author": "Jane Allan；The Lens Lounge",
+      "url": "https://thelenslounge.com/butterfly-lighting-pattern/",
+      "reading_depth": "已读定义、脸部特征、灯位、自然光/闪光、控影、头部移动与复盘；实际查看头部转动对照图像素",
+      "checked_at": "2026-10-09",
+      "locator": "§ Facial features affected by butterfly lighting；§ Position of the light；§ Controlling butterfly lighting shadows；§ What if the subject moves?；butterfly-light-portraits.jpg",
+      "support": "支持从鼻影、眼窝和脸颊明暗读相对脸部的光向；作者展示头部朝向变化时阴影图案随之变化，并讨论五官结构、扩散与填光。",
+      "limitation": "职业摄影师的教程与个人经验，不是控制实验；图中姿势、表情和曝光略变，不能反推精确灯角。脸型修饰建议属审美经验；图片版权保留，只链接原页。"
+    },
+    {
+      "id": "gw-light-hobby",
+      "title": "Lighting 101: Balancing Flash and Ambient, Pt 1",
+      "short_title": "David Hobby · 环境/闪光序列",
+      "author": "David Hobby，摄影记者及 Strobist 作者",
+      "url": "https://strobist.blogspot.com/2006/03/lighting-101-balancing-flash-and.html",
+      "reading_depth": "完整重读；通过 Edge 分别实际查看 Shade.jpg、Dark.jpg、Final.jpg 像素",
+      "checked_at": "2026-10-09",
+      "locator": "§ Two Exposures Happen at the Same Time；§ Let’s Give This a Test Drive；步骤1–3；Shade/Dark/Final原图",
+      "support": "真人实拍展示先设环境、压低环境曝光，再添加人物和背景闪光；在文中设定下解释环境层与闪光层共同构成成片。",
+      "limitation": "为入门简化，限文中常规同步/手动闪光语境。三张图人物姿势、取景和灯数变化，不是单变量比较，不能量化固定光比。原图版权属各摄影者，只链接。"
+    },
+    {
+      "id": "gw-light-tejada",
+      "title": "Flash Photography the Easy Way",
+      "short_title": "David Tejada · 先设现场再加闪光",
+      "author": "David X. Tejada；Nikon Learn & Explore",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/flash-photography-the-easy-way",
+      "reading_depth": "已读正文和专业摄影师方法段；没有把未打开的图片作为像素证据",
+      "checked_at": "2026-10-09",
+      "locator": "lines 39–65、129–138；背景、景深、快门与闪光位置/功率步骤",
+      "support": "Tejada先按背景和景深安排相机曝光，再用快门调整环境光，最后按灯位和输出调节闪光；示例文字说明环境测光后以闪光显现人物。",
+      "limitation": "器材以Nikon SB-800和作者工作流为主；不作跨机型菜单/同步指导。未打开的图仅有图注，不作像素级分析。"
+    },
+    {
+      "id": "gw-light-nikon-school",
+      "title": "Your essential guide to Nikon on-camera flash",
+      "short_title": "Nikon School · 曝光变量与同步",
+      "author": "Neil Freeman，Nikon School Training Manager",
+      "url": "https://dev.nikonschool.co.uk/hints-and-tips/your-essential-guide-to-nikon-on-camera-flash",
+      "reading_depth": "已读公开正文全文；未将页面示例图纳入像素证据",
+      "checked_at": "2026-10-09",
+      "locator": "lines 36–44 ambient步骤；58–64 guide number；73–81 sync；47–49 rear curtain",
+      "support": "明确先用ISO、快门和按景深选定的光圈建立环境起点，再用闪光方向/输出补光；guide number段指出ISO和光圈影响闪光范围；同步、慢门运动另有条件。",
+      "limitation": "Nikon系统教程。快门近似只在全帧常规同步、闪光持续时间短于快门曝光且主体主要由闪光照亮时成立；TTL可能联动输出，HSS/慢门和其他设备另论。"
+    },
+    {
+      "id": "gw-light-transfer",
+      "title": "Window light portrait using a small window that raises the contrast – taken in the Streckenwärterhaus in the market town of Feucht.jpg",
+      "short_title": "Tobias ToMar Maier · 迁移图",
+      "author": "Tobias “ToMar” Maier",
+      "url": "https://commons.wikimedia.org/wiki/File:Window_light_portrait_using_a_small_window_that_raises_the_contrast_-_taken_in_the_Streckenw%C3%A4rterhaus_in_the_market_town_of_Feucht.jpg",
+      "reading_depth": "打开并实际查看原图像素；核对文件页许可、同意声明和EXIF",
+      "checked_at": "2026-10-09",
+      "locator": "文件页 preview resolutions、Summary、Licensing、Metadata；原图及960px缩略图",
+      "support": "作为新场景迁移图；文件页提供作者、授权记录和拍摄参数，像素核验只确认可见线索。",
+      "limitation": "单幅成片不能确定反射面、环境填充、后期或精确光比。Licensing段当前列CC BY-SA 4.0，Summary仍有3.0标签；两版均需署名与ShareAlike。页面记录上传者声明人物同意自由许可，非独立模特授权审查。"
+    }
+  ],
+  "gateways": [
+    {
+      "id": "attention-and-occlusion",
+      "title": "先看见什么：画面里的注意力竞争",
+      "question": "我希望观者先看见什么，接下来怎样读懂画面？哪些亮度、颜色、细节、方向和边缘在争夺注意？",
+      "outcome": "练习在一张照片里提出视觉主次的预测，指出支持预测的可见线索，再按表达目的决定保留或重新组织什么。预测需用下一张照片或真实观看记录检验，不给照片自动评分。遮挡只作为相邻的可选检查，本课不认证遮挡分析能力。",
+      "method": "先找竞争，再决定取舍",
+      "author": "摄影学习 · 原创教学整理",
+      "reading_depth": "原创完整讲解 · 专业依据逐节对应",
+      "prior_knowledge": "能指出照片中的主体、背景、明暗、颜色与细节即可。若你熟悉构图口诀，可直接挑战对照取舍与新场景预测。",
+      "skill_ids": [
+        "composition-visual-weight-diagnosis",
+        "composition-tonal-figure-ground",
+        "composition-edge-sweep",
+        "composition-asymmetric-balance",
+        "composition-intentional-imbalance"
+      ],
+      "source_ids": [
+        "src-rackham-weight",
+        "src-wilkinson-balance",
+        "src-lackey-center",
+        "src-berkenfeld-composing",
+        "src-abeln-saliency",
+        "src-tseng-closed-frame"
+      ],
+      "cases": [
+        {
+          "id": "marsh-before",
+          "title": "盐沼草茎：较宽取景",
+          "author": "Diane Berkenfeld",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
+          "display": "external_only",
+          "alt": "横幅盐沼照片中，两根细直立草茎前有浅色水面、柔化的绿带与近处植物。",
+          "caption": "摄影师记录的一帧盐沼取景；先观察画面本身。",
+          "rights": {
+            "allowed": false,
+            "license": "© Diane Berkenfeld；未发现可转载许可",
+            "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
+            "statement": "原文及照片受其权利人控制；本样板仅链接原案例，不复制图像。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "重新在 Nikon 原页复看实际像素：宽幅中有两根较细直立草茎分处左右；中间大面积浅灰/白色水面，上缘可见柔化绿带，底部有较近的草茎/草叶。远处细节并不都清晰可辨。实际像素观察不等于该帧必然失败。"
+          }
+        },
+        {
+          "id": "marsh-after",
+          "title": "盐沼草茎：另一机位取景",
+          "author": "Diane Berkenfeld",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
+          "display": "external_only",
+          "alt": "横幅盐沼照片中，一根较长的弧形草茎斜穿画面，背景为柔化的绿色草地与小型植株。",
+          "caption": "摄影师记录的另一帧盐沼取景；注意主体方向、大小及邻接背景。",
+          "rights": {
+            "allowed": false,
+            "license": "© Diane Berkenfeld；未发现可转载许可",
+            "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/composing-photographs",
+            "statement": "原文及照片受其权利人控制；本样板仅链接原案例，不复制图像。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "重新在 Nikon 原页复看实际像素：一根较粗、较长的弧形草茎从上方斜穿至右下，背景是柔化但更绿、更有细碎植被纹理的草地。它不是“整体更暗、更平、更空”的背景；主体尺度/方向与背景邻接共同变化。作者图注称自己改变角度以减轻干扰，课程把作者判断和像素观察分开呈现。"
+          }
+        },
+        {
+          "id": "center-portrait",
+          "title": "笑容位于画面中央的儿童肖像",
+          "author": "Tamara Lackey",
+          "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/when-center-composition-can-elevate-a-portrait",
+          "display": "external_only",
+          "alt": "儿童笑脸居中，暖色衣物位于下方，树叶背景柔和。",
+          "caption": "职业摄影师选择居中呈现笑容；它是偏离三分法处方的反例，不是对照实验。",
+          "rights": {
+            "allowed": false,
+            "license": "© Tamara Lackey；未发现可转载许可",
+            "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/when-center-composition-can-elevate-a-portrait",
+            "statement": "照片由 Tamara Lackey 署名；本样板只链接原站案例。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "实际打开第一张案例像素：脸和开放笑容处于中心，眼口表情清楚；下方暖色衣物形成次级色块，背景叶片/线条与浅景深支持主体。与其他非同场景照片比较不能隔离中心位置的因果作用。"
+          }
+        },
+        {
+          "id": "transfer-nightscape",
+          "title": "夜景现场照片",
+          "author": "GREAT PHI",
+          "url": "https://commons.wikimedia.org/wiki/File:Ignore_the_person_in_front.jpg",
+          "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/Ignore_the_person_in_front.jpg/960px-Ignore_the_person_in_front.jpg",
+          "display": "licensed_remote",
+          "alt": "竖幅夜景照片中有高塔、浅色圆顶、左侧建筑、右上灯光和下方小人物。",
+          "caption": "作者作品；先独立观察图像整体，原文件名和说明暂不显示。",
+          "rights": {
+            "allowed": true,
+            "license": "CC BY-SA 4.0",
+            "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "statement": "Wikimedia 文件页将照片标为 CC BY-SA 4.0。署名 GREAT PHI，链接原始文件页与许可；此处原样远端显示、未裁切或改色。该许可不替代对肖像权或场地权利的判断。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "在本轮重新打开提案中所用精确 URL（960×1280）后逐像素复看：夜间建筑现场，上方中央是受暖金色照明的高尖塔，中部是大面积发白圆顶，左侧有白色多层建筑，右上有强亮灯光与耀斑，周围大面积近黑夜空；下方中央偏左有一位较小人物，穿浅色上衣，脸部/身体大多处在低亮度区域，周围为红褐色建筑及栏杆等现场结构。此前写成“浅灰雕刻背景和从左下切入的大人物”完全错误，现撤回。此图更适合提出注意力竞争/视觉重量预测，不是明确遮挡案例；只有学习者能指出实际可见的遮挡边界时才进一步讨论。"
+          },
+          "width": 960,
+          "height": 1280
+        }
+      ],
+      "sections": [
+        {
+          "id": "problem",
+          "title": "问题：为什么主角不一定先被看见？",
+          "kicker": "先看，不急着命名",
+          "source_ids": [
+            "src-berkenfeld-composing",
+            "src-rackham-weight"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "构图常从“把主体放在三分线附近”开始，但位置只描述主体与画框的关系。它不能单独解释为何一张居中笑脸很突出，另一张偏置人物却被背景细节盖过。先把问题换成：画面里哪些线索在争夺第一眼？这种竞争是否符合我想表达的意思？"
+            },
+            {
+              "type": "case_pair",
+              "case_ids": [
+                "marsh-before",
+                "marsh-after"
+              ]
+            },
+            {
+              "type": "exercise",
+              "id": "observation",
+              "title": "先记录你看到的线索",
+              "prompt": "不点开原文解释，分别观察两张盐沼照片。写下你第一眼注意的区域、最容易辨认的轮廓、背景里最抢眼的两种线索；再写一句你希望观者先读到什么。不要猜作者答案。",
+              "label": "观察记录"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "observation",
+              "title": "展开：观察可以怎样变成问题",
+              "paragraphs": [
+                "Berkenfeld 在原文中说，最初取景时背景里的草、河流和远岸建筑与她注意到的草茎竞争；随后她改变机位。复看像素时，宽景里两根细直立草茎与浅色水面、上缘绿带和近处植物同在；另一帧则让一根较长的弧形斜茎更突出，背景是柔化但更绿、纹理更细碎的草地。后帧并没有变成整体更暗、更平的空背景。",
+                "这组照片适合讨论“摄影师怎样重新组织主体与背景关系”，不宜把作者的“干扰减弱”改写成普遍视觉事实。画面视角、主体方向/尺度和背景邻接都变了；观察者可以解释为何后一帧对自己更清楚，也可以指出仍有竞争的纹理。"
+              ],
+              "source_ids": [
+                "src-berkenfeld-composing"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "observe",
+          "title": "观察：先标线索，再谈轻重",
+          "source_ids": [
+            "src-rackham-weight",
+            "src-wilkinson-balance",
+            "src-abeln-saliency"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "‘视觉重量’是摄影师谈画面平衡时使用的比喻，不是照片里可称重的量。先找可能吸引注意的因素：面积大小、明暗或色相对比、细节密度、锐度、孤立程度、方向、位置、语义显著性。不要按清单给分。一个小而孤立的高反差物可能胜过大而低反差的主体；一个脸又可能凭表情与熟悉语义抢先。因素会互相补强，也会互相抵消。"
+            },
+            {
+              "type": "comparison",
+              "rows": [
+                {
+                  "novice": "‘主体在正中，所以最重要；背景就是背景。’",
+                  "expert": "先找面积、亮度差、色块、细节、方向和语义线索；分别指出它们是否聚集在主体或背景。",
+                  "question": "你能圈出至少两处潜在注意竞争，并指出判断所依据的像素位置吗？"
+                },
+                {
+                  "novice": "“背景越空，照片一定越好。”",
+                  "expert": "先说明想让观者读到什么，再判断背景提供的是竞争、环境信息还是有意延迟发现。",
+                  "question": "若去掉这个背景线索，主体更突出了吗？同时丢掉了什么叙事关系？"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": "专业文章提供的是观察语言，不是统一公式。Rackham 把大小、反差、颜色、纹理、孤立、形状与方向等列为视觉重量线索；其评论区也出现‘大不一定先被看见’的反例讨论。Wilkinson 同样把平衡放在主体位置和负空间关系里，并提醒中心与偏置都可能成立。Frontiers 的照片裁切研究发现受试者选区与计算显著性、注视分布有关，但这是固定兴趣区的裁切任务；不能据此把显著性当作每位观者的真实第一眼。"
+            }
+          ]
+        },
+        {
+          "id": "principle",
+          "title": "注意线索如何服务你的表达目标",
+          "source_ids": [
+            "src-rackham-weight",
+            "src-berkenfeld-composing"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "先确定观看目标，再逐处检查支持它或与它竞争的线索。想让笑容先被读到，可以看脸周围的亮度差、色彩、清晰度及背景细节是否把注意集中到脸；想先呈现人物所处的环境，则可能保留更大的建筑形状或前景色块。线索不是可以相加的分数：同一块亮色在大片浅背景里可能不显眼，放在暗背景里却可能突出。环境变化后，原先有效的取景也需要重新判断。"
+            },
+            {
+              "type": "paragraph",
+              "text": "注意顺序是一项预测，不是人人一致的观看路线。照片中的脸、光斑、纹理和孤立色块可能竞争；目标、经验、屏幕大小和观看时间也会改变结果。先写“我预测观者可能注意……，因为……”；再用另一张取景或独立观看记录检查它。边界检查可以帮助辨认物体，但本课的案例并未单独检验遮挡机制，不把它当作已经练成的第二种能力。"
+            },
+            {
+              "type": "paragraph",
+              "text": "下一步按意图取舍：主体需要立即清楚时，可试着转机位、等待背景变化、改变焦点与景深，或调整主体和背景的色调关系；想让人物逐渐浮现时，也可保留次要线索先出现。每次改变后重新比较注意竞争，同时记下构图、透视、姿态或光线是否一起变化。这些是由专业来源整理的可检验拍摄选择，具体结果仍取决于场景。"
+            }
+          ]
+        },
+        {
+          "id": "contrast",
+          "title": "对照：中心、偏置与有意失衡没有固定答案",
+          "source_ids": [
+            "src-lackey-center",
+            "src-berkenfeld-composing",
+            "src-tseng-closed-frame",
+            "src-rackham-weight"
+          ],
+          "blocks": [
+            {
+              "type": "case",
+              "case_id": "center-portrait"
+            },
+            {
+              "type": "paragraph",
+              "text": "Lackey 的儿童肖像说明中心构图可以让笑容成为清晰焦点；这不是对三分法的反规则，而是提醒先说明意图。Berkenfeld 的盐沼两帧则适合练习分开记录作者判断与像素观察：作者说改变角度减轻了背景干扰；像素可见一帧以两根直立细茎、浅色水面和近处植物为主，另一帧以一根长弧斜茎和更绿、更有纹理的背景为主。哪一帧对你更清楚需要说明依据，不能把后帧先验标成“更干净”。中心、偏置、对称或有意失衡都要回到画面里具体的对比、线条、周边空间和观看目标。"
+            },
+            {
+              "type": "exercise",
+              "id": "comparison",
+              "title": "比较两种视觉目标",
+              "prompt": "想象为同一幅儿童肖像各做一个版本：A 让笑容立即成为焦点；B 让观者先感受环境，再发现孩子。分别写出你会保留或减弱的一条线索，预测哪个区域可能先被注意，以及这样做会损失什么。然后选一张真实照片，用画面证据说明它更接近哪种意图。",
+              "label": "对照推理"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "comparison",
+              "title": "展开：反例不是反规则",
+              "paragraphs": [
+                "可接受的答案可以不同：中心笑脸可能凭表情、眼口反差和周边线条清楚地建立焦点；偏置人物可能由留白或环境方向补足平衡；刻意失衡也可能服务紧张、孤独或延迟发现。关键是指出哪些可见线索支持预期，而不是引用固定口诀。",
+                "Tseng 等人的闭合框景眼动研究在 30 张专家预选照片和 11 名年轻参与者中发现闭合框景条件较集中、开放构图更分散。它提供一个条件性结果，不足以推出所有遮挡都会引导视线，更不能证明一张画面‘好看’。"
+              ],
+              "source_ids": [
+                "src-tseng-closed-frame",
+                "src-lackey-center"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "boundary",
+          "title": "边界：不要把观察伪装成测量",
+          "source_ids": [
+            "src-abeln-saliency",
+            "src-tseng-closed-frame"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "视觉重量是讨论竞争与平衡的比喻，不是可相加的分数；注意顺序是待检验的预测，不是眼动仪结果。主体清楚与否要联系表达目的。若两位观者第一眼不同，差异本身就值得记录，不必投票选出唯一正确答案。"
+            },
+            {
+              "type": "list",
+              "items": [
+                "不要把 Rackham 的因素排列当成普遍优先级；大小可能被反差、脸部语义、孤立或方向改变。",
+                "不要把裁切照片的显著性结果变成‘主体放中央最好’的处方。",
+                "不要把闭合框景小样本眼动结果推广到所有前景遮挡或所有观者。",
+                "如果改机位同时改变背景、透视、姿态、光线或表情，要把这些混淆变量写出来。"
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": "可选延伸：如果你在照片中确实看到了前景覆盖人物，可以另行检查哪些轮廓仍可辨认，哪些边缘与背景接触。这属于相邻的遮挡/空间层次问题；本课三组案例未单独检验它，不能由本课自评替代相关技能的实拍练习。"
+            }
+          ]
+        },
+        {
+          "id": "transfer",
+          "title": "新场景：提出一个能被检验的注意预测",
+          "source_ids": [
+            "src-rackham-weight"
+          ],
+          "blocks": [
+            {
+              "type": "case",
+              "case_id": "transfer-nightscape"
+            },
+            {
+              "type": "paragraph",
+              "text": "这是此前未讲解的竖幅夜景照片。展示时保留中性标题、作者署名与许可信息，不显示原文件名或作者说明。先完成无提示观察，再展开后面的提示和像素分析。"
+            },
+            {
+              "type": "exercise",
+              "id": "transfer",
+              "title": "写出一条可检验的观看预测",
+              "prompt": "先独立看图，记录最先注意的区域及之后是否转移，不必使用术语。接着自选一个你希望表达的目标：引用两处画面线索，提出一个拍摄调整，预测它会改变谁与谁的注意竞争，并写出可能的代价或另一个解释。两步都可跳过；先写下判断，再展开分析。",
+              "label": "新场景迁移分析"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "transfer",
+              "title": "展开提示与实际像素观察",
+              "paragraphs": [
+                "现在再逐处观察亮度、色块、面积和细节。像素里可见：暖金尖塔处在上方中央，发白圆顶占据中部较大区域，左侧有白色建筑，右上有强亮灯光与耀斑；小人物位于下方中央偏左，浅色衣物从暗部中分离出一部分形状，而脸部不亮。你第一眼落点可能与他人不同；这些是可引用的视觉线索，不是实测视线。",
+                "之后可以问：人物在自己的首次观看中是否出现？若出现，是被浅色衣物、位置或人物语义吸引，还是先看见后才认出？这是一条比原文件标题更可靠的观察路径。检查人物与建筑的边缘可以作为可选后续问题；图像不是为遮挡/轮廓粘连设计的控制例，不必强行找出遮挡。",
+                "例如，若目标是先读到人物，可尝试改变机位，让人物落在与衣物/头部更有区分的背景前，同时让右上光点离开画框。预测是背景光点竞争减弱、人物边界更清楚；代价是建筑的完整空间关系可能丢失。若目标是表现建筑尺度，小人物晚一点被发现反而可以保留。这里是待实拍检验的项目方案，并非这张照片唯一的修正答案。",
+                "照片来自个人作品投稿，不是专业摄影质量背书。原文件名带“忽略前景人物”的方向提示，因此练习展示时隐藏原名/图说；展开分析后再提供原文件页。屏幕尺寸、观看时长和个人经验都可能改变注意分配。"
+              ],
+              "source_ids": [
+                "src-rackham-weight"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "reflect",
+          "title": "回看：保存你的推理，而不是领取等级",
+          "source_ids": [
+            "src-berkenfeld-composing",
+            "src-lackey-center"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "回到开头的盐沼对照、中心肖像和无提示夜景记录：你是否从“按位置规则摆主体”转向了“说明目标、找竞争线索、再预判调整后果”？挑一张自己拍过的照片，记下意图、注意预测、实际画面证据、做过的改变和仍未排除的混淆因素。若没有实拍记录，可把它标为待验证假设。自评只能由你决定，阅读或填写活动不会自动证明已经掌握。"
+            },
+            {
+              "type": "list",
+              "items": [
+                "可观察的分析证据：指得出画面区域，能引用至少两种注意线索，说明一个可能反例或混淆变量。",
+                "迁移证据：在未讲解照片中提出有画面依据的预测，并说明一个调整及其预期副作用。",
+                "实际拍摄验证：需要你记录真实拍摄/比较过程；本样板没有观察任何学习者，也没有测得任何眼动结果。"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sources",
+          "title": "来源与阅读范围",
+          "source_ids": [
+            "src-rackham-weight",
+            "src-berkenfeld-composing",
+            "src-lackey-center",
+            "src-wilkinson-balance",
+            "src-abeln-saliency",
+            "src-tseng-closed-frame"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "以下专业来源用于支撑摄影师的可见控制建议或限定研究结论。作者案例、实验发现和本项目原创教学整理保持分开；摘要阅读不冒充全文精读。照片权利状态逐图记录，无授权图只给原站链接。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "position-before-angle",
+      "title": "把机位、距离与姿态拆开",
+      "question": "低机位没有带来气势时，究竟是谁改变了比例？",
+      "outcome": "学会把成片中的可见关系，拆成可以分别检验的拍摄变量；不再用一个焦距或角度替代解释。",
+      "method": "提出因果预测，再设计对照",
+      "author": "摄影学习 · 原创教学整理",
+      "reading_depth": "完整原创讲解 · 结合职业案例与投影研究",
+      "prior_knowledge": "如果你已知道“近大远小”，可从对照设计开始；挑战在于区分同时变化的条件，并说明哪些不能从成片反推。",
+      "skill_ids": [
+        "perspective-skill-height-vs-pitch",
+        "perspective-skill-pitch-vs-roll",
+        "perspective-skill-distance-before-focal",
+        "perspective-gap-skill-low-view-expression-context",
+        "perspective-skill-angle-comparison"
+      ],
+      "source_ids": [
+        "gw-perspective-ppa",
+        "gw-perspective-banks",
+        "gw-perspective-faulds",
+        "gw-perspective-lim",
+        "gw-perspective-ed",
+        "gw-perspective-transfer"
+      ],
+      "cases": [
+        {
+          "id": "angle-grid",
+          "title": "同一人物的16幅视点对照",
+          "author": "Ed Gregory / Photos in Color",
+          "url": "https://petapixel.com/2017/04/24/photographer-uses-science-find-perfect-portrait-angle/",
+          "display": "external_only",
+          "alt": "灰背景前同一人物的16幅肖像网格",
+          "caption": "原页第一张网格；请比较可见变化，再读下方分析。",
+          "rights": {
+            "allowed": false,
+            "license": "未取得转载许可",
+            "url": "https://petapixel.com/2017/04/24/photographer-uses-science-find-perfect-portrait-angle/",
+            "statement": "版权归原摄影者；本站仅链接原案例，不复制图片。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "已查看网格：同一女性、灰背景，脸部可见侧面和头顶范围随画格变化；表情、头部朝向也并不完全一致。没有足以给每格分配精确角度的标签。未观看视频。"
+          }
+        },
+        {
+          "id": "faulds-portrait",
+          "title": "另一种戏剧性人像",
+          "author": "Andrew Faulds",
+          "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
+          "display": "external_only",
+          "alt": "深色背景中的人物上半身与冷暖光",
+          "caption": "原文顶部照片；用于检查表达中的多个变量。",
+          "rights": {
+            "allowed": false,
+            "license": "未取得转载许可",
+            "url": "https://www.ppa.com/ppmag/articles/corrective-posing-and-lighting-for-award-winning-portraits",
+            "statement": "© Andrew Faulds；只提供原文入口，不转载照片。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "实际查看1200×675主图：人物侧转、手臂靠近头部，暖色轮廓光与冷色环境光并存；画面无足够地平或竖直参照来推断机位。"
+          }
+        },
+        {
+          "id": "new-character",
+          "title": "新场景：人物与道具",
+          "author": "Evan Butterfield / EButterfieldPhotography",
+          "url": "https://commons.wikimedia.org/wiki/File:Steampunk_character_12.jpg",
+          "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/98/Steampunk_character_12.jpg/960px-Steampunk_character_12.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail",
+          "display": "licensed_remote",
+          "alt": "深色背景前，一位角色扮演者手持机械风格道具",
+          "caption": "原样显示，未裁切或改色。先独立观察，再展开分析。",
+          "rights": {
+            "allowed": true,
+            "license": "CC BY-SA 4.0",
+            "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "statement": "CC BY-SA 4.0，署名 Evan Butterfield / EButterfieldPhotography；原样显示，无修改；来源文件页保留于上方。作者未背书本站分析。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "实际查看完整图像：人物向前持道具、黑布背景、下方局部地板；构图不包含完整脚部，缺少充分环境几何参照。核验只说明看过画面，不表明该作者赞同教学分析。"
+          },
+          "width": 960,
+          "height": 1200
+        }
+      ],
+      "sections": [
+        {
+          "id": "problem",
+          "title": "换一个角度，究竟换掉了什么？",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "你想让角色更有存在感，于是蹲低、仰起相机，又让人物把道具伸向镜头。画面确实变了，但究竟是哪一步起作用？如果下一张只是继续蹲低，很可能是在把几个问题一起放大。先用真实人像对照练习拆开它们。"
+            },
+            {
+              "type": "case",
+              "case_id": "angle-grid"
+            },
+            {
+              "type": "exercise",
+              "id": "observation",
+              "title": "先作一个判断",
+              "prompt": "打开网格，任选中列的两幅，写下鼻部、下颌、头顶或肩部哪个可见关系发生了变化。再写一项你不能仅凭网格确定的拍摄条件。无需先猜“哪张更好”。",
+              "options": [
+                "机位高度变了",
+                "镜头朝向也可能变了",
+                "还需要拍摄记录才能区分"
+              ]
+            },
+            {
+              "type": "reveal",
+              "activity_id": "observation",
+              "title": "展开：先分清看见的变化与它的解释",
+              "paragraphs": [
+                "网格中有些画格露出更多头顶，有些更容易看到下颌下方；左右位置变化还改变了脸的可见侧面。这些是可描述的投影差异。“上面那格更天真”已经是情绪解读，不能代替它们。",
+                "报道说作者使用同一人物、85mm镜头、f/8与蛤壳光，改变位置和高度。相似的器材与后期减少了一些差别，但表情、头部姿态以及镜头重新对准人物仍可能参与结果。因此不能从网格把高度、俯仰和表情的作用完全隔离，也不应给每个画格猜一个精确角度。"
+              ],
+              "source_ids": [
+                "gw-perspective-ed"
+              ]
+            }
+          ],
+          "source_ids": []
+        },
+        {
+          "id": "observe",
+          "title": "把“角度”拆成可以检查的变量",
+          "blocks": [
+            {
+              "type": "comparison",
+              "rows": [
+                {
+                  "novice": "低机位是不是就更有气势？",
+                  "expert": "视点高度、镜头俯仰和画面滚转是三件事。",
+                  "question": "背景直线、人物可见的顶面/底面分别提供了什么线索？人物自己抬头是否也能产生类似变化？"
+                },
+                {
+                  "novice": "大手是不是广角造成的？",
+                  "expert": "先看手、脸与相机之间的前后距离，再问怎样取景。",
+                  "question": "镜头没动只变焦，和后退再变焦，分别会改变什么？"
+                },
+                {
+                  "novice": "一张照片气势强，所以这个机位正确。",
+                  "expert": "角度只贡献一部分，姿态、道具、光线和背景同时在表达。",
+                  "question": "我希望强调脸、腿、道具还是人与环境？现在的比例是否服务这个目标？"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": "这里的“专家观察”是一种依据专业资料整理的工作方法，不是对所有摄影师眼睛如何移动的实测结论。先给出可见证据，再提出可被下一张照片推翻的解释，比一次猜中器材更有用。"
+            }
+          ],
+          "source_ids": [
+            "gw-perspective-ppa",
+            "gw-perspective-banks",
+            "gw-perspective-faulds"
+          ]
+        },
+        {
+          "id": "principle",
+          "title": "位置决定关系，取景决定你留下什么",
+          "blocks": [
+            {
+              "type": "heading",
+              "text": "先把相机位置和朝向分开"
+            },
+            {
+              "type": "paragraph",
+              "text": "相机降低，是投影中心在空间中移动；镜头向上仰，是朝向改变。二者经常一起做，因为你仍想把脸留在画面内，但它们不是同一操作。低处的相机可以近似保持水平，只是需要重新安排人物和画框。画面滚转则绕着镜头轴旋转，会把原本竖直的方向整体倾斜。把人物“站不稳”全部归给低机位，会漏掉这第三种变化。"
+            },
+            {
+              "type": "paragraph",
+              "text": "判断时先找有理由相信竖直的背景线。上仰拍摄竖直建筑可能使线向上会聚，滚转则改变它们在画框中的整体倾向。人物的腿、衣褶和倾斜道具并非可靠的水平仪；后期透视校正和裁切又会改变这些线索。没有参照时，承认不能唯一反推相机朝向，是正确区分证据与猜测。"
+            },
+            {
+              "type": "heading",
+              "text": "为什么靠近会让前后差异更突出"
+            },
+            {
+              "type": "paragraph",
+              "text": "在理想直线投影、靠近画面中心的简化条件下，物体的投影尺度与沿光轴的深度近似成反比。做一个项目推演：两块等大的标记，一块离投影中心0.6米，另一块1.2米，前者投影约是后者两倍。相机后退1.8米后，二者变为2.4和3米，比例约为1.25。这里变化的关键是远近距离比变小，不是给焦距数字附上“压缩”的魔力。真人的手和脸不等大，也不都正对镜头，这个例子解释趋势，不能拿来从照片算身体尺寸。"
+            },
+            {
+              "type": "paragraph",
+              "text": "相机位置固定时，换较长焦距主要缩窄视角，放大你选择的部分；在相同投影模型下，近手与远脸的相对尺度并不会仅因变焦自动恢复。为了维持原来的人物占比，你往往会后退再换长焦，这时透视关系也跟着走位改变。实际镜头畸变、画面边缘投影和后期裁切是另一些变量，不要全部叫作“广角把人拉坏了”。"
+            },
+            {
+              "type": "heading",
+              "text": "比例不等于表达的结论"
+            },
+            {
+              "type": "paragraph",
+              "text": "同一套比例变化可以服务不同目标：近处的机械道具可以有意成为叙事中心，也可能挡住你真正想拍的脸。低视点有时是为了把人物放到干净的天空背景，而不是制造威严。Faulds 的职业方法也把相机高度、躯干朝向和前倾放在一起选择。应先决定要突出什么，再决定保留还是减弱透视。"
+            },
+            {
+              "type": "paragraph",
+              "text": "还要区分照片的几何结构与观者感受到的深度。Banks等人的研究讨论了观看距离与照片透视的关系；同一张照片在手机上和较大画面上的读感未必相同。它提醒我们保持比较条件，而不是规定“50mm永远自然”或某种体型必须怎样拍。"
+            }
+          ],
+          "source_ids": [
+            "gw-perspective-banks",
+            "gw-perspective-ppa",
+            "gw-perspective-faulds",
+            "gw-perspective-lim"
+          ]
+        },
+        {
+          "id": "contrast",
+          "title": "把对照变成下一张可检验的照片",
+          "blocks": [
+            {
+              "type": "case",
+              "case_id": "angle-grid"
+            },
+            {
+              "type": "paragraph",
+              "text": "回到16格对照。它让你看到不同视点的真实差异，却不足以分配每一个变量的因果贡献。下面把研究问题改小：不追问“哪一张是最好角度”，只追问“我以为的原因，怎样才能被检验”。"
+            },
+            {
+              "type": "exercise",
+              "id": "comparison",
+              "title": "设计一个能推翻自己的对照",
+              "prompt": "假设你认为近手抢过了脸。方案A：原地由35mm变成85mm，再裁成相似画面；方案B：让人物姿态尽量不变，相机后退，再选焦距恢复人物占比。哪一组更能检验“距离差导致比例突出”？写出预期会变小的相对关系，并列出仍需控制的条件。",
+              "options": [
+                "A：只改变焦距",
+                "B：后退并恢复取景",
+                "先补充距离与姿态记录"
+              ]
+            },
+            {
+              "type": "reveal",
+              "activity_id": "comparison",
+              "title": "展开：预测一种具体变化",
+              "paragraphs": [
+                "若要检验前后距离差的作用，B更有区分力：后退后，近手与脸的相机深度比更接近，近处物体相对放大的程度预计减弱。A固定视点，只改取景，在简化直线投影下保留同样的相对透视；画面边缘、畸变和裁切若不同，仍需另记。",
+                "这不是完美单变量实验：为恢复占比，B同时改了焦距。记录相机位置、两部位到相机的大致关系、姿态和最终裁切，比较相对大小而非整张图谁更大。若手收回了、人物前倾了或表情改变，就不能把所有差异算在后退上。对机位高度也可另做一组固定距离的对照，不要把两种问题放进同一次试拍。"
+              ],
+              "source_ids": [
+                "gw-perspective-banks"
+              ]
+            }
+          ],
+          "source_ids": []
+        },
+        {
+          "id": "boundary",
+          "title": "有戏剧性，也不代表能倒推出机位",
+          "blocks": [
+            {
+              "type": "case",
+              "case_id": "faulds-portrait"
+            },
+            {
+              "type": "paragraph",
+              "text": "Faulds的照片里，人物侧转，弯起的手臂靠近头部，暖色轮廓光与冷色环境光都参与塑造画面。它没有足够的地面或竖直参照，也没有完整腿部。可以讨论姿态与光线，但无法据此认定“低角度造成了戏剧性”。这是对推断方法的反例，不是把这张作品称为失败照片。"
+            },
+            {
+              "type": "paragraph",
+              "text": "当目标是夸张道具的前伸、近距离压迫或故意不稳定的画面时，减弱透视、拉直所有线也可能削弱表达。“自然比例”不是所有角色照的终点。反过来，如果希望表现安静、平衡和人与空间的关系，继续压低机位未必解决当前的问题。先写表达目标，再讨论哪一处画面关系支持它。"
+            },
+            {
+              "type": "paragraph",
+              "text": "本样板没有许可清楚且只改变高度的职业成败实验，不能声称已经证明某角度必然让人有气势。这里完整教的是变量辨析和对照设计；原站案例用于有边界的观察，迁移题让你把方法带到另一种场景。"
+            }
+          ],
+          "source_ids": [
+            "gw-perspective-faulds",
+            "gw-perspective-lim"
+          ]
+        },
+        {
+          "id": "transfer",
+          "title": "换一张没讲过的角色照",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "先不套用前面的例子。这次是一张不同姿态、道具和背景的角色照片。请先独立写你的判断；下面的观察分析默认折叠，也可以直接展开后再回头比较。"
+            },
+            {
+              "type": "case",
+              "case_id": "new-character"
+            },
+            {
+              "type": "exercise",
+              "id": "transfer",
+              "title": "给下一张照片提出一个可验证的改动",
+              "prompt": "如果目标是让观者同时读到角色的脸与道具，你会保留什么、先试着改什么？请指出画面证据、一个替代解释，以及下一张怎样拍才能区分它们。先不查器材，也无需使用全部术语。"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "transfer",
+              "title": "展开：对照一份有边界的专业观察",
+              "paragraphs": [
+                "可见的是：戴眼镜的人物脸在上方，前伸的手与机械道具向画面前方斜伸；蓝色发光枪管指向右下边缘，烟雾在道具上方形成亮区。手和道具占据前景，但单张照片没有等大参照，不能据此量化它们被“放大了多少”。",
+                "如果你认为脸被道具与亮光竞争，至少有两种可检验解释：一是前景投影占比较大，二是发光枪管与黑背景的反差吸引注意。前者可先尝试后退并恢复主体占比，姿态尽量不变；后者需要保持机位和姿态，只改变光效或明暗安排再比较。一次两者都改，就无法解释改善来自哪里。",
+                "若目标本来是突出蒸汽机械道具，保留当前前伸和亮线也是有理由的选择。可以检查道具是否遮住关键面部信息，再决定是否让持握方向侧移；别为了“正常比例”自动收回所有动作。",
+                "这张照片不提供可靠的地平参照，局部地板和黑布不足以唯一确定机位高度与俯仰；脚部也没有完整呈现。文件页虽记有18mm焦距，EXIF不告诉我们相机与人物的距离。回答里区分看见的关系、可能的解释和待验证条件，比猜一个机位数字更接近本次目标。",
+                "这份分析由项目依据专业资料与实际图像观察撰写，不是摄影者的原文点评。你若提出不同调整，只要指出可见证据、表达目标以及可推翻它的下一张对照，也符合练习目的。网页一次回答不证明现场迁移。"
+              ],
+              "source_ids": [
+                "gw-perspective-banks",
+                "gw-perspective-ppa",
+                "gw-perspective-transfer"
+              ]
+            }
+          ],
+          "source_ids": []
+        },
+        {
+          "id": "reflect",
+          "title": "留下判断，也留下你还不确定的部分",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "把最初的观察与新场景回答放在一起：你是否开始区分相机位置、朝向、人物动作与取景？有没有一个最初很肯定的原因，现在愿意用对照验证？可以只标记“理解基本原理”，即使已经看完所有内容。"
+            },
+            {
+              "type": "paragraph",
+              "text": "下次实拍可选一个你真实遇到的比例问题，写下预测，拍摄少量对照，并把观察和照片存到下方关联技能的“我的记录”。只有你亲自确认做过这一步，才选择“已经过实际拍摄验证”。"
+            }
+          ],
+          "source_ids": []
+        },
+        {
+          "id": "sources",
+          "title": "原始出处与这篇讲解的边界",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "本站是中文原创教学，不是论文或职业教程的全文翻译。下面逐条列出作者、阅读深度、定位与支持范围；摄影师经验、投影研究和本项目的练习设计不合并成统一权威。未观看的视频不算已观看，外链可能受原站访问条件限制。"
+            }
+          ],
+          "source_ids": []
+        }
+      ]
+    },
+    {
+      "id": "separate-light-contributions",
+      "title": "先读脸上的光，再决定怎么补",
+      "question": "补光让人物变亮了，为什么脸仍然显平，甚至像从两个方向同时受光？",
+      "outcome": "从面部阴影推测主光相对脸部的方向并说明不确定性；先描述环境层，再预测补光对人物和背景的影响，区分提亮暗部与改变塑形方向。",
+      "method": "先预测明暗，再决定补光",
+      "author": "摄影学习 · 原创教学整理",
+      "reading_depth": "完整原创中文讲解；链接并分析职业摄影师案例，用有许可的新场景检验迁移。",
+      "prior_knowledge": "能识别亮部与阴影，并认识ISO、光圈、快门。已会叫出灯型的读者可直接挑战方向预测和曝光取舍；无需特定闪光品牌经验。",
+      "skill_ids": [
+        "light-001",
+        "light-003",
+        "light-010",
+        "light-017",
+        "light-021",
+        "light-025",
+        "light-026"
+      ],
+      "source_ids": [
+        "gw-light-allan",
+        "gw-light-hobby",
+        "gw-light-tejada",
+        "gw-light-nikon-school",
+        "gw-light-transfer"
+      ],
+      "cases": [
+        {
+          "id": "allan-head-turn",
+          "title": "同一日光下的脸部朝向对照",
+          "author": "Jane Allan / The Lens Lounge",
+          "url": "https://thelenslounge.com/butterfly-lighting-pattern/",
+          "display": "external_only",
+          "alt": "同一位穿蓝色外衣、戴深色太阳镜的人物在户外的两幅相邻人像",
+          "caption": "打开原文中头部转动的并列例图；先比较面部局部，再读解释。版权归作者，本站只链接原页。",
+          "rights": {
+            "allowed": false,
+            "license": "版权所有；未取得复制许可",
+            "url": "https://thelenslounge.com/butterfly-lighting-pattern/",
+            "statement": "页面和照片版权归 Jane Allan / The Lens Lounge；不复制或缓存，只链接原案例。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "研究者与主代理均实际打开800×565原图；可见深色太阳镜遮住眼部，鼻下阴影和头部朝向有细微差异。表情、姿态及构图并非完全一致，不是严格单变量实验。"
+          }
+        },
+        {
+          "id": "hobby-ambient-sequence",
+          "title": "环境曝光与闪光工作序列",
+          "author": "David Hobby / Strobist；原图由多位摄影者创作",
+          "url": "https://strobist.blogspot.com/2006/03/lighting-101-balancing-flash-and.html",
+          "display": "external_only",
+          "alt": "教程中依次展示的环境光基准、压暗环境和闪光混合人像",
+          "caption": "原文的 Shade、Dark、Final 三阶段照片；本站不复制图片。",
+          "rights": {
+            "allowed": false,
+            "license": "各照片版权归原摄影者；未取得转载许可",
+            "url": "https://strobist.blogspot.com/2006/03/lighting-101-balancing-flash-and.html",
+            "statement": "Strobist注明照片版权归各自创作者；只提供原教程链接。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "已分别打开并查看三张原图像素；因果分析在comparison揭示中。姿势/构图和灯数并非固定。"
+          }
+        },
+        {
+          "id": "window-transfer",
+          "title": "窗边人像：新的观察题",
+          "author": "Tobias “ToMar” Maier",
+          "url": "https://commons.wikimedia.org/wiki/File:Window_light_portrait_using_a_small_window_that_raises_the_contrast_-_taken_in_the_Streckenw%C3%A4rterhaus_in_the_market_town_of_Feucht.jpg",
+          "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/Window_light_portrait_using_a_small_window_that_raises_the_contrast_-_taken_in_the_Streckenw%C3%A4rterhaus_in_the_market_town_of_Feucht.jpg/960px-Window_light_portrait_using_a_small_window_that_raises_the_contrast_-_taken_in_the_Streckenw%C3%A4rterhaus_in_the_market_town_of_Feucht.jpg?utm_campaign=index&utm_content=thumbnail&utm_source=commons.wikimedia.org",
+          "display": "licensed_remote",
+          "alt": "室内窗旁坐着一位女性，椭圆窗在画面左侧，背景较暗",
+          "caption": "按 Commons 960px 缩略图原样显示；不裁切、改色或覆字。Tobias “ToMar” Maier；文件页标CC BY-SA 4.0，另残留3.0标签。先观察，分析稍后揭示。",
+          "rights": {
+            "allowed": true,
+            "license": "CC BY-SA 4.0；Commons Summary另残留CC BY-SA 3.0；署名并遵守ShareAlike",
+            "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "statement": "文件页当前Licensing段为CC BY-SA 4.0，Summary另有CC BY-SA 3.0标签。显示时署名Tobias “ToMar” Maier，链接文件页及[3.0](https://creativecommons.org/licenses/by-sa/3.0/)和[4.0](https://creativecommons.org/licenses/by-sa/4.0/)许可，说明未修改，并对改编材料遵守ShareAlike。许可不自动包含许可人无权授权的人格权；Commons记载上传者声明可识别者同意按自由许可发布。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-09",
+            "detail": "已直接查看原始JPEG像素并核验文件页。为避免作答前泄题，此处不提前展示面部光影分析。"
+          },
+          "width": 960,
+          "height": 1280
+        }
+      ],
+      "sections": [
+        {
+          "id": "problem",
+          "title": "人物变亮了，脸为什么仍然不立体？",
+          "source_ids": [
+            "gw-light-allan"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "窗边拍角色时，脸一侧落入暗部。你把补光灯举到相机上，脸亮了，鼻影和眼窝却变浅，人物像被正面照平。下一步未必是加功率：先问脸朝哪边、窗从哪边照，以及希望保留怎样的阴影。"
+            },
+            {
+              "type": "case",
+              "case_id": "allan-head-turn"
+            },
+            {
+              "type": "exercise",
+              "id": "observation",
+              "title": "先预测阴影会去哪儿",
+              "prompt": "打开 Jane Allan 原文里的并列照片。先在鼻下、两侧脸颊或下颌找一处可见的细微变化；结合头部朝向，提出一个原因假设，并写出一项无法仅凭照片确认的条件。图中人物戴墨镜，眼部不适合用来比较。"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "observation",
+              "title": "展开：光图案是相对关系",
+              "paragraphs": [
+                "两帧的头部朝向略变，鼻下阴影也有细微偏移；作者将它解释为转头后光型偏离原先位置。人物戴着深色太阳镜，无法据此评价眼窝或眼神光。光型描述的是光相对脸部的关系，脸转动便可能改变阴影，即使灯或太阳没有移动。",
+                "但这不是受控实验：表情、身体姿势和曝光有变化，不能据此反推出精确灯角，也不能说某一种图案对所有脸型都更好。"
+              ],
+              "source_ids": [
+                "gw-light-allan"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "observe",
+          "title": "把“脸亮了”拆成能检查的线索",
+          "source_ids": [
+            "gw-light-allan",
+            "gw-light-nikon-school"
+          ],
+          "blocks": [
+            {
+              "type": "comparison",
+              "rows": [
+                {
+                  "novice": "脸很亮，所以主光方向正确。",
+                  "expert": "标出亮部与鼻影、眼窝、下颌暗部，再判断它们是否指向同一主要方向。",
+                  "question": "鼻影朝哪边落？脸转向窗后它会如何移动？"
+                },
+                {
+                  "novice": "柔光就是没有方向。",
+                  "expert": "柔硬描述阴影边缘过渡；阴影落点仍提供方向线索。",
+                  "question": "边缘变软时，阴影中心位置是否一定变化？"
+                },
+                {
+                  "novice": "闪光只负责提亮暗处。",
+                  "expert": "补光也有入射方向；若产生明显高光或投影，就参与了塑形。",
+                  "question": "它与窗光同向还是冲突？背景有无第二组影子？"
+                },
+                {
+                  "novice": "人物和背景可以一起调亮。",
+                  "expert": "先记环境层，再判断灯照到人物、背景还是两者；光圈和ISO会同时改变两层记录。",
+                  "question": "下一步改快门、光圈、ISO还是闪光输出，哪些区域会变？"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": "这套观察方法据专业资料整理，不代表对摄影师观察行为的实测结论。把可见证据与猜测分开，再决定移动人物、灯或调整曝光。"
+            }
+          ]
+        },
+        {
+          "id": "principle",
+          "title": "光线由面部几何和曝光叠加共同决定",
+          "source_ids": [
+            "gw-light-allan",
+            "gw-light-hobby",
+            "gw-light-tejada",
+            "gw-light-nikon-school"
+          ],
+          "blocks": [
+            {
+              "type": "heading",
+              "text": "先画光源、脸与相机的关系"
+            },
+            {
+              "type": "paragraph",
+              "text": "脸不是平板：额头、鼻梁、两颊、眼窝和下颌朝向不同，受光也不同。观察鼻影及脸颊高光、眼窝暗部，可提出主光方位假设。头或身体转动会改变面部平面与光源的关系，同一扇窗也能形成不同光型。单张照片无法唯一确定灯位，反射、遮挡与后期都可能改变线索。"
+            },
+            {
+              "type": "heading",
+              "text": "光向与阴影软硬不是同一个变量"
+            },
+            {
+              "type": "paragraph",
+              "text": "影子落点关乎方向，边缘锐利或渐变关乎光质。相对脸更大的窗、柔光箱常让边缘变宽，但仍可侧向塑形；正面硬光也可能显平。别把“软”当作“无方向”，也别凭45°灯位就给光型命名。先看鼻影和脸颊，再决定转人、移灯、扩散或补光。"
+            },
+            {
+              "type": "heading",
+              "text": "环境和闪光叠加，不是互不相干的按钮"
+            },
+            {
+              "type": "paragraph",
+              "text": "Hobby、Tejada与Nikon School都先建立环境基准：决定背景细节和景深，再加闪光，以位置与输出调整人物，并检查墙面是否受光。压暗环境再照亮人物是一种表达选择，不是固定档数的处方。"
+            },
+            {
+              "type": "paragraph",
+              "text": "不能说“光圈只管闪光”或“快门永远只管环境”。在常规全帧同步、闪光持续时间短于快门曝光且主体主要由闪光照亮时，改变快门通常主要改变环境记录。若慢门期间仍有环境光照到移动人物，环境层会留下拖影，闪光冻结的部分可能叠在拖影上。超过常规同步上限可能遮挡画幅；HSS以多次脉冲工作并带来有效功率/距离代价。光圈影响环境和闪光的成像曝光；ISO也提高两者的记录敏感度，但TTL可能自动改变输出补偿。闪光功率、灯距、附件和反射面也影响闪光结果。先弄清模式与同步条件，再预测哪部分会变。"
+            }
+          ]
+        },
+        {
+          "id": "contrast",
+          "title": "环境曝光序列：变暗不等于补光方向",
+          "source_ids": [
+            "gw-light-hobby",
+            "gw-light-tejada",
+            "gw-light-nikon-school"
+          ],
+          "blocks": [
+            {
+              "type": "case",
+              "case_id": "hobby-ambient-sequence"
+            },
+            {
+              "type": "exercise",
+              "id": "comparison",
+              "title": "拆开亮度变化和灯位变化",
+              "prompt": "在原文比较 Shade、Dark、Final，分别写人物与背景发生的变化，再指出哪些由文字设定确认，哪些不能仅凭成片归因。若只想提高脸部暗侧并保留背景层次，先调闪光输出还是重新选环境曝光？"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "comparison",
+              "title": "展开：保留环境底层，再塑造主体",
+              "paragraphs": [
+                "Hobby记录起始环境照为ISO 200、f/5、1/160秒；随后收至f/11，环境画面变暗，最终加相机右侧伞灯照人，并另用闪光照墙。像素可见Dark的墙和柱仍有细节，Final的人物及墙面被闪光重新照亮。",
+                "这组照片展示工作顺序：先决定环境，再用闪光把主体带到预期关系。它不是单变量对照，光圈、姿势、取景和灯数都变化；不能拿它计算固定光比，也不能由此断言光圈或快门在任何设备上只影响一个曝光层。"
+              ],
+              "source_ids": [
+                "gw-light-hobby",
+                "gw-light-tejada"
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": "Nikon School训练经理 Neil Freeman 同样先以ISO、快门和按景深选定的光圈建立环境起点，再调整灯头方向或闪光补偿。Tejada也先安排背景和景深，再调整闪光位置与功率。这些是工作顺序，不是唯一风格。"
+            }
+          ]
+        },
+        {
+          "id": "boundary",
+          "title": "补光何时帮忙，何时改写面部结构",
+          "source_ids": [
+            "gw-light-allan",
+            "gw-light-nikon-school",
+            "gw-light-tejada"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "相机轴线上的弱闪可能减小暗部反差，适合需要看清表情又保留环境方向感的场景。若闪光过强，脸部明暗差会缩小，鼻影、眼窝和颊部转折随之变浅。把灯移到一侧则不只是“更亮”，还可能产生新的高光和影子；若与窗光、背景影子冲突，观者会读到多个方向。可以有意这样做，但不应称作单纯填暗。"
+            },
+            {
+              "type": "paragraph",
+              "text": "逆光剪影、轮廓光或戏剧边缘光时，不给脸补光可以正好服务表达。鼻梁、深眼窝和眉骨各不相同，标准图案会变形；蝶形光也可能让深眼窝更暗。Jane Allan的脸型建议是作者经验，不是普遍规律。硬光可以强调质感，柔光也能保留侧向塑形；“越软越自然”“补光必须不可见”都不是物理定律。"
+            },
+            {
+              "type": "paragraph",
+              "text": "常规同步不代表可任意缩短快门冻结人物。短闪光脉冲冻结受闪部分；环境光仍照到移动人物时会留拖影。ISO、光圈影响两层；TTL和自动ISO会联动。HSS、慢速/后帘同步及各机型同步速度、闪光持续时间应查设备说明。"
+            }
+          ]
+        },
+        {
+          "id": "transfer",
+          "title": "换到另一扇窗：先说你看见什么",
+          "source_ids": [
+            "gw-light-transfer",
+            "gw-light-nikon-school"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "下面是新的人像，不是前面教程作者的讲评。图像按许可远程显示；先独立观察，再展开分析。不同拍摄选择都可以成立，练习检验的是能否用证据解释预测。"
+            },
+            {
+              "type": "case",
+              "case_id": "window-transfer"
+            },
+            {
+              "type": "exercise",
+              "id": "transfer",
+              "title": "预测一次转头后的变化",
+              "prompt": "指出窗相对人物的位置、身体与脸的大致朝向，以及鼻影、脸颊或眼窝一处可见线索。若让人物脸更朝窗、相机不动，哪处明暗最可能移动？背景会不会同步变亮？再列出一项单张图无法确定的条件。"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "transfer",
+              "title": "展开：分开观察、推断与未知",
+              "paragraphs": [
+                "像素里能看到窗在人物左侧；人物侧坐、脸转回相机；脸一侧较亮，另一侧留有深影，窗口和周围墙面也呈现明暗差。这些线索支持“窗光从画面左侧附近进入”的工作假设。脸没有完全朝窗，所以脸与身体的受光关系不同。",
+                "若脸更转向窗，面向窗的一侧预计接收更多光，鼻影落点和长度也会变化；墙与背景不会必然按脸同幅度变亮，因为受光位置、朝向和反射不同。实际拍摄才能验证。",
+                "文件页记录作者选小窗以保留较强反差；EXIF为1/250秒、f/2.8、ISO 640，并显示闪光未触发。单张图仍不能排除反射光、其他环境光及后期，亦不能推出精确光比。此处是项目依据实际像素所作观察，不是摄影作者的评语。",
+                "若补光，先决定保留多少阴影，再试弱同轴填光与接近窗向的补光，分别记录脸和背景；若要剪影或暗调，也可以说明为何不填脸。"
+              ],
+              "source_ids": [
+                "gw-light-transfer",
+                "gw-light-nikon-school"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "reflect",
+          "title": "记录判断，不自动宣布掌握",
+          "source_ids": [],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "回看开头：你会先读鼻影和眼窝，再决定补光吗？能说清转脸、移灯、改输出各影响什么，以及哪些结论受模式和同步限制吗？"
+            },
+            {
+              "type": "paragraph",
+              "text": "看完只说明接触过材料。标记“能分析案例”前，先记录新照片的观察与未知；“实际拍摄验证”需在窗边或单灯场景做对照并复核。"
+            }
+          ]
+        },
+        {
+          "id": "sources",
+          "title": "原始出处、授权与讲解范围",
+          "source_ids": [
+            "gw-light-allan",
+            "gw-light-hobby",
+            "gw-light-tejada",
+            "gw-light-nikon-school",
+            "gw-light-transfer"
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "本页为原创中文讲解。Allan实拍支持面部朝向观察；Hobby序列、Tejada和Nikon School支持环境与闪光流程。Jane Allan与Strobist图片只链接原文。"
+            },
+            {
+              "type": "paragraph",
+              "text": "迁移图：Tobias “ToMar” Maier，《Window light portrait using a small window…》，Commons文件页 https://commons.wikimedia.org/wiki/File:Window_light_portrait_using_a_small_window_that_raises_the_contrast_-_taken_in_the_Streckenw%C3%A4rterhaus_in_the_market_town_of_Feucht.jpg；原样显示960px缩略图。文件页当前Licensing段列CC BY-SA 4.0，Summary仍有3.0标签；两版均要求署名与ShareAlike。署名作者、链接文件页及两版许可，说明未修改。许可只覆盖许可人有权授权的权利，不代替人格权/模特授权判断。"
+            },
+            {
+              "type": "paragraph",
+              "text": "本课快门近似限于全帧常规同步及闪光短于曝光的条件；环境拖影取决于现场照明、闪光贡献与动作。不要把内容改写成固定曝光配方或具体相机菜单。未观看视频，真实用户学习效果尚无数据。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -12,9 +12,13 @@
   let atlas = null, state = {revision:0,skills:{}}, csrf = '', sessionReady = false, stateReady = false;
   let assets = [], activeSkill = null, returnFocus = null, photoReturnFocus = null, searchTimer = 0, recent = [];
   let profileWriteInFlight = false, recordWriteInFlight = false, dialogPhotoSaved = '', recordDialogSkill = null;
+  let gatewayWriteInFlight = false;
+  let profileBasis = null;
+  const gateways = window.LearningGateways;
+  const profileValues = record => ({status:record.status || 'unassessed', weak:!!record.weak, focus:!!record.focus, notes:record.notes || ''});
   const maps = {domains:new Map(),modules:new Map(),skills:new Map(),sources:new Map()};
   const canWrite = () => stateReady && sessionReady && !!csrf;
-  const canEditProfile = () => canWrite() && !profileWriteInFlight && !recordWriteInFlight;
+  const canEditProfile = () => canWrite() && !profileWriteInFlight && !recordWriteInFlight && !gatewayWriteInFlight;
 
   function errorText(body, fallback) {
     return typeof body?.detail === 'string' ? body.detail : typeof body?.message === 'string' ? body.message : fallback;
@@ -292,6 +296,7 @@
     const module = maps.modules.get(skill.module_id);
     const domain = module && currentDomainForModule(module);
     const record = recordOf(skill.id), status = statusOf(skill.id);
+    profileBasis = {id:skill.id, values:profileValues(record)};
     const prereqs = (skill.prerequisites || []).map(prereq => maps.skills.get(prereq) || {id:prereq,skill_name:prereq});
     const confidence = ({high:'高',medium:'中',low:'低'})[skill.confidence] || skill.confidence || '未提供';
     const basis = ({professional_consensus:'专业来源共识',photographer_method:'摄影师方法',project_adaptation:'项目适配'})[skill.basis] || '未提供';
@@ -301,6 +306,7 @@
       </header>
       <nav class="skill-jump-links" aria-label="技能内容"><button type="button" data-section-target="skill-tutorials">配套教程</button><button type="button" data-section-target="skill-practice">最小训练</button><button type="button" data-section-target="skill-research">研究依据</button><button type="button" data-section-target="skill-records">我的记录</button></nav>
       <div class="skill-columns"><div class="skill-dossier">
+        ${gateways.links(skill.id)}
         ${renderTutorials(skill)}
         ${renderWorkflow(skill)}
         ${skill.failure_modes?.length?`<section class="dossier-section"><h2>容易遇到的失败表现</h2><ul>${skill.failure_modes.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section>`:''}
@@ -316,6 +322,11 @@
     $('skill-focus').addEventListener('click', event => updateProfile(skill.id,{focus:!recordOf(skill.id).focus},'当前重点标记已保存。'));
     $('notes-form').addEventListener('submit', event => { event.preventDefault(); updateProfile(skill.id,{notes:$('skill-notes').value},'备注已保存。'); });
     $('record-open').addEventListener('click', () => openRecordDialog(skill));
+    const reload = document.createElement('button');
+    reload.id='skill-record-reload'; reload.type='button'; reload.className='text-link'; reload.hidden=true;
+    reload.textContent='载入服务器版本（替换此技能的本页草稿）';
+    $('notes-form').append(reload);
+    reload.addEventListener('click',()=>{renderSkill(skill.id);$('skill-notes').focus({preventScroll:true});detailNotice('已载入服务器版本，请核对后编辑。',false);});
     if (options.focus === 'record-open') $('record-open').focus({preventScroll:true});
     return true;
   }
@@ -367,6 +378,10 @@
     try {
       state = await responseJson(await fetch(api.state,{credentials:'same-origin',cache:'no-store'}));
       stateReady = true;
+      if (profileBasis && parseRoute().kind === 'skill' && parseRoute().id === profileBasis.id) {
+        const latest=profileValues(recordOf(profileBasis.id));
+        if(Object.keys(latest).some(key=>latest[key]!==profileBasis.values[key])) showProfileConflict();
+      }
       stateNotice('个人学习记录已读取。','ok');
     } catch (error) {
       stateReady = false;
@@ -374,9 +389,18 @@
       throw error;
     }
   }
+  function showProfileConflict() {
+    detailNotice('该技能的服务器记录已变化；请先核对服务器版本。本页草稿仍保留，未覆盖新记录。',true);
+    const reload=$('skill-record-reload'); if(reload) reload.hidden=false;
+  }
   async function updateProfile(skillId, updates, success) {
     if (!canWrite()) { detailNotice('私人记录尚未解锁，未保存。',true); return; }
-    if (profileWriteInFlight || recordWriteInFlight) return;
+    if (profileWriteInFlight || recordWriteInFlight || gatewayWriteInFlight) return;
+    // A newer shared revision does not mean this form has seen the newer fields.
+    const latest=profileValues(recordOf(skillId));
+    if(profileBasis?.id===skillId && Object.keys(updates).some(key=>latest[key]!==profileBasis.values[key])) {
+      showProfileConflict(); return;
+    }
     profileWriteInFlight = true;
     setProfileControlsDisabled(true);
     try {
@@ -393,6 +417,10 @@
         if (weakButton) { weakButton.setAttribute('aria-pressed',String(!!profile.weak)); weakButton.textContent=`${profile.weak?'✓ ':''}薄弱项`; }
         if (focusButton) { focusButton.setAttribute('aria-pressed',String(!!profile.focus)); focusButton.textContent=`${profile.focus?'✓ ':''}当前重点`; }
         if (status && status.value !== profile.status) status.value = profile.status;
+        if(profileBasis?.id===skillId) {
+          const values=profileValues(profile);
+          for(const key of ['status','weak','focus',...Object.keys(updates)]) profileBasis.values[key]=values[key];
+        }
         detailNotice(success,false);
       }
       stateNotice('个人学习记录已保存。','ok');
@@ -402,7 +430,7 @@
         await refreshState().catch(()=>{});
         renderNextPractice();
         const current=parseRoute();
-        if(current.kind==='skill' && current.id===skillId) detailNotice('记录已在其他页面更新。此处保留了你的选择和备注草稿；核对后再次操作即可保存。',true);
+        if(current.kind==='skill' && current.id===skillId) showProfileConflict();
       } else {
         const current=parseRoute();
         if(current.kind==='skill' && current.id===skillId) detailNotice(`${error.message} 未覆盖当前记录。`,true);
@@ -440,7 +468,7 @@
     event.preventDefault();
     const skill = recordDialogSkill;
     if (!skill || !stateReady || !csrf) return;
-    if (recordWriteInFlight || profileWriteInFlight) return;
+    if (recordWriteInFlight || profileWriteInFlight || gatewayWriteInFlight) return;
     const text = $('record-text').value.trim();
     if (!text) { $('record-message').textContent = '请先写下练习内容。'; $('record-text').focus(); return; }
     recordWriteInFlight = true;
@@ -505,6 +533,7 @@
   }
   function renderRoute(focus=false) {
     if (!atlas) return;
+    gateways.onRouteChange();
     const current = parseRoute();
     const inMap = ['map','search','mine'].includes(current.kind);
     $('map-view').hidden = !inMap;
@@ -605,6 +634,7 @@
     $('photo-dialog').addEventListener('close',()=>{if(photoReturnFocus?.isConnected)photoReturnFocus.focus({preventScroll:true});});
     $('photo-dialog').addEventListener('click',event=>{if(event.target===$('photo-dialog'))closePhotoViewer();});
     document.addEventListener('keydown',event=>{
+      if (gateways.isOpen()) return;
       if (event.key==='/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) {event.preventDefault();$('search').focus();}
       if (event.key==='Escape' && !$('recent-panel').hidden) { $('recent-panel').hidden=true;$('recent-toggle').setAttribute('aria-expanded','false');$('recent-toggle').focus(); }
     });
@@ -629,6 +659,26 @@
     if (stateResult.status==='fulfilled') { state=stateResult.value; stateReady=true; stateNotice('个人学习记录已读取。','ok'); }
     else { stateReady=false; stateNotice(stateResult.reason.status===401?'请先解锁私人参考库；当前仅可浏览研究内容。':`个人记录暂不可用：${stateResult.reason.message}`,'error'); }
     if (!sessionReady && stateReady) stateNotice('个人记录可读取，但会话校验暂不可用，暂不能写入。','error');
+    gateways.init(atlas, {
+      record:id=>stateReady ? state.gateways?.[id] : undefined,
+      revision:()=>state.revision,
+      canWrite:canEditProfile,
+      skillName:id=>maps.skills.get(id)?.skill_name || id,
+      navigate:id=>{history.pushState(null,'',route('skill',id));renderRoute(true);},
+      save:async (id,payload)=>{
+        if (!canEditProfile()) throw new Error('另一个记录正在保存，或私人记录尚未解锁');
+        gatewayWriteInFlight=true; setProfileControlsDisabled(true);
+        try {
+          state=await responseJson(await fetch(`/api/learning-gateways/${encodeURIComponent(id)}`,{
+            method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Lab-CSRF':csrf},body:JSON.stringify(payload)
+          }));
+          return state.revision;
+        } catch(error) {
+          if(error.status===409) await refreshState().catch(()=>{});
+          throw error;
+        } finally {gatewayWriteInFlight=false;setProfileControlsDisabled(false);}
+      }
+    });
     if (previewResult.status==='fulfilled' && Array.isArray(previewResult.value.items)) {
       assets=previewResult.value.items.filter(item=>typeof item.src==='string'&&/^\/api\/learning-preview\/P\d+\.(?:jpg|jpeg|png|webp|avif)$/.test(item.src)&&Number.isFinite(item.width)&&Number.isFinite(item.height));
       renderDomainGrid();

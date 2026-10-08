@@ -26,6 +26,12 @@ MAX_PHOTO_PIXELS = 40_000_000
 MAX_LOG_CHARS = 8000
 MAX_NOTES_CHARS = 12000
 STATUSES = {"unassessed", "unstarted", "learning", "practicing", "field_verified", "mastered"}
+GATEWAY_STAGES = {"unassessed", "unseen", "terms", "principles", "analysis", "transfer", "field"}
+GATEWAY_ANSWER_KEYS = {"observation", "comparison", "transfer", "confusion"}
+GATEWAY_REVEALED_KEYS = {"observation", "comparison", "transfer"}
+GATEWAY_SECTIONS = {"problem", "observe", "principle", "contrast", "boundary", "transfer", "reflect", "sources"}
+MAX_GATEWAY_ANSWER_CHARS = 8000
+GATEWAY_FIELDS = {"stage", "answers", "revealed", "last_section"}
 IMAGE_FORMATS = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}
 PHOTO_NAME = re.compile(r"([0-9a-f]{64})\.(jpg|png|webp)\Z")
 
@@ -65,8 +71,55 @@ def _load_skills(web_dir: Path) -> set[str]:
     return ids
 
 
+def _load_gateways(web_dir: Path) -> set[str] | None:
+    """Return the gateway allowlist, or None for a pre-gateway atlas."""
+    atlas = web_dir / "learning-atlas.json"
+    try:
+        data = json.loads(atlas.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        _fail(503, "摄影学习研究数据尚未加载")
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        _fail(503, "摄影学习研究数据不可读取")
+    if (not isinstance(data, dict) or type(data.get("schema_version")) is not int
+            or data["schema_version"] != 1 or not isinstance(data.get("skills"), list)):
+        _fail(503, "摄影学习研究数据格式无效")
+    if "gateways" not in data:
+        return None
+    gateways = data["gateways"]
+    if not isinstance(gateways, list):
+        _fail(503, "摄影学习网关白名单格式无效")
+    ids: set[str] = set()
+    for item in gateways:
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not item["id"]:
+            _fail(503, "摄影学习网关白名单格式无效")
+        if item["id"] in ids:
+            _fail(503, "摄影学习网关白名单含重复 ID")
+        ids.add(item["id"])
+    return ids
+
+
 def _blank() -> dict[str, Any]:
     return {"revision": 0, "skills": {}}
+
+
+def _validate_gateway_record(gateway_id: Any, record: Any) -> bool:
+    if (not isinstance(gateway_id, str) or not gateway_id or not isinstance(record, dict)
+            or set(record) != GATEWAY_FIELDS):
+        return False
+    if not isinstance(record["stage"], str) or record["stage"] not in GATEWAY_STAGES:
+        return False
+    answers = record["answers"]
+    if (not isinstance(answers, dict)
+            or any(not isinstance(key, str) or key not in GATEWAY_ANSWER_KEYS for key in answers)
+            or any(not isinstance(value, str) or len(value) > MAX_GATEWAY_ANSWER_CHARS
+                   for value in answers.values())):
+        return False
+    revealed = record["revealed"]
+    if (not isinstance(revealed, list) or any(not isinstance(item, str) or item not in GATEWAY_REVEALED_KEYS
+                                               for item in revealed)
+            or len(set(revealed)) != len(revealed)):
+        return False
+    return isinstance(record["last_section"], str) and record["last_section"] in GATEWAY_SECTIONS
 
 
 def _read_state(path: Path) -> dict[str, Any]:
@@ -92,6 +145,12 @@ def _read_state(path: Path) -> dict[str, Any]:
                 or any(key in record and type(record[key]) is not bool for key in ("weak", "focus"))
                 or ("notes" in record and not isinstance(record["notes"], str))):
             _fail(503, "学习记录格式无效")
+    if "gateways" in value:
+        if not isinstance(value["gateways"], dict):
+            _fail(503, "学习网关记录格式无效")
+        for gateway_id, record in value["gateways"].items():
+            if not _validate_gateway_record(gateway_id, record):
+                _fail(503, "学习网关记录格式无效")
     return value
 
 
@@ -136,6 +195,53 @@ def _skill(skill_ids: set[str], skill_id: str) -> None:
         _fail(404, "未知的摄影学习技能")
 
 
+def _gateway(gateway_ids: set[str] | None, gateway_id: str) -> None:
+    if gateway_ids is None or gateway_id not in gateway_ids:
+        _fail(404, "未知的摄影学习网关")
+
+
+def _validate_gateway(body: Any) -> dict[str, Any]:
+    if not isinstance(body, dict) or "expected_revision" not in body:
+        _fail(422, "请求必须包含 expected_revision")
+    if (set(body) - (GATEWAY_FIELDS | {"expected_revision"})
+            or not (set(body) & GATEWAY_FIELDS)):
+        _fail(422, "仅允许更新 stage、answers、revealed 或 last_section")
+    result: dict[str, Any] = {}
+    if "stage" in body:
+        if not isinstance(body["stage"], str) or body["stage"] not in GATEWAY_STAGES:
+            _fail(422, "stage 值无效")
+        result["stage"] = body["stage"]
+    if "answers" in body:
+        answers = body["answers"]
+        if (not isinstance(answers, dict)
+                or any(not isinstance(key, str) or key not in GATEWAY_ANSWER_KEYS for key in answers)
+                or any(not isinstance(value, str) or len(value) > MAX_GATEWAY_ANSWER_CHARS
+                       for value in answers.values())):
+            _fail(422, "answers 格式无效")
+        result["answers"] = answers
+    if "revealed" in body:
+        revealed = body["revealed"]
+        if (not isinstance(revealed, list)
+                or any(not isinstance(item, str) or item not in GATEWAY_REVEALED_KEYS for item in revealed)
+                or len(set(revealed)) != len(revealed)):
+            _fail(422, "revealed 必须是 observation、comparison、transfer 的无重复列表")
+        result["revealed"] = revealed
+    if "last_section" in body:
+        if not isinstance(body["last_section"], str) or body["last_section"] not in GATEWAY_SECTIONS:
+            _fail(422, "last_section 值无效")
+        result["last_section"] = body["last_section"]
+    return result
+
+
+def _gateway_state(state: dict[str, Any], gateway_id: str) -> dict[str, Any]:
+    record = state.setdefault("gateways", {}).setdefault(gateway_id, {})
+    record.setdefault("stage", "unassessed")
+    record.setdefault("answers", {})
+    record.setdefault("revealed", [])
+    record.setdefault("last_section", "problem")
+    return record
+
+
 def _validate_profile(body: Any) -> dict[str, Any]:
     if not isinstance(body, dict) or "expected_revision" not in body:
         _fail(422, "请求必须包含 expected_revision")
@@ -170,10 +276,16 @@ def router(web_dir: Path, data_dir: Path) -> APIRouter:
     @routes.get("/api/learning-state")
     def get_state():
         skill_ids = _load_skills(web_dir)
+        gateway_ids = _load_gateways(web_dir)
         with state_lock:
             state = _read_state(state_path)
             # Unknown old IDs are never exposed after the canonical tree changes.
             state["skills"] = {key: value for key, value in state["skills"].items() if key in skill_ids}
+            # Keep the exact legacy response shape until a gateway catalogue or
+            # persisted gateway data exists. Unknown persisted records stay on disk.
+            if gateway_ids is not None or "gateways" in state:
+                state["gateways"] = {key: value for key, value in state.get("gateways", {}).items()
+                                     if gateway_ids is not None and key in gateway_ids}
             return state
 
     @routes.put("/api/learning-state/{skill_id}")
@@ -188,6 +300,26 @@ def router(web_dir: Path, data_dir: Path) -> APIRouter:
             record.update(updates)
             state["revision"] += 1
             _write_state(state_path, state)
+            return state
+
+    @routes.put("/api/learning-gateways/{gateway_id}")
+    def put_gateway(gateway_id: str, body: dict[str, Any]):
+        gateway_ids = _load_gateways(web_dir)
+        skill_ids = _load_skills(web_dir)
+        _gateway(gateway_ids, gateway_id)
+        updates = _validate_gateway(body)
+        with state_lock:
+            state = _read_state(state_path)
+            _expected(body, state)
+            record = _gateway_state(state, gateway_id)
+            record.update(updates)
+            state["revision"] += 1
+            _write_state(state_path, state)
+            # Return the shared state using the currently allowlisted IDs only;
+            # the persisted unknown records remain untouched.
+            state["skills"] = {key: value for key, value in state["skills"].items() if key in skill_ids}
+            state["gateways"] = {key: value for key, value in state["gateways"].items()
+                                 if key in gateway_ids}
             return state
 
     @routes.post("/api/learning-state/{skill_id}/logs", status_code=201)

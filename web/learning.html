@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f3f6f8">
   <title>摄影能力地图 · 摄影学习</title>
-  <link rel="stylesheet" href="/static/learning.css?v=atlas-study-20261008">
-  <script src="/static/learning.js?v=atlas-study-20261008" defer></script>
+  <link rel="stylesheet" href="/static/learning.css?v=learning-loop-20261009">
+  <link rel="stylesheet" href="/static/learning-gateways.css?v=learning-loop-20261009">
+  <script src="/static/learning-gateways.js?v=learning-loop-20261009" defer></script>
+  <script src="/static/learning.js?v=learning-loop-20261009" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到内容</a>
@@ -53,6 +55,7 @@
       </section>
 
       <section id="home-view" aria-labelledby="domains-title">
+        <section id="gateway-index" class="gateway-index" aria-label="认知入口" hidden></section>
         <div class="section-heading"><div><p class="eyebrow">A MAP OF PRACTICE</p><h2 id="domains-title">从一个领域开始</h2></div></div>
         <div id="domain-grid" class="domain-grid" aria-label="摄影能力领域"></div>
       </section>
@@ -79,6 +82,7 @@
     <section id="problem-view" class="page-shell detail-view" aria-labelledby="problem-title" hidden></section>
   </main>
 
+  <dialog id="gateway-dialog" class="gateway-dialog" aria-labelledby="gateway-title"></dialog>
   <dialog id="record-dialog" class="record-dialog" aria-labelledby="record-title">
     <form id="record-form">
       <div class="dialog-heading"><div><p class="eyebrow">PRIVATE PRACTICE LOG</p><h2 id="record-title">记下这次练习</h2></div><button id="record-close" class="close-button" type="button" aria-label="关闭">×</button></div>

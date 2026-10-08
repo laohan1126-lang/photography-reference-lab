@@ -107,7 +107,16 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+        # Only the teaching document embeds reviewed, licensed Commons thumbnails.
+        # The private reference app and all executable/network directives stay local.
+        image_sources = "'self' data: blob:"
+        if path == "/learning":
+            image_sources += " https://thumb.wikimedia.org/wikipedia/commons/thumb/"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+            f"img-src {image_sources}; connect-src 'self'; object-src 'none'; "
+            "base-uri 'none'; frame-ancestors 'none'"
+        )
         response.headers["Cache-Control"] = "private, no-store" if path.startswith("/api/") else "no-cache"
         return response
 

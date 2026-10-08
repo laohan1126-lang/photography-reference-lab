@@ -12,6 +12,7 @@ if __package__ in {None, ""}:
 
 from tools.validate_photography_atlas import ROOT, validate_atlas
 from tools.validate_photography_tutorials import validate_tutorials
+from tools.validate_learning_gateways import validate_gateways
 
 
 def normalized_conflicts(records: list, source_map: dict, skills: list) -> list:
@@ -60,6 +61,9 @@ def build_payload(directory: Path) -> dict:
     tutorials = directory / "TUTORIALS.json"
     if tutorials.is_file():
         inputs["TUTORIALS"] = json.loads(tutorials.read_text(encoding="utf-8"))
+    gateways = directory / "GATEWAYS.json"
+    if gateways.is_file():
+        inputs["GATEWAYS"] = json.loads(gateways.read_text(encoding="utf-8"))
     source_map, tree = inputs["SOURCE_MAP"], inputs["SKILL_TREE"]
     result = validate_atlas(source_map, tree)
     if result["errors"]:
@@ -68,6 +72,10 @@ def build_payload(directory: Path) -> dict:
     tutorial_errors = validate_tutorials(tutorial_catalog, tree, source_map)
     if tutorial_errors:
         raise ValueError("Tutorial integrity failed: " + "; ".join(tutorial_errors[:20]))
+    gateway_catalog = inputs.get("GATEWAYS", {"schema_version": 1, "gateways": [], "sources": []})
+    gateway_errors = validate_gateways(gateway_catalog, tree)
+    if gateway_errors:
+        raise ValueError("Gateway integrity failed: " + "; ".join(gateway_errors[:20]))
     digest = hashlib.sha256(json.dumps(inputs, ensure_ascii=False, sort_keys=True,
                                       separators=(",", ":")).encode("utf-8")).hexdigest()
     return {"schema_version": 1, "research_version": digest,
@@ -78,6 +86,7 @@ def build_payload(directory: Path) -> dict:
             "problem_index": inputs["GAP_AUDIT"].get("problem_index", []),
             "project_checklists": inputs.get("PROJECT_CHECKLISTS", {}).get("checklists", []),
             "tutorials": tutorial_catalog["resources"],
+            "gateways": gateway_catalog["gateways"], "gateway_sources": gateway_catalog["sources"],
             "research_scope": "Source-backed skills; practice thresholds are project-designed unless attributed otherwise."}
 
 
