@@ -466,6 +466,7 @@ def test_companion_materials_are_actionable_and_preserve_research_and_navigation
         atlas = page.request.get(origin + '/static/learning-atlas.json').json()
         skill = 'perspective-skill-angle-comparison'
         page.goto(origin + f'/learning#skill={skill}')
+        page.locator('[data-section-target="skill-tutorials"]').click()
         companions = page.locator('#skill-tutorials')
         expect(companions.locator('[data-tutorial]').first).to_be_visible()
         expect(companions.get_by_text('从这里开始', exact=True).first).to_be_visible()
@@ -482,6 +483,7 @@ def test_companion_materials_are_actionable_and_preserve_research_and_navigation
 
         video = next(item for item in atlas['tutorials'] if item['verification']['level'] == 'page_and_description')
         page.goto(origin + '/learning#skill=' + video['skill_ids'][0])
+        page.locator('[data-section-target="skill-tutorials"]').click()
         page.locator('#skill-tutorials').wait_for()
         more = page.locator('#skill-tutorials .more-tutorials')
         if more.count():
@@ -494,6 +496,7 @@ def test_companion_materials_are_actionable_and_preserve_research_and_navigation
         curated_ids = {ident for item in atlas['tutorials'] for ident in item['skill_ids']}
         fallback = next(item for item in atlas['skills'] if item['id'] not in curated_ids)
         page.goto(origin + '/learning#skill=' + fallback['id'])
+        page.locator('[data-section-target="skill-tutorials"]').click()
         expect(page.locator('#skill-tutorials')).to_contain_text('尚未精选到专门教程')
         expect(page.locator('#skill-tutorials .original-reading a').first).to_be_visible()
         assert page.locator('#skill-tutorials [data-tutorial]').count() == 0
@@ -513,6 +516,7 @@ def test_shared_textbook_does_not_attach_unrelated_conflicts_to_a_skill(learning
         expect(page.locator('#skill-view')).to_contain_text('肖像机位高度建议')
         page.goto(origin + '/learning#skill=mot-03')
         expect(page.locator('#skill-view')).to_contain_text('静态照片里追随摇摄与固定机位长曝光都能表现运动')
+        page.locator('[data-section-target="skill-research"]').click()
         conflict = page.locator('#skill-view .evidence-item').filter(has_text='静态照片里追随摇摄与固定机位长曝光都能表现运动')
         conflict.get_by_text('关联来源', exact=True).click()
         expect(conflict.locator('a.source-link')).to_have_count(4)

@@ -310,3 +310,58 @@ select,.record-dialog input[type="text"],.record-dialog textarea {padding:8px 10
   .record-dialog form {padding:20px 17px}
 }
 @media(prefers-reduced-motion:reduce) {*,*:before,*:after {scroll-behavior:auto!important; transition:none!important}}
+
+/* Knowledge notes and their linked training. */
+.learning-reader {min-width:0}
+.learning-tabs {display:flex;gap:28px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.learning-tabs button {padding:13px 0;font:500 20px var(--serif);border:0;background:none;color:var(--muted);border-bottom:2px solid transparent}
+.learning-tabs button[aria-selected="true"] {color:var(--ink);border-bottom-color:var(--blue)}
+.learning-tabs span {font:12px var(--sans);margin-left:5px;color:var(--muted)}
+.note-index {display:flex;gap:8px 18px;flex-wrap:wrap;padding:0 0 20px}
+.note-index button,.related-training button,.training-basis button,.training-footer button,.existing-point>button {border:0;background:none;color:var(--blue);font:inherit;text-align:left;padding:0;cursor:pointer;line-height:1.7}
+.note-index button {font-size:12px;text-decoration:underline;text-underline-offset:4px}
+.knowledge-note,.training-note {padding:24px 0 32px;border-bottom:1px solid var(--line);scroll-margin-top:calc(var(--header) + 20px)}
+.knowledge-note:first-of-type,.training-note:first-child {padding-top:0}
+.knowledge-note h3,.training-note h3 {font:500 26px/1.4 var(--serif);margin:0 0 14px}
+.knowledge-note p,.training-note p,.training-note li,.existing-point li {font-size:15px;line-height:1.85;margin:14px 0}
+.knowledge-note .note-lead {font-size:17px;color:var(--ink);margin-top:0}
+.learning-media-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0}
+.learning-media {margin:0;min-width:0}
+.learning-media-open {display:block;width:100%;border:0;padding:0;background:#e6e8e7;cursor:zoom-in}
+.learning-media img {display:block;width:100%;height:auto;object-fit:contain}
+.learning-media figcaption {font-size:12px;line-height:1.65;color:var(--muted);padding-top:9px;overflow-wrap:anywhere}
+.learning-media figcaption span {display:block;font-size:11px;margin-top:3px}
+.learning-media a,.note-citations a {color:var(--blue)}
+.learning-media-unavailable {padding:20px;background:var(--white);border:1px solid var(--line);color:var(--muted)}
+.knowledge-note .note-memory {border-left:3px solid var(--blue);padding:8px 14px;background:#eef2f3;color:var(--ink);font-weight:500;margin:22px 0}
+.related-training {display:flex;flex-direction:column;gap:8px;margin:20px 0 16px;font-size:14px}
+.note-citations {font-size:12px;color:var(--muted)}
+.note-citations summary {cursor:pointer;color:var(--blue)}
+.note-citations p {font-size:12px;margin:12px 0}
+.note-citations small {font-size:11px}
+.training-basis {display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:20px;font-size:13px}
+.training-basis>span {color:var(--muted)}
+.training-note ol,.training-note ul {padding-left:23px}
+.training-check {margin:20px 0;padding:14px 18px;background:var(--white);border:1px solid var(--line)}
+.training-check h4,.existing-point h4 {font-size:13px;font-weight:500;margin:0}
+.training-check li {font-size:14px;margin:7px 0}
+.training-footer {display:flex;gap:16px;align-items:center;justify-content:space-between;font-size:13px}
+.training-footer small,.existing-reading-hint {color:var(--muted);font-size:12px!important}
+.skill-materials {margin-top:28px;border-top:1px solid var(--line);padding-top:18px}
+.skill-materials>summary {cursor:pointer;color:var(--blue);font-size:13px}
+.skill-detail .skill-heading {padding-bottom:20px;align-items:center;gap:28px}
+.skill-detail .skill-heading h1 {font-size:clamp(27px,3vw,36px)}
+.skill-detail .skill-controls {padding:12px 14px}
+.skill-detail .skill-controls label {display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.skill-detail .skill-controls select {min-width:0;flex:1;width:auto}
+.skill-detail .skill-columns {padding-top:8px}
+.skill-detail .skill-jump-links {margin-bottom:20px}
+.learning-reader [hidden] {display:none!important}
+@media(max-width:760px) {
+  .skill-detail .skill-heading {gap:16px}
+  .knowledge-note h3,.training-note h3 {font-size:23px}
+  .learning-media-grid {gap:14px;grid-template-columns:1fr}
+  .knowledge-note p,.training-note p,.training-note li {font-size:14px}
+  .knowledge-note .note-lead {font-size:15px}
+  .training-footer {align-items:start;flex-direction:column;gap:9px}
+}

@@ -202,6 +202,7 @@ def test_each_gateway_full_path_keeps_legacy_status_and_persists_observations(le
         skill = next(s for s in atlas['skills'] if s['id'] == gateway['skill_ids'][0])
         module = next(m for m in atlas['modules'] if m['id'] == skill['module_id'])
         _open_path(page, module['domain_id'], module['id'], skill['id'])
+        page.locator('[data-section-target="skill-tutorials"]').click()
         entry = page.locator(f'#skill-view [data-open-gateway="{gateway["id"]}"]')
         entry.click()
         expect(page.locator('#gateway-dialog')).to_be_visible()
@@ -225,6 +226,7 @@ def test_each_gateway_full_path_keeps_legacy_status_and_persists_observations(le
         expect(entry).to_be_focused()
         expect(page.locator('#skill-status')).to_have_value('unassessed')
         page.reload()
+        page.locator('[data-section-target="skill-tutorials"]').click()
         page.locator(f'#skill-view [data-open-gateway="{gateway["id"]}"]').click()
         expect(page.locator('#gw-answer-transfer')).to_have_value('新图中看到的证据与仍未知的条件。')
         state = page.request.get(origin + '/api/learning-state').json()
@@ -303,6 +305,7 @@ def test_gateway_refresh_does_not_authorize_a_stale_skill_form(learning_site):
         skill = 'perspective-skill-height-vs-pitch'
         _open_path(page, 'perspective', 'perspective-1', skill)
         page.locator('#skill-notes').fill('本页尚未保存的技能草稿')
+        page.locator('[data-section-target="skill-tutorials"]').click()
         page.locator('#skill-view [data-open-gateway]').first.click()
         page.locator('#gw-answer-observation').fill('本页认知入口草稿')
         remote = page.request.put(origin + '/api/learning-state/' + skill,
@@ -319,6 +322,7 @@ def test_gateway_refresh_does_not_authorize_a_stale_skill_form(learning_site):
         assert persisted['skills'][skill]['notes'] == '另一窗口的新备注'
         page.locator('#skill-record-reload').click()
         expect(page.locator('#skill-notes')).to_have_value('另一窗口的新备注')
+        page.locator('[data-section-target="skill-tutorials"]').click()
         page.locator('#skill-view [data-open-gateway]').first.click()
         expect(page.locator('#gw-answer-observation')).to_have_value('本页认知入口草稿')
         browser.close()

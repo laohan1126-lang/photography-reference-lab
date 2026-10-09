@@ -13,6 +13,7 @@ if __package__ in {None, ""}:
 from tools.validate_photography_atlas import ROOT, validate_atlas
 from tools.validate_photography_tutorials import validate_tutorials
 from tools.validate_learning_gateways import validate_gateways
+from tools.validate_learning_content import validate_learning_content
 
 
 def normalized_conflicts(records: list, source_map: dict, skills: list) -> list:
@@ -64,6 +65,9 @@ def build_payload(directory: Path) -> dict:
     gateways = directory / "GATEWAYS.json"
     if gateways.is_file():
         inputs["GATEWAYS"] = json.loads(gateways.read_text(encoding="utf-8"))
+    learning_content_path = directory / "LEARNING_CONTENT.json"
+    if learning_content_path.is_file():
+        inputs["LEARNING_CONTENT"] = json.loads(learning_content_path.read_text(encoding="utf-8"))
     source_map, tree = inputs["SOURCE_MAP"], inputs["SKILL_TREE"]
     result = validate_atlas(source_map, tree)
     if result["errors"]:
@@ -76,6 +80,12 @@ def build_payload(directory: Path) -> dict:
     gateway_errors = validate_gateways(gateway_catalog, tree)
     if gateway_errors:
         raise ValueError("Gateway integrity failed: " + "; ".join(gateway_errors[:20]))
+    learning_content = inputs.get("LEARNING_CONTENT", {
+        "schema_version": 1, "notes": [], "trainings": [], "sources": [], "media": [],
+    })
+    content_errors = validate_learning_content(learning_content, tree)
+    if content_errors:
+        raise ValueError("Learning content integrity failed: " + "; ".join(content_errors[:20]))
     digest = hashlib.sha256(json.dumps(inputs, ensure_ascii=False, sort_keys=True,
                                       separators=(",", ":")).encode("utf-8")).hexdigest()
     return {"schema_version": 1, "research_version": digest,
@@ -87,6 +97,7 @@ def build_payload(directory: Path) -> dict:
             "project_checklists": inputs.get("PROJECT_CHECKLISTS", {}).get("checklists", []),
             "tutorials": tutorial_catalog["resources"],
             "gateways": gateway_catalog["gateways"], "gateway_sources": gateway_catalog["sources"],
+            "learning_content": learning_content,
             "research_scope": "Source-backed skills; practice thresholds are project-designed unless attributed otherwise."}
 
 

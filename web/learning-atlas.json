@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "research_version": "14701727c23cf24e1f0949bb022e25a84a7f2251083117a3c63da03c342883b0",
+  "research_version": "5ebbeb237d7d433cddc314a504f9a2ab05cabedf440b453165a28f7609999b5f",
   "meta": {
     "title": "摄影能力地图",
     "target": "真人 Cosplay / 人像现场摄影",
@@ -23334,5 +23334,365 @@
       "limitation": "单幅成片不能确定反射面、环境填充、后期或精确光比。Licensing段当前列CC BY-SA 4.0，Summary仍有3.0标签；两版均需署名与ShareAlike。页面记录上传者声明人物同意自由许可，非独立模特授权审查。"
     }
   ],
+  "learning_content": {
+    "schema_version": 1,
+    "notes": [
+      {
+        "id": "perspective-note-distance-first",
+        "title": "比例怪，先检查距离",
+        "skill_ids": [
+          "perspective-skill-height-proportion-diagnosis",
+          "perspective-skill-optical-vs-perspective"
+        ],
+        "lead": "低机位不保证比例自然。近拍时，靠镜头更近的部位会更突出。",
+        "paragraphs": [
+          "Koldunov 的鼻与耳示范：近拍时鼻部更显眼；后退后，鼻耳大小差异收敛。",
+          "先退一点检查比例；要维持画面大小，再变焦或裁切。裁切能收紧构图，不能改变已拍下的近远关系。",
+          "头或上身过突出时，检查是否贴近或向前探；相机已经放低，也要检查谁离镜头更近。"
+        ],
+        "memory": "先退，再取景。",
+        "media_ids": [
+          "s1-close",
+          "s1-recede"
+        ],
+        "citations": [
+          {
+            "source_id": "pilot-s1",
+            "position": "00:34–00:56",
+            "detail": "画面文字和鼻耳对照；低机位头身排查是对距离原理的迁移，作者未演示这一类低机位错误。"
+          },
+          {
+            "source_id": "pilot-s2",
+            "position": "01:35–01:52",
+            "detail": "全身拍摄时后退以控制透视夸张。"
+          }
+        ]
+      },
+      {
+        "id": "perspective-note-height-by-shot",
+        "title": "拍脸看下巴，拍全身看头脚",
+        "skill_ids": [
+          "perspective-skill-height-proportion-diagnosis"
+        ],
+        "lead": "机位高度要按景别判断：近景看脸部比例，全身看整体头身与腿脚。",
+        "paragraphs": [
+          "Manny 并排展示下巴、眼平和额头高度：机位变化会改变下巴、颈部和额头的显著程度。",
+          "普通全身的人像起点约在下胸附近；再降低可以表现腿长、环境或力量。作者把略高于眼平向下拍列为普通全身的提醒例，不是推荐机位。",
+          "高度是起点，不是固定公式。距离、姿态和拍摄意图一起决定画面。"
+        ],
+        "memory": "拍脸看下巴，拍全身看头脚。",
+        "media_ids": [
+          "s2-face-heights",
+          "s2-lower-chest",
+          "s2-knee-level",
+          "s2-above-eye-warning"
+        ],
+        "citations": [
+          {
+            "source_id": "pilot-s2",
+            "position": "00:52",
+            "detail": "下巴、眼平、额头三个机位并排展示。"
+          },
+          {
+            "source_id": "pilot-s2",
+            "position": "01:48–02:12",
+            "detail": "普通全身起点、刻意降低及过高俯拍提醒。"
+          },
+          {
+            "source_id": "pilot-s4",
+            "position": "20:28–21:10",
+            "detail": "课件字幕提醒高机位时考虑缩小景别；未把虚拟演示作为真人图像证据。"
+          }
+        ]
+      },
+      {
+        "id": "perspective-note-face-direction",
+        "title": "仰拍先安排脸的方向",
+        "skill_ids": [
+          "perspective-skill-height-proportion-diagnosis"
+        ],
+        "lead": "低机位可以配合脸的朝向与身体姿态，不必只靠继续压低相机。",
+        "paragraphs": [
+          "伍伍的课程示范了两种处理：侧面望向上方，或正面略微俯身看镜头。三幅图来自不同人物和场景，不是同一条件的前后对照。",
+          "如果脸向前探得离相机更近，鼻部仍可能显得突出。结合距离示范，先看脸朝向，再检查脸离镜头多近。",
+          "Manny 也把贴地角度作为创意表达与普通客户人像分开讨论；低机位是否合适，取决于你想表达什么。"
+        ],
+        "memory": "先看脸向哪，再看脸多近。",
+        "media_ids": [
+          "s4-double-chin",
+          "s4-side-upward",
+          "s4-front-caption"
+        ],
+        "citations": [
+          {
+            "source_id": "pilot-s4",
+            "position": "00:07–00:13",
+            "detail": "课程下巴例图及侧面、正面姿态建议；例图并非同人前后对照。"
+          },
+          {
+            "source_id": "pilot-s1",
+            "position": "00:34–00:56",
+            "detail": "近拍与后退的脸部透视差异。"
+          },
+          {
+            "source_id": "pilot-s2",
+            "position": "02:19–02:49",
+            "detail": "普通客户与创意贴地角度的适用意图。"
+          }
+        ]
+      },
+      {
+        "id": "perspective-note-use-the-foreground",
+        "title": "比例正常后，让前景与背景承担体量",
+        "skill_ids": [
+          "perspective-skill-height-proportion-diagnosis"
+        ],
+        "lead": "气势也可以来自画面里的近远层次，不必把脸推到镜头前。",
+        "paragraphs": [
+          "Koldunov 展示后退后重新安排人物和背景，并建议可行时变焦取景。前后画面景别不同，不当作等构图单变量对照。",
+          "一晨的森林案例用近处石头和伸出的腿组织前后层次；花间坐姿则是另一种姿态与环境安排。",
+          "作者还讲低机位可避开斑驳草地和后方人群。先保证人物比例，再用前景、姿态和背景表达体量。"
+        ],
+        "memory": "近大远小，也可以留给前景。",
+        "media_ids": [
+          "s1-background-near",
+          "s1-background-far",
+          "s3-stone-foreground",
+          "s3-flower-pose"
+        ],
+        "citations": [
+          {
+            "source_id": "pilot-s1",
+            "position": "01:20–01:40",
+            "detail": "人物与背景布的相对大小；后退前后景别不同。"
+          },
+          {
+            "source_id": "pilot-s3",
+            "position": "00:45–01:34",
+            "detail": "讲解低机位避开斑驳草地。"
+          },
+          {
+            "source_id": "pilot-s3",
+            "position": "02:00–02:50",
+            "detail": "讲解背景人群与广角低机位森林人像；未测得照片的焦距或准确机高。"
+          }
+        ]
+      }
+    ],
+    "trainings": [
+      {
+        "id": "perspective-training-distance-and-proportion",
+        "title": "距离与比例对照",
+        "skill_ids": [
+          "perspective-skill-height-proportion-diagnosis",
+          "perspective-skill-optical-vs-perspective"
+        ],
+        "note_ids": [
+          "perspective-note-distance-first"
+        ],
+        "basis": "project_designed",
+        "steps": [
+          "固定人物姿势和相机高度，先近距离拍一张。",
+          "向后移动再拍；用变焦或裁切让人物在画面里大小接近。",
+          "并排比较鼻与耳、头与肩的相对大小，再比较背景范围。"
+        ],
+        "checks": [
+          "能指出距离变化后哪个近处部位不再那么突出。",
+          "能说出裁切改变了取景范围，却没有改写拍摄时的透视关系。"
+        ]
+      },
+      {
+        "id": "perspective-training-height-by-intent",
+        "title": "机位高度与景别",
+        "skill_ids": [
+          "perspective-skill-height-proportion-diagnosis"
+        ],
+        "note_ids": [
+          "perspective-note-height-by-shot",
+          "perspective-note-face-direction"
+        ],
+        "basis": "project_designed",
+        "steps": [
+          "固定人物、姿势、机距与焦段，拍一组下巴、眼平、额头高度的半身照。",
+          "机距与焦段不变，从下胸高度和膝高各拍一张，记下镜头是否上仰；另拍略高于眼平的俯拍对照。",
+          "标出每张最显眼的部位，并写下它适合普通人像还是刻意表达。"
+        ],
+        "checks": [
+          "能从脸部与全身画面分别指出变化，并说明这次改变了高度还是俯仰。",
+          "不会把某一高度判成所有场景的标准答案。"
+        ]
+      },
+      {
+        "id": "perspective-training-foreground-volume",
+        "title": "用前景表达体量",
+        "skill_ids": [
+          "perspective-skill-height-proportion-diagnosis"
+        ],
+        "note_ids": [
+          "perspective-note-use-the-foreground",
+          "perspective-note-distance-first"
+        ],
+        "basis": "project_designed",
+        "steps": [
+          "先选一个不会挡住人物的近处前景，让模特保持在舒适的拍摄距离。",
+          "分别拍入前景和避开前景的两张，再移动相机检查人物比例。",
+          "观察前景、人物与背景的大小层次，选出更符合表达目的的一张。"
+        ],
+        "checks": [
+          "画面有体量感时，人物脸部比例仍然自然。",
+          "能说明体量来自前景、姿态或背景中的哪一处。"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "pilot-s1",
+        "author": "Koldunov Brothers",
+        "title": "The Truth About Facial Distortion: Why Lenses Don't Cause It",
+        "url": "https://www.youtube.com/watch?v=cH2SYQ_SBwc",
+        "inspection": "检查 480p 原视频的画面文字与 00:34–01:40 距离、裁切和人物/背景片段。"
+      },
+      {
+        "id": "pilot-s2",
+        "author": "Manny Ortiz",
+        "title": "This is the PERFECT Camera height for Portraits and HERE'S WHY. (FULL BREAKDOWN)",
+        "url": "https://www.youtube.com/watch?v=kHlzwHBCuaE",
+        "inspection": "检查 240p 原视频机位标注和关键画面；本地转录 48 段并核对对应片段。"
+      },
+      {
+        "id": "pilot-s3",
+        "author": "一晨叔叔I光环摄影",
+        "title": "人像摄影前期拍摄：低机位拍摄取景经验指导",
+        "url": "https://www.bilibili.com/video/BV1rb41137jg/",
+        "inspection": "正常播放并检查 00:25、01:05、01:30、02:00、02:30 等画面；转录 73 段并核对片段。"
+      },
+      {
+        "id": "pilot-s4",
+        "author": "伍伍摄影教学（页面署名）",
+        "title": "这3个摄影机位的雷区，你都知道了吗？",
+        "url": "https://www.douyin.com/video/7547980275746082087",
+        "inspection": "正常播放并读取关键画面、字幕和课件；检查约 00:03–01:18、04:08、20:28–21:10，未声称看完全片。"
+      }
+    ],
+    "media": [
+      {
+        "id": "s1-close",
+        "filename": "c124feaa88a61314e1e2a659bca48ec54fe2476c46e79ec4ef606f107ec5e9da.jpg",
+        "sha256": "c124feaa88a61314e1e2a659bca48ec54fe2476c46e79ec4ef606f107ec5e9da",
+        "source_id": "pilot-s1",
+        "position": "00:40",
+        "caption": "近拍示例：鼻部相对更突出。",
+        "alt": "近距离人脸画面，鼻部相对突出于耳部。"
+      },
+      {
+        "id": "s1-recede",
+        "filename": "5b098efb80322065251c4141e9c65fb6b82c196034054e7e3e72c53d53533512.jpg",
+        "sha256": "5b098efb80322065251c4141e9c65fb6b82c196034054e7e3e72c53d53533512",
+        "source_id": "pilot-s1",
+        "position": "00:54",
+        "caption": "后退示例：鼻与耳的视觉差异收敛。",
+        "alt": "较远距离的人脸画面，鼻与耳的相对大小差异较小。"
+      },
+      {
+        "id": "s1-background-near",
+        "filename": "8aaeb6e6e4f1d727d639eb747e1eb7fe08343017621867e2e36f78cc96ba5b3a.jpg",
+        "sha256": "8aaeb6e6e4f1d727d639eb747e1eb7fe08343017621867e2e36f78cc96ba5b3a",
+        "source_id": "pilot-s1",
+        "position": "01:20",
+        "caption": "人物与背景布的大小关系示例。",
+        "alt": "人像与后方背景布同框，人物相对更突出。"
+      },
+      {
+        "id": "s1-background-far",
+        "filename": "17d23b327bec38cadabb4d21392a6d5fdb87a042b78e9c3f6d28a7286d1e8790.jpg",
+        "sha256": "17d23b327bec38cadabb4d21392a6d5fdb87a042b78e9c3f6d28a7286d1e8790",
+        "source_id": "pilot-s1",
+        "position": "01:40",
+        "caption": "后退后人物与背景同框；前后两幅画面的景别不同。",
+        "alt": "后退后的较宽人像画面，人物和背景布同时入画。"
+      },
+      {
+        "id": "s2-face-heights",
+        "filename": "901d7b8b70ed34c4eb4b765753356c35075ce5445955119f94bcf702a78c5158.jpg",
+        "sha256": "901d7b8b70ed34c4eb4b765753356c35075ce5445955119f94bcf702a78c5158",
+        "source_id": "pilot-s2",
+        "position": "00:52",
+        "caption": "下巴、眼平、额头三个机位并排。",
+        "alt": "同一模特在下巴、眼平、额头高度的三联机位示意。"
+      },
+      {
+        "id": "s2-lower-chest",
+        "filename": "11f35cfbf41590991c657771a1d2c964854a75f475e0c433ddf7b2fb8e45a62f.jpg",
+        "sha256": "11f35cfbf41590991c657771a1d2c964854a75f475e0c433ddf7b2fb8e45a62f",
+        "source_id": "pilot-s2",
+        "position": "01:48",
+        "caption": "普通全身人像的下胸高度示例。",
+        "alt": "摄影师在模特下胸高度拍摄全身人像。"
+      },
+      {
+        "id": "s2-knee-level",
+        "filename": "583693b064ee375fb3955113c41a1cc8ba3c7c4bc5eeb70d8b722e4479736ca8.jpg",
+        "sha256": "583693b064ee375fb3955113c41a1cc8ba3c7c4bc5eeb70d8b722e4479736ca8",
+        "source_id": "pilot-s2",
+        "position": "01:56",
+        "caption": "为了强调腿长与力量而有意降低机位。",
+        "alt": "摄影师蹲到膝高位置拍摄全身人像。"
+      },
+      {
+        "id": "s2-above-eye-warning",
+        "filename": "09d109f64888d9e0ab14f395b121336863357b1c4dce841e6623c24621ccb4f8.jpg",
+        "sha256": "09d109f64888d9e0ab14f395b121336863357b1c4dce841e6623c24621ccb4f8",
+        "source_id": "pilot-s2",
+        "position": "02:12",
+        "caption": "略高于眼平的俯拍提醒画面，是作者给出的普通全身反例。",
+        "alt": "摄影师从略高于眼平的位置向下拍摄全身人物。"
+      },
+      {
+        "id": "s4-double-chin",
+        "filename": "be1c2a4dd2bcf181a10ce13621c476c4e27e1c9afc24ec50ec912d2a0ed778a1.png",
+        "sha256": "be1c2a4dd2bcf181a10ce13621c476c4e27e1c9afc24ec50ec912d2a0ed778a1",
+        "source_id": "pilot-s4",
+        "position": "00:07",
+        "caption": "课程开头的仰拍下巴例图；不是后两幅的同人前后对照。",
+        "alt": "课程示例中一名戴太阳镜的女性仰拍下巴画面。"
+      },
+      {
+        "id": "s4-side-upward",
+        "filename": "f935a95b1a5be0428b389f220e8721609bb1f22c4dd7a18a8e5cbf512a45037e.png",
+        "sha256": "f935a95b1a5be0428b389f220e8721609bb1f22c4dd7a18a8e5cbf512a45037e",
+        "source_id": "pilot-s4",
+        "position": "00:10",
+        "caption": "另一场景中的侧面仰头示范。",
+        "alt": "摄影师蹲下仰拍一名侧面望向天空的女性。"
+      },
+      {
+        "id": "s4-front-caption",
+        "filename": "d171a582d27a37242d46d9de2ba9ff9f22aa3f08867ed8570e0e735913b39125.png",
+        "sha256": "d171a582d27a37242d46d9de2ba9ff9f22aa3f08867ed8570e0e735913b39125",
+        "source_id": "pilot-s4",
+        "position": "00:13",
+        "caption": "字幕建议正面略弯腰看镜头；与侧面图不是同一场景。",
+        "alt": "另一名女性略弯腰面向镜头的教程画面。"
+      },
+      {
+        "id": "s3-stone-foreground",
+        "filename": "c000cb62902d53f96e667c9dc7e9a6f4a77626a208b263a98290bdd07f06f0d6.jpg",
+        "sha256": "c000cb62902d53f96e667c9dc7e9a6f4a77626a208b263a98290bdd07f06f0d6",
+        "source_id": "pilot-s3",
+        "position": "02:30",
+        "caption": "低机位森林人像；近处石头与伸出的腿形成前后层次。",
+        "alt": "森林中的坐姿人像，左侧近处有大石头，人物伸出一条腿。"
+      },
+      {
+        "id": "s3-flower-pose",
+        "filename": "96aff82c4bda8286161cec464d595d09a56bf389d6174bbd737f373273d33141.jpg",
+        "sha256": "96aff82c4bda8286161cec464d595d09a56bf389d6174bbd737f373273d33141",
+        "source_id": "pilot-s3",
+        "position": "01:05",
+        "caption": "不同环境与姿态的花间坐姿案例。",
+        "alt": "花草间一名蓝衣女性坐在石头上。"
+      }
+    ]
+  },
   "research_scope": "Source-backed skills; practice thresholds are project-designed unless attributed otherwise."
 }

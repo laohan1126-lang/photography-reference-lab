@@ -1,4 +1,70 @@
 'use strict';
+/* Static teaching reader. Routes, revisions and private writes belong to learning.js. */
+(() => {
+  'use strict';
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeId = value => /^[a-z][a-z0-9-]{0,100}$/.test(String(value || ''));
+  const url = value => { try { const parsed = new URL(value); return parsed.protocol === 'https:' ? parsed.href : ''; } catch { return ''; } };
+  const sourceLink = (source, label) => url(source?.url) ? `<a href="${esc(url(source.url))}" target="_blank" rel="noopener noreferrer">${esc(label || source.author)}</a>` : esc(label || source?.author || '来源');
+  let returnFocus = null, wiredDialog = false;
+  function contentFor(skill, atlas) {
+    const content = atlas.learning_content || {}, allNotes = content.notes || [];
+    const trainings = (content.trainings || []).filter(item => item.skill_ids.includes(skill.id));
+    const required = new Set(trainings.flatMap(item => item.note_ids));
+    const notes = allNotes.filter(item => item.skill_ids.includes(skill.id) || required.has(item.id));
+    return {content, notes, trainings, sources:new Map((content.sources || []).map(item => [item.id,item])), media:new Map((content.media || []).map(item => [item.id,item]))};
+  }
+  function mediaFigure(item, source) {
+    if (!item || !safeId(item.id)) return '';
+    return `<figure class="learning-media"><button type="button" class="learning-media-open" data-teaching-media="${esc(item.id)}" aria-label="放大：${esc(item.alt)}"><img src="/api/learning-note-media/${esc(item.id)}" alt="${esc(item.alt)}" loading="lazy"></button><p class="learning-media-unavailable" hidden>图片暂不可读 · 可从下方来源回看</p><figcaption>${esc(item.caption)}<span>${sourceLink(source)} · ${esc(item.position)}</span></figcaption></figure>`;
+  }
+  function noteCard(note, ctx) {
+    const related = ctx.trainings.filter(item => item.note_ids.includes(note.id));
+    return `<article class="knowledge-note" id="learning-note-${esc(note.id)}" data-learning-note="${esc(note.id)}" tabindex="-1"><h3>${esc(note.title)}</h3><p class="note-lead">${esc(note.lead)}</p><div class="learning-media-grid">${note.media_ids.map(id => mediaFigure(ctx.media.get(id),ctx.sources.get(ctx.media.get(id)?.source_id))).join('')}</div>${note.paragraphs.map(text => `<p>${esc(text)}</p>`).join('')}${note.memory?`<p class="note-memory">${esc(note.memory)}</p>`:''}<div class="related-training">${related.map(item => `<button type="button" data-learning-training-target="${esc(item.id)}">练一遍：${esc(item.title)} <span aria-hidden="true">→</span></button>`).join('')}</div><details class="note-citations"><summary>出处与回看</summary>${note.citations.map(item => { const source=ctx.sources.get(item.source_id); return `<p>${sourceLink(source)} · ${esc(item.position)}<br>${esc(item.detail)}<br><small>${esc(source?.inspection || '')}</small></p>`; }).join('')}</details></article>`;
+  }
+  function trainingCard(item, ctx) {
+    const notes = item.note_ids.map(id => ctx.notes.find(note => note.id===id)).filter(Boolean);
+    return `<article class="training-note" id="learning-training-${esc(item.id)}" data-learning-training="${esc(item.id)}" tabindex="-1"><h3>${esc(item.title)}</h3><div class="training-basis"><span>依据笔记</span>${notes.map(note => `<button type="button" data-learning-note-target="${esc(note.id)}">${esc(note.title)} ↗</button>`).join('')}</div><ol>${item.steps.map(text => `<li>${esc(text)}</li>`).join('')}</ol><div class="training-check"><h4>拍完看什么</h4><ul>${item.checks.map(text => `<li>${esc(text)}</li>`).join('')}</ul></div><div class="training-footer"><small>${item.basis==='source_exercise'?'原作者练习':'根据笔记设计的训练'}</small><button type="button" data-training-record="${esc(item.id)}">记下这次训练</button></div></article>`;
+  }
+  function render(skill, atlas) {
+    const ctx = contentFor(skill,atlas);
+    const fallback = `<article id="learning-note-existing" class="knowledge-note existing-point" tabindex="-1"><h3>现有要点</h3><p class="note-lead">${esc(skill.capability || '')}</p>${skill.failure_modes?.length?`<h4>留意这些情况</h4><ul>${skill.failure_modes.map(text=>`<li>${esc(text)}</li>`).join('')}</ul>`:''}<button type="button" data-learning-training-target="existing">去训练 →</button><p class="existing-reading-hint">图文笔记待补充。已有教程与出处见下方资料区。</p></article>`;
+    const existingTraining = `<article id="learning-training-existing" class="training-note" tabindex="-1"><h3>试拍与比较</h3><div class="training-basis"><span>依据</span><button type="button" data-learning-note-target="existing">本技能现有要点 ↗</button></div><p>${esc(skill.practice || '先阅读本技能要点，选择一个实际画面进行比较。')}</p>${skill.acceptance?.length?`<div class="training-check"><h4>拍完看什么</h4><ul>${skill.acceptance.map(text=>`<li>${esc(text)}</li>`).join('')}</ul></div>`:''}<div class="training-footer"><small>${skill.practice_basis==='source_exercise'?'原作者练习':'原有项目训练'}</small><button type="button" data-training-record="existing">记下这次训练</button></div></article>`;
+    return `<div class="learning-reader"><div class="learning-tabs" role="tablist" aria-label="学习与训练"><button id="learning-notes-tab" type="button" role="tab" aria-selected="true" aria-controls="skill-learning-notes" data-learning-panel="notes">学习笔记${ctx.notes.length?` <span>${ctx.notes.length}</span>`:''}</button><button id="learning-training-tab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="skill-practice" data-learning-panel="training">训练${ctx.trainings.length?` <span>${ctx.trainings.length}</span>`:''}</button></div><section id="skill-learning-notes" role="tabpanel" aria-labelledby="learning-notes-tab">${ctx.notes.length?`<nav class="note-index" aria-label="知识点">${ctx.notes.map(note=>`<button type="button" data-learning-note-target="${esc(note.id)}">${esc(note.title)}</button>`).join('')}</nav>${ctx.notes.map(note=>noteCard(note,ctx)).join('')}${ctx.trainings.length?'':fallback}`:fallback}</section><section id="skill-practice" role="tabpanel" aria-labelledby="learning-training-tab" hidden>${ctx.trainings.length?ctx.trainings.map(item=>trainingCard(item,ctx)).join(''):existingTraining}</section></div>`;
+  }
+  function mount(container, skill, atlas, onRecord) {
+    const root = container.querySelector('.learning-reader'), ctx=contentFor(skill,atlas);
+    if (!root) return;
+    function show(panel, target, focusTab=false) {
+      const notes = panel==='notes';
+      root.querySelector('#skill-learning-notes').hidden=!notes;
+      root.querySelector('#skill-practice').hidden=notes;
+      root.querySelectorAll('[role="tab"]').forEach(tab=>{const selected=tab.dataset.learningPanel===panel; tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;if(selected && focusTab)tab.focus();});
+      if (target) { const item=document.getElementById(`learning-${notes?'note':'training'}-${target}`);if(item && root.contains(item)){item.scrollIntoView({behavior:'instant',block:'start'});item.focus({preventScroll:true});} }
+    }
+    root.addEventListener('click',event=>{
+      const tab=event.target.closest('[data-learning-panel]');if(tab){show(tab.dataset.learningPanel);return;}
+      const note=event.target.closest('[data-learning-note-target]');if(note){show('notes',note.dataset.learningNoteTarget);return;}
+      const training=event.target.closest('[data-learning-training-target]');if(training){show('training',training.dataset.learningTrainingTarget);return;}
+      const record=event.target.closest('[data-training-record]');if(record){const item=ctx.trainings.find(item=>item.id===record.dataset.trainingRecord);const title=item?.title || '试拍与比较';const basis=item?item.note_ids.map(id=>ctx.notes.find(note=>note.id===id)?.title).filter(Boolean).join('、'):'本技能现有要点';onRecord({title,basis,trigger:record});return;}
+      const photo=event.target.closest('[data-teaching-media]');if(photo){const img=photo.querySelector('img');if(!img?.naturalWidth)return;returnFocus=photo;document.getElementById('learning-image').src=img.src;document.getElementById('learning-image').alt=img.alt;document.getElementById('learning-image-caption').textContent=photo.closest('figure').querySelector('figcaption').textContent;document.getElementById('learning-image-dialog').showModal();document.getElementById('learning-image-close').focus();}
+    });
+    root.addEventListener('keydown',event=>{const tab=event.target.closest('[role="tab"]');if(!tab || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();show(event.key==='Home'?'notes':event.key==='End'?'training':tab.dataset.learningPanel==='notes'?'training':'notes',null,true);});
+    root.querySelectorAll('.learning-media img').forEach(img=>{
+      const unavailable=()=>{img.hidden=true;img.closest('button').disabled=true;img.closest('figure').querySelector('.learning-media-unavailable').hidden=false;};
+      img.addEventListener('error',unavailable);if(img.complete && !img.naturalWidth)unavailable();
+    });
+    if (!wiredDialog) {
+      wiredDialog=true;const dialog=document.getElementById('learning-image-dialog');
+      document.getElementById('learning-image-close').addEventListener('click',()=>dialog.close());
+      dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
+      dialog.addEventListener('close',()=>{document.getElementById('learning-image').removeAttribute('src');if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
+    }
+  }
+  function onRouteChange() { const dialog=document.getElementById('learning-image-dialog');if(dialog?.open)dialog.close(); }
+  window.LearningContent={render,mount,onRouteChange,isOpen:()=>Boolean(document.getElementById('learning-image-dialog')?.open)};
+})();
+
 (() => {
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -15,6 +81,7 @@
   let gatewayWriteInFlight = false;
   let profileBasis = null;
   const gateways = window.LearningGateways;
+  const learningContent = window.LearningContent;
   const profileValues = record => ({status:record.status || 'unassessed', weak:!!record.weak, focus:!!record.focus, notes:record.notes || ''});
   const maps = {domains:new Map(),modules:new Map(),skills:new Map(),sources:new Map()};
   const canWrite = () => stateReady && sessionReady && !!csrf;
@@ -81,6 +148,7 @@
     ['skill-status','skill-weak','skill-focus','skill-notes','notes-save','record-open'].forEach(id=>{
       const control=$(id); if(control) control.disabled=disabled || !canEditProfile();
     });
+    document.querySelectorAll('[data-training-record]').forEach(control=>{control.disabled=disabled || !canEditProfile();});
   }
   function showMainError(message) {
     $('load-error').hidden = false;
@@ -170,7 +238,7 @@
     $('module-domain-link').href = route('domain',domain.id);
     $('module-crumb').textContent = module.name;
     $('module-title').textContent = module.name;
-    $('module-intro').textContent = `${domain.name} · 按具体能力查看研究证据、练习方法与个人记录。`;
+    $('module-intro').textContent = `${domain.name} · 选一项技能，看笔记或开始训练。`;
     renderSkillList(module);
     return true;
   }
@@ -301,27 +369,30 @@
     const confidence = ({high:'高',medium:'中',low:'低'})[skill.confidence] || skill.confidence || '未提供';
     const basis = ({professional_consensus:'专业来源共识',photographer_method:'摄影师方法',project_adaptation:'项目适配'})[skill.basis] || '未提供';
     $('skill-view').innerHTML = `<nav class="breadcrumbs" aria-label="面包屑"><a href="#map">能力地图</a>${domain?`<span aria-hidden="true">/</span><a href="${route('domain',domain.id)}">${esc(domain.name)}</a>`:''}${module?`<span aria-hidden="true">/</span><a href="${route('module',module.id)}">${esc(module.name)}</a>`:''}<span aria-hidden="true">/</span><span>${esc(skill.skill_name)}</span></nav>
-      <header class="skill-heading"><div><p class="eyebrow">技能研究 · ${esc({core:'核心',important:'重要',advanced:'进阶',optional:'可选'}[skill.relevance] || '')}</p><h1 id="skill-title" tabindex="-1">${esc(skill.skill_name)}</h1><p class="skill-capability">${esc(skill.capability || '')}</p>${skill.why_it_matters?`<p class="skill-why">${esc(skill.why_it_matters)}</p>`:''}</div>
+      <header class="skill-heading"><div><p class="eyebrow">${esc(module?.name || '摄影学习')}</p><h1 id="skill-title" tabindex="-1">${esc(skill.skill_name)}</h1></div>
         <aside class="skill-controls" aria-label="我的自评"><label>我的状态${statusSelect(status)}</label><div class="toggle-row"><button id="skill-weak" class="toggle-button" type="button" aria-pressed="${Boolean(record.weak)}"${canEditProfile()?'':' disabled'}>${record.weak?'✓ ':''}薄弱项</button><button id="skill-focus" class="toggle-button" type="button" aria-pressed="${Boolean(record.focus)}"${canEditProfile()?'':' disabled'}>${record.focus?'✓ ':''}当前重点</button></div><p class="saved-indicator" id="skill-save-message">${esc(stateReady?(STATUS_NOTE[status] || ''):'个人状态暂不可读。')}</p></aside>
       </header>
-      <nav class="skill-jump-links" aria-label="技能内容"><button type="button" data-section-target="skill-tutorials">配套教程</button><button type="button" data-section-target="skill-practice">最小训练</button><button type="button" data-section-target="skill-research">研究依据</button><button type="button" data-section-target="skill-records">我的记录</button></nav>
+      <nav class="skill-jump-links" aria-label="技能内容"><button type="button" data-section-target="skill-tutorials">资料与完整教程</button><button type="button" data-section-target="skill-research">研究依据</button><button type="button" data-section-target="skill-records">我的记录</button></nav>
       <div class="skill-columns"><div class="skill-dossier">
+        ${learningContent.render(skill,atlas)}
+        <details class="skill-materials"><summary>资料与完整教程</summary>
         ${gateways.links(skill.id)}
         ${renderTutorials(skill)}
         ${renderWorkflow(skill)}
-        ${skill.failure_modes?.length?`<section class="dossier-section"><h2>容易遇到的失败表现</h2><ul>${skill.failure_modes.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section>`:''}
-        ${skill.practice?`<section class="dossier-section" id="skill-practice"><h2>最小训练</h2><p>${esc(skill.practice)}</p>${skill.practice_basis?`<p class="evidence-meta">练习依据：${esc({project_designed:'项目设计',source_exercise:'原作者练习'}[skill.practice_basis] || skill.practice_basis)}</p>`:''}</section>`:''}
-        ${skill.acceptance?.length?`<section class="dossier-section"><h2>项目验收</h2><ul>${skill.acceptance.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section>`:''}
+        ${skill.why_it_matters?`<p class="skill-why">${esc(skill.why_it_matters)}</p>`:''}
+        ${atlas.learning_content?.trainings?.some(item=>item.skill_ids.includes(skill.id)) && skill.practice?`<section class="dossier-section"><h2>原有训练</h2><p>${esc(skill.practice)}</p><p class="evidence-meta">${esc(skill.practice_basis==='source_exercise'?'原作者练习':'项目设计')}</p>${skill.acceptance?.length?`<ul>${skill.acceptance.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`:''}</section>`:''}
         <details class="dossier-section research-notes" id="skill-research"><summary>研究依据 <span>${(skill.evidence || []).length} 个来源</span></summary><p class="evidence-meta">置信度：${esc(confidence)} · 依据：${esc(basis)}</p><p class="evidence-meta">来源共识仅指所收录资料一致；项目验收不是职业认证。</p>${renderEvidence(skill)}</details>
         ${renderConflicts(skill)}
         <section class="dossier-section"><h2>关联图例与案例链接</h2>${renderVisualExamples(skill)}</section>
-        <section class="dossier-section"><h2>先修能力</h2>${prereqs.length?`<ul>${prereqs.map(item=>`<li><a class="skill-open source-link" data-skill="${esc(item.id)}" href="${route('skill',item.id)}">${esc(item.skill_name)}</a></li>`).join('')}</ul>`:'<p>研究树未列出先修能力。</p>'}</section>
+        <section class="dossier-section"><h2>先修能力</h2>${prereqs.length?`<ul>${prereqs.map(item=>`<li><a class="skill-open source-link" data-skill="${esc(item.id)}" href="${route('skill',item.id)}">${esc(item.skill_name)}</a></li>`).join('')}</ul>`:'<p>研究树未列出先修能力。</p>'}</section></details>
       </div><aside class="my-records" id="skill-records"><h2>我的记录</h2><p>只记录你的练习与自评，不改写专业依据。</p><form class="notes-form" id="notes-form"><label for="skill-notes">技能备注</label><textarea id="skill-notes" maxlength="12000" placeholder="记录自己的观察。"${canEditProfile()?'':' disabled'}>${esc(record.notes || '')}</textarea><button class="secondary-button" id="notes-save" type="submit"${canEditProfile()?'':' disabled'}>保存备注</button></form><button id="record-open" class="add-record" type="button"${canEditProfile()?'':' disabled'}>＋ 写一条练习记录</button><div id="record-list" class="record-list">${renderRecordList(skill)}</div></aside></div>`;
     $('skill-status').addEventListener('change', event => updateProfile(skill.id,{status:event.target.value},'状态已保存。'));
     $('skill-weak').addEventListener('click', event => updateProfile(skill.id,{weak:!recordOf(skill.id).weak},'薄弱项标记已保存。'));
     $('skill-focus').addEventListener('click', event => updateProfile(skill.id,{focus:!recordOf(skill.id).focus},'当前重点标记已保存。'));
     $('notes-form').addEventListener('submit', event => { event.preventDefault(); updateProfile(skill.id,{notes:$('skill-notes').value},'备注已保存。'); });
     $('record-open').addEventListener('click', () => openRecordDialog(skill));
+    learningContent.mount($('skill-view'),skill,atlas,training=>openRecordDialog(skill,training));
+    $('skill-view').querySelectorAll('[data-training-record]').forEach(button=>{button.disabled=!canEditProfile();});
     const reload = document.createElement('button');
     reload.id='skill-record-reload'; reload.type='button'; reload.className='text-link'; reload.hidden=true;
     reload.textContent='载入服务器版本（替换此技能的本页草稿）';
@@ -437,12 +508,12 @@
       }
     } finally { profileWriteInFlight=false; setProfileControlsDisabled(false); }
   }
-  function openRecordDialog(skill) {
-    if (!stateReady || !sessionReady || !csrf) { detailNotice('私人记录尚未解锁，未保存。',true); return; }
+  function openRecordDialog(skill, training=null) {
+    if (!canEditProfile()) { detailNotice('私人记录暂不可写，请稍后再试。',true); return; }
     recordDialogSkill = skill;
-    returnFocus = $('record-open');
+    returnFocus = training?.trigger || $('record-open');
     $('record-skill-name').textContent = skill.skill_name;
-    $('record-text').value = '';
+    $('record-text').value = training ? `训练：${training.title}\n依据笔记：${training.basis}\n\n我的观察：` : '';
     $('record-photo').value = '';
     $('record-caption').value = '';
     dialogPhotoSaved = '';
@@ -534,6 +605,7 @@
   function renderRoute(focus=false) {
     if (!atlas) return;
     gateways.onRouteChange();
+    learningContent.onRouteChange();
     const current = parseRoute();
     const inMap = ['map','search','mine'].includes(current.kind);
     $('map-view').hidden = !inMap;
@@ -582,6 +654,7 @@
       const sectionLink=event.target.closest('[data-section-target]');
       if(sectionLink) {
         const section=$(sectionLink.dataset.sectionTarget);
+        let ancestor=section?.parentElement;while(ancestor){if(ancestor.tagName==='DETAILS')ancestor.open=true;ancestor=ancestor.parentElement;}
         if(section?.tagName==='DETAILS') section.open=true;
         section?.scrollIntoView({behavior:'instant',block:'start'});
         section?.querySelector('textarea,summary')?.focus({preventScroll:true});
@@ -634,7 +707,7 @@
     $('photo-dialog').addEventListener('close',()=>{if(photoReturnFocus?.isConnected)photoReturnFocus.focus({preventScroll:true});});
     $('photo-dialog').addEventListener('click',event=>{if(event.target===$('photo-dialog'))closePhotoViewer();});
     document.addEventListener('keydown',event=>{
-      if (gateways.isOpen()) return;
+      if (gateways.isOpen() || learningContent.isOpen()) return;
       if (event.key==='/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) {event.preventDefault();$('search').focus();}
       if (event.key==='Escape' && !$('recent-panel').hidden) { $('recent-panel').hidden=true;$('recent-toggle').setAttribute('aria-expanded','false');$('recent-toggle').focus(); }
     });

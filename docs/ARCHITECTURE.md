@@ -90,6 +90,14 @@
 
 `learning-gateways.js` 负责阅读对话框、章节定位、原页焦点/位置和每入口草稿；主 `learning.js` 仍独占路由、身份、共享 revision 和写入协调。草稿只用 sessionStorage 保持同一标签页连续性；显式保存走 `PUT /api/learning-gateways/{id}`。迟到响应绑定发送时的入口，不能覆盖请求中产生的新编辑或其他入口草稿。409 保留本页草稿，明确加载服务器版本后再编辑。
 
+### 简洁笔记与训练
+
+`LEARNING_CONTENT.json` 是独立的静态内容层：`notes` 关联现有 skill ID、来源与真实媒体；`trainings.note_ids` 明确关联依据笔记，反向链接由界面计算。合法训练可引用跨技能笔记；未知、重复或悬空 ID 被 `validate_learning_content.py` 拒绝。新内容参与 bundle 指纹，原研究对象及 gateway 契约保持原样。本轮只深入补充比例专题；距离笔记关联光学/透视诊断的距离部分，不声称提供了桶形/枕形实拍对照。
+
+`LearningContent` 是 `learning.js` 内独立 IIFE，只负责内容渲染、同页切换与教学图查看。私有写入继续由主 IIFE 负责；训练打开原日志对话框时仅预填标题和依据，用户显式保存，日志仍绑定打开时的技能。切换双区不改 hash、不重建个人表单，不提升能力状态。长版来源和原理移到可展开资料区。样式沿用已有 `learning.css`，避免旧运行进程的静态白名单缺少新文件。
+
+`ref_lab/learning_content.py` 经 `preview_router` 接入 `/api/learning-note-media/{media_id}`。只读取此 checkout 的 bundle 登记项与固定 `.local/learning-note-media/` 中 SHA256 命名的 JPEG/PNG；文件哈希、后缀与实际魔数须匹配，目录/文件重解析或路径逃逸拒绝。主应用继承已有认证，独立只读预览仅绑定 loopback，不读取私人状态。图片失效保留文字、署名和回看位置，不开放 `.local`、不重编码原图，不将教学图片混入个人作品。运行中的旧服务不会因静态界面更新自动获得该路由，需受控重启；本轮以独立预览作为完整图片试读入口。
+
 私有 JSON 的可选 `gateways` 字段保存 stage、answers、revealed、last_section，沿用单进程锁、原子替换、认证及 CSRF。旧 skills/日志/照片内容不变；未知历史 ID 留在磁盘但不作为当前可编辑条目。六种认知自评另加 unassessed，不推导原技能状态。数据库和照片资产没有迁移。
 
 ## 外部能力边界

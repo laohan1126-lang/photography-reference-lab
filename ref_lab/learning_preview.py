@@ -7,7 +7,11 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 
-STATIC_FILES = {"learning.css", "learning.js", "learning-gateways.css", "learning-gateways.js", "learning-icons.json", "learning-atlas.json"}
+from .learning_content import router as learning_content_router
+
+
+STATIC_FILES = {"learning.css", "learning.js",
+                "learning-gateways.css", "learning-gateways.js", "learning-icons.json", "learning-atlas.json"}
 
 
 def preview_router(web_dir: Path) -> APIRouter:
@@ -39,4 +43,5 @@ def preview_router(web_dir: Path) -> APIRouter:
             raise HTTPException(404)
         return FileResponse(path, headers={"Cache-Control": "private, no-store"})
 
+    router.include_router(learning_content_router(web_dir))
     return router
