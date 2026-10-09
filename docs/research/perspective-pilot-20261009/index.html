@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f5ef">
+  <title>低机位，为什么还是拍怪了？｜比例失真诊断</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f8f5ef;
+      --white: #fffdf9;
+      --ink: #25394a;
+      --muted: #607384;
+      --soft: #e8eef3;
+      --line: #cfdae3;
+      --blue: #315f83;
+      --blue-dark: #264a67;
+      --blue-pale: #e3edf5;
+      --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+      --sans: "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      font-size: 15px;
+      line-height: 1.75;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 118px; }
+    body { margin: 0; min-width: 0; overflow-x: hidden; background: var(--paper); }
+    button, a { color: inherit; font: inherit; -webkit-tap-highlight-color: transparent; }
+    a { text-decoration: none; }
+    a:hover { color: var(--blue); }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+    [hidden] { display: none !important; }
+    .skip-link { position: fixed; z-index: 100; top: -80px; left: 16px; padding: 8px 14px; background: var(--white); border: 1px solid var(--line); }
+    .skip-link:focus { top: 12px; }
+    .site-header { border-bottom: 1px solid var(--line); background: #f3f6f8f2; }
+    .header-inner, .page-shell, .bar-inner, .layout, footer { width: min(1280px, 100%); margin-inline: auto; padding-inline: clamp(18px, 4vw, 48px); }
+    .header-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { font: 600 20px/1.2 var(--serif); letter-spacing: .02em; }
+    .brand span { color: var(--blue); }
+    .back-link { color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .hero { padding: clamp(38px, 6vw, 68px) 0 32px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: var(--blue); font: 11px/1.5 "Cascadia Mono", Consolas, monospace; letter-spacing: .13em; }
+    h1 { margin: 16px 0 12px; font: 500 clamp(31px, 4.3vw, 48px)/1.28 var(--serif); letter-spacing: .015em; }
+    .lead { max-width: 760px; margin: 0; color: var(--muted); font-size: clamp(15px, 1.5vw, 17px); }
+    .breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 23px; color: var(--muted); font-size: 12px; }
+    .breadcrumb .current { color: var(--blue-dark); }
+    .reading-bar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: #f8f5eff2; backdrop-filter: blur(12px); }
+    .bar-inner { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .tabs { display: flex; align-items: stretch; gap: clamp(18px, 3vw, 34px); min-width: 0; }
+    .tab { min-height: 58px; padding: 0 2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+    .tab[aria-selected="true"] { border-bottom-color: var(--blue); color: var(--blue-dark); font-weight: 650; }
+    .bar-note { color: var(--muted); font-size: 12px; text-align: right; }
+    .layout { display: grid; grid-template-columns: 175px minmax(0, 1fr); gap: clamp(26px, 4vw, 48px); padding-top: 36px; padding-bottom: 72px; }
+    .topics { position: sticky; top: 94px; align-self: start; color: var(--muted); font-size: 13px; }
+    .topics-label { margin: 0 0 11px; font-size: 11px; letter-spacing: .08em; }
+    .topics a { display: block; padding: 7px 0 7px 12px; border-left: 1px solid var(--line); line-height: 1.55; }
+    .topics a:hover { border-left-color: var(--blue); color: var(--blue); }
+    main { min-width: 0; }
+    .layout:has(#topic-nav[hidden]) { grid-template-columns: minmax(0, 1fr); }
+    .note-card { margin: 0 0 48px; padding: 0 0 45px; border-bottom: 1px solid var(--line); scroll-margin-top: 112px; }
+    .note-card:last-child { margin-bottom: 0; }
+    .note-card h2, .source-heading { margin: 0 0 10px; font: 550 clamp(23px, 2.7vw, 31px)/1.4 var(--serif); letter-spacing: .005em; }
+    .description { max-width: 770px; margin: 0 0 22px; color: var(--muted); }
+    .body-copy { max-width: 790px; margin: 20px 0 0; }
+    .image-pair, .height-triptych, .source-grid { display: grid; gap: 16px; min-width: 0; }
+    .image-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .height-triptych { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+    .face-overview { width: min(426px, 100%); margin: 0 auto 18px; }
+    figure { min-width: 0; margin: 0; }
+    .image-button { display: block; max-width: 100%; margin: 0 auto; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: #e9edf0; cursor: zoom-in; }
+    .image-button img { display: block; width: auto; max-width: 100%; height: auto; margin: 0 auto; object-fit: contain; }
+    .image-button:hover img { filter: brightness(.96); }
+    .image-error { display: block; padding: 18px; color: #7c4b34; font-size: 13px; }
+    figcaption { padding-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+    figcaption strong { color: var(--ink); font-weight: 600; }
+    figcaption a { display: inline-block; margin-left: 5px; color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+    .memory { display: inline-block; margin: 18px 0 0; padding: 7px 13px; border-left: 2px solid var(--blue); background: var(--blue-pale); color: var(--blue-dark); font: 600 14px/1.6 var(--serif); }
+    .summary { margin-top: 48px; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--line); background: linear-gradient(110deg, #e8eef3 0, #fffdf9 75%); }
+    .summary h2 { margin: 0 0 12px; font: 550 24px/1.4 var(--serif); }
+    .summary p { margin: 0; }
+    .summary ol { display: flex; flex-wrap: wrap; gap: 8px 26px; margin: 16px 0 0; padding-left: 22px; color: var(--blue-dark); }
+    .source-intro { max-width: 760px; margin: 0 0 24px; color: var(--muted); }
+    .source-queries { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin: 0 0 24px; }
+    .source-queries p { min-width: 0; margin: 0; padding: 10px 12px; border: 1px solid var(--line); background: #fbfaf7; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .source-queries strong { color: var(--blue-dark); }
+    .source-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .source-card { min-width: 0; padding: 20px; border: 1px solid var(--line); background: var(--white); }
+    .source-kicker { color: var(--blue); font: 11px/1.5 "Cascadia Mono", Consolas, monospace; letter-spacing: .1em; }
+    .source-card h3 { margin: 7px 0 4px; font: 600 19px/1.45 var(--serif); }
+    .source-card p { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+    .source-title { color: var(--ink); text-decoration: underline; text-decoration-color: #9ab1c2; text-underline-offset: 3px; }
+    .checked-at { color: var(--blue-dark) !important; }
+    .more-candidates { margin-top: 36px; padding-top: 25px; border-top: 1px solid var(--line); }
+    .more-candidates h3, .platform-note h3 { margin: 0 0 9px; font: 600 18px/1.5 var(--serif); }
+    .more-candidates p, .platform-note p { margin: 0; color: var(--muted); font-size: 13px; }
+    .candidate-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+    .candidate-list li { max-width: 100%; padding: 5px 10px; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .platform-note { margin-top: 25px; padding: 18px 20px; border-left: 2px solid var(--blue); background: var(--blue-pale); }
+    footer { display: flex; justify-content: space-between; gap: 18px; padding-top: 20px; padding-bottom: 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    footer a { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+    dialog { width: min(1120px, calc(100vw - 28px)); max-width: 1120px; max-height: 92vh; padding: 16px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); color: var(--ink); }
+    dialog::backdrop { background: #152331d9; }
+    .dialog-bar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 12px; font-size: 13px; }
+    .close { padding: 5px 12px; border: 1px solid var(--line); border-radius: 4px; background: transparent; cursor: pointer; }
+    .dialog-image-wrap { max-height: 72vh; display: grid; place-items: center; overflow: auto; background: #eef1f3; }
+    .dialog-image-wrap img { display: block; width: auto; max-width: 100%; height: auto; max-height: 70vh; object-fit: contain; }
+    .dialog-caption { margin: 11px 0 0; color: var(--muted); font-size: 13px; }
+    @media (max-width: 760px) {
+      .header-inner { min-height: 60px; }
+      .brand { font-size: 17px; }
+      .hero { padding-top: 38px; }
+      .bar-inner { min-height: 54px; gap: 10px; }
+      .tab { min-height: 54px; font-size: 14px; }
+      .bar-note { max-width: 105px; font-size: 11px; }
+      .layout { display: block; padding-top: 23px; }
+      .topics { position: static; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; margin-bottom: 28px; }
+      .topics-label { grid-column: 1 / -1; }
+      .topics a { padding-left: 9px; }
+      .note-card { margin-bottom: 34px; padding-bottom: 34px; }
+      .image-pair { gap: 10px; }
+      .height-triptych { grid-template-columns: 1fr; gap: 14px; }
+      .source-queries { grid-template-columns: 1fr; }
+      figcaption { font-size: 11px; }
+      .source-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; }
+    }
+    @media (max-width: 500px) {
+      .back-link { max-width: 122px; white-space: normal; text-align: right; line-height: 1.4; }
+      .image-pair { grid-template-columns: 1fr; }
+      .height-triptych { grid-template-columns: 1fr; gap: 14px; }
+      .height-triptych figure { display: grid; grid-template-columns: minmax(0, 1fr); }
+      .summary ol { display: block; }
+      .summary li + li { margin-top: 5px; }
+      .source-card { padding: 17px; }
+      dialog { padding: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition-duration: .01ms !important; } }
+    @media print {
+      .reading-bar, .topics, .back-link, .image-button { display: none !important; }
+      .layout { display: block; padding-top: 20px; }
+      .note-card, .source-card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到专题内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">摄影学习<span> ·</span> 现场判断</div>
+      <a class="back-link" href="http://127.0.0.1:18768/learning">← 返回现有 /learning</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="eyebrow">专题试读 · 比例失真诊断</div>
+      <h1 id="page-title">低机位，为什么还是拍怪了？</h1>
+      <p class="lead">相机放低，只改变了机位高度。人物的头身比例还会受机距、脸与身体的朝向，以及前景位置影响。先看画面里哪一处离镜头最近，再决定要不要继续压低机位。</p>
+      <nav class="breadcrumb" aria-label="知识地图路径">
+        <span>机位、焦段与透视</span><span aria-hidden="true">→</span><span class="current">比例失真诊断</span>
+      </nav>
+    </section>
+  </div>
+
+  <div class="reading-bar">
+    <div class="bar-inner">
+      <div class="tabs" role="tablist" aria-label="专题内容">
+        <button class="tab" id="tab-notes" role="tab" aria-selected="true" aria-controls="notes-panel" tabindex="0" type="button">知识点笔记</button>
+        <button class="tab" id="tab-sources" role="tab" aria-selected="false" aria-controls="sources-panel" tabindex="-1" type="button">来源记录</button>
+      </div>
+      <span class="bar-note">点开图片可放大查看</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="topics" id="topic-nav" aria-label="知识点目录">
+      <p class="topics-label">本页知识点</p>
+      <a href="#distance">比例先看机距</a>
+      <a href="#height">机高看拍摄目的</a>
+      <a href="#face">脸朝向与距离</a>
+      <a href="#background">用前景和背景造体量</a>
+      <a href="#takeaway">这一轮的拍摄顺序</a>
+    </nav>
+
+    <main id="main-content">
+      <section id="notes-panel" role="tabpanel" aria-labelledby="tab-notes" tabindex="0">
+        <article class="note-card" id="distance">
+          <h2>比例先看机距，不先怪焦段</h2>
+          <p class="description">近拍时，脸上靠近镜头的部位会更抢眼。把相机放低，并不会抵消这种近大远小。</p>
+          <div class="image-pair">
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看近拍时鼻部相对耳朵更突出" data-caption="Koldunov Brothers · 近拍演示，鼻子相对耳朵更突出 · 00:40">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s1-close.jpg" width="854" height="480" loading="lazy" alt="近拍示范中，鼻子显得比耳朵突出">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>近拍</strong>鼻部相对突出。<a href="https://www.youtube.com/watch?v=cH2SYQ_SBwc&amp;t=40s" target="_blank" rel="noopener noreferrer">Koldunov · 00:40</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看退后拍摄后的脸部比例" data-caption="Koldunov Brothers · 退后后鼻与耳的视觉差异收敛 · 00:54">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s1-recede.jpg" width="854" height="480" loading="lazy" alt="摄影师退后拍摄后，画面标注鼻与耳的大小接近">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>退后</strong>鼻与耳的视觉差异收敛。<a href="https://www.youtube.com/watch?v=cH2SYQ_SBwc&amp;t=54s" target="_blank" rel="noopener noreferrer">Koldunov · 00:54</a></figcaption>
+            </figure>
+          </div>
+          <p class="body-copy">Koldunov把同一位模特近拍与退后后的画面并排：贴近时鼻子比耳朵突出，后退后差距收敛。改变拍摄距离，会改变前后部位在画面里的大小关系。低机位也会遇到同一问题：脸或上身一旦贴近镜头，容易比身体更大。Manny讲普通全身时也建议留出距离，减少局部夸张（<a href="https://www.youtube.com/watch?v=kHlzwHBCuaE&amp;t=95s" target="_blank" rel="noopener noreferrer">01:35–01:52</a>）。先退一点看比例；若想保留原来的取景大小，再变焦或裁切。裁切只收画面，不会改掉拍摄时形成的透视关系。</p>
+          <p class="memory">记住：比例看距离，构图再用焦段。</p>
+        </article>
+
+        <article class="note-card" id="height">
+          <h2>机高要看拍摄目的</h2>
+          <p class="description">拍脸和拍全身没有同一个“最低点”。先确定想强调的部位，再用成片检查机位。</p>
+          <figure class="face-overview">
+            <button class="image-button" type="button" aria-label="放大查看下巴、眼平和额头三个机位的脸部对照" data-caption="Manny Ortiz · 下巴、眼平、额头高度的脸部对照 · 00:52">
+              <img src="../../../.local/perspective-pilot-20261009/site/media/s2-face-heights.jpg" width="426" height="240" loading="lazy" alt="同一模特的下巴、眼睛、额头三个机位并排比较">
+            </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+            <figcaption><strong>拍脸</strong>三个高度，脸部观感不同。<a href="https://www.youtube.com/watch?v=kHlzwHBCuaE&amp;t=52s" target="_blank" rel="noopener noreferrer">Manny · 00:52</a></figcaption>
+          </figure>
+          <div class="height-triptych">
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看下胸高度的普通全身拍摄示例" data-caption="Manny Ortiz · 普通全身从下胸高度起拍 · 01:48">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s2-lower-chest.jpg" width="426" height="240" loading="lazy" alt="摄影师站立，在下胸高度为全身模特取景">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>普通全身</strong>下胸高度起拍。<a href="https://www.youtube.com/watch?v=kHlzwHBCuaE&amp;t=108s" target="_blank" rel="noopener noreferrer">Manny · 01:48</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看膝高机位的全身拍摄示例" data-caption="Manny Ortiz · 膝高机位示例 · 01:56">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s2-knee-level.jpg" width="426" height="240" loading="lazy" alt="摄影师蹲到膝盖高度为全身模特取景">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>膝高</strong>可作为有意使用的低机位。<a href="https://www.youtube.com/watch?v=kHlzwHBCuaE&amp;t=116s" target="_blank" rel="noopener noreferrer">Manny · 01:56</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看略高于眼平向下拍的提醒示例" data-caption="Manny Ortiz · 略高于眼平向下拍；普通全身的提醒画面 · 02:12">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s2-above-eye-warning.jpg" width="426" height="240" loading="lazy" alt="摄影师在略高于眼睛的位置拍摄全身模特，屏显标注稍高于眼平">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>高于眼平</strong>普通全身的提醒。<a href="https://www.youtube.com/watch?v=kHlzwHBCuaE&amp;t=132s" target="_blank" rel="noopener noreferrer">Manny · 02:12</a></figcaption>
+            </figure>
+          </div>
+          <p class="body-copy">Manny的脸部三联图显示，机位到下巴、眼睛、额头，观感会变化；低至下巴会把颈下与下巴显得更突出。普通全身，他建议从下胸高度、较远机距起拍。膝高可有意显高、表现力量；贴地拍法还能主动夸张透视。略高于眼睛向下的画面，则是他提醒普通全身避免的高角度。伍伍另示范：采用高机位时可以缩小景别。姿势、距离不同，先看成片的头脚比例再定机高。</p>
+          <p class="memory">记住：拍脸看下巴，拍全身看头到脚。</p>
+        </article>
+
+        <article class="note-card" id="face">
+          <h2>脸朝向能调观感，机距仍要单独看</h2>
+          <p class="description">仰拍时，眼神与下巴的方向会影响脸部观感；动作调整不能替代拉开拍摄距离。</p>
+          <div class="image-pair">
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看抖音教程引用的双下巴示例" data-caption="伍伍摄影教学页面中的示例图，字幕提到双下巴；画面为课程引用照片，未标明原摄影者 · 00:07">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s4-double-chin.jpg" width="1313" height="805" loading="lazy" alt="教程中的照片示例，字幕提示低角度不小心会拍出双下巴">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>问题示例</strong>课程展示的双下巴图例。<a href="https://www.douyin.com/video/7547980275746082087" target="_blank" rel="noopener noreferrer">伍伍 · 00:07</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看抖音教程侧面仰头望天的现场示范" data-caption="伍伍摄影教学 · 侧面拍摄时，字幕提示可仰头望向天空 · 00:10">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s4-side-upward.jpg" width="1313" height="805" loading="lazy" alt="户外拍摄现场，人物侧面仰头，摄影师在近处拍摄">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>侧面示范</strong>字幕提示仰头望向天空。<a href="https://www.douyin.com/video/7547980275746082087" target="_blank" rel="noopener noreferrer">伍伍 · 00:10</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看抖音教程正面弯腰看镜头的字幕建议场景" data-caption="伍伍摄影教学 · 正面拍摄可微微弯腰注视镜头；这是另一场景，不是上一张的前后对照 · 00:13">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s4-front-caption.jpg" width="1313" height="805" loading="lazy" alt="街景拍摄，摄影师蹲下取景，屏幕字幕建议正面略微弯腰注视镜头">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>另一场景</strong>字幕提出正面略弯腰看镜头。<a href="https://www.douyin.com/video/7547980275746082087" target="_blank" rel="noopener noreferrer">伍伍 · 00:13</a></figcaption>
+            </figure>
+          </div>
+          <p class="body-copy">伍伍先展示下巴显眼的例图，再提示侧面拍摄可让视线向上，正面可略微俯身看镜头；这些动作改变脸与镜头的相对方向，让低机位不必只靠进一步压低相机制造仰视。画面来自不同拍摄场景，不能当作同一人的前后对照。结合Koldunov的近拍演示，若鼻或下巴仍很突出，先让人物离镜头远一些，再微调目光和相机高度。</p>
+          <p class="memory">记住：先看脸朝哪儿，再查它离镜头多近。</p>
+        </article>
+
+        <article class="note-card" id="background">
+          <h2>气势也可以交给前景和背景</h2>
+          <p class="description">低机位的力量感来自整幅画面的空间关系，不必靠把脸推近镜头。</p>
+          <div class="image-pair">
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看Koldunov教程里人物和背景的近距离比例讨论" data-caption="Koldunov Brothers · 近距离下讨论人物与背景的相对比例 · 01:20">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s1-background-near.jpg" width="854" height="480" loading="lazy" alt="近距离人物肖像与摄影棚背景，画面讨论背景显小的问题">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>近距离</strong>人物相对背景更突出。<a href="https://www.youtube.com/watch?v=cH2SYQ_SBwc&amp;t=80s" target="_blank" rel="noopener noreferrer">Koldunov · 01:20</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看摄影师后退拍摄人物和背景的画面" data-caption="Koldunov Brothers · 摄影师后退拍摄，人物与背景同时入画 · 01:40">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s1-background-far.jpg" width="854" height="480" loading="lazy" alt="摄影师后退并拍摄站在背景布前的人物，画面包含更大的环境范围">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>后退再取景</strong>人物与背景同时入画。<a href="https://www.youtube.com/watch?v=cH2SYQ_SBwc&amp;t=100s" target="_blank" rel="noopener noreferrer">Koldunov · 01:40</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看低机位拍摄中大石前景与人物坐姿的案例" data-caption="一晨叔叔I光环摄影教程展示案例；低机位、大石前景与坐姿同框。照片原摄影者未标明 · 02:30">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s3-stone-foreground.jpg" width="996" height="663" loading="lazy" alt="低机位人像案例，近处大石占据前景，人物穿蓝色服装坐在林间">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>大石前景</strong>课程中展示的低机位案例，照片摄影者未标明。<a href="https://www.bilibili.com/video/BV1rb41137jg/" target="_blank" rel="noopener noreferrer">一晨叔叔 · 02:30</a></figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" type="button" aria-label="放大查看一晨叔叔课程中的花间蓝衣坐姿案例" data-caption="一晨叔叔I光环摄影教程展示的花间坐姿案例；照片原摄影者未标明 · 01:05">
+                <img src="../../../.local/perspective-pilot-20261009/site/media/s3-flower-pose.jpg" width="442" height="663" loading="lazy" alt="花间蓝衣人物坐姿照片，人物手持花枝，背景柔和">
+              </button><span class="image-error" hidden>这张教学截图暂时无法读取。</span>
+              <figcaption><strong>花间坐姿</strong>同一教程的另一场景，不与石头案例混作一组。<a href="https://www.bilibili.com/video/BV1rb41137jg/" target="_blank" rel="noopener noreferrer">一晨叔叔 · 01:05</a></figcaption>
+            </figure>
+          </div>
+          <p class="body-copy">Koldunov演示后退，并建议可行时变焦重新取景：要检查的不只人物，还有背景布与人物的大小关系。两幅画面的景别不同，不把它们当作等构图对照。一晨讲低机位时也建议避开草地和后方人群，主动选择干净背景；大石前景案例则把人物、伸腿与林木排出纵深。低角度的体量感可以交给环境，不必把脸推近镜头。先校正头身，再安排前景大小、姿态和背景。课程案例没有给出焦距或准确机高，不照抄参数。</p>
+          <p class="memory">记住：近大远小，也可以留给前景。</p>
+        </article>
+
+        <section class="summary" id="takeaway" aria-labelledby="takeaway-title">
+          <h2 id="takeaway-title">这一轮带走的判断顺序</h2>
+          <p>先找被放大的部位，再逐项调整空间关系。低机位可以显高、有力量，也可以让透视更夸张；是否好看，取决于你想让哪一部分更突出。</p>
+          <ol>
+            <li>脸或上身太大：先退开一点。</li>
+            <li>普通全身：以下胸机高、较远距离起拍。</li>
+            <li>想要显高、有力量：降低机位；想夸张透视：再试贴地角度。</li>
+            <li>比例合适后：用姿态、前景与背景表达体量。</li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="sources-panel" role="tabpanel" aria-labelledby="tab-sources" tabindex="0" hidden>
+        <h2 class="source-heading">本轮实际检查的四份资料</h2>
+        <p class="source-intro">下面的要点来自原视频中的实际画面、屏显文字或现场讲解。时间位置方便回看；搜索摘要和仅看简介的候选没有作为笔记证据。</p>
+        <div class="source-queries" aria-label="本轮平台检索词">
+          <p><strong>YouTube</strong> · portrait camera height distance perspective distortion</p>
+          <p><strong>B站</strong> · 人像 机位 透视 头大 焦距 距离；低机位 摄影</p>
+          <p><strong>抖音</strong> · 低角度 拍照 头大 腿短 摄影；拍照 头大 机位；仰拍 摄影师 下巴</p>
+          <p><strong>小红书</strong> · 低机位 人像；头大身小 拍照；广角 拍照 比例</p>
+        </div>
+        <div class="source-grid">
+          <article class="source-card">
+            <div class="source-kicker">YOUTUBE · S1</div>
+            <h3><a class="source-title" href="https://www.youtube.com/watch?v=cH2SYQ_SBwc" target="_blank" rel="noopener noreferrer">The Truth About Facial Distortion: Why Lenses Don't Cause It</a></h3>
+            <p>作者：Koldunov Brothers。实际检查下载的 480p 原视频、屏显教学文字、距离变化与成片；没有平台字幕。不是严格单变量实验。</p>
+            <p class="checked-at">回看：00:34–00:56 鼻与耳的近远对照；01:12 原图与裁切；01:20–01:40 人物和背景比例。</p>
+          </article>
+          <article class="source-card">
+            <div class="source-kicker">YOUTUBE · S2</div>
+            <h3><a class="source-title" href="https://www.youtube.com/watch?v=kHlzwHBCuaE" target="_blank" rel="noopener noreferrer">This is the PERFECT Camera height for Portraits and HERE'S WHY. (FULL BREAKDOWN)</a></h3>
+            <p>作者：Manny Ortiz。实际检查 240p 原视频画面、机位标注与成片；讲解位置另由本地语音转录辅助回听定位。下胸高度是普通全身起点；低机位可用于有意强调；略高眼平向下是普通全身的提醒，不作推荐画面。</p>
+            <p class="checked-at">回看：00:52 脸部高度；01:48 下胸；01:56 膝高；02:12 略高眼平提醒；02:38–02:49 创意地面低角度。</p>
+          </article>
+          <article class="source-card">
+            <div class="source-kicker">BILIBILI · S3</div>
+            <h3><a class="source-title" href="https://www.bilibili.com/video/BV1rb41137jg/" target="_blank" rel="noopener noreferrer">人像摄影前期拍摄：低机位拍摄取景经验指导</a></h3>
+            <p>页面作者：一晨叔叔I光环摄影。Edge 中正常播放；检查低机位避草地、避开后方人群与森林案例。页面显示时长 03:21；yt-dlp 元数据约 03:20。课件照片的原摄影者没有逐一标明，本页不把它们归为课程作者原创。</p>
+            <p class="checked-at">回看：00:45–01:34 低机位避开草地；02:00–02:19 避开后方人群；02:21–02:50 广角低机位森林人像。自动转录只帮助定位；结论以实际播放画面和可听讲解为准。</p>
+          </article>
+          <article class="source-card">
+            <div class="source-kicker">DOUYIN · S4</div>
+            <h3><a class="source-title" href="https://www.douyin.com/video/7547980275746082087" target="_blank" rel="noopener noreferrer">这3个摄影机位的雷区，你都知道了吗？</a></h3>
+            <p>页面署名：伍伍摄影教学。通过已登录 Edge 实际读取开头字幕与课件画面；未声称连续看完约 22 分钟视频。课件及街拍片段的照片未逐一标出原摄影者。</p>
+            <p class="checked-at">回看：00:07 下巴示例；00:10 侧面向上看；00:13 正面字幕建议；00:21 高机位改景别。后段虚拟人物画面未用作真人证据。</p>
+          </article>
+        </div>
+
+        <section class="more-candidates" aria-labelledby="candidate-title">
+          <h3 id="candidate-title">探索过的其他候选</h3>
+          <p>以下只核对搜索结果、作者说明或课程介绍，未深入检查教学内容；它们保留为后续线索，不进入四篇笔记的证据。</p>
+          <ul class="candidate-list">
+            <li>YouTube · <a href="https://www.youtube.com/watch?v=wRpjrjUaQYA" target="_blank" rel="noopener noreferrer">Camera Club Live · Focal length change perspective</a>（说明页）</li>
+            <li>YouTube · <a href="https://www.youtube.com/watch?v=5MFJNy2N79Y" target="_blank" rel="noopener noreferrer">Visual Education · Understand the focal length</a>（说明页）</li>
+            <li>YouTube · <a href="https://visualeducation.com/class/lens-choices-for-studio-work/" target="_blank" rel="noopener noreferrer">Visual Education · Lens choices for studio work</a>（课程介绍）</li>
+            <li>B站 · <a href="https://www.bilibili.com/video/BV1XM4y1i7Zr/" target="_blank" rel="noopener noreferrer">伍伍：常用机位</a>（BV1XM4y1i7Zr）</li>
+            <li>B站 · <a href="https://www.bilibili.com/video/BV1qA411R7sf/" target="_blank" rel="noopener noreferrer">向茂勇：焦段与人脸变形</a>（BV1qA411R7sf）</li>
+            <li>B站 · <a href="https://www.bilibili.com/video/BV1VN411C7kQ/" target="_blank" rel="noopener noreferrer">Jadys大兵：焦距、透视与摄距</a>（BV1VN411C7kQ）</li>
+            <li>B站 · <a href="https://www.bilibili.com/video/BV1cG4y147pw/" target="_blank" rel="noopener noreferrer">Ash：35mm人像实拍</a>（BV1cG4y147pw）</li>
+            <li>抖音 · 三个自拍机位聚合结果（<a href="https://www.douyin.com/shipin/7623579627797628962" target="_blank" rel="noopener noreferrer">查看线索</a>）</li>
+            <li>抖音 · 焦段与透视聚合结果（<a href="https://www.douyin.com/shipin/7369941949220046888" target="_blank" rel="noopener noreferrer">查看线索</a>）</li>
+          </ul>
+        </section>
+        <aside class="platform-note">
+          <h3>小红书：本轮未能检查正文</h3>
+          <p>普通网页搜索显示“电脑设备登录超限，请重新登录”；公共检索也没有提供可核的相关原笔记。没有取得笔记正文、图片或视频，因此不作为已学习资料。</p>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <span>专题试读 · 机位、焦段与透视 → 比例失真诊断</span>
+    <a href="http://127.0.0.1:18768/learning">返回摄影学习 /learning</a>
+  </footer>
+
+  <dialog id="viewer" aria-labelledby="viewer-title" aria-describedby="viewer-caption">
+    <div class="dialog-bar"><strong id="viewer-title">教学截图</strong><button class="close" type="button">关闭</button></div>
+    <div class="dialog-image-wrap"><img id="viewer-image" alt=""></div>
+    <p class="dialog-caption" id="viewer-caption"></p>
+  </dialog>
+
+  <script>
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    function activateTab(tab, moveFocus = false) {
+      tabs.forEach((item) => {
+        const active = item === tab;
+        item.setAttribute('aria-selected', String(active));
+        item.tabIndex = active ? 0 : -1;
+        document.getElementById(item.getAttribute('aria-controls')).hidden = !active;
+      });
+      document.getElementById('topic-nav').hidden = tab.id !== 'tab-notes';
+      if (moveFocus) tab.focus();
+    }
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activateTab(tab));
+      tab.addEventListener('keydown', (event) => {
+        let next;
+        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+        if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = tabs.length - 1;
+        if (next !== undefined) {
+          event.preventDefault();
+          activateTab(tabs[next], true);
+        }
+      });
+    });
+
+    const viewer = document.getElementById('viewer');
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerCaption = document.getElementById('viewer-caption');
+    const closeButton = viewer.querySelector('.close');
+    let lastImageButton = null;
+    document.querySelectorAll('.image-button').forEach((button) => {
+      const image = button.querySelector('img');
+      const missing = button.nextElementSibling;
+      image.addEventListener('error', () => {
+        button.hidden = true;
+        missing.hidden = false;
+      });
+      button.addEventListener('click', () => {
+        lastImageButton = button;
+        viewerImage.src = image.currentSrc || image.src;
+        viewerImage.alt = image.alt;
+        viewerCaption.textContent = button.dataset.caption;
+        viewer.showModal();
+        closeButton.focus();
+      });
+    });
+    closeButton.addEventListener('click', () => viewer.close());
+    viewer.addEventListener('click', (event) => {
+      if (event.target === viewer) viewer.close();
+    });
+    viewer.addEventListener('close', () => {
+      viewerImage.removeAttribute('src');
+      if (lastImageButton) lastImageButton.focus();
+    });
+  </script>
+</body>
+</html>
