@@ -227,7 +227,7 @@
       "checked_at": "2026-10-10",
       "locator": "样章vi–ix目录、引言系统说明；第12章Subject Ratio仅目录/索引，未读正文且不用于镜头透视原理",
       "support": "先分析身体关系，再执行、检查与练习的教学方法。",
-      "limitation": "不把作者姿态偏好变为角色照的普遍标准；未通读。"
+      "limitation": "不把作者姿态偏好变为角色照的普遍标准；未通读。；承重第2章正文未在公开样章中核读，不支持具体百分比。"
     },
     {
       "id": "course-eye",
@@ -307,11 +307,11 @@
       "short_title": "コスプレで学ぶ日本刀 ポージング",
       "author": "text まめまよ；adviser 龍村自斎；photo 涼子、大関敦",
       "url": "https://cosplaymode.net/howto/1680/",
-      "reading_depth": "定向阅读正文；本轮Edge逐图打开043、011、012、025",
+      "reading_depth": "定向阅读正文；本轮Edge逐图打开043、011、012、025；本轮新增原页正文/DOM与044像素复核",
       "checked_at": "2026-10-10",
-      "locator": "抜刀しながら繰り出す瞬間；腰が引けている；末尾作例",
+      "locator": "抜刀しながら繰り出す瞬間；腰が引けている；末尾作例；胴抜きで相手を斬った瞬間（044）",
       "support": "真人持剑表达、姿態反例；具体摄影师分工未逐图注明。",
-      "limitation": "没有机位/距离测量；姿态表达建议不是光学规律。只引用4幅原站照片，不复制整课。"
+      "limitation": "没有机位/距离测量；姿态表达建议不是光学规律。只引用5幅原站照片，不复制整课。"
     },
     {
       "id": "course-weapons",
@@ -360,6 +360,66 @@
       "locator": "March 2010；p3可接受模糊、pp6–8几何与固定条件、p15 Rules of thumb；其余检索命中页仅辅助定位",
       "support": "p15明确前1/3后2/3并非通则，近距更对称，接近超焦距后方增长；p3解释清晰边界取决于容许模糊。",
       "limitation": "使用简化几何及指定清晰标准；本文的具体数例不转为漫展拍摄参数，也不据此保证剑与脸同时清楚。"
+    },
+    {
+      "id": "course-pinhole",
+      "title": "Pinhole Image Formation and Linear Perspective",
+      "short_title": "Pinhole Image Formation and Linear Perspective",
+      "author": "Frédo Durand / MIT",
+      "url": "https://people.csail.mit.edu/fredo/comp-photo-book/02-fundamentals-02-pinhole-image-formation-and-linear-perspective.html",
+      "reading_depth": "定向阅读相似三角形、投影公式与线性透视正文",
+      "checked_at": "2026-10-10",
+      "locator": "Image coordinates：x′=fX/Z、y′=fY/Z；Z是相机坐标深度",
+      "support": "理想针孔投影中大小、方向、深度的关系；固定投影中心与重新取景须区别。",
+      "limitation": "理想模型不是镜头畸变或人体比例实测；姿态改变也改变X/Y/Z。"
+    },
+    {
+      "id": "course-stability",
+      "title": "Stability · College Physics 9.3",
+      "short_title": "Stability · College Physics 9.3",
+      "author": "OpenStax",
+      "url": "https://openstax.org/books/college-physics/pages/9-3-stability",
+      "reading_depth": "实际阅读静态稳定、重心与支撑面正文",
+      "checked_at": "2026-10-10",
+      "locator": "9.3 Stability；Fig 9.19–9.22",
+      "support": "静态近似下重心垂线与支撑区域；较宽支撑/较低重心可增加倾倒前的余量。",
+      "limitation": "真人会运动并主动调节；不能由照片算双脚承重，也不保证任何低姿态舒适。"
+    },
+    {
+      "id": "course-equilibrium",
+      "title": "Conditions for Static Equilibrium · University Physics 12.1",
+      "short_title": "Conditions for Static Equilibrium · University Physics 12.1",
+      "author": "OpenStax",
+      "url": "https://openstax.org/books/university-physics-volume-1/pages/12-1-conditions-for-static-equilibrium",
+      "reading_depth": "实际阅读两条平衡条件正文",
+      "checked_at": "2026-10-10",
+      "locator": "12.1；ΣF=0、Στ=0",
+      "support": "静止物体的力和力矩约束；分配随重心和真实接触条件变化。",
+      "limitation": "不是摄影摆姿配方，不给90/10、60/40或70/30通用承重比例。"
+    },
+    {
+      "id": "course-jun",
+      "title": "【第一视角】挑战最细节动作引导摄影师",
+      "short_title": "【第一视角】挑战最细节动作引导摄影师",
+      "author": "小言Jun",
+      "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+      "reading_depth": "Edge核对真实页面、作者、简介及播放场景；独立逐帧抽查交接本机视频，未宣称全片逐句复核",
+      "checked_at": "2026-10-10",
+      "locator": "02:12–02:30手部遮挡与道具方向；04:20–05:00低姿态、相机与成片",
+      "support": "现场小幅指令、手与道具的可见关系、低姿态的动作边界；成片显示取舍。",
+      "limitation": "本机视频301.208秒/640×360，与网页流字节同一性未证明；器材仅作者自述；无承重/机位测量或单变量实验。"
+    },
+    {
+      "id": "course-valind",
+      "title": "Photo Tips: Posing for Portraits",
+      "short_title": "Photo Tips: Posing for Portraits",
+      "author": "Erik Valind / Tamron Magazine Spring 2018",
+      "url": "https://tamron-americas.com/wp-content/uploads/2024/08/issue002_Spring2018.pdf",
+      "reading_depth": "实际定向阅读作者署名摆姿段落，未通读整刊",
+      "checked_at": "2026-10-10",
+      "locator": "印刷pp38–39，Photo Tips；PDF第20页跨页，Three planes of posing",
+      "support": "作者依照场地与灯光安排身体；一例分别安排髋、肩、脸的朝向，而非全身一同转动。",
+      "limitation": "一手职业经验刊于镜头厂商刊物，不是宽度比例实验；不转载刊内照片，不把肩部收窄推广为所有体型审美目标。"
     }
   ],
   "gateways": [
@@ -1522,9 +1582,9 @@
       "id": "sword-perspective-chapter",
       "kind": "course",
       "title": "持剑人物前倾、低机位与头大身小",
-      "question": "怎样同时控制气势和比例？从一张成片追查原因，再预测下一张的代价。",
-      "outcome": "读完后，你应能把“头大”拆成可见症状与待验证原因，选择一次有目的的调整，并说明会牺牲什么。章末三张新实拍由你独立分析；本站不据读完或答题给你升级。",
-      "method": "一个持剑现场问题贯穿：意图—可见证据—几何模型—职业对照—权衡—新照片迁移—现场复拍。",
+      "question": "怎样兼顾人物气势、身体比例、角色动作和道具表达？看懂原因，也主动设计下一张。",
+      "outcome": "从头大、动作挤和剑不清楚的可见关系，区分几何原因与表达选择；借真实摄影师的指令设计调整，说出代价。章末四张新实拍由你先分析再展开解释；本站不据读完或答题给你升级。",
+      "method": "拍摄意图—可见问题—投影与支撑—现场指导片段—创作取舍—陌生实拍判断—现场复拍。",
       "author": "PHOTO ATLAS · 多来源综合与练习设计",
       "reading_depth": "一章连续试读 · 可从目录跳读；建议先做开头观察，再读章末新图。",
       "prior_knowledge": "先修：会控制曝光、对焦和基本构图即可；无需先完成18项微技能。比例自然与夸张都可以成为你的选择。",
@@ -1537,9 +1597,18 @@
         "perspective-skill-wide-near-depth",
         "perspective-skill-lens-working-distance",
         "perspective-gap-skill-low-view-expression-context",
-        "perspective-skill-depth-of-field-control"
+        "perspective-skill-depth-of-field-control",
+        "posing-photographer-check-and-correct",
+        "posing-weight-transfer",
+        "posing-arm-torso-separation",
+        "posing-intent-elicitation",
+        "posing-instruction-clarity",
+        "posing-movement-limits-check"
       ],
       "source_ids": [
+        "course-pinhole",
+        "course-jun",
+        "course-valind",
         "course-practice",
         "course-posing",
         "course-eye",
@@ -1553,7 +1622,9 @@
         "course-weapons",
         "course-dof",
         "course-canon-dof",
-        "course-zeiss-dof"
+        "course-zeiss-dof",
+        "course-stability",
+        "course-equilibrium"
       ],
       "cases": [
         {
@@ -1776,6 +1847,10 @@
             "level": "pixel_reviewed",
             "checked_at": "2026-10-10",
             "detail": "本轮ROOT实际打开每张已登记截图；35mm裁切与70mm画面并列；字幕说明同一位置，模特与背景杆的位置关系相近。"
+          },
+          "playback": {
+            "start": 55,
+            "end": 78
           }
         },
         {
@@ -1800,6 +1875,10 @@
             "level": "pixel_reviewed",
             "checked_at": "2026-10-10",
             "detail": "本轮ROOT实际打开每张已登记截图；字幕标近/远距离；背景与人物的相对大小变化，人物姿态也有少量变化，未测精确距离。"
+          },
+          "playback": {
+            "start": 82,
+            "end": 142
           }
         },
         {
@@ -1827,6 +1906,10 @@
             "level": "pixel_reviewed",
             "checked_at": "2026-10-10",
             "detail": "本轮ROOT实际打开每张已登记截图；右侧现场操作与左侧成片小图；240p帧不能用于精细身体比例测量，姿势与取景不完全相同。"
+          },
+          "playback": {
+            "start": 108,
+            "end": 132
           }
         },
         {
@@ -1851,6 +1934,101 @@
             "level": "pixel_reviewed",
             "checked_at": "2026-10-10",
             "detail": "本轮ROOT实际打开每张已登记截图；双图中前臂靠近镜头且显著，手臂姿态不同；作者将其用作近距离低角度提醒。"
+          }
+        },
+        {
+          "id": "jun-hand-direction",
+          "title": "实拍指导 · 先解决遮挡，再指明方向",
+          "author": "小言Jun",
+          "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+          "display": "note_media",
+          "images": [
+            {
+              "media_id": "synthesis-jun-hand"
+            },
+            {
+              "media_id": "synthesis-jun-direction"
+            }
+          ],
+          "playback": {
+            "start": 132,
+            "end": 150
+          },
+          "caption": "02:12指出手被遮挡；02:28给道具方向提示。两帧之间动作有变化，不是控制其他条件的刀身长度实验。",
+          "alt": "02:12指出手被遮挡；02:28给道具方向提示。两帧之间动作有变化，不是控制其他条件的刀身长度实验。",
+          "rights": {
+            "allowed": false,
+            "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+            "statement": "有限个人学习关键帧；本机登记哈希，不随Git或离线课程分发；未取得转载许可。缺图仍保留中文操作解析及播放出处。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-10",
+            "detail": "ROOT实际打开所列时间帧，独立视频审查抽查邻近帧；操作与推断分开。不能由帧测器材、承重、机位或归因单一变量。"
+          }
+        },
+        {
+          "id": "jun-low-final",
+          "title": "另一段动作 · 限制移动，比较片尾呈现",
+          "author": "小言Jun",
+          "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+          "display": "note_media",
+          "images": [
+            {
+              "media_id": "synthesis-jun-low"
+            },
+            {
+              "media_id": "synthesis-jun-final"
+            }
+          ],
+          "playback": {
+            "start": 260,
+            "end": 301
+          },
+          "caption": "04:35低姿态与05:00片尾成片。期间摄影者继续工作，不能把两张当作同曝光、同构图的前后实验。",
+          "alt": "04:35低姿态与05:00片尾成片。期间摄影者继续工作，不能把两张当作同曝光、同构图的前后实验。",
+          "rights": {
+            "allowed": false,
+            "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+            "statement": "有限个人学习关键帧；本机登记哈希，不随Git或离线课程分发；未取得转载许可。缺图仍保留中文操作解析及播放出处。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-10",
+            "detail": "ROOT实际打开所列时间帧，独立视频审查抽查邻近帧；操作与推断分开。不能由帧测器材、承重、机位或归因单一变量。"
+          }
+        },
+        {
+          "id": "sword-transfer-duel",
+          "title": "新照片 D · 两个人、两种可能意图",
+          "author": "text まめまよ；adviser 龍村自斎；photo 涼子、大関敦",
+          "url": "https://cosplaymode.net/howto/1680/",
+          "display": "source_remote",
+          "images": [
+            {
+              "src": "https://cosplaymode.net/wp-content/uploads/2022/06/nihontou044.jpg",
+              "width": 1200,
+              "height": 800,
+              "alt": "前景戴面具人物向画面伸出持剑手，后景格纹外衣人物背向镜头，灯笼与门框倾斜。"
+            }
+          ],
+          "caption": "先观察前后两人的关系与持剑手；解析保持折叠。",
+          "alt": "前景戴面具人物向画面伸出持剑手，后景格纹外衣人物背向镜头，灯笼与门框倾斜。",
+          "source_summary": {
+            "text": "本章迁移问题由项目设计；先不读原作者对这一瞬间的说明。",
+            "locator": "末尾双人作例 · nihontou044.jpg",
+            "source_id": "course-sword",
+            "checked_at": "2026-10-10"
+          },
+          "rights": {
+            "allowed": false,
+            "url": "https://cosplaymode.net/howto/1680/",
+            "statement": "有限个人学习引用原站公开图，保留出处与署名；未取得再分发/离线打包许可，不缓存、不提交图片。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-10",
+            "detail": "ROOT从原页实际DOM取得精确图片URL，Edge打开并查看像素：面具人物较大且清楚，另一人背向且更软；未反推机位/焦距/物理刀长。"
           }
         }
       ],
@@ -1931,11 +2109,29 @@
             {
               "type": "paragraph",
               "text": "它们常一起发生：为了保持脸在画面里，蹲下时会抬镜头；为了恢复人物占比，后退时会变焦。你要先识别这一组联动，才能设计有区分力的下一张。镜头桶形/枕形畸变、边缘拉伸与后期透视校正另属问题，镜头配置文件不能把已经拍下的近头远身关系重新拍过。"
+            },
+            {
+              "type": "heading",
+              "text": "身体看起来宽，先分开骨架、衣服与重叠"
+            },
+            {
+              "type": "paragraph",
+              "text": "手臂贴在躯干轮廓上、宽袖盖住腰线，会把相邻部分读成一大片。稍把肘或手与身体错开，可能出现可读间隙；转肩也会改变正面投影。但宽袖未必随手臂移动，阴影可能吃掉间隙，侧转还会隐藏衣服图案或让剑遮脸。因此看试拍里的轮廓，不用“转身就瘦20–30%”或固定15°替所有人物决定。收窄也未必是你想要的角色体量。"
+            },
+            {
+              "type": "heading",
+              "text": "承重决定能否维持动作，照片不提供足底压力读数"
+            },
+            {
+              "type": "paragraph",
+              "text": "静态近似下，支撑区域、重心位置以及真实接触处的力共同约束平衡。较宽支撑、较低重心有时让姿态更稳，却不保证膝踝舒适，也不等于动作更有气势。照片里看见剑尖接地，不能证明剑承重；角色道具不应被当作身体支架。先问人物能否舒服地保持，必要时改脚位、减少下蹲或缩短保持时间；改变支撑会连带改变髋、躯干和剑的位置，再看画面。没有适用于所有剑士的90/10、60/40或70/30承重配方。"
             }
           ],
           "source_ids": [
-            "gw-perspective-banks",
-            "course-neil"
+            "course-pinhole",
+            "course-neil",
+            "course-stability",
+            "course-equilibrium"
           ]
         },
         {
@@ -1943,6 +2139,10 @@
           "title": "用三组实拍对照，检查因果而不是背焦段",
           "kicker": "CHAPTER 01",
           "blocks": [
+            {
+              "type": "paragraph",
+              "text": "投影的简化依据是x′=fX/Z、y′=fY/Z：同一深度平面上的尺度随焦距变化，身体各处深度不同则有不同放大率。转身或屈膝同时改变朝向与深度；细长道具沿视线指向相机时，其长轴在画面里的展开会缩短，但近端可能更突出。侧开通常更能展示长度，向前则能强调刺向观者；两者各有用途，不存在“剑永远不能指向镜头”的几何结论。"
+            },
             {
               "type": "case",
               "case_id": "course-fixed-focal"
@@ -2016,18 +2216,72 @@
             }
           ],
           "source_ids": [
+            "course-pinhole",
+            "gw-perspective-banks",
             "course-yideng",
             "course-manny",
-            "course-dof",
+            "course-zeiss-dof",
             "course-canon-dof",
-            "course-zeiss-dof"
+            "course-dof"
           ]
         },
         {
           "id": "contrast",
-          "title": "回到持剑成片：保留什么，下一张先改什么",
+          "title": "摄影师实际怎样指导，再把方法用回前倾剑士",
           "kicker": "CHAPTER 01",
           "blocks": [
+            {
+              "type": "heading",
+              "text": "小言Jun：从可见遮挡给出小幅指令"
+            },
+            {
+              "type": "paragraph",
+              "text": "这一段发生在漫展现场。先看下面02:12的手与横向道具：画面字幕指出另一只手被挡；02:28又给出斜向上的方向提示。摄影者把笼统的“摆好看”拆成可执行的小变化。本站据画面归纳出“先查遮挡，再给方向”，这不是作者讲授的一套普遍原理，也没有拍摄者声明正在做刀长实验。"
+            },
+            {
+              "type": "case",
+              "case_id": "jun-hand-direction"
+            },
+            {
+              "type": "paragraph",
+              "text": "你可以借用这种具体性：先问“这张要看清双手握法，还是让剑朝观者冲来？”若选择前者，可试“这只手稍向外，让握柄轮廓露出来，我拍一张看看”；代价是动作可能展开、少了紧凑感，宽袖与刀面反光也要重看。这是本站给你的迁移话术，不冒充现场原对白。一次只给一个身体部位和方向，让人物知道何时可以放松。"
+            },
+            {
+              "type": "heading",
+              "text": "同一视频的低姿态：指导也包含停止继续移动"
+            },
+            {
+              "type": "case",
+              "case_id": "jun-low-final"
+            },
+            {
+              "type": "paragraph",
+              "text": "04:20后出现另一组低姿态；04:35字幕限制继续移动，04:50附近可见摄影者在低处工作，05:00展示修饰成片。片尾保留一手扶帽与竖向道具，脸和帽沿清楚；左侧灯板、现代室内背景仍在。这里看得到摄影者围绕动作维持和画面工作，却看不到测量机高或双脚承重，也没有作者说明降低机位是为了消除头大。"
+            },
+            {
+              "type": "paragraph",
+              "text": "可以从中学到主动取舍：需要脸、帽和角色动作时，先稳定人物能维持的姿态，再由摄影者寻找视点；试拍同时检查帽沿遮眼、手与脸重叠、道具余量及背景。片尾的灯板若不合你的目标，可以换方向或收紧景别，代价是受光、完整动作或环境改变。不能把这段写成“剑尖承重后完成干净古建背景”，也不能把修饰成片与现场帧差异全归因于一个操作。"
+            },
+            {
+              "type": "heading",
+              "text": "Erik Valind：把身体各部分与灯光分别安排"
+            },
+            {
+              "type": "paragraph",
+              "text": "Valind在署名教程的一例中，让髋朝相机、肩稍向右转到光、脸再稍向左；他用它处理正对相机的肩部观感。这是一位摄影师针对该人物和受光的选择，没有提供宽度百分比。迁移到剑士时，你可保留脚与髋的动作方向，只试转肩或脸来打开握剑轮廓；同时检查衣服图案、脸的受光和角色动作是否被破坏。别把三处都拧到最大角度，或强迫所有人物追求窄肩。"
+            },
+            {
+              "type": "heading",
+              "text": "诊断需要区分变量，创作可以协调变量"
+            },
+            {
+              "type": "paragraph",
+              "text": "为了查出头身差的原因，比较时尽量只改一个主要关系；为了完成你要的照片，可以同时协调姿态、距离、取景和光。联合调整是正常创作，只需诚实承认无法从这一组前后照片分配各变量的因果贡献。人物已经不舒服时，先结束动作，再谈诊断实验。"
+            },
+            {
+              "type": "heading",
+              "text": "本站拟议复拍：把实拍方法用回开头照片"
+            },
             {
               "type": "case",
               "case_id": "sword-forward"
@@ -2098,9 +2352,12 @@
             }
           ],
           "source_ids": [
+            "course-jun",
+            "course-valind",
             "course-sword",
             "course-posing",
-            "course-neil"
+            "course-neil",
+            "course-pinhole"
           ]
         },
         {
@@ -2139,6 +2396,10 @@
             {
               "type": "paragraph",
               "text": "复拍时把比较做公平：相近的显示大小、相同裁切目标，记下人物是否移动、是否重对焦和有没有改后期。只取一张“看起来更好”的照片不能证明原因已找准；意图不同也不应强迫照片沿同一个答案收敛。"
+            },
+            {
+              "type": "paragraph",
+              "text": "动作紧绷或表情不合意，先问人物感受、缩短保持并给明确方向；不要把普通摆姿自动诊断为人体防御反射。固定关节角度、承重比例和身体视觉宽度百分比在本章没有可靠适用证据。它们不能替你观察轮廓、协商角色意图和检查舒适度。"
             }
           ],
           "source_ids": [
@@ -2149,12 +2410,12 @@
         },
         {
           "id": "transfer",
-          "title": "三张未讲过的真人照片：独立做下一步判断",
+          "title": "四张未讲过的真人照片：先设意图，再做下一步判断",
           "kicker": "CHAPTER 01",
           "blocks": [
             {
               "type": "paragraph",
-              "text": "这三张在前文没有出现。先不要打开解析或去读原站提示；仅凭照片完成。它们不是统一意义上的失败照片，你可以设定不同合理目标。每张写四件事：可见问题（或值得保留的关系）、可能原因与未知条件、下一张只先改什么、你愿意接受的代价。"
+              "text": "这四张在前文没有出现。先不要打开解析或去读原站提示；仅凭照片完成。它们不是统一意义上的失败照片，你可以设定不同合理目标。每张写四件事：可见问题（或值得保留的关系）、可能原因与未知条件、下一张只先改什么、你愿意接受的代价。"
             },
             {
               "type": "case",
@@ -2169,10 +2430,14 @@
               "case_id": "sword-transfer-ninja"
             },
             {
+              "type": "case",
+              "case_id": "sword-transfer-duel"
+            },
+            {
               "type": "exercise",
               "id": "transfer",
-              "title": "用同一个判断过程，得到三种可能不同的方案",
-              "prompt": "A若拍沉着的剑士，是否需要更低机位？B若改为道具压迫感，你会改距离还是剑的方向？C若要更强冲刺感并保留脸，你会先改姿态、视点还是景别？也可另定合理意图。请分别写A/B/C的证据、假设、调整、代价与反证，不能仅写“广角/长焦”。",
+              "title": "允许不同意图，具体选择下一张并说明代价",
+              "prompt": "A若拍沉着的剑士，是否需要更低机位？B若改为道具压迫感，改距离还是剑的方向？C若要冲刺感并保留脸，先改什么？新图D：可选“前景角色主导的一击结束”或“双人角色与武器都清楚”，也可另定意图。下一张先选①侧开剑②侧移相机③让后方人物转脸④保留当前关系，说明理由及可能失去什么。任选一图完整写证据、假设、调整、代价与反证；不必把四图全做完。",
               "label": "写出画面证据 → 原因假设 → 下一张调整 → 预计代价",
               "placeholder": "允许不同拍摄意图；不知道的拍摄条件请写“未知”。"
             },
@@ -2184,6 +2449,7 @@
                 "A：可见剑身斜向穿过前景，脸在其上方，双脚未完整呈现。沉着目标下保留直立与较收束动作也合理，不需要为了气势自动降低机位。若想展示步法，先加宽景别；代价是脸和刀柄在屏幕上更小、背景进入更多。不能从缺少脚部的图判断完整头身比，也不能假定剑靠镜头有某个距离。",
                 "B：可见正面人物、两手在剑柄，剑身向下，双脚与白背景一起入画。若要近剑压迫，单把垂直剑搬向相机可能先强调手和剑柄；改剑朝向可能加强前后关系，却缩短可见刀身或遮挡躯干。若目标是服装和道具记录，保留当前可读轮廓同样合理。下一张应检查脸/手/剑的占比是否符合目标，不能从剑很长推断它是大剑或知道真实尺寸。",
                 "C：可见跨步、屈膝、刀横于身前，另一手靠脸。若追求冲刺，可尝试让躯干向动作方向转/送，预测动势增强，但脸可能与近手竞争、头身差加大；若追求刀的识别，保留横向轮廓并微调手与脸的重叠更合理，代价是朝观者冲来的感觉收敛。图里白背景没有可靠机高参照，不能把效果归给低机位。",
+                "D：可见前景面具人物更大、更清楚，持剑手朝画面伸出；后方人物背向且较软，门框/灯笼倾斜。若要前景人物主导，保留前后层次及朝观者的动作合理，不能只因刀身不展开就判错。若要两人和武器都清楚，可先让后方人物转脸，预测双人可辨但“一击之后”的背向叙事减弱；侧开剑可展示更多刀身，却改变攻击方向；侧移相机可能分开轮廓，却也改变背景和重叠。后方较软还需区分景深、运动和后期，不能单图指定光圈。原页作者把此例解释为斩过对手的瞬间，安排剑尖朝相机、另一人配合动作；这与“剑不得朝镜头”相反。以上四个复拍选项是本站设计，没有原作者逐项验证。",
                 "检查你的回答有没有：两处确实看得见的关系；把原因写成待验证假设；说出一次具体动作与副作用；指定哪种复拍结果会推翻它。你若选择别的意图与方案，只要这些环节成立，也可以比这份解析更合适。这不是作者原点评或计分考试。",
                 "若答案只是把“近大远小”换句话说，还没有显示独立迁移。若能解释什么时候保留夸张、什么时候减少前倾，以及空间受限如何交换景别，就比只背“先退再取景”多了一层判断。是否真实获得这种能力，仍须你先答新图、再到现场复拍。"
               ],
@@ -2211,7 +2477,11 @@
             },
             {
               "type": "paragraph",
-              "text": "回看你在开头和三张新图写的回答，尝试补上一个当时遗漏的替代原因。阅读不会替你改变个人技能状态，是否理解、能迁移或经过实拍验证由你自己判断。样板章到此停止；在亲自试读与复拍证明价值前，不继续批量扩展。"
+              "text": "回看你在开头和四张新图写的回答，尝试补上一个当时遗漏的替代原因。阅读不会替你改变个人技能状态，是否理解、能迁移或经过实拍验证由你自己判断。样板章到此停止；在亲自试读与复拍证明价值前，不继续批量扩展。"
+            },
+            {
+              "type": "paragraph",
+              "text": "短试学可用8分钟：先看开头图留两句判断，读现场指导与原理，再只做新图D，完成后展开解析。比较你是否给出了两条可见证据、合理意图、具体下一张和代价；随后用安全的静止持道具姿态做一组复拍，检验一条预测。答得不同可以成立，读完或浏览器通过都不等于你已掌握。"
             }
           ],
           "source_ids": [
@@ -2226,11 +2496,15 @@
           "blocks": [
             {
               "type": "paragraph",
-              "text": "本章是项目撰写的中文综合课程。教材样章支持教学组织，Banks支持有限的投影/观看模型，实际教程提供对照与经验，图像观察只描述所见。大剑、匕首、会场取舍与评估提示是项目自行设计的迁移练习；不冒称某位作者已经验证这些场景。"
+              "text": "本章是项目撰写的中文综合课程。MIT支持理想投影，OpenStax支持有限静态平衡；这些不是人体摆姿配方。小言Jun的关键帧支持实际操作观察，Valind支持有条件的职业方法；角色气势与收窄身体是可选择的表达目标。现有教材预览支持教学组织，不用目录证明精确承重或关节角度。大剑、匕首、会场取舍与迁移题由本站设计。"
             },
             {
               "type": "paragraph",
               "text": "下列每条记录有实际阅读深度、定位、支持范围和边界。Freeman只核目录，其余教材仅读合法预览的部分内容；没有一本声称通读。私人教学截图未随Git分发；新原站图依赖网络，原站失败时本站保留实质讲解和出处。一次UI通过不是摄影事实或学习成功证明。"
+            },
+            {
+              "type": "paragraph",
+              "text": "重要视频保留时间段播放链接与站内关键帧解析。小言Jun片段来自交接本机视频并对照真实网页；未独立证明网页流与本机文件逐字节相同，也未重看所有旧教程全片。私人截图缺失时正文仍可读，原站照片失败时显示说明。完整采用/纠正依据与抽查范围见仓库COURSE_SYNTHESIS_AUDIT；这不是用户学习效果证明。"
             }
           ],
           "source_ids": []

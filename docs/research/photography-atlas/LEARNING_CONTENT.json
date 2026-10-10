@@ -813,6 +813,13 @@
       "title": "Photographing wide-angle portraits",
       "url": "https://neilvn.com/tangents/photographing-wide-angle-portraits/",
       "inspection": "实读正文并开图查看DSC_1494_HDR与DSC_1493-1489。截图读取超时；原图来自页面普通DOM图像地址。正文建议腰高取景、后退、轻微前倾、人物居中；手臂图含姿势变量；环境主图标注HDR。"
+    },
+    {
+      "id": "synthesis-jun",
+      "author": "小言Jun",
+      "title": "【第一视角】挑战最细节动作引导摄影师",
+      "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+      "inspection": "交接本机视频独立抽帧，ROOT逐图复核132/148/275/300秒；网页核对作者、标题与可见场景。详细范围及字节同一性限制见COURSE_SYNTHESIS_AUDIT。"
     }
   ],
   "media": [
@@ -1085,6 +1092,42 @@
       "position": "01:10",
       "caption": "腰上半身段的现场操作；作者讲解上胸/锁骨附近的起点。",
       "alt": "Manny举相机拍摄模特，视频旁白在此段讲解腰上半身的相机起始高度。"
+    },
+    {
+      "id": "synthesis-jun-hand",
+      "filename": "e5c2e733b7bce77a2e9330a3acf05b13112e594cb3ab5193d45854b074ff08c3.jpg",
+      "sha256": "e5c2e733b7bce77a2e9330a3acf05b13112e594cb3ab5193d45854b074ff08c3",
+      "source_id": "synthesis-jun",
+      "position": "02:12",
+      "caption": "02:12 · 身前双手与横向道具；字幕指出另一只手被挡。",
+      "alt": "02:12 · 身前双手与横向道具；字幕指出另一只手被挡。"
+    },
+    {
+      "id": "synthesis-jun-direction",
+      "filename": "d07c002d34e11d0500485248a093d59fdd39db71402b3a9e4162b58c93d8195c.jpg",
+      "sha256": "d07c002d34e11d0500485248a093d59fdd39db71402b3a9e4162b58c93d8195c",
+      "source_id": "synthesis-jun",
+      "position": "02:28",
+      "caption": "02:28 · 道具斜向画面前方；字幕给出斜向上的小幅方向提示。",
+      "alt": "02:28 · 道具斜向画面前方；字幕给出斜向上的小幅方向提示。"
+    },
+    {
+      "id": "synthesis-jun-low",
+      "filename": "e341b952f514e8b5fa5d65bcaa9224d28430eb5506cce68781c4bc4b843fdcea.jpg",
+      "sha256": "e341b952f514e8b5fa5d65bcaa9224d28430eb5506cce68781c4bc4b843fdcea",
+      "source_id": "synthesis-jun",
+      "position": "04:35",
+      "caption": "04:35 · 低姿态，一手扶帽、一手持竖向黑色长物；字幕限制继续移动。",
+      "alt": "04:35 · 低姿态，一手扶帽、一手持竖向黑色长物；字幕限制继续移动。"
+    },
+    {
+      "id": "synthesis-jun-final",
+      "filename": "4fbf23ab01cb86d73f8aa89bf46571f8541d552aef793569359d1c17871d4574.jpg",
+      "sha256": "4fbf23ab01cb86d73f8aa89bf46571f8541d552aef793569359d1c17871d4574",
+      "source_id": "synthesis-jun",
+      "position": "05:00",
+      "caption": "05:00 · 片尾修饰成片：帽、脸、竖向道具；左侧灯板与现代室内背景仍可见。",
+      "alt": "05:00 · 片尾修饰成片：帽、脸、竖向道具；左侧灯板与现代室内背景仍可见。"
     }
   ]
 }

@@ -61,8 +61,8 @@ def test_source_case_images_are_exact_registered_originals_with_truthful_rights_
     source_cases = {case_id: entry for case_id, entry in case_entries.items()
                     if entry[1].get('display') == 'source_remote'}
     assert set(source_cases) == set(SOURCE_CASE_MEDIA)
-    assert len(SOURCE_CASE_MEDIA) == 13
-    assert sum(len(urls) for urls in SOURCE_CASE_MEDIA.values()) == 15
+    assert len(SOURCE_CASE_MEDIA) == 14
+    assert sum(len(urls) for urls in SOURCE_CASE_MEDIA.values()) == 16
 
     for case_id, urls in SOURCE_CASE_MEDIA.items():
         gateway, case = source_cases[case_id]

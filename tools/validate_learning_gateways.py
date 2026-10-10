@@ -61,6 +61,13 @@ def validate_gateways(catalog: dict, tree: dict, learning_content: dict | None =
             cases[cid] = case
             if not public_url(case.get('url')):
                 errors.append(f'Unsafe case URL: {cid}')
+            if 'playback' in case:
+                clip = case['playback']
+                if (not isinstance(clip, dict)
+                        or type(clip.get('start')) is not int
+                        or type(clip.get('end')) is not int
+                        or not 0 <= clip['start'] < clip['end'] <= 86400):
+                    errors.append(f'Invalid playback range: {cid}')
             rights, review = case.get('rights', {}), case.get('review', {})
             if not public_url(rights.get('url')) or not rights.get('statement') or type(rights.get('allowed')) is not bool:
                 errors.append(f'Missing rights record: {cid}')

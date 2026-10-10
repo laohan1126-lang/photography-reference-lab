@@ -20,6 +20,8 @@ V2 在首页「从一个问题，换一种看法」与相关技能的「学习�
 
 本轮只读试读：[课程入口](http://127.0.0.1:18771/learning?course=sword-perspective-chapter)。未运行时执行 `.venv/Scripts/python.exe -X utf8 tools/preview_learning.py --port 18771 --reference-url http://127.0.0.1:18765/`。日用服务本轮未重启；受控升级后使用同一 `/learning?course=sword-perspective-chapter`。见 [重构对照与教材阅读范围](docs/research/photography-atlas/COURSE_RECONSTRUCTION.md)、[关键案例与原始来源](docs/research/photography-atlas/COURSE_EVIDENCE.md)、[Deep Research原文独立审计](docs/research/photography-atlas/DEEP_RESEARCH_AUDIT.md) 和 [任务验收](docs/tasks/2026-10-10-professional-course-loop.md)。第一章效果未获主人验证前，不批量扩展。
 
+独立双 Agent 整合版继续使用这一章和阅读器，补入经抽帧核验的小言Jun现场指令、Valind的身体/灯光安排，以及先答后解的双人持剑新图；不以承重百分比或统一关节角度指导真人。[本轮只读课程入口](http://127.0.0.1:18772/learning?course=sword-perspective-chapter)，启动命令：`.venv/Scripts/python.exe -X utf8 tools/preview_learning.py --port 18772 --reference-url http://127.0.0.1:18765/`。见 [独立内容审查与采用依据](docs/research/photography-atlas/COURSE_SYNTHESIS_AUDIT.md) 和 [整合任务记录](docs/tasks/2026-10-10-photography-course-synthesis.md)。日用服务及用户资料不随此预览变更。
+
 ## Dot 摄影参考待筛入口
 
 侧栏的“待筛摄影参考”独立于角色项目和“我的审美库”。2026-10 的 Dot 批次有 238 幅主候选、240 份原始文件（其中 2 份为同作品兼容副本）；导入后全部保持“待筛”，不自动成为审美收藏或角色参考。编号、Dot 原文、来源、署名和使用限制可在单图页查看。按“动作 / 光线 / 构图 / 环境 / 道具”的筛选仅来自 Dot 文案关键词，**未经逐图视觉复核**，不是图片事实或用户审美决定。用户可逐图改为“优先 / 普通 / 跳过”，多选“构图可学 / 姿势可学 / 光线可学”作为自己的筛选理由，并记下判断。

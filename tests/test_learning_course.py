@@ -2,6 +2,7 @@
 import copy
 import json
 from pathlib import Path
+import pytest
 
 from tools.validate_learning_gateways import validate_gateways
 
@@ -30,3 +31,17 @@ def test_course_media_requires_registered_bytes_and_matching_source():
     assert any('source' in e for e in validate_gateways(sample, tree, content))
     sample['gateways'][1]['source_ids'].append('missing-source')
     assert any('Unknown source mapping' in e for e in validate_gateways(sample, tree, content))
+
+
+@pytest.mark.parametrize('playback', [
+    {'start': -1, 'end': 150}, {'start': 150, 'end': 132},
+    {'start': True, 'end': 150}, {'start': 132, 'end': '150'},
+    {'start': 132, 'end': 90000}, {'start': 132},
+])
+def test_course_rejects_invalid_playback_ranges(playback):
+    catalog = json.loads((RESEARCH / 'GATEWAYS.json').read_text(encoding='utf-8'))
+    tree = json.loads((RESEARCH / 'SKILL_TREE.json').read_text(encoding='utf-8'))
+    content = json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))
+    case = catalog['gateways'][-1]['cases'][0]
+    case['playback'] = playback
+    assert any('playback' in e for e in validate_gateways(catalog, tree, content))
