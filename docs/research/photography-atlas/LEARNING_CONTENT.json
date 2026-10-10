@@ -813,6 +813,20 @@
       "title": "Photographing wide-angle portraits",
       "url": "https://neilvn.com/tangents/photographing-wide-angle-portraits/",
       "inspection": "实读正文并开图查看DSC_1494_HDR与DSC_1493-1489。截图读取超时；原图来自页面普通DOM图像地址。正文建议腰高取景、后退、轻微前倾、人物居中；手臂图含姿势变量；环境主图标注HDR。"
+    },
+    {
+      "id": "owner-source-dsc02260",
+      "author": "项目主人 · 本人拍摄（按本人提供）",
+      "title": "DSC02260.JPG · 双人装甲合影原图",
+      "url": "https://drive.google.com/file/d/1JxZgTvp045l_NZxg0YxuSQxR8vcwbGu3/view?usp=drivesdk",
+      "inspection": "2026-10-10经已连接Drive取原始JPG；17932314字节、7008×4672，完整解码及本地SHA-256核验。ROOT与独立审查实际开图；观察头盔体量、取景边界和环境，不据单图反推机高/焦段/距离，不是纠正前后对照。"
+    },
+    {
+      "id": "owner-source-dsc02268",
+      "author": "项目主人 · 本人拍摄（按本人提供）",
+      "title": "DSC02268.JPG · 近前景与主体关系原图",
+      "url": "https://drive.google.com/file/d/15jAlCe5gcc-2P0k2zZ-2wmq_c3zqfIl1/view?usp=drivesdk",
+      "inspection": "2026-10-10经已连接Drive取原始JPG；18621715字节、7008×4672，完整解码及本地SHA-256核验。ROOT与独立审查实际开图；近处青色人物主要占画框和遮背景，不能说遮住主角脸。与DSC02260的姿态、道具投影及取景不同，不是控制实验。"
     }
   ],
   "media": [
@@ -1085,6 +1099,24 @@
       "position": "01:10",
       "caption": "腰上半身段的现场操作；作者讲解上胸/锁骨附近的起点。",
       "alt": "Manny举相机拍摄模特，视频旁白在此段讲解腰上半身的相机起始高度。"
+    },
+    {
+      "id": "owner-dsc02260",
+      "filename": "1c02c12aeca9f7ab84c8c5148c2ed5396665c345b1ad4e7e813679e97cc6a49a.jpg",
+      "sha256": "1c02c12aeca9f7ab84c8c5148c2ed5396665c345b1ad4e7e813679e97cc6a49a",
+      "source_id": "owner-source-dsc02260",
+      "position": "DSC02260.JPG · 未改动的本人原图",
+      "caption": "两位装甲人物靠拢；双脚和左下道具越过画框，上方有较多会场天花。",
+      "alt": "会场内两位戴装饰头盔的装甲人物靠拢，左侧人物举绿色道具，右侧人物的高尖头盔接近画面上方；双脚未完整入画。"
+    },
+    {
+      "id": "owner-dsc02268",
+      "filename": "6f359f0b2fb2a3fe127d246222eb9a683edf1a412f1edbf3315047fd5e4c044c.jpg",
+      "sha256": "6f359f0b2fb2a3fe127d246222eb9a683edf1a412f1edbf3315047fd5e4c044c",
+      "source_id": "owner-source-dsc02268",
+      "position": "DSC02268.JPG · 未改动的本人原图",
+      "caption": "右侧近处青色人物占据画框并与背景重叠，未明显遮住两位主体的头盔面部或胸部；左下道具末端完整可见。",
+      "alt": "两位装甲人物站在会场中，右侧近处青色长发人物占据画面边缘，左下绿色道具末端在框内，两位主体双脚未完整入画。"
     }
   ]
 }

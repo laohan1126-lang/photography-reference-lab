@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "research_version": "cbe5388ae5fad780decf610f7ba0f57a5270c3ef1deb17f977faa95d3417ac15",
+  "research_version": "19b735848812e291040621750932c518445a0d05650d6dc4c5c05e1529602909",
   "meta": {
     "title": "摄影能力地图",
     "target": "真人 Cosplay / 人像现场摄影",
@@ -23162,7 +23162,9 @@
         "course-weapons",
         "course-dof",
         "course-canon-dof",
-        "course-zeiss-dof"
+        "course-zeiss-dof",
+        "owner-source-dsc02260",
+        "owner-source-dsc02268"
       ],
       "cases": [
         {
@@ -23461,6 +23463,54 @@
             "checked_at": "2026-10-10",
             "detail": "本轮ROOT实际打开每张已登记截图；双图中前臂靠近镜头且显著，手臂姿态不同；作者将其用作近距离低角度提醒。"
           }
+        },
+        {
+          "id": "owner-frame-boundary",
+          "title": "你的照片 · DSC02260：先分清装备体量与取景截断",
+          "author": "项目主人 · 本人拍摄（按本人提供）",
+          "url": "https://drive.google.com/file/d/1JxZgTvp045l_NZxg0YxuSQxR8vcwbGu3/view?usp=drivesdk",
+          "display": "note_media",
+          "images": [
+            {
+              "media_id": "owner-dsc02260"
+            }
+          ],
+          "caption": "高尖头盔本来就有体量；双脚和左下道具被截断，上方有较多会场天花。先决定记录目标，再判断什么值得改。",
+          "alt": "两位装甲人物在会场靠拢，右侧戴高尖装饰头盔，双脚与左下道具未完整入画。",
+          "rights": {
+            "allowed": true,
+            "url": "https://drive.google.com/file/d/1JxZgTvp045l_NZxg0YxuSQxR8vcwbGu3/view?usp=drivesdk",
+            "statement": "本人明确要求将自己的照片用于个人自学教材；限本机私人阅读，保留原字节与Drive出处，不提交图片、不授予公开再分发许可。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-10",
+            "detail": "ROOT及独立审查打开实际7008×4672原JPG，完整解码及哈希登记；右侧细道具末端在框内，左下道具和双脚截断。不推断机高/焦段或锐度成因。"
+          }
+        },
+        {
+          "id": "owner-foreground-boundary",
+          "title": "你的照片 · DSC02268：近处干扰该不该保留",
+          "author": "项目主人 · 本人拍摄（按本人提供）",
+          "url": "https://drive.google.com/file/d/15jAlCe5gcc-2P0k2zZ-2wmq_c3zqfIl1/view?usp=drivesdk",
+          "display": "note_media",
+          "images": [
+            {
+              "media_id": "owner-dsc02268"
+            }
+          ],
+          "caption": "右侧近处青色人物占画框并遮住部分背景，未明显遮住两位主体的头盔面部或胸部。左下道具端部在框内，双脚仍截断。",
+          "alt": "会场内两位装甲人物，右侧近处青色人物占据边缘；主体头盔面部和胸部仍可见，绿色道具末端在左下框内。",
+          "rights": {
+            "allowed": true,
+            "url": "https://drive.google.com/file/d/15jAlCe5gcc-2P0k2zZ-2wmq_c3zqfIl1/view?usp=drivesdk",
+            "statement": "本人明确要求将自己的照片用于个人自学教材；限本机私人阅读，保留原字节与Drive出处，不提交图片、不授予公开再分发许可。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-10",
+            "detail": "ROOT及独立审查打开实际7008×4672原JPG，完整解码及哈希登记；近处人物主要遮背景而非主角脸。与DSC02260的朝向、投影与取景不同，不是控制变量对照。"
+          }
         }
       ],
       "sections": [
@@ -23719,6 +23769,42 @@
             },
             {
               "type": "heading",
+              "text": "用你自己的照片拆解一次误判"
+            },
+            {
+              "type": "paragraph",
+              "text": "先看这两张本人原图，想一想：你希望留下完整装备、同伴合影，还是拥挤会场的现场感？哪些问题来自画框和环境，哪些才需要追查透视？两张是在不同条件下拍到的照片；不要先把文件顺序当成“改好前后”。"
+            },
+            {
+              "type": "case",
+              "case_id": "owner-frame-boundary"
+            },
+            {
+              "type": "paragraph",
+              "text": "DSC02260里，右侧头盔的高尖装饰确实占据很多面积；这包含装备本身体量。两人的双脚未完整显示，左下道具越过画框，而上方仍有较多天花。你可以指出“完整装备没被记录下来”，却还不能据此证明“低机位把头拍大了”：缺少脚部就无法比较完整头身关系，头盔也不等于裸头尺寸。先区分对象原本的形状、姿态投影和取景边界，才能决定要修哪一项。"
+            },
+            {
+              "type": "paragraph",
+              "text": "若目的是完整装备照，下一张先在相同站位试竖幅，逐一检查头盔顶、双脚、左右道具端部。竖幅会减少两侧会场，也可能切掉横伸的道具；若四端仍放不下，再另拍一张后退后的画面，检查新增背景与主体占比。不要同时蹲低、后退和变姿势，再把改善归给某一项。若目的是同伴纪念，靠拢和现场人群可以保留；无需为了“头小腿长”口诀强行拉开人物。"
+            },
+            {
+              "type": "case",
+              "case_id": "owner-foreground-boundary"
+            },
+            {
+              "type": "paragraph",
+              "text": "DSC02268的右侧青色近处人物很显眼，占据画框并遮住部分背景；但两位主体的头盔面部和胸部仍可见，所以把它叫“遮住主角脸”会诊断错对象。左下道具端部在这张已经进入画框，双脚仍未完整显示。两张中的人物朝向、道具投影、背景和取景都不同；不能用这一处改善证明某个焦段或机高起了作用。"
+            },
+            {
+              "type": "paragraph",
+              "text": "若要清楚的双人角色照，先等右侧人物离开，尽量保留主体姿态、相机位置和取景，再拍一张。这是在检验近前景的色彩竞争，代价是等待，以及合影瞬间可能变化。若干扰消失后双人仍与背景混在一起，就继续检查主体轮廓与背景重叠；“清掉一个路人”还不等于背景已解决。若要拥挤会场的纪实感，近前景反而可以说明空间层次，不必自动清掉。"
+            },
+            {
+              "type": "paragraph",
+              "text": "没有等待机会时，可试横向换视点，但重新检查两位人物是否互相遮挡、道具与身体的投影、背景亮部和行人通道。换视点可以整理边界，却会同时改变主体关系与背景；它的代价不是只少一个路人。这里的调整都是下一次实拍假说，尚无对应的纠正后照片。理解本章，也包括知道什么时候比例口诀并没有找对问题。"
+            },
+            {
+              "type": "heading",
               "text": "换成大剑"
             },
             {
@@ -23749,7 +23835,9 @@
           "source_ids": [
             "gw-perspective-banks",
             "course-neil",
-            "course-eye"
+            "course-eye",
+            "owner-source-dsc02260",
+            "owner-source-dsc02268"
           ]
         },
         {
@@ -24201,6 +24289,30 @@
       "locator": "March 2010；p3可接受模糊、pp6–8几何与固定条件、p15 Rules of thumb；其余检索命中页仅辅助定位",
       "support": "p15明确前1/3后2/3并非通则，近距更对称，接近超焦距后方增长；p3解释清晰边界取决于容许模糊。",
       "limitation": "使用简化几何及指定清晰标准；本文的具体数例不转为漫展拍摄参数，也不据此保证剑与脸同时清楚。"
+    },
+    {
+      "id": "owner-source-dsc02260",
+      "title": "DSC02260.JPG · 本人漫展合影",
+      "short_title": "你的原图 · 取景与头盔体量",
+      "author": "项目主人 · 本人拍摄（按本人提供）",
+      "url": "https://drive.google.com/file/d/1JxZgTvp045l_NZxg0YxuSQxR8vcwbGu3/view?usp=drivesdk",
+      "reading_depth": "完整原始JPG开图检查；ROOT与独立审查均查看实际像素",
+      "checked_at": "2026-10-10",
+      "locator": "剑斩文件夹 → DSC02260.JPG；7008×4672；17932314字节",
+      "support": "可见头盔本身体量、双人靠拢、双脚/左下道具的取景截断与会场空间；中文下一张方案由项目设计。",
+      "limitation": "没有已核验的机高、距离、焦段或现场复拍；不能从缺脚照片测完整头身比，也不能把装备大小自动诊断成透视错误。私人原图不进Git、不作公开分发。"
+    },
+    {
+      "id": "owner-source-dsc02268",
+      "title": "DSC02268.JPG · 本人漫展近前景照片",
+      "short_title": "你的原图 · 近前景与取舍",
+      "author": "项目主人 · 本人拍摄（按本人提供）",
+      "url": "https://drive.google.com/file/d/15jAlCe5gcc-2P0k2zZ-2wmq_c3zqfIl1/view?usp=drivesdk",
+      "reading_depth": "完整原始JPG开图检查；ROOT与独立审查均查看实际像素",
+      "checked_at": "2026-10-10",
+      "locator": "剑斩文件夹 → DSC02268.JPG；7008×4672；18621715字节",
+      "support": "右侧近处青色人物的占框、背景重叠及色彩竞争；展示清楚双人照与拥挤会场纪实的不同取舍，方案由项目设计。",
+      "limitation": "近处人物没有明显遮住主体头盔面部/胸部；不得称为脸部遮挡反例。与DSC02260并非调整前后控制实验，等待/移位结果仍待复拍。私人原图不进Git。"
     }
   ],
   "learning_content": {
@@ -25018,6 +25130,20 @@
         "title": "Photographing wide-angle portraits",
         "url": "https://neilvn.com/tangents/photographing-wide-angle-portraits/",
         "inspection": "实读正文并开图查看DSC_1494_HDR与DSC_1493-1489。截图读取超时；原图来自页面普通DOM图像地址。正文建议腰高取景、后退、轻微前倾、人物居中；手臂图含姿势变量；环境主图标注HDR。"
+      },
+      {
+        "id": "owner-source-dsc02260",
+        "author": "项目主人 · 本人拍摄（按本人提供）",
+        "title": "DSC02260.JPG · 双人装甲合影原图",
+        "url": "https://drive.google.com/file/d/1JxZgTvp045l_NZxg0YxuSQxR8vcwbGu3/view?usp=drivesdk",
+        "inspection": "2026-10-10经已连接Drive取原始JPG；17932314字节、7008×4672，完整解码及本地SHA-256核验。ROOT与独立审查实际开图；观察头盔体量、取景边界和环境，不据单图反推机高/焦段/距离，不是纠正前后对照。"
+      },
+      {
+        "id": "owner-source-dsc02268",
+        "author": "项目主人 · 本人拍摄（按本人提供）",
+        "title": "DSC02268.JPG · 近前景与主体关系原图",
+        "url": "https://drive.google.com/file/d/15jAlCe5gcc-2P0k2zZ-2wmq_c3zqfIl1/view?usp=drivesdk",
+        "inspection": "2026-10-10经已连接Drive取原始JPG；18621715字节、7008×4672，完整解码及本地SHA-256核验。ROOT与独立审查实际开图；近处青色人物主要占画框和遮背景，不能说遮住主角脸。与DSC02260的姿态、道具投影及取景不同，不是控制实验。"
       }
     ],
     "media": [
@@ -25290,6 +25416,24 @@
         "position": "01:10",
         "caption": "腰上半身段的现场操作；作者讲解上胸/锁骨附近的起点。",
         "alt": "Manny举相机拍摄模特，视频旁白在此段讲解腰上半身的相机起始高度。"
+      },
+      {
+        "id": "owner-dsc02260",
+        "filename": "1c02c12aeca9f7ab84c8c5148c2ed5396665c345b1ad4e7e813679e97cc6a49a.jpg",
+        "sha256": "1c02c12aeca9f7ab84c8c5148c2ed5396665c345b1ad4e7e813679e97cc6a49a",
+        "source_id": "owner-source-dsc02260",
+        "position": "DSC02260.JPG · 未改动的本人原图",
+        "caption": "两位装甲人物靠拢；双脚和左下道具越过画框，上方有较多会场天花。",
+        "alt": "会场内两位戴装饰头盔的装甲人物靠拢，左侧人物举绿色道具，右侧人物的高尖头盔接近画面上方；双脚未完整入画。"
+      },
+      {
+        "id": "owner-dsc02268",
+        "filename": "6f359f0b2fb2a3fe127d246222eb9a683edf1a412f1edbf3315047fd5e4c044c.jpg",
+        "sha256": "6f359f0b2fb2a3fe127d246222eb9a683edf1a412f1edbf3315047fd5e4c044c",
+        "source_id": "owner-source-dsc02268",
+        "position": "DSC02268.JPG · 未改动的本人原图",
+        "caption": "右侧近处青色人物占据画框并与背景重叠，未明显遮住两位主体的头盔面部或胸部；左下道具末端完整可见。",
+        "alt": "两位装甲人物站在会场中，右侧近处青色长发人物占据画面边缘，左下绿色道具末端在框内，两位主体双脚未完整入画。"
       }
     ]
   },
