@@ -16,7 +16,7 @@ V2 在首页「从一个问题，换一种看法」与相关技能的「学习�
 
 ## PHOTO ATLAS · 一章连续课程试读
 
-首页新增「持剑人物前倾、低机位与头大身小」，从真实成片出发，区分距离、机高、俯仰与姿态，比较调整代价，再独立分析三张前文未讲的实拍。课程、能力索引和现场短提示各司其职；14/71/247地图、原三条认知入口及个人状态保留，读完不会自动升级。先答题，后展开可能解，是否形成新的判断能力等待主人试读与复拍。
+首页新增「持剑人物前倾、低机位与头大身小」，从真实成片出发，区分距离、机高、俯仰与姿态，比较调整代价，再独立分析三张前文未讲的实拍。课程、能力索引和现场短提示各司其职；14/71/247地图、原三条认知入口及个人状态保留，读完不会自动升级。课程只保留思考问题与折叠解析，无须填写或保存自评；先思考，再展开可能解，是否形成新的判断能力等待主人试读与复拍。见 [自学阅读调整与本人照片跟进](docs/tasks/2026-10-10-course-self-study.md)。
 
 本轮只读试读：[课程入口](http://127.0.0.1:18771/learning?course=sword-perspective-chapter)。未运行时执行 `.venv/Scripts/python.exe -X utf8 tools/preview_learning.py --port 18771 --reference-url http://127.0.0.1:18765/`。日用服务本轮未重启；受控升级后使用同一 `/learning?course=sword-perspective-chapter`。见 [重构对照与教材阅读范围](docs/research/photography-atlas/COURSE_RECONSTRUCTION.md)、[关键案例与原始来源](docs/research/photography-atlas/COURSE_EVIDENCE.md)、[Deep Research原文独立审计](docs/research/photography-atlas/DEEP_RESEARCH_AUDIT.md) 和 [任务验收](docs/tasks/2026-10-10-professional-course-loop.md)。第一章效果未获主人验证前，不批量扩展。
 

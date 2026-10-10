@@ -306,7 +306,7 @@ def test_gateway_refresh_does_not_authorize_a_stale_skill_form(learning_site):
         _open_path(page, 'perspective', 'perspective-1', skill)
         page.locator('#skill-notes').fill('本页尚未保存的技能草稿')
         page.locator('[data-section-target="skill-tutorials"]').click()
-        page.locator('#skill-view [data-open-gateway]').first.click()
+        page.locator('#skill-view [data-open-gateway="position-before-angle"]').click()
         page.locator('#gw-answer-observation').fill('本页认知入口草稿')
         remote = page.request.put(origin + '/api/learning-state/' + skill,
             headers={'X-Lab-CSRF':csrf}, data={'expected_revision':0,'notes':'另一窗口的新备注'})
@@ -323,6 +323,6 @@ def test_gateway_refresh_does_not_authorize_a_stale_skill_form(learning_site):
         page.locator('#skill-record-reload').click()
         expect(page.locator('#skill-notes')).to_have_value('另一窗口的新备注')
         page.locator('[data-section-target="skill-tutorials"]').click()
-        page.locator('#skill-view [data-open-gateway]').first.click()
+        page.locator('#skill-view [data-open-gateway="position-before-angle"]').click()
         expect(page.locator('#gw-answer-observation')).to_have_value('本页认知入口草稿')
         browser.close()
