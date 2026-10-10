@@ -12,12 +12,13 @@ RESEARCH = ROOT / 'docs/research/photography-atlas'
 
 def test_three_teaching_paths_preserve_original_research_and_use_known_skills():
     data = build_payload(RESEARCH)
-    assert len(data['gateways']) == 3
+    assert len([g for g in data['gateways'] if g.get('kind') != 'course']) == 3
+    assert len([g for g in data['gateways'] if g.get('kind') == 'course']) == 1
     assert len(data['skills']) == 247
     assert len(data['sources']) == 205
     assert len(data['tutorials']) == 46
     skill_ids = {s['id'] for s in data['skills']}
-    assert len({g['method'] for g in data['gateways']}) == 3
+    assert len({g['method'] for g in data['gateways']}) == 4
     for gateway in data['gateways']:
         assert len(gateway['skill_ids']) > 1
         assert set(gateway['skill_ids']) <= skill_ids
@@ -34,22 +35,22 @@ def test_gateway_validator_rejects_invented_mapping_unlicensed_embeds_and_unsafe
     from tools.validate_learning_gateways import validate_gateways
     catalog = json.loads((RESEARCH / 'GATEWAYS.json').read_text(encoding='utf-8'))
     tree = json.loads((RESEARCH / 'SKILL_TREE.json').read_text(encoding='utf-8'))
-    assert validate_gateways(catalog, tree) == []
+    assert validate_gateways(catalog, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))) == []
     bad = deepcopy(catalog)
     bad['gateways'][0]['skill_ids'].append('invented-skill')
-    assert any('skill' in e for e in validate_gateways(bad, tree))
+    assert any('skill' in e for e in validate_gateways(bad, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))))
     bad = deepcopy(catalog)
     case = bad['gateways'][0]['cases'][0]
     case['display'] = 'licensed_remote'
     case['rights']['allowed'] = False
-    assert any('rights' in e for e in validate_gateways(bad, tree))
+    assert any('rights' in e for e in validate_gateways(bad, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))))
     bad = deepcopy(catalog)
     bad['sources'][0]['url'] = 'javascript:alert(1)'
-    assert any('URL' in e for e in validate_gateways(bad, tree))
+    assert any('URL' in e for e in validate_gateways(bad, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))))
     bad = deepcopy(catalog)
     image = next(c for c in bad['gateways'][0]['cases'] if c['display'] == 'licensed_remote')
     image['src'] = 'https://example.org/licensed-but-not-allowed.jpg'
-    assert any('page policy' in e for e in validate_gateways(bad, tree))
+    assert any('page policy' in e for e in validate_gateways(bad, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))))
 
 
 def test_source_case_images_are_exact_registered_originals_with_truthful_rights_and_provenance():
@@ -60,8 +61,8 @@ def test_source_case_images_are_exact_registered_originals_with_truthful_rights_
     source_cases = {case_id: entry for case_id, entry in case_entries.items()
                     if entry[1].get('display') == 'source_remote'}
     assert set(source_cases) == set(SOURCE_CASE_MEDIA)
-    assert len(SOURCE_CASE_MEDIA) == 7
-    assert sum(len(urls) for urls in SOURCE_CASE_MEDIA.values()) == 9
+    assert len(SOURCE_CASE_MEDIA) == 13
+    assert sum(len(urls) for urls in SOURCE_CASE_MEDIA.values()) == 15
 
     for case_id, urls in SOURCE_CASE_MEDIA.items():
         gateway, case = source_cases[case_id]
@@ -101,23 +102,23 @@ def test_gateway_validator_rejects_unregistered_or_cross_case_source_media():
     case = next(c for g in bad['gateways'] for c in g['cases'] if c['id'] == 'marsh-before')
     case['images'][0]['src'] = 'https://images.example.invalid/not-the-registered-source.jpg'
     assert any('source media' in error.lower() or 'image' in error.lower()
-               for error in validate_gateways(bad, tree))
+               for error in validate_gateways(bad, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))))
 
     bad = deepcopy(catalog)
     cases = {case['id']: case for gateway in bad['gateways'] for case in gateway['cases']}
     cases['marsh-before']['images'][0]['src'] = cases['marsh-after']['images'][0]['src']
     assert any('source media' in error.lower() or 'image' in error.lower()
-               for error in validate_gateways(bad, tree))
+               for error in validate_gateways(bad, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))))
 
     bad = deepcopy(catalog)
     case = next(c for g in bad['gateways'] for c in g['cases'] if c['id'] == 'hobby-ambient-sequence')
     case['source_summary']['source_id'] = 'unrelated-source'
     assert any('summary' in error.lower() or 'source' in error.lower()
-               for error in validate_gateways(bad, tree))
+               for error in validate_gateways(bad, tree, json.loads((RESEARCH / 'LEARNING_CONTENT.json').read_text(encoding='utf-8'))))
 
 
 def test_gateway_content_changes_bundle_digest_without_changing_research(tmp_path):
-    for name in ('SOURCE_MAP', 'SKILL_TREE', 'CONFLICTS', 'GAP_AUDIT', 'PROJECT_CHECKLISTS', 'TUTORIALS', 'GATEWAYS'):
+    for name in ('SOURCE_MAP', 'SKILL_TREE', 'CONFLICTS', 'GAP_AUDIT', 'PROJECT_CHECKLISTS', 'TUTORIALS', 'GATEWAYS', 'LEARNING_CONTENT'):
         (tmp_path / f'{name}.json').write_bytes((RESEARCH / f'{name}.json').read_bytes())
     before = build_payload(tmp_path)
     path = tmp_path / 'GATEWAYS.json'

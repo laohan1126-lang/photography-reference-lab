@@ -77,7 +77,7 @@ def build_payload(directory: Path) -> dict:
     if tutorial_errors:
         raise ValueError("Tutorial integrity failed: " + "; ".join(tutorial_errors[:20]))
     gateway_catalog = inputs.get("GATEWAYS", {"schema_version": 1, "gateways": [], "sources": []})
-    gateway_errors = validate_gateways(gateway_catalog, tree)
+    gateway_errors = validate_gateways(gateway_catalog, tree, inputs.get('LEARNING_CONTENT'))
     if gateway_errors:
         raise ValueError("Gateway integrity failed: " + "; ".join(gateway_errors[:20]))
     learning_content = inputs.get("LEARNING_CONTENT", {

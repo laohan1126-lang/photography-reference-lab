@@ -1,6 +1,10 @@
 /* The reader shares the atlas tokens; only reading-specific geometry is added. */
 :root {--reader-width:1160px; --reader-measure:680px; --reader-body:16px; --reader-line:1.95}
 .gateway-index {padding-bottom:var(--space-2)}
+.course-index {padding-bottom:var(--space-5)}
+.course-index .gateway-entry {border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.course-tradeoffs article {padding:var(--space-3) 0;border-bottom:1px solid var(--line)}
+.course-tradeoffs article h3 {margin-top:0}
 .gateway-index-list {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-5);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .gateway-entry {display:flex;align-items:start;gap:var(--space-3);width:100%;padding:var(--space-4) 0;text-align:left;border:0;background:none}
 .gateway-entry strong {display:block;font:500 20px/1.5 var(--serif)}

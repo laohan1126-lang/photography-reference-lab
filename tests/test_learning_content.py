@@ -88,6 +88,12 @@ def test_builder_keeps_legacy_research_input_without_optional_learning_content(t
         if source.is_file():
             (tmp_path / source.name).write_bytes(source.read_bytes())
 
+    # Model the legacy catalogue before courses referenced the optional media layer.
+    gateway_path = tmp_path / 'GATEWAYS.json'
+    gateways = json.loads(gateway_path.read_text(encoding='utf-8'))
+    gateways['gateways'] = [g for g in gateways['gateways']
+                            if not any(c.get('display') == 'note_media' for c in g['cases'])]
+    gateway_path.write_text(json.dumps(gateways), encoding='utf-8')
     payload = build_payload(tmp_path)
 
     assert len(payload["skills"]) == 247

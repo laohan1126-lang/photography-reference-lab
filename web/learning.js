@@ -773,7 +773,7 @@
       renderDomainGrid();
     }
     renderNextPractice();
-    if (atlas.domains.length) { $('load-error').hidden=true; renderRoute(); }
+    if (atlas.domains.length) { $('load-error').hidden=true; renderRoute(); gateways.openFromURL(); }
     else showMainError('研究数据中没有能力领域。');
   }
   boot();

@@ -5,7 +5,7 @@ window.LearningGateways = (() => {
   const labels = {unassessed:'尚未自评', unseen:'尚未接触', terms:'了解术语', principles:'理解基本原理', analysis:'能够分析案例', transfer:'能独立迁移到新场景', field:'已经过实际拍摄验证'};
   const notes = {unassessed:'阅读与展开解析不会替你升级。', unseen:'这是你的自评，可以直接跳到有挑战的部分。', terms:'能认出概念名称，还不等于能解释照片。', principles:'能解释变量关系；下一步用具体画面检验。', analysis:'能指出图中证据，也能说清尚不能确定的条件。', transfer:'由你确认能在未讲过的场景中独立判断。', field:'由你确认已经拍摄、比较并验证；可在关联技能中附实拍记录。'};
   const drafts = new Map();
-  let catalog = [], sources = new Map(), host, dialog, scroll, current = null, origin = null, busy = false;
+  let catalog = [], sources = new Map(), noteMedia = new Map(), host, dialog, scroll, current = null, origin = null, busy = false;
   const key = id => `photography-gateway-draft-v2:${id}`;
   const safeURL = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u.href : ''; } catch { return ''; } };
   const record = id => host.record(id) || {};
@@ -35,11 +35,15 @@ window.LearningGateways = (() => {
     const item = gateway.cases.find(c => c.id === id);
     if (!item) return '';
     const url = safeURL(item.url);
-    const images = item.display === 'source_remote' ? item.images || []
+    const images = item.display === 'note_media' ? (item.images || []).map(image=>{
+      const registered=noteMedia.get(image.media_id);
+      return registered ? {src:`/api/learning-note-media/${encodeURIComponent(registered.id)}`,alt:registered.alt,label:image.label || registered.position} : null;
+    }).filter(Boolean) : item.display === 'source_remote' ? item.images || []
       : item.display === 'licensed_remote' && item.rights.allowed === true ? [item] : [];
-    const media = images.filter(image=>safeURL(image.src)).map(image=>{
+    const mediaURL = value => /^\/api\/learning-note-media\/[a-z0-9-]+$/.test(value) ? value : safeURL(value);
+    const media = images.filter(image=>mediaURL(image.src)).map(image=>{
       const dimensions = Number.isInteger(image.width) && Number.isInteger(image.height) ? ` width="${image.width}" height="${image.height}"` : '';
-      return `<div class="case-media">${image.label?`<p class="case-media-label">${esc(image.label)}</p>`:''}<div class="case-image"><img src="${esc(safeURL(image.src))}" alt="${esc(image.alt)}" loading="lazy"${dimensions} referrerpolicy="no-referrer"><span class="case-loading" role="status">正在加载原案例照片…</span><span class="case-load-error" hidden>这张图片暂时无法加载。中文要点仍可阅读，原案例链接在下方。</span></div></div>`;
+      return `<div class="case-media">${image.label?`<p class="case-media-label">${esc(image.label)}</p>`:''}<div class="case-image"><img src="${esc(mediaURL(image.src))}" alt="${esc(image.alt)}" loading="lazy"${dimensions} referrerpolicy="no-referrer"><span class="case-loading" role="status">正在加载原案例照片…</span><span class="case-load-error" hidden>这张图片暂时无法加载。中文要点仍可阅读，原案例链接在下方。</span></div></div>`;
     }).join('');
     const summary = item.source_summary;
     return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span>${summary?`<details class="case-source-summary"><summary>原文要点 · 中文转述</summary><p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span></details>`:''}<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
@@ -54,6 +58,7 @@ window.LearningGateways = (() => {
       case 'list': return `<ul>${block.items.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`;
       case 'comparison': return `<div class="gateway-observations">${block.rows.map(row=>`<div><p class="gateway-small">第一眼可能会问</p><p>${esc(row.novice)}</p><p class="gateway-small">再往下观察</p><p><strong>${esc(row.expert)}</strong></p><p>${esc(row.question)}</p></div>`).join('')}</div>`;
       case 'case': return caseHTML(gateway, block.case_id);
+      case 'tradeoffs': return `<div class="course-tradeoffs">${block.rows.map(row=>`<article><h3>${esc(row.action)}</h3><p><strong>预计变化：</strong>${esc(row.effect)}</p><p><strong>代价：</strong>${esc(row.cost)}</p><p><strong>怎样检查：</strong>${esc(row.test)}</p></article>`).join('')}</div>`;
       case 'case_pair': return `<div class="gateway-case-pair">${block.case_ids.map(id=>caseHTML(gateway,id)).join('')}</div>`;
       case 'exercise': return `<div class="gateway-exercise"><h3>${esc(block.title)}</h3><p>${esc(block.prompt)}</p>${block.options?.length?`<div class="gateway-choices" role="group" aria-label="${esc(block.title)}">${block.options.map(option=>`<button type="button" data-gw-choice="${esc(block.id)}" data-value="${esc(option)}" aria-pressed="${draft.answers[block.id]===option}">${esc(option)}</button>`).join('')}</div>`:''}<label for="gw-answer-${esc(block.id)}">${esc(block.label || '先记下你的观察（可跳过）')}</label><textarea id="gw-answer-${esc(block.id)}" data-gw-answer="${esc(block.id)}" maxlength="8000" rows="3" placeholder="${esc(block.placeholder || '图中看见了什么？还有什么不能确定？')}">${esc(draft.answers[block.id] || '')}</textarea></div>`;
       case 'reveal': return `<details class="gateway-reveal" data-gw-reveal="${esc(block.activity_id)}"${draft.revealed.includes(block.activity_id)?' open':''}><summary>${esc(block.title)}</summary><div>${block.paragraphs.map(text=>`<p>${esc(text)}</p>`).join('')}${block.source_ids?.length?`<p class="gateway-citation">分析依据：${citations(block.source_ids)}</p>`:''}</div></details>`;
@@ -68,7 +73,7 @@ window.LearningGateways = (() => {
   }
   function render() {
     const gateway = current, draft = getDraft(gateway.id);
-    dialog.innerHTML = `<header class="gateway-reader-header"><div><p class="eyebrow">CONCEPTUAL GATEWAY · 认知入口</p><h2 id="gateway-title" tabindex="-1">${esc(gateway.title)}</h2></div><button id="gateway-close" class="close-button" type="button" aria-label="关闭阅读，返回原位置">×</button></header><div class="gateway-scroll"><div class="gateway-reading-layout"><aside class="gateway-outline"><details open><summary>阅读目录</summary><nav aria-label="阅读章节">${gateway.sections.map((section,index)=>`<button type="button" data-gw-section="${esc(section.id)}"><span>${String(index+1).padStart(2,'0')}</span>${esc(section.title)}</button>`).join('')}</nav></details><label for="gateway-switch">切换认知入口</label><select id="gateway-switch">${catalog.map(item=>`<option value="${esc(item.id)}"${gateway.id===item.id?' selected':''}>${esc(item.title)}</option>`).join('')}</select></aside><article class="gateway-reading"><div class="gateway-reading-intro"><p class="gateway-byline">${esc(gateway.author)} · ${esc(gateway.reading_depth)}</p><p>${esc(gateway.outcome)}</p><p class="gateway-small">${esc(gateway.prior_knowledge)}</p><p class="gateway-citation">专业依据：${citations(gateway.source_ids.slice(0,3))}</p></div>${gateway.sections.map(section=>`<section class="gateway-chapter" id="gw-${esc(section.id)}" tabindex="-1"><p class="eyebrow">${esc(section.kicker || section.id.toUpperCase())}</p><h2>${esc(section.title)}</h2>${section.blocks.map(block=>blockHTML(block,gateway,draft)).join('')}${section.source_ids?.length?`<p class="gateway-citation">本节依据：${citations(section.source_ids)}</p>`:''}${section.id==='reflect'?selfAssessment(draft):''}${section.id==='sources'?sourceHTML(gateway):''}</section>`).join('')}<footer class="gateway-reading-footer"><p>继续在技能地图里练习</p>${gateway.skill_ids.map(id=>`<button type="button" data-gw-skill="${esc(id)}">${esc(host.skillName(id))} →</button>`).join('')}</footer></article></div></div>`;
+    dialog.innerHTML = `<header class="gateway-reader-header"><div><p class="eyebrow">${gateway.kind==='course'?'PHOTO ATLAS · 课程样板':'CONCEPTUAL GATEWAY · 认知入口'}</p><h2 id="gateway-title" tabindex="-1">${esc(gateway.title)}</h2></div><button id="gateway-close" class="close-button" type="button" aria-label="关闭阅读，返回原位置">×</button></header><div class="gateway-scroll"><div class="gateway-reading-layout"><aside class="gateway-outline"><details open><summary>阅读目录</summary><nav aria-label="阅读章节">${gateway.sections.map((section,index)=>`<button type="button" data-gw-section="${esc(section.id)}"><span>${String(index+1).padStart(2,'0')}</span>${esc(section.title)}</button>`).join('')}</nav></details><label for="gateway-switch">切换课程 / 认知入口</label><select id="gateway-switch">${catalog.map(item=>`<option value="${esc(item.id)}"${gateway.id===item.id?' selected':''}>${esc(item.title)}</option>`).join('')}</select></aside><article class="gateway-reading"><div class="gateway-reading-intro"><p class="gateway-byline">${esc(gateway.author)} · ${esc(gateway.reading_depth)}</p><p>${esc(gateway.outcome)}</p><p class="gateway-small">${esc(gateway.prior_knowledge)}</p><p class="gateway-citation">专业依据：${citations(gateway.source_ids.slice(0,3))}</p></div>${gateway.sections.map(section=>`<section class="gateway-chapter" id="gw-${esc(section.id)}" tabindex="-1"><p class="eyebrow">${esc(section.kicker || section.id.toUpperCase())}</p><h2>${esc(section.title)}</h2>${section.blocks.map(block=>blockHTML(block,gateway,draft)).join('')}${section.source_ids?.length?`<p class="gateway-citation">本节依据：${citations(section.source_ids)}</p>`:''}${section.id==='reflect'?selfAssessment(draft):''}${section.id==='sources'?sourceHTML(gateway):''}</section>`).join('')}<footer class="gateway-reading-footer"><p>继续在技能地图里练习</p>${gateway.skill_ids.map(id=>`<button type="button" data-gw-skill="${esc(id)}">${esc(host.skillName(id))} →</button>`).join('')}</footer></article></div></div>`;
     scroll = dialog.querySelector('.gateway-scroll');
     scroll.scrollTop = draft.scroll || 0;
     dialog.querySelectorAll('img').forEach(img=>{
@@ -140,15 +145,18 @@ window.LearningGateways = (() => {
     }
   }
   function links(skillId) {
-    const matches=catalog.filter(item=>item.skill_ids.includes(skillId));
+    const matches=catalog.filter(item=>item.skill_ids.includes(skillId)).sort((a,b)=>Number(b.kind==='course')-Number(a.kind==='course'));
     return matches.length?`<section class="skill-gateway-entry"><p class="eyebrow">把相关技能连起来理解</p>${matches.map(gateway=>`<button type="button" class="gateway-entry" data-open-gateway="${esc(gateway.id)}"><span><strong>${esc(gateway.title)}</strong><span>${esc(gateway.question)}</span></span><span class="gateway-entry-action">学习原理 ↗</span></button>`).join('')}</section>`:'';
   }
   function init(data, options) {
     catalog=data.gateways || []; sources=new Map((data.gateway_sources || []).map(item=>[item.id,item])); host=options;
+    noteMedia=new Map((data.learning_content?.media || []).map(item=>[item.id,item]));
     dialog=document.getElementById('gateway-dialog');
     const index=document.getElementById('gateway-index');
     index.hidden=!catalog.length;
-    index.innerHTML=`<div class="section-heading"><div><p class="eyebrow">LEARN TO SEE</p><h2>从一个问题，换一种看法</h2></div><p class="section-note">三条深入学习的入口。先试着观察，再展开原理；也可以直接跳到新场景。</p></div><div class="gateway-index-list">${catalog.map((gateway,i)=>`<button type="button" class="gateway-entry" data-open-gateway="${esc(gateway.id)}"><span class="gateway-index-number">0${i+1}</span><span><strong>${esc(gateway.title)}</strong><span>${esc(gateway.question)}</span></span><span aria-hidden="true">↗</span></button>`).join('')}</div>`;
+    const courses=catalog.filter(item=>item.kind==='course'), gateways=catalog.filter(item=>item.kind!=='course');
+    const entries=items=>items.map((gateway,i)=>`<button type="button" class="gateway-entry" data-open-gateway="${esc(gateway.id)}"><span class="gateway-index-number">${String(i+1).padStart(2,'0')}</span><span><strong>${esc(gateway.title)}</strong><span>${esc(gateway.question)}</span></span><span aria-hidden="true">↗</span></button>`).join('');
+    index.innerHTML=`${courses.length?`<section class="course-index"><div class="section-heading"><div><p class="eyebrow">PHOTO ATLAS · COURSE</p><h2>从现场问题，连续学一章</h2></div><p class="section-note">解释原因、比较代价，再用新照片判断。样板等你试读，暂不批量扩展。</p></div>${entries(courses)}</section>`:''}<div class="section-heading"><div><p class="eyebrow">LEARN TO SEE</p><h2>从一个问题，换一种看法</h2></div><p class="section-note">原有认知入口。能力地图用于检索与记录；短笔记用于回看。</p></div><div class="gateway-index-list">${entries(gateways)}</div>`;
     dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
     dialog.addEventListener('click',event=>{
       const target=event.target;
@@ -185,5 +193,9 @@ window.LearningGateways = (() => {
     document.addEventListener('click',event=>{const button=event.target.closest('[data-open-gateway]');if(button)open(button.dataset.openGateway,button);});
     window.addEventListener('pagehide',remember);
   }
-  return {init,links,close,onRouteChange:()=>{if(dialog?.open)close(false);},isOpen:()=>!!dialog?.open};
+  function openFromURL() {
+    const id=new URLSearchParams(location.search).get('course');
+    if(catalog.some(item=>item.id===id && item.kind==='course')) open(id);
+  }
+  return {init,links,close,openFromURL,onRouteChange:()=>{if(dialog?.open)close(false);},isOpen:()=>!!dialog?.open};
 })();

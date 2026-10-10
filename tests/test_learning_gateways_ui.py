@@ -39,7 +39,7 @@ def test_transfer_image_is_allowed_by_the_actual_page_policy(learning_site, gate
         page.route('https://thumb.wikimedia.org/**', lambda route: route.fulfill(
             status=200, content_type='image/png', body=image_bytes()))
         _unlock(page, origin)
-        page.locator('#gateway-index [data-open-gateway]').nth(gateway_index).click()
+        page.locator('#gateway-index .gateway-index-list [data-open-gateway]').nth(gateway_index).click()
         page.locator('[data-gw-section="transfer"]').click()
         page.wait_for_function('() => document.querySelector("#gw-transfer img").naturalWidth > 0', timeout=5000)
         expect(page.locator('#gw-transfer img')).to_be_visible()
@@ -80,7 +80,7 @@ def test_original_case_photos_and_source_summaries_render_inside_each_gateway(le
                 status=200, content_type='image/svg+xml',
                 body='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="32"><rect width="24" height="32" fill="#496b55"/></svg>'))
         _unlock(page, origin)
-        page.locator('#gateway-index [data-open-gateway]').nth(gateway_index).click()
+        page.locator('#gateway-index .gateway-index-list [data-open-gateway]').nth(gateway_index).click()
         source_figures = page.locator('.gateway-case[data-case] .case-media img')
         rendered_urls = {source_figures.nth(index).get_attribute('src')
                          for index in range(source_figures.count())}
@@ -128,7 +128,7 @@ def test_one_original_photo_failure_keeps_sibling_images_summary_and_returning_d
                 status=200, content_type='image/svg+xml',
                 body='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="32"><rect width="24" height="32" fill="#496b55"/></svg>'))
         _unlock(page, origin)
-        page.locator('#gateway-index [data-open-gateway]').nth(2).click()
+        page.locator('#gateway-index .gateway-index-list [data-open-gateway]').nth(2).click()
         figure = page.locator('.gateway-case[data-case="hobby-ambient-sequence"]')
         images = figure.locator('.case-media img')
         assert images.count() == 3
@@ -149,7 +149,7 @@ def test_one_original_photo_failure_keeps_sibling_images_summary_and_returning_d
             expect(image).to_be_visible()
         page.locator('#gw-answer-observation').fill('原图暂时失败时，正文和其余照片仍可观察。')
         page.keyboard.press('Escape')
-        page.locator('#gateway-index [data-open-gateway]').nth(2).click()
+        page.locator('#gateway-index .gateway-index-list [data-open-gateway]').nth(2).click()
         expect(page.locator('#gw-answer-observation')).to_have_value('原图暂时失败时，正文和其余照片仍可观察。')
         browser.close()
 
@@ -160,7 +160,7 @@ def test_late_save_owns_its_gateway_and_preserves_newer_draft(learning_site):
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page()
         _unlock(page, origin)
-        page.locator('#gateway-index [data-open-gateway]').first.click()
+        page.locator('#gateway-index .gateway-index-list [data-open-gateway]').first.click()
         first = page.locator('#gateway-switch').input_value()
         ids = page.locator('#gateway-switch option').evaluate_all('(items)=>items.map(x=>x.value)')
         pending = []
@@ -242,7 +242,7 @@ def test_drawer_position_switching_drafts_keyboard_and_history(learning_site, wi
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page(viewport={'width':width,'height':height})
         _unlock(page, origin)
-        buttons = page.locator('#gateway-index [data-open-gateway]')
+        buttons = page.locator('#gateway-index .gateway-index-list [data-open-gateway]')
         first = buttons.nth(0)
         first.scroll_into_view_if_needed()
         before = page.evaluate('window.scrollY')
@@ -280,7 +280,7 @@ def test_gateway_conflict_keeps_draft_and_requires_explicit_reload(learning_site
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page()
         csrf = _unlock(page, origin)
-        page.locator('#gateway-index [data-open-gateway]').first.click()
+        page.locator('#gateway-index .gateway-index-list [data-open-gateway]').first.click()
         gateway_id = page.locator('#gateway-switch').input_value()
         page.locator('#gw-answer-observation').fill('本页尚未保存的判断')
         remote = page.request.put(origin + '/api/learning-gateways/' + gateway_id,

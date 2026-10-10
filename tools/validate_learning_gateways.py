@@ -19,13 +19,16 @@ def public_url(value):
         return False
 
 
-def validate_gateways(catalog: dict, tree: dict) -> list[str]:
+def validate_gateways(catalog: dict, tree: dict, learning_content: dict | None = None) -> list[str]:
     errors = []
     if not isinstance(catalog, dict) or catalog.get('schema_version') != 1:
         return ['Invalid gateway schema']
     if not isinstance(catalog.get('gateways'), list) or not isinstance(catalog.get('sources'), list):
         return ['Gateway catalogue requires gateways and sources lists']
     skills = {s['id'] for s in tree['skills']}
+    content = learning_content or {}
+    media = {m['id']: m for m in content.get('media', [])}
+    media_sources = {s['id']: s for s in content.get('sources', [])}
     sources, seen = {}, set()
     for source in catalog['sources']:
         ident = source.get('id')
@@ -92,6 +95,19 @@ def validate_gateways(catalog: dict, tree: dict) -> list[str]:
                         or summary.get('source_id') not in source_ids
                         or sources.get(summary.get('source_id'), {}).get('url') != case.get('url')):
                     errors.append(f'Missing or mismatched source summary: {cid}')
+            elif case.get('display') == 'note_media':
+                images = case.get('images', [])
+                if (not images or case.get('src')
+                        or not any(sources.get(s, {}).get('url') == case.get('url') for s in source_ids)):
+                    errors.append(f'Invalid local media source: {cid}')
+                for image in images:
+                    entry = media.get(image.get('media_id')) if isinstance(image, dict) else None
+                    if not entry:
+                        errors.append(f'Unregistered local media: {cid}')
+                    elif media_sources.get(entry['source_id'], {}).get('url') != case.get('url'):
+                        errors.append(f'Local media source mismatch: {cid}')
+                    if isinstance(image, dict) and image.get('src'):
+                        errors.append(f'Local media cannot override registered URL: {cid}')
             elif case.get('display') != 'external_only' or case.get('src') or case.get('images'):
                 errors.append(f'Invalid case display/rights: {cid}')
             for name in ('author', 'title', 'caption', 'alt'):
@@ -115,6 +131,8 @@ def validate_gateways(catalog: dict, tree: dict) -> list[str]:
                     valid = bool(block.get('items')) and all(isinstance(i, str) and i for i in block['items'])
                 elif kind == 'comparison':
                     valid = bool(block.get('rows')) and all(all(r.get(k) for k in ('novice', 'expert', 'question')) for r in block['rows'])
+                elif kind == 'tradeoffs':
+                    valid = bool(block.get('rows')) and all(all(r.get(k) for k in ('action', 'effect', 'cost', 'test')) for r in block['rows'])
                 elif kind in {'case', 'case_pair'}:
                     ids = [block.get('case_id')] if kind == 'case' else block.get('case_ids', [])
                     valid = bool(ids) and set(ids) <= cases.keys()

@@ -7,6 +7,12 @@ Keep the exact URLs linked by the source; never infer alternate CDN versions.
 COMMONS_IMAGE_SOURCE = "https://thumb.wikimedia.org/wikipedia/commons/thumb/"
 
 SOURCE_CASE_MEDIA = {
+    "sword-forward": ("https://cosplaymode.net/wp-content/uploads/2022/06/nihontou043.jpg",),
+    "sword-hip-back": ("https://cosplaymode.net/wp-content/uploads/2022/06/nihontou011.jpg",),
+    "sword-hip-side": ("https://cosplaymode.net/wp-content/uploads/2022/06/nihontou012.jpg",),
+    "sword-transfer-quiet": ("https://cosplaymode.net/wp-content/uploads/2022/06/nihontou025.jpg",),
+    "sword-transfer-western": ("https://cosplaymode.net/wp-content/uploads/2020/06/10_MG_3967.jpg",),
+    "sword-transfer-ninja": ("https://cosplaymode.net/wp-content/uploads/2020/06/06_MG_3956.jpg",),
     "marsh-before": (
         "https://images.contentstack.io/v3/assets/blt0e5ec1de4817c440/bltfd6b7105c060e86e/65cf8ca6cf0d4229544a68bf/distraction-1-before.jpg",
     ),
