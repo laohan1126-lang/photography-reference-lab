@@ -151,6 +151,10 @@ window.LearningGateways = (() => {
     if (!recordId) return '没有指向任何一条已登记的言语记录（speech_record_id），只有“已核对音视频/字幕”的自述';
     const record = speechRecords.get(recordId);
     if (!record || typeof record !== 'object') return '所指言语记录不在本机已登记的言语记录清单里';
+    // The registry's own trust state is a precondition, not something matching fields may lift: a record that says it is
+    // simulated, or that it was never verified, stays unverified however well its source, timing, speaker and quote line up.
+    if (record.simulated === true) return '所指言语记录登记为模拟数据，不能用来核验作者本人在片中的说话';
+    if (record.verified === false || record.status === 'unverified') return '所指言语记录已被记为未核实，字段对得上也不能提升它';
     const sourceId = typeof record.source_id === 'string' ? record.source_id.trim() : '';
     const source = sourceId ? contentSources.get(sourceId) : null;
     const declared = typeof record.url === 'string' ? record.url.trim() : '';
@@ -241,10 +245,15 @@ window.LearningGateways = (() => {
     if (simulated) return 'unverified';
     return issues.length ? 'unverified' : 'verified';
   }
+  // A quote_kind only counts when it is one of the three known plain strings. Anything else — an object, a number, a
+  // missing field — is unknown and degrades to the conservative paraphrase label; the value is never coerced into a
+  // string, because an entry's own toString is untrusted input that can throw and is not a statement of its meaning.
+  const quoteKindOf = entry => { const kind = entry.quote_kind; return typeof kind === 'string' && quoteKinds.has(kind) ? kind : ''; };
   function evidenceQuoteHTML(entry) {
-    if (entry.quote_kind === 'translation') return `<blockquote class="evidence-quote"><span class="evidence-quote-kind">原文</span>${esc(entry.original)}</blockquote><p class="evidence-body"><span class="evidence-quote-kind">中文翻译</span>${esc(entry.text)}</p><span class="evidence-kind">${quoteLabel.translation}</span>`;
-    const tag = entry.quote_kind === 'verbatim' ? 'blockquote' : 'p';
-    return `<${tag} class="evidence-body">${esc(entry.text)}</${tag}><span class="evidence-kind">${quoteLabel[entry.quote_kind] || quoteLabel.paraphrase}</span>`;
+    const kind = quoteKindOf(entry);
+    if (kind === 'translation') return `<blockquote class="evidence-quote"><span class="evidence-quote-kind">原文</span>${esc(entry.original)}</blockquote><p class="evidence-body"><span class="evidence-quote-kind">中文翻译</span>${esc(entry.text)}</p><span class="evidence-kind">${quoteLabel.translation}</span>`;
+    const tag = kind === 'verbatim' ? 'blockquote' : 'p';
+    return `<${tag} class="evidence-body">${esc(entry.text)}</${tag}><span class="evidence-kind">${quoteLabel[kind] || quoteLabel.paraphrase}</span>`;
   }
   function frameLabel(entry) {
     const media = typeof entry.media_id === 'string' ? noteMedia.get(entry.media_id.trim()) : null;
