@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>姿态、重心与角色动作｜摄影实验室独立试读</title>
+  <style>
+    :root {
+      --bg-primary: #121417;
+      --bg-surface: #1a1e24;
+      --bg-card: #222730;
+      --text-primary: #f0f3f6;
+      --text-secondary: #a2acba;
+      --text-muted: #6e7987;
+      --accent-gold: #d4af37;
+      --accent-warm: #e6a23c;
+      --accent-blue: #409eff;
+      --accent-red: #f56c6c;
+      --accent-green: #67c23a;
+      --border-subtle: #2d3440;
+      --border-focus: #3e4856;
+      --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.75;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header.lab-header {
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(18, 20, 23, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      letter-spacing: 0.05em;
+      color: var(--accent-gold);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge-pilot {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--accent-gold);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    nav.toc-nav {
+      display: flex;
+      gap: 1.25rem;
+      font-size: 0.88rem;
+    }
+
+    nav.toc-nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    nav.toc-nav a:hover {
+      color: var(--accent-gold);
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 6rem;
+    }
+
+    .hero-section {
+      text-align: center;
+      padding: 3rem 1rem 4rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 3.5rem;
+    }
+
+    .hero-subtitle {
+      color: var(--accent-gold);
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: 2.4rem;
+      line-height: 1.35;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-desc {
+      color: var(--text-secondary);
+      max-width: 780px;
+      margin: 0 auto;
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+
+    .meta-pills {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.75rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .meta-pill strong {
+      color: var(--text-primary);
+    }
+
+    h2.section-heading {
+      font-family: var(--font-serif);
+      font-size: 1.75rem;
+      color: #fff;
+      margin: 3.5rem 0 1.5rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    h2.section-heading::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 1.2em;
+      background: var(--accent-gold);
+      border-radius: 2px;
+    }
+
+    h3.sub-heading {
+      font-size: 1.25rem;
+      color: #e2e8f0;
+      margin: 2rem 0 1rem;
+    }
+
+    p {
+      color: #cbd5e1;
+      margin-bottom: 1.25rem;
+      line-height: 1.85;
+    }
+
+    .callout {
+      background: var(--bg-surface);
+      border-left: 4px solid var(--accent-gold);
+      padding: 1.25rem 1.5rem;
+      margin: 1.75rem 0;
+      border-radius: 0 8px 8px 0;
+      border-top: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .callout-title {
+      font-weight: 600;
+      color: var(--accent-gold);
+      margin-bottom: 0.4rem;
+      font-size: 0.95rem;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 1rem 1.25rem;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-subtle);
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-body {
+      padding: 1.25rem;
+      flex: 1;
+    }
+
+    .image-container {
+      background: #0a0c0e;
+      text-align: center;
+      position: relative;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .image-container img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      max-height: 600px;
+      object-fit: contain;
+    }
+
+    .image-caption {
+      padding: 0.6rem 1rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      background: rgba(10, 12, 14, 0.85);
+      border-top: 1px solid var(--border-subtle);
+      text-align: left;
+    }
+
+    .point-list {
+      list-style: none;
+    }
+
+    .point-list li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: #cbd5e1;
+    }
+
+    .point-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0.5rem;
+      color: var(--accent-gold);
+      font-weight: bold;
+    }
+
+    .cue-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: var(--bg-surface);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .cue-table th, .cue-table td {
+      padding: 1rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .cue-table th {
+      background: var(--bg-card);
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .cue-bad {
+      color: #f87171;
+      font-weight: 500;
+    }
+
+    .cue-good {
+      color: #4ade80;
+      font-weight: 600;
+      background: rgba(74, 222, 128, 0.08);
+      border-left: 3px solid #4ade80;
+      padding-left: 0.85rem;
+    }
+
+    /* Blind Test Interactive Area */
+    .blind-test-box {
+      background: var(--bg-surface);
+      border: 2px dashed var(--accent-gold);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 3rem 0;
+      position: relative;
+    }
+
+    .blind-badge {
+      display: inline-block;
+      background: var(--accent-gold);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .blind-reveal-btn {
+      background: var(--accent-gold);
+      color: #121417;
+      font-weight: 600;
+      border: none;
+      padding: 0.85rem 1.75rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      margin-top: 1.5rem;
+    }
+
+    .blind-reveal-btn:hover {
+      background: #e2c04d;
+      transform: translateY(-1px);
+    }
+
+    .blind-answer-area {
+      display: none;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .side-effects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .side-effect-item {
+      background: var(--bg-card);
+      padding: 1.25rem;
+      border-radius: 6px;
+      border-top: 3px solid var(--accent-warm);
+    }
+
+    .side-effect-item h4 {
+      color: var(--accent-warm);
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    footer.lab-footer {
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+
+    @media (max-width: 768px) {
+      header.lab-header { flex-direction: column; gap: 0.8rem; }
+      .hero-title { font-size: 1.8rem; }
+      .cue-table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="lab-header">
+    <div class="brand-title">
+      <span>PHOTOGRAPHY REFERENCE LAB</span>
+      <span class="badge-pilot">Posing Pilot</span>
+    </div>
+    <nav class="toc-nav">
+      <a href="#visual-diagnosis">视觉诊断</a>
+      <a href="#biomechanics">解剖机理</a>
+      <a href="#action-reconstruction">三步重构</a>
+      <a href="#case-studies">实战案例</a>
+      <a href="#verbal-cues">现场口令</a>
+      <a href="#blind-test">盲测训练</a>
+    </nav>
+  </header>
+
+  <div class="container">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="hero-subtitle">Antigravity 独立摄影教学研究室 · 第一期试读</div>
+      <h1 class="hero-title">为什么人物摆姿势会显得拘谨、<br>缩成一团或缺乏力量？</h1>
+      <p class="hero-desc">
+        彻底告别“你自然一点、霸气一点”等无效情绪评判。深入 Roberto Valenzuela 完美姿态系统与职业 Cosplay 实战经验，从重心承重、负空间救赎到现场精准解剖指令，重塑实战中的姿态掌控力。
+      </p>
+      <div class="meta-pills">
+        <span class="meta-pill">核心文献：<strong>Roberto Valenzuela P3S 系统</strong></span>
+        <span class="meta-pill">实战语境：<strong>Cosplay / 漫展场照 / 创作人像</strong></span>
+        <span class="meta-pill">教学标准：<strong>可观察诊断 + 可执行口令</strong></span>
+      </div>
+    </section>
+
+    <!-- SECTION 1: VISUAL DIAGNOSIS -->
+    <section id="visual-diagnosis">
+      <h2 class="section-heading">1. 视觉诊断：从成片一眼看出“三大硬伤”</h2>
+      <p>
+        当你回放相机屏幕时，无需逐一核对模特的每根手指。在 1 秒钟内完成以下三个维度的视觉扫描，就能立即定位 90% 的姿态问题：
+      </p>
+
+      <div class="comparison-grid">
+        <div class="card">
+          <div class="card-header">
+            <span>硬伤一：负空间完全塌陷</span>
+            <span style="color:var(--accent-red)">高发率 85%</span>
+          </div>
+          <div class="card-body">
+            <p><strong>现象</strong>：大臂紧紧压在肋骨两侧，双手收拢在胸腹部正前方。</p>
+            <p><strong>视觉惩罚</strong>：人体原本的腰身内凹曲线被大臂完全填平。整个人横向面积在二维平面上被直接拉宽 20%~30%，观感沉重且畏缩。</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span>硬伤二：剪影轮廓黏连</span>
+            <span style="color:var(--accent-warm)">可读性归零</span>
+          </div>
+          <div class="card-body">
+            <p><strong>现象</strong>：四肢全部叠在躯干的主轮廓内部，没有向外舒展的几何斜线。</p>
+            <p><strong>视觉惩罚</strong>：将照片转为纯黑剪影后，观者完全无法辨认角色的动作意图（是在拔剑、防备还是单纯站着）。</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span>硬伤三：地基均分悬浮</span>
+            <span style="color:var(--accent-blue)">力学呆滞</span>
+          </div>
+          <div class="card-body">
+            <p><strong>现象</strong>：双脚平行站立，两腿平均承受重量，双肩双髋水平，脊柱垂直直立。</p>
+            <p><strong>视觉惩罚</strong>：缺乏重力着地感（Grounding），没有动态力矩，宛如没有生命的“兵马俑站姿”。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: BIOMECHANICS -->
+    <section id="biomechanics">
+      <h2 class="section-heading">2. 解剖与力学机理：为什么身体会自动“缩紧”？</h2>
+
+      <h3 class="sub-heading">2.1 生理防御反射：非受训模特的潜意识自我保护</h3>
+      <p>
+        面对冰冷的相机镜头，人脑会自动激活微弱的防御机制。模特的本能反应是：<strong>耸肩、含胸、双臂紧贴肋骨以保护脆弱内脏、下巴本能后缩</strong>。这种生理防御在镜头二维投影中会瞬间造成“畏畏缩缩”的视觉印象。
+      </p>
+
+      <div class="callout">
+        <div class="callout-title">Roberto Valenzuela 的物理警示：大臂贴紧躯干的双重灾难</div>
+        <p>
+          大臂后侧的三头肌与脂肪是柔软组织。当手臂下垂压紧坚硬的胸廓肋骨时，柔软的肌肉如同被压扁的面团，必然向镜头外侧膨胀，使手臂在视觉上凭空增粗 2~3 厘米；同时，手肘将腰部凹陷完全填死，抹杀全身腰线。
+        </p>
+      </div>
+
+      <h3 class="sub-heading">2.2 门板效应：正对相机的平直投影</h3>
+      <p>
+        当躯干完全正对镜头光轴时，相机会记录下人体横向最大截面积。双肩平直、双髋对称，彻底丢失了三维空间的纵深与立体感。
+      </p>
+    </section>
+
+    <!-- SECTION 3: THREE-STEP RECONSTRUCTION -->
+    <section id="action-reconstruction">
+      <h2 class="section-heading">3. 动作重构工程：三步解决局促与无力</h2>
+
+      <h3 class="sub-heading">第一步：地基与承重——激活对立平衡（Contrapposto 原理）</h3>
+      <p>
+        将 85%~90% 的身体重心转移到其中一条腿（后腿或承重腿）。承重侧骨盆自然向上倾斜并外顶，轻腿微屈，带动脊柱形成优雅有张力的自然 S 弯，肩线随之产生反向高低倾斜。
+      </p>
+      <ul class="point-list">
+        <li><strong>普通站姿</strong>：后腿承重，前腿向前虚点，肩线与髋线反向倾斜；</li>
+        <li><strong>战斗力量姿态</strong>：将双脚拉开至 1.5 倍肩宽（宽弓步），重心主动下沉 8~10 公分，稳如磐石的地基让任何武器挥舞都具备真实可信度。</li>
+      </ul>
+
+      <h3 class="sub-heading">第二步：廓形与负空间——手肘外推两指宽</h3>
+      <p>
+        在任何站姿、坐姿或持物姿态中，<strong>主动要求模特将手肘向外拉离躯干至少 3~5 厘米（两指宽至一拳宽）</strong>。
+      </p>
+      <div class="callout" style="border-left-color: var(--accent-green);">
+        <div class="callout-title" style="color:var(--accent-green)">天使负空间效应（The Negative Space Window）</div>
+        <p>
+          一旦手肘拉开两指宽：① 大臂挤压被彻底解除，恢复紧致纵向轮廓；② 手臂与腰部之间重新透出清澈的三角形负空间，让背景光线重新勾勒出腰部内凹线条！
+        </p>
+      </div>
+
+      <h3 class="sub-heading">第三步：四肢与末梢——关节微屈与羽毛轻触</h3>
+      <ul class="point-list">
+        <li><strong>15° 微屈法则</strong>：消除死直锁死的肘关节与膝关节，微屈创造对角动态折线；</li>
+        <li><strong>羽毛轻触法则（Feather Touch）</strong>：手触碰脸颊、衣领或武器时，指尖如羽毛般轻贴表面，绝不用力下按，避免面部肌肉被压凹或指节泛白。</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 4: REAL CASE STUDIES -->
+    <section id="case-studies">
+      <h2 class="section-heading">4. 实拍高清案例对照与解剖拆解</h2>
+      <p>以下均来自我们参考库中的真实高清实拍照片（可清晰观察全身与肢体关节）：</p>
+
+      <div class="comparison-grid">
+        <!-- Case 1 -->
+        <div class="card">
+          <div class="card-header">
+            <span>案例 1：基准站姿九宫格</span>
+            <span style="font-size:0.8rem;color:var(--text-muted)">images/cos-0001.webp</span>
+          </div>
+          <div class="image-container">
+            <img src="../../../../images/cos-0001.webp" alt="九宫格全身姿势模板" onerror="this.src='/images/cos-0001.webp'">
+            <div class="image-caption">棚拍全身标准参考 · 1080 × 1440 WebP · 9种基础站姿变体</div>
+          </div>
+          <div class="card-body">
+            <ul class="point-list">
+              <li><strong>对比正中格与四周格</strong>：完全正面平站极度扁平；凡是舒展优美的格位，均采用了<strong>躯干侧转 30°~45°</strong> 与<strong>单腿重心后移</strong>；</li>
+              <li><strong>负空间处理</strong>：双手触腰或自然下垂时，手肘与腰侧均保留通透间隙，制服腰身轮廓一览无余。</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Case 2 -->
+        <div class="card">
+          <div class="card-header">
+            <span>案例 2：Lucy 霓虹廊道单腿支撑</span>
+            <span style="font-size:0.8rem;color:var(--text-muted)">images/cos-0005.webp</span>
+          </div>
+          <div class="image-container">
+            <img src="../../../../images/cos-0005.webp" alt="Lucy单腿支撑与负空间" onerror="this.src='/images/cos-0005.webp'">
+            <div class="image-caption">夜景霓虹廊道 · 1080 × 1402 WebP · 支撑面借力与冷感站姿</div>
+          </div>
+          <div class="card-body">
+            <ul class="point-list">
+              <li><strong>消除不知如何站立</strong>：模特将重心全交由右直腿，左腿屈起踏在台阶上形成坚实支点；</li>
+              <li><strong>手臂与剪影</strong>：手肘微离身体，霓虹轮廓光完整勾勒出手臂外侧与腰际线条，利落冷峻。</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Case 3 -->
+        <div class="card">
+          <div class="card-header">
+            <span>案例 3：宽站扭身双手持剑</span>
+            <span style="font-size:0.8rem;color:var(--text-muted)">images/cos-0033.webp</span>
+          </div>
+          <div class="image-container">
+            <img src="../../../../images/cos-0033.webp" alt="宽站扭身双手持剑" onerror="this.src='/images/cos-0033.webp'">
+            <div class="image-caption">战斗角色 · 1080 × 1621 WebP · 宽站位与反向扭身</div>
+          </div>
+          <div class="card-body">
+            <ul class="point-list">
+              <li><strong>力量感的来源</strong>：步幅超过肩宽，重心压低；髋部朝左前方，双肩与剑锋朝右前方反拧，腰部褶皱展现强烈扭转力矩；</li>
+              <li><strong>手肘的攻击角</strong>：双肘向外打开形成锐角三角形，绝非夹紧在胸前。</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Case 4 -->
+        <div class="card">
+          <div class="card-header">
+            <span>案例 4：宽弓步举剑力量姿态</span>
+            <span style="font-size:0.8rem;color:var(--text-muted)">images/cos-0041.webp</span>
+          </div>
+          <div class="image-container">
+            <img src="../../../../images/cos-0041.webp" alt="宽弓步持剑攻击预备" onerror="this.src='/images/cos-0041.webp'">
+            <div class="image-caption">大步幅姿态 · 1080 × 1620 WebP · 消除“塑料玩具”无力感</div>
+          </div>
+          <div class="card-body">
+            <ul class="point-list">
+              <li><strong>解决武器轻飘飘</strong>：深弓步，前腿弓后腿绷，上半身顺势前倾；剑身借由重心的前倾获得了重力势能，武器的杀伤力瞬间真实可信。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: VERBAL CUES -->
+    <section id="verbal-cues">
+      <h2 class="section-heading">5. 现场指挥口令工程：从抽象评价到解剖动作</h2>
+      <p>
+        严禁使用“你自然一点”、“别僵硬”、“霸气一点”等情绪毒药。将口令公式化为：<br>
+        <strong>【高效口令】 = 动词 + 身体部位 + 相对方位 + 物理参照物/距离</strong>
+      </p>
+
+      <table class="cue-table">
+        <thead>
+          <tr>
+            <th>现场问题</th>
+            <th>❌ 低效抽象口令</th>
+            <th>✅ 专业解剖执行口令</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>大臂夹紧，腰线消失</td>
+            <td class="cue-bad">“手别贴着，显胖。”</td>
+            <td class="cue-good">“右手肘向外推开大概一拳的距离，让腰侧透点光出来。”</td>
+          </tr>
+          <tr>
+            <td>双腿并立像站军姿</td>
+            <td class="cue-bad">“站自然点，动一动。”</td>
+            <td class="cue-good">“把重心全部踩在右脚后跟上，左脚往斜前方挪半步，脚尖虚点地。”</td>
+          </tr>
+          <tr>
+            <td>拿长刀无力像拿塑料棒</td>
+            <td class="cue-bad">“拿刀霸气点，用点力！”</td>
+            <td class="cue-good">“两脚打开比肩宽一点，膝盖稍微蹲深一指，右手像握小鸟一样轻扶剑柄，剑尖朝我镜头右下角压。”</td>
+          </tr>
+          <tr>
+            <td>机械收下巴挤出双下巴</td>
+            <td class="cue-bad">“低头收下巴！”</td>
+            <td class="cue-good">“耳朵往天花板拔高一点，下巴往我镜头的方向水平伸出一厘米，眼神继续看我。”</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 6: BLIND TEST -->
+    <section id="blind-test">
+      <h2 class="section-heading">6. 盲测实战训练：长柄重型武器与暗场低机位</h2>
+
+      <div class="blind-test-box">
+        <span class="blind-badge">正文未讲解案例 · 独立测试</span>
+        <h3 style="color:#fff;margin-bottom:0.75rem;">案例 COS-031：暗场长柄镰刀低机位</h3>
+        <p style="color:var(--text-secondary);font-size:0.95rem;">
+          作者：果果酱啦啦啦 · 分辨率 1080 × 1620 WebP · 真实暗展馆多灯实拍
+        </p>
+
+        <div class="image-container" style="margin: 1.5rem 0; border: 1px solid var(--border-subtle); border-radius: 6px;">
+          <img src="../../../../images/cos-0046.webp" alt="暗场长柄镰刀低机位实拍" onerror="this.src='/images/cos-0046.webp'">
+        </div>
+
+        <div style="background:var(--bg-card);padding:1.25rem;border-radius:6px;margin:1.5rem 0;">
+          <h4 style="color:var(--accent-gold);margin-bottom:0.5rem;">请先在脑海中独立思考以下 4 个问题（请勿立即点击下方按钮！）：</h4>
+          <ol style="padding-left:1.5rem;color:#cbd5e1;line-height:1.8;">
+            <li>模特的重心在何处？如果她采用普通自拍的窄站距，手持2米长的道具会出现什么力学灾难？</li>
+            <li>观察高位握杆的手与低位握杆的手：它们与躯干腰部是否有负空间？</li>
+            <li>为什么模特的双手没有紧紧挨在一起握杆，而是拉开了很大的间距？</li>
+            <li>如果你是现场摄影师，下一张你想尝试什么微调，预期改善什么、又会牺牲什么？</li>
+          </ol>
+        </div>
+
+        <button class="blind-reveal-btn" id="revealBtn" onclick="toggleBlindAnswer()">
+          <span>查看专业多维解析与复盘</span>
+          <span id="revealArrow">▼</span>
+        </button>
+
+        <div class="blind-answer-area" id="blindAnswer">
+          <h3 style="color:var(--accent-gold);margin-bottom:1rem;">导师级专业多维深度解构</h3>
+
+          <h4 style="color:#e2e8f0;margin:1rem 0 0.5rem;">一、画面里实际看见了什么？（解剖事实）</h4>
+          <p>
+            • <strong>地基与步幅</strong>：站距达到肩宽的 1.6 倍，双膝微屈，重心主动压低约 10 公分，形成了极稳固的三角形地基；<br>
+            • <strong>通透负空间</strong>：高位握杆的左手向斜上方伸展，肘部与侧腰拉开巨大的透光空隙，黑色收腰线条完全可读；<br>
+            • <strong>杠杆对拉</strong>：双手拉开约 50 公分间距，构成物理“杠杆对拉支撑”，使超长镰刀看起来轻盈被掌控；<br>
+            • <strong>头颈延伸</strong>：仰拍角度下，下巴向前推送，避免了颈部赘肉堆积。
+          </p>
+
+          <h4 style="color:#e2e8f0;margin:1rem 0 0.5rem;">二、下一张可尝试的微调方案与代价权衡（Trade-offs）</h4>
+          <div class="comparison-grid" style="margin:1rem 0;">
+            <div style="background:var(--bg-primary);padding:1rem;border-radius:6px;border:1px solid var(--border-subtle);">
+              <h5 style="color:var(--accent-warm);margin-bottom:0.3rem;">方案 A：强化进攻压迫感</h5>
+              <p style="font-size:0.9rem;margin-bottom:0.4rem;"><strong>口令</strong>：“左脚再前踏半步做弓步，刀刃往我镜头前送两寸，眼神看我镜头下方！”</p>
+              <p style="font-size:0.85rem;color:var(--accent-green);margin-bottom:0.2rem;">✔ 改善：广角近大远小产生极强劈砍视觉冲击。</p>
+              <p style="font-size:0.85rem;color:var(--accent-red);margin-bottom:0;">✘ 牺牲：巨大刀刃可能遮挡顶部背景光与假发细节。</p>
+            </div>
+            <div style="background:var(--bg-primary);padding:1rem;border-radius:6px;border:1px solid var(--border-subtle);">
+              <h5 style="color:var(--accent-blue);margin-bottom:0.3rem;">方案 B：从容防备与收割者威严</h5>
+              <p style="font-size:0.9rem;margin-bottom:0.4rem;"><strong>口令</strong>：“镰刀尾端顿在地面当支点，身体轻倚在杆上，右手改成两指轻扶，冷眼看我。”</p>
+              <p style="font-size:0.85rem;color:var(--accent-green);margin-bottom:0.2rem;">✔ 改善：借由地面支点带来松弛强者感，手指呈现羽毛轻触。</p>
+              <p style="font-size:0.85rem;color:var(--accent-red);margin-bottom:0;">✘ 牺牲：缺少动态斜线冲击，动作趋于静止。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: SIDE EFFECTS -->
+    <section id="side-effects">
+      <h2 class="section-heading">7. 边界与副作用警示：不可矫枉过正</h2>
+      <div class="side-effects-grid">
+        <div class="side-effect-item">
+          <h4>手肘过度外推：“大鹏展翅”</h4>
+          <p style="font-size:0.88rem;color:#cbd5e1;">手肘外拉两指至一拳宽即可，过度外抬会显得滑稽凶悍。</p>
+        </div>
+        <div class="side-effect-item">
+          <h4>下颌过度前伸：“探头龟体态”</h4>
+          <p style="font-size:0.88rem;color:#cbd5e1;">下巴水平前推 1~2 厘米足矣，过度前伸在侧面机位会导致驼背观感。</p>
+        </div>
+        <div class="side-effect-item">
+          <h4>侧转过度：遮挡核心服装纹样</h4>
+          <p style="font-size:0.88rem;color:#cbd5e1;">侧转不可遮挡 Cosplay 服装胸口的标志性徽章，拍前需与扮演者确认。</p>
+        </div>
+        <div class="side-effect-item">
+          <h4>沉重假发：切忌大幅度扭头</h4>
+          <p style="font-size:0.88rem;color:#cbd5e1;">重型造型假发强行扭头易造成假发滑脱或颈部拉伤，以身体微转代替。</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="lab-footer">
+    <p>Photography Reference Lab · Antigravity Curriculum Research Track</p>
+    <p style="margin-top:0.5rem;color:var(--text-muted)">本课程试读页使用本地真实资产与纯原生渲染，保护用户学习隐私与创作基线。</p>
+  </footer>
+
+  <script>
+    function toggleBlindAnswer() {
+      const area = document.getElementById('blindAnswer');
+      const btn = document.getElementById('revealBtn');
+      const arrow = document.getElementById('revealArrow');
+      if (area.style.display === 'block') {
+        area.style.display = 'none';
+        btn.querySelector('span').innerText = '查看专业多维解析与复盘';
+        arrow.innerText = '▼';
+      } else {
+        area.style.display = 'block';
+        btn.querySelector('span').innerText = '收起专业解析';
+        arrow.innerText = '▲';
+      }
+    }
+  </script>
+</body>
+</html>
