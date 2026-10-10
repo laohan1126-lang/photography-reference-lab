@@ -12,9 +12,14 @@ Covers all 6 historical failure patterns and verified golden samples:
 9. Authentic verified golden claims achieve PASS and produce AdmissionReceipt
 10. Rework cycle progression: cycle 1 -> REVISE, cycle 2 -> BLOCKED
 11. Neutralization of self-attested verified=true
+12. Local media integrity gate: declared ACCESSIBLE media that is missing, unreadable,
+   or hash-mismatched must be rejected and must never produce an admission receipt
+13. Empty research gate: a fully empty package and a sources-only package assert nothing,
+   so neither may reach PASS, receive a receipt, or export an admission file
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import pytest
@@ -29,9 +34,39 @@ from ref_lab.evidence_gate.models import (
     TimestampSpan,
 )
 
+# STRUCTURAL FIXTURE MEDIA ONLY.
+# These are deterministic placeholder byte strings written to temporary files so the gate's
+# local-file and SHA256 verification has something real to read. They are NOT the genuine
+# BV1MD421L7VK / BV1imaN6tEc8 course media and prove nothing about any photography fact.
+FIXTURE_MEDIA_BYTES: dict[str, bytes] = {
+    "BV1MD421L7VK": b"structural fixture payload for BV1MD421L7VK, not real course media\n" * 64,
+    "BV1imaN6tEc8": b"structural fixture payload for BV1imaN6tEc8, not real course media\n" * 64,
+}
 
-def make_valid_base_package() -> ResearchEvidencePackage:
-    """Creates a clean, valid evidence package based on calibrated XiaoYanJun research."""
+
+@pytest.fixture(scope="module")
+def fixture_media(tmp_path_factory) -> dict[str, Path]:
+    """Write real nonempty temporary fixture files and return their paths by video id."""
+    root = tmp_path_factory.mktemp("evidence_gate_fixture_media")
+    paths: dict[str, Path] = {}
+    for video_id, payload in FIXTURE_MEDIA_BYTES.items():
+        media_file = root / video_id / "video.mp4"
+        media_file.parent.mkdir(parents=True, exist_ok=True)
+        media_file.write_bytes(payload)
+        paths[video_id] = media_file
+    return paths
+
+
+def sha256_of(media_file: Path) -> str:
+    """Compute SHA256 from the actual bytes on disk, never from a memorized constant."""
+    return hashlib.sha256(media_file.read_bytes()).hexdigest()
+
+
+def make_valid_base_package(media_file: Path) -> ResearchEvidencePackage:
+    """Creates a clean, valid evidence package based on calibrated XiaoYanJun research.
+
+    `media_file` must be a real nonempty file whose SHA256 is declared truthfully.
+    """
     source = SourceMetadata(
         url="https://www.bilibili.com/video/BV1MD421L7VK/",
         platform="bilibili",
@@ -43,10 +78,11 @@ def make_valid_base_package() -> ResearchEvidencePackage:
         is_tutorial_confirmed=True,
     )
     media = MediaArtifactRecord(
-        local_path="scratch/BV1MD421L7VK/video.mp4",
-        sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        local_path=str(media_file),
+        sha256=sha256_of(media_file),
         media_type="video",
         status="ACCESSIBLE",
+        file_size_bytes=media_file.stat().st_size,
     )
     claim = ClaimRecord(
         claim_id="claim-1.1",
@@ -77,9 +113,9 @@ def make_valid_base_package() -> ResearchEvidencePackage:
     )
 
 
-def test_redteam_sony_a7r_contradiction():
+def test_redteam_sony_a7r_contradiction(fixture_media):
     """Red team 1: Canon R5 falsely reported as Sony A7R."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     pkg.claims[0].equipment_tags = ["Sony A7R IV", "35mm 定焦"]
     pkg.claims[0].statement = "小言Jun 使用 Sony A7R IV 搭配 35mm 定焦镜头进行拍摄。"
 
@@ -94,9 +130,9 @@ def test_redteam_sony_a7r_contradiction():
     assert "claim-1.1" in rework.affected_claim_ids
 
 
-def test_redteam_hallucinated_little_stick_dialogue():
+def test_redteam_hallucinated_little_stick_dialogue(fixture_media):
     """Red team 2: Fabricated dialogue claiming photographer sighed 'sword looks like a little stick'."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     fake_claim = ClaimRecord(
         claim_id="claim-1.2-fake",
         statement="摄影师叹气说：你看剑根本看不出来，像个小棍子，必须换手持剑。",
@@ -125,9 +161,9 @@ def test_redteam_hallucinated_little_stick_dialogue():
     assert "像个小棍子" in hallucination_issue.message
 
 
-def test_redteam_manny_vlog_url_mismatch():
+def test_redteam_manny_vlog_url_mismatch(fixture_media):
     """Red team 3: Manny Ortiz Kolkata Street Photo Vlog cited as posing tutorial."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     bad_source = SourceMetadata(
         url="https://www.youtube.com/watch?v=I6sdXDIjo50",
         platform="youtube",
@@ -146,9 +182,9 @@ def test_redteam_manny_vlog_url_mismatch():
     assert any(i.issue_code == "URL_MISMATCH_VLOG" for i in rework.issues)
 
 
-def test_redteam_screenshot_timestamp_mismatch():
+def test_redteam_screenshot_timestamp_mismatch(fixture_media):
     """Red team 4: Screenshot timestamp (04:30 = 270s) out of sync with interval (01:45-02:14 = 105-134s)."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     pkg.claims[0].time_spans = [
         TimestampSpan(
             start_seconds=105.0,
@@ -166,9 +202,9 @@ def test_redteam_screenshot_timestamp_mismatch():
     assert any(i.issue_code == "SCREENSHOT_TIMESTAMP_MISMATCH" for i in rework.issues)
 
 
-def test_redteam_timeline_anachronism():
+def test_redteam_timeline_anachronism(fixture_media):
     """Red team 5: 2024 video citing equipment released in late 2025."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     # Video published on 2024-03-24, but claims to use Sony A7 V (released late 2025)
     pkg.claims[0].equipment_tags = ["Sony A7 V"]
     pkg.claims[0].statement = "小言Jun 在 2024年3月视频中使用 Sony A7 V 拍摄。"
@@ -181,9 +217,9 @@ def test_redteam_timeline_anachronism():
     assert any(i.issue_code == "TIMELINE_ANACHRONISM" for i in rework.issues)
 
 
-def test_redteam_pseudoscience_and_pseudo_precision():
+def test_redteam_pseudoscience_and_pseudo_precision(fixture_media):
     """Red team 6: Embryonic startle reflex hypothesis and ungrounded 90/10 ratio."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     speculative_claim = ClaimRecord(
         claim_id="claim-1.4-pseudo",
         statement="模特肌肉紧绷源自胎儿期防御性惊跳反射，将剑尖下插地面作为物理三角支点使身体承重从 90/10 变成 60/40。",
@@ -202,9 +238,9 @@ def test_redteam_pseudoscience_and_pseudo_precision():
     assert any(i.issue_code == "UNVERIFIED_PSEUDO_PRECISION" for i in rework.issues)
 
 
-def test_redteam_timestamp_out_of_bounds():
+def test_redteam_timestamp_out_of_bounds(fixture_media):
     """Red team 7: Timestamp exceeds total video duration."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     pkg.claims[0].time_spans = [
         TimestampSpan(
             start_seconds=400.0,
@@ -221,9 +257,9 @@ def test_redteam_timestamp_out_of_bounds():
     assert any(i.issue_code == "TIMESTAMP_OUT_OF_BOUNDS" for i in rework.issues)
 
 
-def test_redteam_unaccessible_media_blocks():
+def test_redteam_unaccessible_media_blocks(fixture_media):
     """Red team 8: Unaccessible media immediately blocks gate."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     pkg.media_artifacts[0].status = "UNACCESSIBLE"
 
     gate = QualityGateLoop()
@@ -234,9 +270,9 @@ def test_redteam_unaccessible_media_blocks():
     assert any(i.issue_code == "MEDIA_UNACCESSIBLE" for i in rework.issues)
 
 
-def test_rework_loop_cycle_limit():
+def test_rework_loop_cycle_limit(fixture_media):
     """Red team 9: Exceeding max rework cycles (2) changes REVISE to BLOCKED."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     pkg.claims[0].statement = "小言Jun 使用 Sony A7R IV 拍摄。"
     pkg.claims[0].equipment_tags = ["Sony A7R IV"]
 
@@ -254,9 +290,9 @@ def test_rework_loop_cycle_limit():
     assert "Reached maximum rework cycle limit" in rework_2.summary
 
 
-def test_self_attested_verified_neutralized():
+def test_self_attested_verified_neutralized(fixture_media):
     """Red team 10: Researcher self-attesting verified=true does not bypass errors."""
-    pkg = make_valid_base_package()
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
     pkg.claims[0].self_attested_verified = True
     pkg.claims[0].statement = "小言Jun 叹气说像个小棍子。"
     pkg.claims[0].verbatim_quote = "像个小棍子"
@@ -269,7 +305,7 @@ def test_self_attested_verified_neutralized():
     assert any(i.issue_code == "VERBATIM_HALLUCINATION" for i in rework.issues)
 
 
-def test_golden_sample_passes_and_issues_receipt():
+def test_golden_sample_passes_and_issues_receipt(fixture_media):
     """Positive test: Calibrated and verified claims pass and generate AdmissionReceipt."""
     source_xy = SourceMetadata(
         url="https://www.bilibili.com/video/BV1MD421L7VK/",
@@ -333,6 +369,13 @@ def test_golden_sample_passes_and_issues_receipt():
         ),
     ]
 
+    # Declared-ACCESSIBLE media must be real, existing, nonempty files whose declared SHA256 is
+    # the true hash of the bytes on disk. The previous hardcoded "scratch/..." paths and the
+    # empty-file hash (e3b0c442...) never existed on disk, so the integrity gate correctly
+    # rejected them and the golden sample could never legitimately reach PASS.
+    media_xy = fixture_media["BV1MD421L7VK"]
+    media_lhy = fixture_media["BV1imaN6tEc8"]
+
     golden_package = ResearchEvidencePackage(
         package_id="pkg_golden_curriculum_admission",
         topic="人像摆姿真实引导实证教学",
@@ -341,16 +384,18 @@ def test_golden_sample_passes_and_issues_receipt():
         sources=[source_xy, source_lhy],
         media_artifacts=[
             MediaArtifactRecord(
-                local_path="scratch/BV1MD421L7VK/video.mp4",
-                sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                local_path=str(media_xy),
+                sha256=sha256_of(media_xy),
                 media_type="video",
                 status="ACCESSIBLE",
+                file_size_bytes=media_xy.stat().st_size,
             ),
             MediaArtifactRecord(
-                local_path="scratch/BV1imaN6tEc8/video.mp4",
-                sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                local_path=str(media_lhy),
+                sha256=sha256_of(media_lhy),
                 media_type="video",
                 status="ACCESSIBLE",
+                file_size_bytes=media_lhy.stat().st_size,
             ),
         ],
         claims=claims,
@@ -366,3 +411,189 @@ def test_golden_sample_passes_and_issues_receipt():
     assert receipt.total_claims_verified == 4
     assert receipt.scope == "photography_course_curriculum"
     assert receipt.approved_manifest_hash == golden_package.compute_fingerprint()
+
+
+def test_accessible_media_missing_file_blocks_receipt(fixture_media, tmp_path):
+    """Regression: declared ACCESSIBLE media that does not exist on disk must be rejected."""
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+    missing = tmp_path / "not_downloaded" / "video.mp4"
+    pkg.media_artifacts[0].local_path = str(missing)
+    assert not missing.exists()
+
+    gate = QualityGateLoop()
+    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
+
+    assert decision == "REVISE"
+    assert receipt is None
+    assert rework is not None
+    assert any(i.issue_code == "MEDIA_FILE_MISSING" for i in rework.issues)
+
+
+def test_accessible_media_bad_hash_blocks_receipt(fixture_media):
+    """Regression: existing media whose bytes do not match the declared SHA256 must be rejected."""
+    media_file = fixture_media["BV1MD421L7VK"]
+    pkg = make_valid_base_package(media_file)
+    pkg.media_artifacts[0].sha256 = "0" * 64
+    assert media_file.exists() and media_file.stat().st_size > 0
+
+    gate = QualityGateLoop()
+    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
+
+    assert decision == "REVISE"
+    assert receipt is None
+    assert rework is not None
+    assert any(i.issue_code == "MEDIA_HASH_MISMATCH" for i in rework.issues)
+
+
+def test_accessible_media_directory_blocks_receipt(fixture_media, tmp_path):
+    """Regression: a local_path pointing at a directory exists but is not hashable media."""
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+    media_dir = tmp_path / "video_dir.mp4"
+    media_dir.mkdir()
+    pkg.media_artifacts[0].local_path = str(media_dir)
+
+    gate = QualityGateLoop()
+    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
+
+    assert decision == "REVISE"
+    assert receipt is None
+    assert rework is not None
+    assert any(i.issue_code == "MEDIA_UNREADABLE" for i in rework.issues)
+
+
+def test_accessible_media_read_oserror_blocks_receipt(fixture_media, monkeypatch):
+    """Regression: existing media that exists but cannot be read must be rejected, not passed."""
+    media_file = fixture_media["BV1MD421L7VK"]
+    pkg = make_valid_base_package(media_file)
+    assert media_file.exists() and media_file.stat().st_size > 0
+
+    target = str(media_file)
+    original_open = Path.open
+
+    def fake_open(self, *args, **kwargs):
+        # Induce a read failure only for the declared media file; everything else is untouched.
+        if str(self) == target:
+            raise PermissionError(13, "Permission denied")
+        return original_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", fake_open)
+
+    gate = QualityGateLoop()
+    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
+
+    assert decision == "REVISE"
+    assert receipt is None
+    assert rework is not None
+    assert any(i.issue_code == "MEDIA_UNREADABLE" for i in rework.issues)
+
+
+def make_empty_package() -> ResearchEvidencePackage:
+    """Completely empty research package: no sources, no media artifacts, no claims."""
+    return ResearchEvidencePackage(
+        package_id="pkg_empty_no_research",
+        topic="人像摆姿真实引导实证教学",
+        author="Antigravity Researcher",
+        created_at="2026-10-10T12:00:00Z",
+        sources=[],
+        media_artifacts=[],
+        claims=[],
+    )
+
+
+def make_sources_only_package() -> ResearchEvidencePackage:
+    """Source metadata but no claims: metadata alone is not substantive research."""
+    source = SourceMetadata(
+        url="https://www.bilibili.com/video/BV1MD421L7VK/",
+        platform="bilibili",
+        author="小言Jun",
+        title="【第一视角】挑战最细节动作引导摄影师",
+        published_date="2024-03-24",
+        duration_seconds=340.0,
+        known_equipment=["Canon EOS R5", "RF 50mm f/1.8 STM"],
+    )
+    return ResearchEvidencePackage(
+        package_id="pkg_sources_only_no_claims",
+        topic="人像摆姿真实引导实证教学",
+        author="Antigravity Researcher",
+        created_at="2026-10-10T12:00:00Z",
+        sources=[source],
+        media_artifacts=[],
+        claims=[],
+    )
+
+
+def test_empty_package_never_passes_or_receives_receipt(tmp_path):
+    """Regression: an entirely empty package must not PASS nor get a zero-claim receipt."""
+    pkg = make_empty_package()
+    assert pkg.sources == [] and pkg.claims == [] and pkg.media_artifacts == []
+
+    gate = QualityGateLoop()
+    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
+
+    assert decision != "PASS"
+    assert decision == "REVISE"
+    assert receipt is None
+    assert rework is not None
+    empty_issue = next(i for i in rework.issues if i.issue_code == "EMPTY_RESEARCH_EVIDENCE")
+    assert empty_issue.severity == "ERROR"
+    assert "empty" in empty_issue.message.lower()
+    assert rework.decision == "REVISE"
+
+    output_dir = tmp_path / "empty_export"
+    results = gate.export_artifacts(decision, receipt, rework, output_dir)
+
+    assert "receipt" not in results
+    assert "rework_package" in results
+    assert (output_dir / "REWORK_PACKAGE.json").exists()
+    assert not (output_dir / "ADMISSION_RECEIPT.json").exists()
+
+
+def test_sources_only_package_never_passes_or_receives_receipt(tmp_path):
+    """Regression: declared sources with zero claims must not PASS nor be admitted."""
+    pkg = make_sources_only_package()
+    assert len(pkg.sources) == 1 and pkg.claims == []
+
+    gate = QualityGateLoop()
+    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
+
+    assert decision != "PASS"
+    assert decision == "REVISE"
+    assert receipt is None
+    assert rework is not None
+    empty_issue = next(i for i in rework.issues if i.issue_code == "EMPTY_RESEARCH_EVIDENCE")
+    assert empty_issue.severity == "ERROR"
+    assert "zero claims" in empty_issue.message.lower()
+
+    output_dir = tmp_path / "sources_only_export"
+    results = gate.export_artifacts(decision, receipt, rework, output_dir)
+
+    assert "receipt" not in results
+    assert "rework_package" in results
+    assert (output_dir / "REWORK_PACKAGE.json").exists()
+    assert not (output_dir / "ADMISSION_RECEIPT.json").exists()
+
+
+def test_empty_package_still_blocked_at_cycle_cap():
+    """Regression: an empty package cannot be admitted by exhausting rework cycles either."""
+    pkg = make_empty_package()
+
+    gate = QualityGateLoop(max_cycles=2)
+    decision, receipt, rework = gate.evaluate(pkg, cycle=2)
+
+    assert decision == "BLOCKED"
+    assert receipt is None
+    assert rework is not None
+    assert any(i.issue_code == "EMPTY_RESEARCH_EVIDENCE" for i in rework.issues)
+
+
+def test_one_real_claim_still_admitted(fixture_media):
+    """Regression: the substantive-research floor must not reject a real single-claim package."""
+    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+
+    gate = QualityGateLoop()
+    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
+
+    assert decision == "PASS"
+    assert receipt is not None
+    assert receipt.total_claims_verified == 1
+    assert rework is None

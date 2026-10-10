@@ -1,0 +1,495 @@
+diff --git a/ref_lab/evidence_gate/checker.py b/ref_lab/evidence_gate/checker.py
+index 4f00f70..bedf2cc 100644
+--- a/ref_lab/evidence_gate/checker.py
++++ b/ref_lab/evidence_gate/checker.py
+@@ -3,0 +4 @@ Audits structured evidence for deterministic facts:
++0. Presence of substantive research (empty / sources-only packages assert nothing)
+@@ -10 +11,2 @@ Audits structured evidence for deterministic facts:
+-7. Media artifact presence, hash integrity, and unread sources
++7. Media artifact presence on disk, hash integrity, and unread sources
++   (declared ACCESSIBLE media must exist, be readable, and match its SHA256)
+@@ -16 +17,0 @@ import hashlib
+-import os
+@@ -68,0 +70,7 @@ class ProgrammaticChecker:
++        # 0. Substantive-research floor.
++        # A package with no claims asserts nothing, so every downstream per-claim loop below
++        # would contribute zero issues and the loop would treat "nothing wrong" as PASS and
++        # mint a receipt with total_claims_verified=0. Source metadata alone is likewise not
++        # research: it describes where to look without recording a single verified assertion.
++        issues.extend(self._check_substantive_research_present(package))
++
+@@ -85,0 +94,44 @@ class ProgrammaticChecker:
++    @staticmethod
++    def _check_substantive_research_present(package: ResearchEvidencePackage) -> list[AuditIssue]:
++        """Reject packages that assert nothing, whether fully empty or sources-only."""
++        if package.claims:
++            return []
++
++        if not package.sources and not package.media_artifacts:
++            message = (
++                "Evidence package is empty: it declares no sources, no media artifacts and no "
++                "claims, so there is no research to audit and nothing to admit."
++            )
++            actual: object = {"sources": 0, "media_artifacts": 0, "claims": 0}
++            remediation = (
++                "Deliver actual researched claims backed by declared source metadata and media."
++            )
++        else:
++            message = (
++                f"Evidence package declares {len(package.sources)} source(s) and "
++                f"{len(package.media_artifacts)} media artifact(s) but zero claims. Source metadata "
++                "alone is not substantive research: no assertion has actually been made."
++            )
++            actual = {
++                "sources": len(package.sources),
++                "media_artifacts": len(package.media_artifacts),
++                "claims": 0,
++            }
++            remediation = (
++                "Extract and record the claims the cited sources support, each with a claim_id, "
++                "statement and supporting evidence."
++            )
++
++        return [
++            AuditIssue(
++                tier="TIER_1_PROGRAMMATIC",
++                issue_code="EMPTY_RESEARCH_EVIDENCE",
++                severity="ERROR",
++                field="claims",
++                message=message,
++                actual_value=actual,
++                expected_or_conflict="At least one substantiated claim record",
++                remediation=remediation,
++            )
++        ]
++
+@@ -134,17 +186,86 @@ class ProgrammaticChecker:
+-                # Check local file existence and hash if accessible and file exists on disk
+-                local_file = Path(artifact.local_path)
+-                if local_file.exists():
+-                    computed_sha = hashlib.sha256(local_file.read_bytes()).hexdigest()
+-                    if computed_sha.lower() != artifact.sha256.lower():
+-                        issues.append(
+-                            AuditIssue(
+-                                tier="TIER_1_PROGRAMMATIC",
+-                                issue_code="MEDIA_HASH_MISMATCH",
+-                                severity="ERROR",
+-                                field="sha256",
+-                                message=f"Local media SHA256 mismatch for {artifact.local_path}",
+-                                actual_value=computed_sha,
+-                                expected_or_conflict=artifact.sha256,
+-                                remediation="Re-verify local media file integrity.",
+-                            )
+-                        )
++                # A declared-ACCESSIBLE artifact must be verifiable on disk: the file has to exist,
++                # be a regular readable file, and hash to the declared SHA256. Silence here would
++                # let an unverifiable artifact pass the gate and receive an admission receipt.
++                issues.extend(self._check_accessible_media(artifact))
++        return issues
++
++    @staticmethod
++    def _compute_sha256(local_file: Path) -> str:
++        """Stream a file through SHA256 so large media does not need to be fully buffered."""
++        digest = hashlib.sha256()
++        with local_file.open("rb") as handle:
++            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
++                digest.update(chunk)
++        return digest.hexdigest()
++
++    def _check_accessible_media(self, artifact: MediaArtifactRecord) -> list[AuditIssue]:
++        """Verify existence, readability and SHA256 integrity of a declared-accessible artifact."""
++        issues: list[AuditIssue] = []
++        local_file = Path(artifact.local_path)
++
++        if not local_file.exists():
++            issues.append(
++                AuditIssue(
++                    tier="TIER_1_PROGRAMMATIC",
++                    issue_code="MEDIA_FILE_MISSING",
++                    severity="ERROR",
++                    field="local_path",
++                    message=(
++                        f"Media artifact is declared ACCESSIBLE but the local file does not exist: "
++                        f"{artifact.local_path}"
++                    ),
++                    actual_value=str(local_file),
++                    expected_or_conflict="Existing local media file at the declared path",
++                    remediation="Download the original media to the declared path, or correct the path declaration.",
++                )
++            )
++            return issues
++
++        if not local_file.is_file():
++            issues.append(
++                AuditIssue(
++                    tier="TIER_1_PROGRAMMATIC",
++                    issue_code="MEDIA_UNREADABLE",
++                    severity="ERROR",
++                    field="local_path",
++                    message=(
++                        f"Media artifact path is not a regular file and cannot be hashed: "
++                        f"{artifact.local_path}"
++                    ),
++                    actual_value=str(local_file),
++                    expected_or_conflict="Regular readable media file",
++                    remediation="Point local_path at the actual media file instead of a directory or device path.",
++                )
++            )
++            return issues
++
++        try:
++            computed_sha = self._compute_sha256(local_file)
++        except OSError as exc:
++            issues.append(
++                AuditIssue(
++                    tier="TIER_1_PROGRAMMATIC",
++                    issue_code="MEDIA_UNREADABLE",
++                    severity="ERROR",
++                    field="local_path",
++                    message=f"Local media could not be read for hashing: {artifact.local_path} ({exc})",
++                    actual_value=f"{type(exc).__name__}: {exc}",
++                    expected_or_conflict="Readable local media file",
++                    remediation="Restore read permissions on the media file before making claims from it.",
++                )
++            )
++            return issues
++
++        if computed_sha.lower() != artifact.sha256.lower():
++            issues.append(
++                AuditIssue(
++                    tier="TIER_1_PROGRAMMATIC",
++                    issue_code="MEDIA_HASH_MISMATCH",
++                    severity="ERROR",
++                    field="sha256",
++                    message=f"Local media SHA256 mismatch for {artifact.local_path}",
++                    actual_value=computed_sha,
++                    expected_or_conflict=artifact.sha256,
++                    remediation="Re-verify local media file integrity.",
++                )
++            )
+diff --git a/tests/test_research_evidence_gate.py b/tests/test_research_evidence_gate.py
+index 18b91ad..56574e7 100644
+--- a/tests/test_research_evidence_gate.py
++++ b/tests/test_research_evidence_gate.py
+@@ -14,0 +15,4 @@ Covers all 6 historical failure patterns and verified golden samples:
++12. Local media integrity gate: declared ACCESSIBLE media that is missing, unreadable,
++   or hash-mismatched must be rejected and must never produce an admission receipt
++13. Empty research gate: a fully empty package and a sources-only package assert nothing,
++   so neither may reach PASS, receive a receipt, or export an admission file
+@@ -17,0 +22 @@ from __future__ import annotations
++import hashlib
+@@ -31,0 +37,8 @@ from ref_lab.evidence_gate.models import (
++# STRUCTURAL FIXTURE MEDIA ONLY.
++# These are deterministic placeholder byte strings written to temporary files so the gate's
++# local-file and SHA256 verification has something real to read. They are NOT the genuine
++# BV1MD421L7VK / BV1imaN6tEc8 course media and prove nothing about any photography fact.
++FIXTURE_MEDIA_BYTES: dict[str, bytes] = {
++    "BV1MD421L7VK": b"structural fixture payload for BV1MD421L7VK, not real course media\n" * 64,
++    "BV1imaN6tEc8": b"structural fixture payload for BV1imaN6tEc8, not real course media\n" * 64,
++}
+@@ -33,2 +46,24 @@ from ref_lab.evidence_gate.models import (
+-def make_valid_base_package() -> ResearchEvidencePackage:
+-    """Creates a clean, valid evidence package based on calibrated XiaoYanJun research."""
++
++@pytest.fixture(scope="module")
++def fixture_media(tmp_path_factory) -> dict[str, Path]:
++    """Write real nonempty temporary fixture files and return their paths by video id."""
++    root = tmp_path_factory.mktemp("evidence_gate_fixture_media")
++    paths: dict[str, Path] = {}
++    for video_id, payload in FIXTURE_MEDIA_BYTES.items():
++        media_file = root / video_id / "video.mp4"
++        media_file.parent.mkdir(parents=True, exist_ok=True)
++        media_file.write_bytes(payload)
++        paths[video_id] = media_file
++    return paths
++
++
++def sha256_of(media_file: Path) -> str:
++    """Compute SHA256 from the actual bytes on disk, never from a memorized constant."""
++    return hashlib.sha256(media_file.read_bytes()).hexdigest()
++
++
++def make_valid_base_package(media_file: Path) -> ResearchEvidencePackage:
++    """Creates a clean, valid evidence package based on calibrated XiaoYanJun research.
++
++    `media_file` must be a real nonempty file whose SHA256 is declared truthfully.
++    """
+@@ -46,2 +81,2 @@ def make_valid_base_package() -> ResearchEvidencePackage:
+-        local_path="scratch/BV1MD421L7VK/video.mp4",
+-        sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++        local_path=str(media_file),
++        sha256=sha256_of(media_file),
+@@ -49,0 +85 @@ def make_valid_base_package() -> ResearchEvidencePackage:
++        file_size_bytes=media_file.stat().st_size,
+@@ -80 +116 @@ def make_valid_base_package() -> ResearchEvidencePackage:
+-def test_redteam_sony_a7r_contradiction():
++def test_redteam_sony_a7r_contradiction(fixture_media):
+@@ -82 +118 @@ def test_redteam_sony_a7r_contradiction():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -97 +133 @@ def test_redteam_sony_a7r_contradiction():
+-def test_redteam_hallucinated_little_stick_dialogue():
++def test_redteam_hallucinated_little_stick_dialogue(fixture_media):
+@@ -99 +135 @@ def test_redteam_hallucinated_little_stick_dialogue():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -128 +164 @@ def test_redteam_hallucinated_little_stick_dialogue():
+-def test_redteam_manny_vlog_url_mismatch():
++def test_redteam_manny_vlog_url_mismatch(fixture_media):
+@@ -130 +166 @@ def test_redteam_manny_vlog_url_mismatch():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -149 +185 @@ def test_redteam_manny_vlog_url_mismatch():
+-def test_redteam_screenshot_timestamp_mismatch():
++def test_redteam_screenshot_timestamp_mismatch(fixture_media):
+@@ -151 +187 @@ def test_redteam_screenshot_timestamp_mismatch():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -169 +205 @@ def test_redteam_screenshot_timestamp_mismatch():
+-def test_redteam_timeline_anachronism():
++def test_redteam_timeline_anachronism(fixture_media):
+@@ -171 +207 @@ def test_redteam_timeline_anachronism():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -184 +220 @@ def test_redteam_timeline_anachronism():
+-def test_redteam_pseudoscience_and_pseudo_precision():
++def test_redteam_pseudoscience_and_pseudo_precision(fixture_media):
+@@ -186 +222 @@ def test_redteam_pseudoscience_and_pseudo_precision():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -205 +241 @@ def test_redteam_pseudoscience_and_pseudo_precision():
+-def test_redteam_timestamp_out_of_bounds():
++def test_redteam_timestamp_out_of_bounds(fixture_media):
+@@ -207 +243 @@ def test_redteam_timestamp_out_of_bounds():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -224 +260 @@ def test_redteam_timestamp_out_of_bounds():
+-def test_redteam_unaccessible_media_blocks():
++def test_redteam_unaccessible_media_blocks(fixture_media):
+@@ -226 +262 @@ def test_redteam_unaccessible_media_blocks():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -237 +273 @@ def test_redteam_unaccessible_media_blocks():
+-def test_rework_loop_cycle_limit():
++def test_rework_loop_cycle_limit(fixture_media):
+@@ -239 +275 @@ def test_rework_loop_cycle_limit():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -257 +293 @@ def test_rework_loop_cycle_limit():
+-def test_self_attested_verified_neutralized():
++def test_self_attested_verified_neutralized(fixture_media):
+@@ -259 +295 @@ def test_self_attested_verified_neutralized():
+-    pkg = make_valid_base_package()
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
+@@ -272 +308 @@ def test_self_attested_verified_neutralized():
+-def test_golden_sample_passes_and_issues_receipt():
++def test_golden_sample_passes_and_issues_receipt(fixture_media):
+@@ -335,0 +372,7 @@ def test_golden_sample_passes_and_issues_receipt():
++    # Declared-ACCESSIBLE media must be real, existing, nonempty files whose declared SHA256 is
++    # the true hash of the bytes on disk. The previous hardcoded "scratch/..." paths and the
++    # empty-file hash (e3b0c442...) never existed on disk, so the integrity gate correctly
++    # rejected them and the golden sample could never legitimately reach PASS.
++    media_xy = fixture_media["BV1MD421L7VK"]
++    media_lhy = fixture_media["BV1imaN6tEc8"]
++
+@@ -344,2 +387,2 @@ def test_golden_sample_passes_and_issues_receipt():
+-                local_path="scratch/BV1MD421L7VK/video.mp4",
+-                sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++                local_path=str(media_xy),
++                sha256=sha256_of(media_xy),
+@@ -347,0 +391 @@ def test_golden_sample_passes_and_issues_receipt():
++                file_size_bytes=media_xy.stat().st_size,
+@@ -350,2 +394,2 @@ def test_golden_sample_passes_and_issues_receipt():
+-                local_path="scratch/BV1imaN6tEc8/video.mp4",
+-                sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++                local_path=str(media_lhy),
++                sha256=sha256_of(media_lhy),
+@@ -353,0 +398 @@ def test_golden_sample_passes_and_issues_receipt():
++                file_size_bytes=media_lhy.stat().st_size,
+@@ -368,0 +414,186 @@ def test_golden_sample_passes_and_issues_receipt():
++
++
++def test_accessible_media_missing_file_blocks_receipt(fixture_media, tmp_path):
++    """Regression: declared ACCESSIBLE media that does not exist on disk must be rejected."""
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
++    missing = tmp_path / "not_downloaded" / "video.mp4"
++    pkg.media_artifacts[0].local_path = str(missing)
++    assert not missing.exists()
++
++    gate = QualityGateLoop()
++    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
++
++    assert decision == "REVISE"
++    assert receipt is None
++    assert rework is not None
++    assert any(i.issue_code == "MEDIA_FILE_MISSING" for i in rework.issues)
++
++
++def test_accessible_media_bad_hash_blocks_receipt(fixture_media):
++    """Regression: existing media whose bytes do not match the declared SHA256 must be rejected."""
++    media_file = fixture_media["BV1MD421L7VK"]
++    pkg = make_valid_base_package(media_file)
++    pkg.media_artifacts[0].sha256 = "0" * 64
++    assert media_file.exists() and media_file.stat().st_size > 0
++
++    gate = QualityGateLoop()
++    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
++
++    assert decision == "REVISE"
++    assert receipt is None
++    assert rework is not None
++    assert any(i.issue_code == "MEDIA_HASH_MISMATCH" for i in rework.issues)
++
++
++def test_accessible_media_directory_blocks_receipt(fixture_media, tmp_path):
++    """Regression: a local_path pointing at a directory exists but is not hashable media."""
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
++    media_dir = tmp_path / "video_dir.mp4"
++    media_dir.mkdir()
++    pkg.media_artifacts[0].local_path = str(media_dir)
++
++    gate = QualityGateLoop()
++    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
++
++    assert decision == "REVISE"
++    assert receipt is None
++    assert rework is not None
++    assert any(i.issue_code == "MEDIA_UNREADABLE" for i in rework.issues)
++
++
++def test_accessible_media_read_oserror_blocks_receipt(fixture_media, monkeypatch):
++    """Regression: existing media that exists but cannot be read must be rejected, not passed."""
++    media_file = fixture_media["BV1MD421L7VK"]
++    pkg = make_valid_base_package(media_file)
++    assert media_file.exists() and media_file.stat().st_size > 0
++
++    target = str(media_file)
++    original_open = Path.open
++
++    def fake_open(self, *args, **kwargs):
++        # Induce a read failure only for the declared media file; everything else is untouched.
++        if str(self) == target:
++            raise PermissionError(13, "Permission denied")
++        return original_open(self, *args, **kwargs)
++
++    monkeypatch.setattr(Path, "open", fake_open)
++
++    gate = QualityGateLoop()
++    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
++
++    assert decision == "REVISE"
++    assert receipt is None
++    assert rework is not None
++    assert any(i.issue_code == "MEDIA_UNREADABLE" for i in rework.issues)
++
++
++def make_empty_package() -> ResearchEvidencePackage:
++    """Completely empty research package: no sources, no media artifacts, no claims."""
++    return ResearchEvidencePackage(
++        package_id="pkg_empty_no_research",
++        topic="人像摆姿真实引导实证教学",
++        author="Antigravity Researcher",
++        created_at="2026-10-10T12:00:00Z",
++        sources=[],
++        media_artifacts=[],
++        claims=[],
++    )
++
++
++def make_sources_only_package() -> ResearchEvidencePackage:
++    """Source metadata but no claims: metadata alone is not substantive research."""
++    source = SourceMetadata(
++        url="https://www.bilibili.com/video/BV1MD421L7VK/",
++        platform="bilibili",
++        author="小言Jun",
++        title="【第一视角】挑战最细节动作引导摄影师",
++        published_date="2024-03-24",
++        duration_seconds=340.0,
++        known_equipment=["Canon EOS R5", "RF 50mm f/1.8 STM"],
++    )
++    return ResearchEvidencePackage(
++        package_id="pkg_sources_only_no_claims",
++        topic="人像摆姿真实引导实证教学",
++        author="Antigravity Researcher",
++        created_at="2026-10-10T12:00:00Z",
++        sources=[source],
++        media_artifacts=[],
++        claims=[],
++    )
++
++
++def test_empty_package_never_passes_or_receives_receipt(tmp_path):
++    """Regression: an entirely empty package must not PASS nor get a zero-claim receipt."""
++    pkg = make_empty_package()
++    assert pkg.sources == [] and pkg.claims == [] and pkg.media_artifacts == []
++
++    gate = QualityGateLoop()
++    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
++
++    assert decision != "PASS"
++    assert decision == "REVISE"
++    assert receipt is None
++    assert rework is not None
++    empty_issue = next(i for i in rework.issues if i.issue_code == "EMPTY_RESEARCH_EVIDENCE")
++    assert empty_issue.severity == "ERROR"
++    assert "empty" in empty_issue.message.lower()
++    assert rework.decision == "REVISE"
++
++    output_dir = tmp_path / "empty_export"
++    results = gate.export_artifacts(decision, receipt, rework, output_dir)
++
++    assert "receipt" not in results
++    assert "rework_package" in results
++    assert (output_dir / "REWORK_PACKAGE.json").exists()
++    assert not (output_dir / "ADMISSION_RECEIPT.json").exists()
++
++
++def test_sources_only_package_never_passes_or_receives_receipt(tmp_path):
++    """Regression: declared sources with zero claims must not PASS nor be admitted."""
++    pkg = make_sources_only_package()
++    assert len(pkg.sources) == 1 and pkg.claims == []
++
++    gate = QualityGateLoop()
++    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
++
++    assert decision != "PASS"
++    assert decision == "REVISE"
++    assert receipt is None
++    assert rework is not None
++    empty_issue = next(i for i in rework.issues if i.issue_code == "EMPTY_RESEARCH_EVIDENCE")
++    assert empty_issue.severity == "ERROR"
++    assert "zero claims" in empty_issue.message.lower()
++
++    output_dir = tmp_path / "sources_only_export"
++    results = gate.export_artifacts(decision, receipt, rework, output_dir)
++
++    assert "receipt" not in results
++    assert "rework_package" in results
++    assert (output_dir / "REWORK_PACKAGE.json").exists()
++    assert not (output_dir / "ADMISSION_RECEIPT.json").exists()
++
++
++def test_empty_package_still_blocked_at_cycle_cap():
++    """Regression: an empty package cannot be admitted by exhausting rework cycles either."""
++    pkg = make_empty_package()
++
++    gate = QualityGateLoop(max_cycles=2)
++    decision, receipt, rework = gate.evaluate(pkg, cycle=2)
++
++    assert decision == "BLOCKED"
++    assert receipt is None
++    assert rework is not None
++    assert any(i.issue_code == "EMPTY_RESEARCH_EVIDENCE" for i in rework.issues)
++
++
++def test_one_real_claim_still_admitted(fixture_media):
++    """Regression: the substantive-research floor must not reject a real single-claim package."""
++    pkg = make_valid_base_package(fixture_media["BV1MD421L7VK"])
++
++    gate = QualityGateLoop()
++    decision, receipt, rework = gate.evaluate(pkg, cycle=1)
++
++    assert decision == "PASS"
++    assert receipt is not None
++    assert receipt.total_claims_verified == 1
++    assert rework is None

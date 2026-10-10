@@ -1,0 +1,90 @@
+F..FF                                                                    [100%]
+================================== FAILURES ===================================
+___________________ test_a_accessible_missing_file_rejected ___________________
+
+tmp_path = WindowsPath('D:/AI PROJECTS/photography-reference-lab-cc-minimax-20261010/.local/cc-minimax-pilot/pytest-baseline/test_a_accessible_missing_file0')
+
+    def test_a_accessible_missing_file_rejected(tmp_path):
+        package = package_with_real_media(tmp_path)
+        package.media_artifacts[0].local_path = str(tmp_path / "never-created.txt")
+        assert not (tmp_path / "never-created.txt").exists()
+>       assert_rejected_without_receipt(package, tmp_path)
+
+..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py:60:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+package = ResearchEvidencePackage(package_id='codex-independent-fixture', topic='Structural acceptance', author='Codex acceptanc...unknown_conditions=[], equipment_tags=[], claimed_numbers=[], self_attested_verified=None)], cross_document_context={})
+tmp_path = WindowsPath('D:/AI PROJECTS/photography-reference-lab-cc-minimax-20261010/.local/cc-minimax-pilot/pytest-baseline/test_a_accessible_missing_file0')
+
+    def assert_rejected_without_receipt(package, tmp_path):
+        for cycle in (1, 2):
+            gate = QualityGateLoop()
+            decision, receipt, rework = gate.evaluate(package, cycle=cycle)
+>           assert decision in {"REVISE", "BLOCKED"}, f"unexpected admission: {decision}"
+E           AssertionError: unexpected admission: PASS
+E           assert 'PASS' in {'BLOCKED', 'REVISE'}
+
+..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py:46: AssertionError
+________________ test_d_empty_research_not_admitted[all-empty] ________________
+
+tmp_path = WindowsPath('D:/AI PROJECTS/photography-reference-lab-cc-minimax-20261010/.local/cc-minimax-pilot/pytest-baseline/test_d_empty_research_not_admi0')
+keep_sources = False
+
+    @pytest.mark.parametrize("keep_sources", [False, True], ids=["all-empty", "sources-only"])
+    def test_d_empty_research_not_admitted(tmp_path, keep_sources):
+        package = package_with_real_media(tmp_path)
+        package.claims = []
+        package.media_artifacts = []
+        if not keep_sources:
+            package.sources = []
+>       assert_rejected_without_receipt(package, tmp_path)
+
+..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py:90:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+package = ResearchEvidencePackage(package_id='codex-independent-fixture', topic='Structural acceptance', author='Codex acceptance', created_at='2026-10-10T00:00:00Z', sources=[], media_artifacts=[], claims=[], cross_document_context={})
+tmp_path = WindowsPath('D:/AI PROJECTS/photography-reference-lab-cc-minimax-20261010/.local/cc-minimax-pilot/pytest-baseline/test_d_empty_research_not_admi0')
+
+    def assert_rejected_without_receipt(package, tmp_path):
+        for cycle in (1, 2):
+            gate = QualityGateLoop()
+            decision, receipt, rework = gate.evaluate(package, cycle=cycle)
+>           assert decision in {"REVISE", "BLOCKED"}, f"unexpected admission: {decision}"
+E           AssertionError: unexpected admission: PASS
+E           assert 'PASS' in {'BLOCKED', 'REVISE'}
+
+..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py:46: AssertionError
+______________ test_d_empty_research_not_admitted[sources-only] _______________
+
+tmp_path = WindowsPath('D:/AI PROJECTS/photography-reference-lab-cc-minimax-20261010/.local/cc-minimax-pilot/pytest-baseline/test_d_empty_research_not_admi1')
+keep_sources = True
+
+    @pytest.mark.parametrize("keep_sources", [False, True], ids=["all-empty", "sources-only"])
+    def test_d_empty_research_not_admitted(tmp_path, keep_sources):
+        package = package_with_real_media(tmp_path)
+        package.claims = []
+        package.media_artifacts = []
+        if not keep_sources:
+            package.sources = []
+>       assert_rejected_without_receipt(package, tmp_path)
+
+..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py:90:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+package = ResearchEvidencePackage(package_id='codex-independent-fixture', topic='Structural acceptance', author='Codex acceptanc..., known_equipment=[], is_tutorial_confirmed=True, notes='')], media_artifacts=[], claims=[], cross_document_context={})
+tmp_path = WindowsPath('D:/AI PROJECTS/photography-reference-lab-cc-minimax-20261010/.local/cc-minimax-pilot/pytest-baseline/test_d_empty_research_not_admi1')
+
+    def assert_rejected_without_receipt(package, tmp_path):
+        for cycle in (1, 2):
+            gate = QualityGateLoop()
+            decision, receipt, rework = gate.evaluate(package, cycle=cycle)
+>           assert decision in {"REVISE", "BLOCKED"}, f"unexpected admission: {decision}"
+E           AssertionError: unexpected admission: PASS
+E           assert 'PASS' in {'BLOCKED', 'REVISE'}
+
+..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py:46: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py::test_a_accessible_missing_file_rejected
+FAILED ..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py::test_d_empty_research_not_admitted[all-empty]
+FAILED ..\cc-minimax-pilot-acceptance-20261010\test_gate_acceptance.py::test_d_empty_research_not_admitted[sources-only]
+3 failed, 2 passed in 0.74s

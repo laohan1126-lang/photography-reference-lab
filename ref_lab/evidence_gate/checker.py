@@ -1,19 +1,20 @@
 """Tier 1: Programmatic Fact Checker.
 
 Audits structured evidence for deterministic facts:
+0. Presence of substantive research (empty / sources-only packages assert nothing)
 1. URL authenticity and blacklist/vlog mismatch
 2. Timestamp bounds vs video duration
 3. Screenshot timestamp concordance
 4. Cross-document and intra-document equipment contradiction
 5. Equipment release timeline anachronisms
 6. Unverified pseudo-exact numbers (e.g., 90/10, 30°-60°)
-7. Media artifact presence, hash integrity, and unread sources
+7. Media artifact presence on disk, hash integrity, and unread sources
+   (declared ACCESSIBLE media must exist, be readable, and match its SHA256)
 8. Neutralization of self-attested verification
 """
 from __future__ import annotations
 
 import hashlib
-import os
 import re
 from pathlib import Path
 from typing import Optional
@@ -66,6 +67,13 @@ class ProgrammaticChecker:
         source_map: dict[str, SourceMetadata] = {s.url: s for s in package.sources}
         artifact_map: dict[str, MediaArtifactRecord] = {a.local_path: a for a in package.media_artifacts}
 
+        # 0. Substantive-research floor.
+        # A package with no claims asserts nothing, so every downstream per-claim loop below
+        # would contribute zero issues and the loop would treat "nothing wrong" as PASS and
+        # mint a receipt with total_claims_verified=0. Source metadata alone is likewise not
+        # research: it describes where to look without recording a single verified assertion.
+        issues.extend(self._check_substantive_research_present(package))
+
         # 1. Check sources & URLs
         for source in package.sources:
             issues.extend(self._check_source_url(source))
@@ -82,6 +90,50 @@ class ProgrammaticChecker:
         issues.extend(self._check_cross_document_consistency(package))
 
         return issues
+
+    @staticmethod
+    def _check_substantive_research_present(package: ResearchEvidencePackage) -> list[AuditIssue]:
+        """Reject packages that assert nothing, whether fully empty or sources-only."""
+        if package.claims:
+            return []
+
+        if not package.sources and not package.media_artifacts:
+            message = (
+                "Evidence package is empty: it declares no sources, no media artifacts and no "
+                "claims, so there is no research to audit and nothing to admit."
+            )
+            actual: object = {"sources": 0, "media_artifacts": 0, "claims": 0}
+            remediation = (
+                "Deliver actual researched claims backed by declared source metadata and media."
+            )
+        else:
+            message = (
+                f"Evidence package declares {len(package.sources)} source(s) and "
+                f"{len(package.media_artifacts)} media artifact(s) but zero claims. Source metadata "
+                "alone is not substantive research: no assertion has actually been made."
+            )
+            actual = {
+                "sources": len(package.sources),
+                "media_artifacts": len(package.media_artifacts),
+                "claims": 0,
+            }
+            remediation = (
+                "Extract and record the claims the cited sources support, each with a claim_id, "
+                "statement and supporting evidence."
+            )
+
+        return [
+            AuditIssue(
+                tier="TIER_1_PROGRAMMATIC",
+                issue_code="EMPTY_RESEARCH_EVIDENCE",
+                severity="ERROR",
+                field="claims",
+                message=message,
+                actual_value=actual,
+                expected_or_conflict="At least one substantiated claim record",
+                remediation=remediation,
+            )
+        ]
 
     def _check_source_url(self, source: SourceMetadata) -> list[AuditIssue]:
         issues: list[AuditIssue] = []
@@ -131,23 +183,92 @@ class ProgrammaticChecker:
                     )
                 )
             elif artifact.status == "ACCESSIBLE":
-                # Check local file existence and hash if accessible and file exists on disk
-                local_file = Path(artifact.local_path)
-                if local_file.exists():
-                    computed_sha = hashlib.sha256(local_file.read_bytes()).hexdigest()
-                    if computed_sha.lower() != artifact.sha256.lower():
-                        issues.append(
-                            AuditIssue(
-                                tier="TIER_1_PROGRAMMATIC",
-                                issue_code="MEDIA_HASH_MISMATCH",
-                                severity="ERROR",
-                                field="sha256",
-                                message=f"Local media SHA256 mismatch for {artifact.local_path}",
-                                actual_value=computed_sha,
-                                expected_or_conflict=artifact.sha256,
-                                remediation="Re-verify local media file integrity.",
-                            )
-                        )
+                # A declared-ACCESSIBLE artifact must be verifiable on disk: the file has to exist,
+                # be a regular readable file, and hash to the declared SHA256. Silence here would
+                # let an unverifiable artifact pass the gate and receive an admission receipt.
+                issues.extend(self._check_accessible_media(artifact))
+        return issues
+
+    @staticmethod
+    def _compute_sha256(local_file: Path) -> str:
+        """Stream a file through SHA256 so large media does not need to be fully buffered."""
+        digest = hashlib.sha256()
+        with local_file.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def _check_accessible_media(self, artifact: MediaArtifactRecord) -> list[AuditIssue]:
+        """Verify existence, readability and SHA256 integrity of a declared-accessible artifact."""
+        issues: list[AuditIssue] = []
+        local_file = Path(artifact.local_path)
+
+        if not local_file.exists():
+            issues.append(
+                AuditIssue(
+                    tier="TIER_1_PROGRAMMATIC",
+                    issue_code="MEDIA_FILE_MISSING",
+                    severity="ERROR",
+                    field="local_path",
+                    message=(
+                        f"Media artifact is declared ACCESSIBLE but the local file does not exist: "
+                        f"{artifact.local_path}"
+                    ),
+                    actual_value=str(local_file),
+                    expected_or_conflict="Existing local media file at the declared path",
+                    remediation="Download the original media to the declared path, or correct the path declaration.",
+                )
+            )
+            return issues
+
+        if not local_file.is_file():
+            issues.append(
+                AuditIssue(
+                    tier="TIER_1_PROGRAMMATIC",
+                    issue_code="MEDIA_UNREADABLE",
+                    severity="ERROR",
+                    field="local_path",
+                    message=(
+                        f"Media artifact path is not a regular file and cannot be hashed: "
+                        f"{artifact.local_path}"
+                    ),
+                    actual_value=str(local_file),
+                    expected_or_conflict="Regular readable media file",
+                    remediation="Point local_path at the actual media file instead of a directory or device path.",
+                )
+            )
+            return issues
+
+        try:
+            computed_sha = self._compute_sha256(local_file)
+        except OSError as exc:
+            issues.append(
+                AuditIssue(
+                    tier="TIER_1_PROGRAMMATIC",
+                    issue_code="MEDIA_UNREADABLE",
+                    severity="ERROR",
+                    field="local_path",
+                    message=f"Local media could not be read for hashing: {artifact.local_path} ({exc})",
+                    actual_value=f"{type(exc).__name__}: {exc}",
+                    expected_or_conflict="Readable local media file",
+                    remediation="Restore read permissions on the media file before making claims from it.",
+                )
+            )
+            return issues
+
+        if computed_sha.lower() != artifact.sha256.lower():
+            issues.append(
+                AuditIssue(
+                    tier="TIER_1_PROGRAMMATIC",
+                    issue_code="MEDIA_HASH_MISMATCH",
+                    severity="ERROR",
+                    field="sha256",
+                    message=f"Local media SHA256 mismatch for {artifact.local_path}",
+                    actual_value=computed_sha,
+                    expected_or_conflict=artifact.sha256,
+                    remediation="Re-verify local media file integrity.",
+                )
+            )
         return issues
 
     def _check_claim(

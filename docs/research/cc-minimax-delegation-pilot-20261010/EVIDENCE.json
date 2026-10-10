@@ -1,0 +1,684 @@
+{
+  "status": "FULL",
+  "base_branch": "antigravity/research-evidence-gate-loop-20261010",
+  "base_sha": "e290b56499736498cc5999a95c23abe4d9ad1c5f",
+  "task_branch": "codex/cc-minimax-delegation-pilot-20261010",
+  "cli_version": "2.1.220 (Claude Code)",
+  "calls": [
+    {
+      "label": "ready",
+      "pid": 23288,
+      "exit_code": 0,
+      "timeout": false,
+      "wall_seconds": 4.44,
+      "command": [
+        "<user-home>\\.local\\bin\\claude.exe",
+        "-p",
+        "只回复 CC_MINIMAX_READY",
+        "--output-format",
+        "json",
+        "--max-turns",
+        "1",
+        "--safe-mode",
+        "--setting-sources",
+        "user",
+        "--tools",
+        "",
+        "--no-session-persistence",
+        "--debug-file",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\ready.debug.log"
+      ],
+      "route": {
+        "provider": "MiniMax",
+        "endpoint": "https://api.minimaxi.com/anthropic",
+        "configured_model": "MiniMax-M3.1-Flash-Preview"
+      },
+      "stderr": "",
+      "terminal": {
+        "is_error": false,
+        "subtype": "success",
+        "terminal_reason": "completed",
+        "session_id": "8a25de20-4c9a-4326-9abb-eb4910bd9255",
+        "num_turns": 1,
+        "result": "CC_MINIMAX_READY",
+        "errors": null,
+        "permission_denials": [],
+        "usage": {
+          "input_tokens": 1146,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 188,
+          "output_tokens": 15,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "MiniMax-M3.1-Flash-Preview": {
+            "inputTokens": 1146,
+            "outputTokens": 15,
+            "cacheReadInputTokens": 188,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.006199000000000001,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "minimax-m3.1-flash-preview",
+            "provider": "firstParty"
+          }
+        },
+        "total_cost_usd": 0.006199000000000001
+      },
+      "protected_unchanged": true,
+      "debug_route_evidence": [
+        "2026-10-10T14:48:23.403Z [DEBUG] [ToolSearch:optimistic] disabled: ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic is not a first-party Anthropic host. Set ENABLE_TOOL_SEARCH=true (or auto / auto:N) if your proxy forwards tool_reference blocks.",
+        "2026-10-10T14:48:24.213Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk"
+      ]
+    },
+    {
+      "label": "task1",
+      "pid": 39244,
+      "exit_code": 1,
+      "timeout": false,
+      "wall_seconds": 61.12,
+      "command": [
+        "<user-home>\\.local\\bin\\claude.exe",
+        "-p",
+        "<prompt:task1.prompt.txt>",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--max-turns",
+        "8",
+        "--permission-mode",
+        "dontAsk",
+        "--safe-mode",
+        "--setting-sources",
+        "user",
+        "--tools",
+        "Read,Edit,Write,Glob,Grep",
+        "--allowedTools",
+        "Edit(./ref_lab/evidence_gate/checker.py)",
+        "Write(./ref_lab/evidence_gate/checker.py)",
+        "Edit(./tests/test_research_evidence_gate.py)",
+        "Write(./tests/test_research_evidence_gate.py)",
+        "--disallowedTools",
+        "Read(//c/Users/Dell/.claude/**)",
+        "Read(//c/Users/Dell/.cc-switch/**)",
+        "Read(//**/.env)",
+        "Read(//d/AI PROJECTS/cc-minimax-pilot-acceptance-20261010/**)",
+        "--no-session-persistence",
+        "--debug-file",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\task1.debug.log"
+      ],
+      "route": {
+        "provider": "MiniMax",
+        "endpoint": "https://api.minimaxi.com/anthropic",
+        "configured_model": "MiniMax-M3.1-Flash-Preview",
+        "local_route": false,
+        "failover": false
+      },
+      "stderr": "",
+      "terminal": {
+        "is_error": true,
+        "subtype": "error_max_turns",
+        "terminal_reason": "max_turns",
+        "session_id": "409ecb52-4287-48e7-8af0-88adc1761219",
+        "num_turns": 9,
+        "result": null,
+        "errors": [
+          "Reached maximum number of turns (8)"
+        ],
+        "permission_denials": [],
+        "usage": {
+          "input_tokens": 26879,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 110252,
+          "output_tokens": 9978,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "MiniMax-M3.1-Flash-Preview": {
+            "inputTokens": 26879,
+            "outputTokens": 9978,
+            "cacheReadInputTokens": 110252,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.438971,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "minimax-m3.1-flash-preview",
+            "provider": "firstParty"
+          }
+        },
+        "total_cost_usd": 0.438971
+      },
+      "protected_unchanged": true,
+      "prompt": "Implement a narrow real bug fix in this isolated worktree. Do not just propose it.\n\nTask 1: In ref_lab/evidence_gate/checker.py, ACCESSIBLE media that does not exist currently skips all validation and can be admitted with a formal receipt. Missing local media must produce an ERROR and must never yield PASS or a receipt. Preserve actual SHA256 verification: real nonempty matching media with otherwise valid claims still passes; mismatching SHA256 still rejects. Handle a non-file or unreadable path as a clear gate error rather than an unhandled read exception if necessary for coherent local validation. Do not solve the empty-package task yet.\n\nYou may edit ONLY ref_lab/evidence_gate/checker.py and tests/test_research_evidence_gate.py. Read loop.py and models.py for context if useful. Keep existing tests and their factual/semantic assertions. Current positive test fixtures use missing scratch paths and the empty-file SHA; replace those with real nonempty temporary fixture files and hashes computed from actual bytes (label these structural fixtures, not genuine course media). Add focused regression coverage for this bug. Do not weaken assertions, downgrade errors to WARNING, delete failing tests, change schemas/other logic or manufacture success evidence.\n\nCodex owns separate immutable acceptance tests prepared before you started. They will independently check missing, bad hash and matching real media; you cannot edit them. Codex will run tests and provide any failure evidence. You have Read/Edit/Write/Glob/Grep, no shell, network or other tools. Use only available file tools to implement; inability to run tests here is expected, report it honestly. Do not commit, push, edit configs or credentials, write outside this worktree, or touch courses/original data. Finish with modified paths and technical cause.\n",
+      "edits": [
+        {
+          "id": "call_01a126506b3f72e096fbfa58",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126507256736ab2d89891",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126508a4e70e3b903d948",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f70",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f71",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f72",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f73",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f74",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f75",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f76",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f77",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f78",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126509c8e72f380021f79",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        }
+      ],
+      "debug_route_evidence": [
+        "2026-10-10T14:55:22.570Z [DEBUG] [ToolSearch:optimistic] disabled: ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic is not a first-party Anthropic host. Set ENABLE_TOOL_SEARCH=true (or auto / auto:N) if your proxy forwards tool_reference blocks.",
+        "2026-10-10T14:55:23.909Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:55:25.336Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:55:26.403Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:55:27.337Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:55:38.065Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:56:07.533Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:56:09.257Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:56:15.306Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk"
+      ]
+    },
+    {
+      "label": "rework1",
+      "pid": 32240,
+      "exit_code": 1,
+      "timeout": false,
+      "wall_seconds": 30.67,
+      "command": [
+        "<user-home>\\.local\\bin\\claude.exe",
+        "-p",
+        "<prompt:rework1.prompt.txt>",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--max-turns",
+        "8",
+        "--permission-mode",
+        "dontAsk",
+        "--safe-mode",
+        "--setting-sources",
+        "user",
+        "--tools",
+        "Read,Edit,Write,Glob,Grep",
+        "--allowedTools",
+        "Edit(./ref_lab/evidence_gate/checker.py)",
+        "Edit(./tests/test_research_evidence_gate.py)",
+        "--disallowedTools",
+        "Read(//c/Users/Dell/.claude/**)",
+        "Read(//c/Users/Dell/.cc-switch/**)",
+        "Read(//**/.env)",
+        "Read(//d/AI PROJECTS/cc-minimax-pilot-acceptance-20261010/**)",
+        "--no-session-persistence",
+        "--debug-file",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\rework1.debug.log"
+      ],
+      "route": {
+        "provider": "MiniMax",
+        "endpoint": "https://api.minimaxi.com/anthropic",
+        "configured_model": "MiniMax-M3.1-Flash-Preview",
+        "local_route": false,
+        "failover": false
+      },
+      "stderr": "",
+      "terminal": {
+        "is_error": true,
+        "subtype": "error_max_turns",
+        "terminal_reason": "max_turns",
+        "session_id": "1c00807d-9551-4678-9d39-6bbcc285e1b0",
+        "num_turns": 9,
+        "result": null,
+        "errors": [
+          "Reached maximum number of turns (8)"
+        ],
+        "permission_denials": [],
+        "usage": {
+          "input_tokens": 18763,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 102370,
+          "output_tokens": 4066,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "MiniMax-M3.1-Flash-Preview": {
+            "inputTokens": 18763,
+            "outputTokens": 4066,
+            "cacheReadInputTokens": 102370,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.24665000000000004,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "minimax-m3.1-flash-preview",
+            "provider": "firstParty"
+          }
+        },
+        "total_cost_usd": 0.24665000000000004
+      },
+      "protected_unchanged": true,
+      "prompt": "Complete the existing task-1 implementation in this isolated worktree, with concrete failed evidence below. You have file tools only. Edit ONLY ref_lab/evidence_gate/checker.py and tests/test_research_evidence_gate.py. Do not commit/push/configure, write outside this worktree, change test assertions to hide errors, or implement the empty-package task yet.\n\nYour first CLI process hit max_turns (8), exit 1, after 12 successful Edit calls; no permission denials. Codex independently ran A missing/B wrong hash/C matching real nonempty file: all pass. But existing gate regression has 1 failed, 10 passed; the golden test still declares two nonexistent scratch/.../video.mp4 files with the empty-file hash. In test_golden_sample_passes_and_issues_receipt line ~396, expected PASS, actual REVISE with MEDIA_FILE_MISSING. Fix its fixture setup to use the existing fixture_media real nonempty temp files and sha256_of bytes, preserve all original golden claims/receipt assertions. Add focused regression tests for missing file/no receipt, bad hash/no receipt, directory/no receipt, and read OSError/no receipt (monkeypatch only read error; positive sample must use actual files). Existing semantic red-team assertions must remain unchanged. Codex runs the tests, not you.\n\nScope review: you added _resolve_local_media_path with media_root and fallback to cwd. This changes baseline path binding, which is not requested and can silently inspect a different existing file if the intended root lacks it. Remove that new resolution helper/fallback and retain original Path(artifact.local_path) interpretation. Keep missing/non-file/read/hash validation. Streaming SHA is acceptable. Do not add new unrelated rules or refactors. Finish with exact changed paths, observed cause, and explicitly state tests not run here.\n",
+      "edits": [
+        {
+          "id": "call_01a12651e369755e96395753",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a12651e94f72568d7dd3e8",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a12651e94f72568d7dd3e9",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a12651fe3970899fc96cef",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a12652089076d195a1a8a3",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a1265215e674d3af5c6da5",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        }
+      ],
+      "debug_route_evidence": [
+        "2026-10-10T14:57:28.718Z [DEBUG] [ToolSearch:optimistic] disabled: ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic is not a first-party Anthropic host. Set ENABLE_TOOL_SEARCH=true (or auto / auto:N) if your proxy forwards tool_reference blocks.",
+        "2026-10-10T14:57:31.417Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:57:32.444Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:57:34.273Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:57:40.627Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:57:43.099Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:57:44.631Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:57:49.938Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T14:57:52.587Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk"
+      ]
+    },
+    {
+      "label": "task2",
+      "pid": 33128,
+      "exit_code": 0,
+      "timeout": false,
+      "wall_seconds": 37.31,
+      "command": [
+        "<user-home>\\.local\\bin\\claude.exe",
+        "-p",
+        "<prompt:task2.prompt.txt>",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--max-turns",
+        "12",
+        "--permission-mode",
+        "dontAsk",
+        "--safe-mode",
+        "--setting-sources",
+        "user",
+        "--tools",
+        "Read,Edit,Write,Glob,Grep",
+        "--allowedTools",
+        "Edit(./ref_lab/evidence_gate/checker.py)",
+        "Edit(./ref_lab/evidence_gate/loop.py)",
+        "Edit(./tests/test_research_evidence_gate.py)",
+        "--disallowedTools",
+        "Read(//c/Users/Dell/.claude/**)",
+        "Read(//c/Users/Dell/.cc-switch/**)",
+        "Read(//**/.env)",
+        "Read(//d/AI PROJECTS/cc-minimax-pilot-acceptance-20261010/**)",
+        "--no-session-persistence",
+        "--debug-file",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\task2.debug.log"
+      ],
+      "route": {
+        "provider": "MiniMax",
+        "endpoint": "https://api.minimaxi.com/anthropic",
+        "configured_model": "MiniMax-M3.1-Flash-Preview",
+        "local_route": false,
+        "failover": false
+      },
+      "stderr": "",
+      "terminal": {
+        "is_error": false,
+        "subtype": "success",
+        "terminal_reason": "completed",
+        "session_id": "c84d91a7-76df-414f-8aaf-a0e16d44b9f8",
+        "num_turns": 13,
+        "result": "Implementation complete.\n\n**Changed paths**\n- `ref_lab/evidence_gate/checker.py` — added step 0 to `ProgrammaticChecker.audit()` plus a new `_check_substantive_research_present()` helper (also noted in the module docstring).\n- `tests/test_research_evidence_gate.py` — added four regression tests and two package factories; docstring item 13.\n- `ref_lab/evidence_gate/loop.py` — **not modified** (not needed; the fix belongs in the checker).\n\n**Technical cause**\n`ProgrammaticChecker.audit()` had no presence check: every audit rule is a loop over `package.sources`, `package.media_artifacts`, or `package.claims`. With `claims=[]` (and even `sources=[]`), those loops execute zero iterations and return zero issues, so `QualityGateLoop.evaluate()` found `error_issues == []` and took the PASS branch, minting a real `AdmissionReceipt` with `total_claims_verified=0` and writing `ADMISSION_RECEIPT.json`. Absent evidence was indistinguishable from clean evidence.\n\n**Fix**\nThe checker now emits a Tier1 `AuditIssue` with `issue_code=\"EMPTY_RESEARCH_EVIDENCE\"`, `severity=\"ERROR\"`, `field=\"claims\"` whenever `package.claims` is empty, with distinct messages for a fully empty package vs. a sources-and/or-media-only package (the latter names source/media counts and states metadata alone is not substantive research). Consequences flow through existing semantics unchanged: cycle 1 → REVISE with a `REWORK_PACKAGE.json` and no receipt; at `cycle >= max_cycles` → BLOCKED, still no receipt. Schemas are untouched, so incomplete input still parses and yields gate feedback rather than an input-validation exception. Nonempty packages take the same path as before, so media-integrity checks, semantic audit, cycle cap, and export behavior are all preserved.\n\n**Test status: NOT RUN.** I have no shell/test runner in this session, so nothing here is verified by execution. The new tests are unexecuted; the existing ones were not re-run and were not modified or weakened. Codex's independent acceptance suite was not read or touched. New tests assert for both empty and sources-only packages: `decision != \"PASS\"` (and `== \"REVISE\"`), `receipt is None`, a rework package carrying the ERROR issue, export producing `REWORK_PACKAGE.json` and no `ADMISSION_RECEIPT.json`; plus BLOCKED at the cycle cap, and a PASS with `total_claims_verified == 1` for the real single-claim package with temporary-file fixture hashing.",
+        "errors": null,
+        "permission_denials": [],
+        "usage": {
+          "input_tokens": 23377,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 178059,
+          "output_tokens": 5513,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "MiniMax-M3.1-Flash-Preview": {
+            "inputTokens": 23377,
+            "outputTokens": 5513,
+            "cacheReadInputTokens": 178059,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.3437395000000001,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "minimax-m3.1-flash-preview",
+            "provider": "firstParty"
+          }
+        },
+        "total_cost_usd": 0.3437395000000001
+      },
+      "protected_unchanged": true,
+      "prompt": "Implement one narrow real bug fix in this isolated worktree. You are a new standalone session, not a continuation.\n\nTask 2: An empty ResearchEvidencePackage with sources=[], claims=[] can currently receive PASS and a formal AdmissionReceipt with total_claims_verified=0, because no ERROR is emitted. Empty research must not be admitted. Also reject a package with source metadata but zero claims; metadata alone is not substantive research. Preserve admission of a nonempty package with valid source/claim and real nonempty correctly hashed media. Preserve all existing media-integrity and semantic gate behavior, rework cycle cap and export semantics. Use a clear ERROR + rework artifact rather than a WARNING, false PASS, exception or zero-claim receipt. Keep schemas capable of accepting incomplete input for gate feedback rather than moving rejection into input parsing.\n\nRead current ref_lab/evidence_gate/checker.py, loop.py, models.py and tests/test_research_evidence_gate.py. Implement in the smallest necessary location (checker or loop); do not add frameworks or unrelated gate requirements. You may edit ONLY ref_lab/evidence_gate/checker.py, ref_lab/evidence_gate/loop.py, tests/test_research_evidence_gate.py. Add meaningful regression tests for completely empty and sources-only packages, asserting no PASS/receipt and no admission file on export; retain original assertions and real temporary-file fixture hashing. Codex has already prepared immutable independent acceptance tests outside this workspace; do not read/edit them or invent test results. Codex independently runs them and necessary regressions after your actual edits.\n\nOnly Read/Edit/Write/Glob/Grep are available; tests cannot be run by you. No shell, network, commits/push, configs/credentials, courses/original data, writes outside this worktree, test removal/assertion weakening or ERROR downgrades. Finish with changed paths, technical cause, and honest test-not-run status. The turn limit is 12; keep reads/edits focused.\n",
+      "edits": [
+        {
+          "id": "call_01a1265461ed7403a96e8216",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126546fd872179cb21976",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a126547baf71c8b4acbbc8",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\ref_lab\\evidence_gate\\checker.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a1265481967030a590022d",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        },
+        {
+          "id": "call_01a12654982e7033861be5a9",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": true
+        },
+        {
+          "id": "call_01a12654a601766c9b342c13",
+          "name": "Edit",
+          "path": "<isolated-worktree>\\tests\\test_research_evidence_gate.py",
+          "result_is_error": false
+        }
+      ],
+      "debug_route_evidence": [
+        "2026-10-10T15:00:16.967Z [DEBUG] [ToolSearch:optimistic] disabled: ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic is not a first-party Anthropic host. Set ENABLE_TOOL_SEARCH=true (or auto / auto:N) if your proxy forwards tool_reference blocks.",
+        "2026-10-10T15:00:18.052Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:19.873Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:20.824Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:27.111Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:30.694Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:33.714Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:35.215Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:41.007Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:44.566Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:46.207Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk",
+        "2026-10-10T15:00:47.749Z [DEBUG] [API REQUEST] /anthropic/v1/messages source=sdk"
+      ]
+    }
+  ],
+  "recorded_pytest_runs": [
+    {
+      "label": "baseline",
+      "command": [
+        "<isolated-worktree>\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "D:\\AI PROJECTS\\cc-minimax-pilot-acceptance-20261010\\test_gate_acceptance.py",
+        "--basetemp",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\pytest-baseline"
+      ],
+      "exit_code": 1,
+      "wall_seconds": 2.0,
+      "standard_sha256": "ee6aef2735d6c13766d122bcf694805b9cdbcbf0d4a39325a78f1d4bc2f799e2"
+    },
+    {
+      "label": "task1-check",
+      "command": [
+        "<isolated-worktree>\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "D:\\AI PROJECTS\\cc-minimax-pilot-acceptance-20261010\\test_gate_acceptance.py",
+        "tests/test_research_evidence_gate.py",
+        "-k",
+        "not test_d_empty",
+        "--basetemp",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\pytest-task1-check"
+      ],
+      "exit_code": 1,
+      "wall_seconds": 2.75,
+      "standard_sha256": "ee6aef2735d6c13766d122bcf694805b9cdbcbf0d4a39325a78f1d4bc2f799e2"
+    },
+    {
+      "label": "rework1-check",
+      "command": [
+        "<isolated-worktree>\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "D:\\AI PROJECTS\\cc-minimax-pilot-acceptance-20261010\\test_gate_acceptance.py",
+        "tests/test_research_evidence_gate.py",
+        "-k",
+        "not test_d_empty",
+        "--basetemp",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\pytest-rework1-check"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 2.47,
+      "standard_sha256": "ee6aef2735d6c13766d122bcf694805b9cdbcbf0d4a39325a78f1d4bc2f799e2"
+    },
+    {
+      "label": "final-gate",
+      "command": [
+        "<isolated-worktree>\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "D:\\AI PROJECTS\\cc-minimax-pilot-acceptance-20261010\\test_gate_acceptance.py",
+        "tests/test_research_evidence_gate.py",
+        "--basetemp",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\pytest-final-gate"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 2.52,
+      "standard_sha256": "ee6aef2735d6c13766d122bcf694805b9cdbcbf0d4a39325a78f1d4bc2f799e2"
+    },
+    {
+      "label": "core-regression",
+      "command": [
+        "<isolated-worktree>\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_library.py",
+        "tests/test_imports_jobs.py",
+        "tests/test_workers.py",
+        "tests/test_operations.py",
+        "tests/test_personal_library.py",
+        "tests/test_collection_runner.py",
+        "--basetemp",
+        "<isolated-worktree>\\.local\\cc-minimax-pilot\\pytest-core-regression"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 69.0,
+      "standard_sha256": "ee6aef2735d6c13766d122bcf694805b9cdbcbf0d4a39325a78f1d4bc2f799e2"
+    }
+  ],
+  "additional_pytest_runs": [
+    {
+      "stage": "initial-baseline-console",
+      "result": "3 failed, 2 passed",
+      "pytest_exit": 1,
+      "wrapper_exit": 0,
+      "note": "Initial compound PowerShell inspection ended with hashing; captured isolated baseline rerun follows."
+    },
+    {
+      "stage": "independent-code-review",
+      "result": "15 passed, 1 existing warning",
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_research_evidence_gate.py",
+      "exit_code": 0
+    }
+  ],
+  "codex_rework_rounds": 1,
+  "cc_self_recovered_edit_errors": 1,
+  "test_standard_sha256": "ee6aef2735d6c13766d122bcf694805b9cdbcbf0d4a39325a78f1d4bc2f799e2",
+  "usage_totals": {
+    "input_tokens": 70165,
+    "output_tokens": 19572,
+    "cache_read_input_tokens": 390869,
+    "cache_creation_input_tokens": 0
+  },
+  "cli_cost_estimate_usd_total": 1.0355595000000002,
+  "verified_actual_bill": "unknown",
+  "verified_quota_change": "unknown",
+  "unexpected_provider_switch": false,
+  "manual_gui_handoff_count": 0,
+  "main_status_before_after": "unchanged (pre-existing dirty files preserved)",
+  "skill_validation": "quick_validate.py: Skill is valid!",
+  "node_check_exit": 0,
+  "publication": "Publisher FAILED before commit due evidence whitespace; reviewed exact-path Git recovery; canonical receipt retained, Notion pending.",
+  "main_baseline_fingerprint_unchanged": true,
+  "shared_evidence_secret_scan": "PASS",
+  "skill_read_only_scenario_review": "PASS; not a second real-task reuse",
+  "pytest_run_count_before_publisher": 7,
+  "node_check_count_before_publisher": 1,
+  "skill_quick_validate_count": 2,
+  "shared_log_format": "rstrip display copies only; original private logs unchanged",
+  "patch_format": "git diff --cached --unified=0",
+  "publisher_required_checks": "PASS; original CHECK events retained privately",
+  "pytest_run_count_total": 8,
+  "node_check_count_total": 2,
+  "business_hashes_match_original_seal": true
+}
