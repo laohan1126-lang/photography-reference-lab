@@ -6,43 +6,93 @@
       "title": "比例怪，先检查距离",
       "skill_ids": [
         "perspective-skill-height-proportion-diagnosis",
-        "perspective-skill-optical-vs-perspective"
+        "perspective-skill-optical-vs-perspective",
+        "perspective-skill-viewpoint-distance",
+        "perspective-skill-distance-before-focal"
       ],
       "lead": "低机位不保证比例自然。近拍时，靠镜头更近的部位会更突出。",
       "paragraphs": [
-        "Koldunov 的鼻与耳示范：近拍时鼻部更显眼；后退后，鼻耳大小差异收敛。",
-        "先退一点检查比例；要维持画面大小，再变焦或裁切。裁切能收紧构图，不能改变已拍下的近远关系。",
-        "头或上身过突出时，检查是否贴近或向前探；相机已经放低，也要检查谁离镜头更近。"
+        "Koldunov 的鼻与耳示范：近拍时鼻部更显眼；后退后，鼻耳大小差异收敛。低机位也要检查头、手或脚谁更靠近镜头。",
+        "一灯和一镜固定 50mm，人物站位不动，摄影师后退四五步；远照放大到接近同样人物大小后，背景与人物的关系仍不同。裁切只收画框，不能改写拍下的透视。",
+        "先用距离决定近远比例，再用焦段取景。相同焦段，移动机位也能改变透视；不同焦段拍相近景别时，常常也换了距离。"
       ],
       "memory": "先退，再取景。",
-      "media_ids": ["s1-close", "s1-recede"],
+      "media_ids": [
+        "s1-close",
+        "s1-recede",
+        "bili-50-close-far-00-02-20"
+      ],
       "citations": [
-        {"source_id": "pilot-s1", "position": "00:34–00:56", "detail": "画面文字和鼻耳对照；低机位头身排查是对距离原理的迁移，作者未演示这一类低机位错误。"},
-        {"source_id": "pilot-s2", "position": "01:35–01:52", "detail": "全身拍摄时后退以控制透视夸张。"}
+        {
+          "source_id": "pilot-s1",
+          "position": "00:34–00:56",
+          "detail": "画面文字和鼻耳对照；低机位头身排查是对距离原理的迁移，作者未演示这一类低机位错误。"
+        },
+        {
+          "source_id": "pilot-s2",
+          "position": "01:35–01:52",
+          "detail": "全身拍摄时后退以控制透视夸张。"
+        },
+        {
+          "source_id": "bili-yideng-20230206-perspective",
+          "position": "01:22–02:22；03:06–04:27",
+          "detail": "固定50mm移动机位，远照放大到相近人物大小后比较背景；再用35mm近拍、后退及改变焦段解释取景与距离。"
+        }
       ]
     },
     {
       "id": "perspective-note-height-by-shot",
       "title": "拍脸看下巴，拍全身看头脚",
-      "skill_ids": ["perspective-skill-height-proportion-diagnosis"],
+      "skill_ids": [
+        "perspective-skill-height-proportion-diagnosis",
+        "perspective-skill-crop-height",
+        "perspective-skill-angle-comparison"
+      ],
       "lead": "机位高度要按景别判断：近景看脸部比例，全身看整体头身与腿脚。",
       "paragraphs": [
-        "Manny 并排展示下巴、眼平和额头高度：机位变化会改变下巴、颈部和额头的显著程度。",
-        "普通全身的人像起点约在下胸附近；再降低可以表现腿长、环境或力量。作者把略高于眼平向下拍列为普通全身的提醒例，不是推荐机位。",
-        "高度是起点，不是固定公式。距离、姿态和拍摄意图一起决定画面。"
+        "Manny 并排展示下巴、眼平和额头高度：下巴、颈部与额头的显著程度随拍法变化。拍脸先看这三处，再决定机位。",
+        "腰上半身，他从上胸或锁骨附近起拍；全身则从下胸附近起拍。约三分之二身先在所保留人物范围的中段附近试高度，再看头身比例，这是沿用检查思路，不是作者给的固定公式。",
+        "拍普通全身，可从下胸附近起拍并检查头脚；膝高是他刻意强调腿长、环境或力量的做法。略高于眼平向下拍是普通全身的提醒例。",
+        "高位、眼平、低位都先拍一张再选：近景看脸，全身看头身与腿脚。改变高度时记下是否也改变了俯仰；一套机位不是所有景别的固定答案。"
       ],
       "memory": "拍脸看下巴，拍全身看头脚。",
-      "media_ids": ["s2-face-heights", "s2-lower-chest", "s2-knee-level", "s2-above-eye-warning"],
+      "media_ids": [
+        "s2-face-heights",
+        "domain-manny-waist-up",
+        "s2-lower-chest",
+        "s2-knee-level",
+        "s2-above-eye-warning"
+      ],
       "citations": [
-        {"source_id": "pilot-s2", "position": "00:52", "detail": "下巴、眼平、额头三个机位并排展示。"},
-        {"source_id": "pilot-s2", "position": "01:48–02:12", "detail": "普通全身起点、刻意降低及过高俯拍提醒。"},
-        {"source_id": "pilot-s4", "position": "20:28–21:10", "detail": "课件字幕提醒高机位时考虑缩小景别；未把虚拟演示作为真人图像证据。"}
+        {
+          "source_id": "pilot-s2",
+          "position": "00:52",
+          "detail": "下巴、眼平、额头三个机位并排展示。"
+        },
+        {
+          "source_id": "pilot-s2",
+          "position": "01:48–02:12",
+          "detail": "普通全身起点、刻意降低及过高俯拍提醒。"
+        },
+        {
+          "source_id": "pilot-s4",
+          "position": "20:28–21:10",
+          "detail": "课件字幕提醒高机位时考虑缩小景别；未把虚拟演示作为真人图像证据。"
+        },
+        {
+          "source_id": "pilot-s2",
+          "position": "00:54–01:13",
+          "detail": "实读语音转录并新抽取01:10现场帧：腰上半身用上胸/锁骨起点。三分之二身的试高度是项目迁移，不是作者固定数值。"
+        }
       ]
     },
     {
       "id": "perspective-note-face-direction",
       "title": "仰拍先安排脸的方向",
-      "skill_ids": ["perspective-skill-height-proportion-diagnosis"],
+      "skill_ids": [
+        "perspective-skill-height-proportion-diagnosis",
+        "perspective-gap-skill-low-view-expression-context"
+      ],
       "lead": "低机位可以配合脸的朝向与身体姿态，不必只靠继续压低相机。",
       "paragraphs": [
         "伍伍的课程示范了两种处理：侧面望向上方，或正面略微俯身看镜头。三幅图来自不同人物和场景，不是同一条件的前后对照。",
@@ -50,17 +100,36 @@
         "Manny 也把贴地角度作为创意表达与普通客户人像分开讨论；低机位是否合适，取决于你想表达什么。"
       ],
       "memory": "先看脸向哪，再看脸多近。",
-      "media_ids": ["s4-double-chin", "s4-side-upward", "s4-front-caption"],
+      "media_ids": [
+        "s4-double-chin",
+        "s4-side-upward",
+        "s4-front-caption"
+      ],
       "citations": [
-        {"source_id": "pilot-s4", "position": "00:07–00:13", "detail": "课程下巴例图及侧面、正面姿态建议；例图并非同人前后对照。"},
-        {"source_id": "pilot-s1", "position": "00:34–00:56", "detail": "近拍与后退的脸部透视差异。"},
-        {"source_id": "pilot-s2", "position": "02:19–02:49", "detail": "普通客户与创意贴地角度的适用意图。"}
+        {
+          "source_id": "pilot-s4",
+          "position": "00:07–00:13",
+          "detail": "课程下巴例图及侧面、正面姿态建议；例图并非同人前后对照。"
+        },
+        {
+          "source_id": "pilot-s1",
+          "position": "00:34–00:56",
+          "detail": "近拍与后退的脸部透视差异。"
+        },
+        {
+          "source_id": "pilot-s2",
+          "position": "02:19–02:49",
+          "detail": "普通客户与创意贴地角度的适用意图。"
+        }
       ]
     },
     {
       "id": "perspective-note-use-the-foreground",
       "title": "比例正常后，让前景与背景承担体量",
-      "skill_ids": ["perspective-skill-height-proportion-diagnosis"],
+      "skill_ids": [
+        "perspective-skill-height-proportion-diagnosis",
+        "perspective-gap-skill-low-view-expression-context"
+      ],
       "lead": "气势也可以来自画面里的近远层次，不必把脸推到镜头前。",
       "paragraphs": [
         "Koldunov 展示后退后重新安排人物和背景，并建议可行时变焦取景。前后画面景别不同，不当作等构图单变量对照。",
@@ -68,11 +137,319 @@
         "作者还讲低机位可避开斑驳草地和后方人群。先保证人物比例，再用前景、姿态和背景表达体量。"
       ],
       "memory": "近大远小，也可以留给前景。",
-      "media_ids": ["s1-background-near", "s1-background-far", "s3-stone-foreground", "s3-flower-pose"],
+      "media_ids": [
+        "s1-background-near",
+        "s1-background-far",
+        "s3-stone-foreground",
+        "s3-flower-pose"
+      ],
       "citations": [
-        {"source_id": "pilot-s1", "position": "01:20–01:40", "detail": "人物与背景布的相对大小；后退前后景别不同。"},
-        {"source_id": "pilot-s3", "position": "00:45–01:34", "detail": "讲解低机位避开斑驳草地。"},
-        {"source_id": "pilot-s3", "position": "02:00–02:50", "detail": "讲解背景人群与广角低机位森林人像；未测得照片的焦距或准确机高。"}
+        {
+          "source_id": "pilot-s1",
+          "position": "01:20–01:40",
+          "detail": "人物与背景布的相对大小；后退前后景别不同。"
+        },
+        {
+          "source_id": "pilot-s3",
+          "position": "00:45–01:34",
+          "detail": "讲解低机位避开斑驳草地。"
+        },
+        {
+          "source_id": "pilot-s3",
+          "position": "02:00–02:50",
+          "detail": "讲解背景人群与广角低机位森林人像；未测得照片的焦距或准确机高。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-height-axis-separate",
+      "title": "机身高度和镜头朝向分开设",
+      "skill_ids": [
+        "perspective-skill-height-vs-pitch",
+        "perspective-skill-lens-axis-level"
+      ],
+      "lead": "相机放低不等于镜头必须上仰。先定机身高度，再单独检查镜头轴线。",
+      "paragraphs": [
+        "摄影教材把 camera height（相机所在高度）和 camera angle（镜头朝向）列为相关但不同的设置：贴地机位也能保持眼平角度。",
+        "Manny Ortiz 在普通全身人像中以约下胸高度作为起点，并把膝高机位放在有意的创意表达里。它是拍摄起点，不是所有人物的固定公式。",
+        "遇到头大身小，别只怪低机位或上仰：先复查相机到人物的距离、人物是否前探，以及头脚在空间中的远近；再观察可信的建筑竖线是否因俯仰而收敛。没有可靠背景线时，单凭比例不能反推出镜头角度。"
+      ],
+      "memory": "机身找高度，镜头再定方向。",
+      "media_ids": [
+        "hr-okstate-floor-level",
+        "s2-lower-chest",
+        "s2-knee-level"
+      ],
+      "citations": [
+        {
+          "source_id": "domain-okstate-cinematography",
+          "position": "Camera height; Figure 18",
+          "detail": "教材区分相机高度与镜头角度，并以贴地高度、眼平角度的电影画面说明两者可以分开。"
+        },
+        {
+          "source_id": "pilot-s2",
+          "position": "01:48–01:56",
+          "detail": "Manny 展示普通全身起始高度与膝高创意机位；这是实拍操作建议，不是隔离俯仰的单变量对照。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-pitch-roll-cues",
+      "title": "找背景线，再决定是否滚转",
+      "skill_ids": [
+        "perspective-skill-pitch-vs-roll",
+        "perspective-gap-skill-intentional-roll"
+      ],
+      "lead": "俯仰改变镜头朝上或朝下，滚转让画框整体倾斜。先找可靠的背景线索。",
+      "paragraphs": [
+        "俯仰是镜头上下转动；滚转是相机绕镜头光轴转动。俯仰可能令建筑竖线向上或向下收敛，滚转则让画面里的竖线和横线整体倾斜。人物身体本身是斜的，不能单独证明相机滚转。",
+        "电影教材的 canted 画格中，窗框和墙线一起变斜；Elja Trum 的真实人像也能看到斜置窗框与墙板。后者同时包含俯身姿态和不同视点，所以可用来观察倾斜如何被读到，不是滚转单变量前后对照。",
+        "作者对幅度有不同做法：Elja 认为明显倾斜更容易显得有意；Nikon School 讲师 Neil Freeman 建议人像只略微倾斜。不要把度数平均成规则：先拍水平基准，再根据背景线、人物身体方向和目光判断倾斜是否服务于画面。"
+      ],
+      "memory": "上下看是俯仰，绕着镜头转才是滚转。",
+      "media_ids": [
+        "hr-okstate-canted",
+        "hr-eljatrump-roll"
+      ],
+      "citations": [
+        {
+          "source_id": "domain-okstate-cinematography",
+          "position": "Canted; Figure 17",
+          "detail": "教材将 canted 定义为相机向左或向右倾斜，并以同框窗墙线条斜置作图示。"
+        },
+        {
+          "source_id": "domain-photofacts-eljatrump",
+          "position": "正文与文章配图",
+          "detail": "作者说明滚转会令背景线条倾斜，并给出自己的明显倾斜方法；原图也包含俯身和视点变化。"
+        },
+        {
+          "source_id": "domain-nikon-neil-freeman",
+          "position": "Neigen der Kamera",
+          "detail": "Neil Freeman 提供轻微倾斜的人像方法，作为与 Elja 不同的作者建议；本条不把角度建议普遍化。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-fixed-position-focal-compare",
+      "title": "站在原地变焦，先别叫它透视变化",
+      "skill_ids": [
+        "perspective-skill-focal-length-field-of-view",
+        "perspective-skill-fixed-position-focal-compare"
+      ],
+      "lead": "机位不动，焦段改变的是取景范围；前后大小关系变了，先检查拍摄位置有没有移动。",
+      "paragraphs": [
+        "一灯和一镜把人物留在金属横杆旁，摄影者站在树旁，先用35mm、再用70mm拍；随后把35mm照片裁到接近70mm的视野再并列。这个控制只改变焦段与取景范围，比较的是同一视点下的透视关系。",
+        "Julia Trotti 在同一站位比较50mm与85mm：50mm收进更多人物与环境，85mm的画面范围更窄、人物占画面更大。这组画面说明焦段怎样改变视角，不要把人物在画面里变大直接当成透视改变。",
+        "为了让不同焦段拍出相近人物大小，摄影者往往会随之前进或后退；这时视点也变了。先固定机位比较焦段，再固定焦段比较距离，才知道是哪一个变量改变了画面关系。"
+      ],
+      "memory": "机位定透视，焦段定视角。",
+      "media_ids": [
+        "bili-35-70-same-position-00-01-07",
+        "julia-50-85-same-position-00-00-31"
+      ],
+      "citations": [
+        {
+          "source_id": "bili-yideng-20230206-perspective",
+          "position": "00:12–01:18",
+          "detail": "人物靠金属杆，摄影者在树旁保持距离；依次拍35mm与70mm，再把35mm照片裁到接近70mm视野比较金属杆和背景，作者说明同距离下透视关系基本相同。"
+        },
+        {
+          "source_id": "yt-julia-trotti-50-85-20240320",
+          "position": "00:23–00:46",
+          "detail": "她说明85mm在同一站位拍摄，并将50mm与85mm同站位画面并列；实际画面显示取景范围和人物占比不同。"
+        },
+        {
+          "source_id": "yt-julia-trotti-50-85-20240320",
+          "position": "01:24–01:26",
+          "detail": "她说明使用85mm时需要站得更远；这是匹配取景时机位随焦段变化的实例。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-distortion-diagnosis",
+      "title": "弯线、汇聚、大鼻子，分开处理",
+      "skill_ids": [
+        "perspective-skill-optical-vs-perspective"
+      ],
+      "lead": "都叫“变形”，修法不同：镜头校正修弯线，朝向影响汇聚，拍摄距离影响近远比例。",
+      "paragraphs": [
+        "本来笔直的门框变弯：检查镜头配置文件。桶形向外鼓、枕形向内收；校正后也要看边缘裁掉了多少。",
+        "线仍然直，却向上汇聚：检查镜头是否上仰。Adobe 的建筑例图用 Upright 和 Vertical 调整方向，并重新裁切；这与镜头配置文件是两步。",
+        "鼻大耳小、近手特别大：先检查距离与姿态。Koldunov 的实拍显示，后退会改变鼻耳比例；打开镜头校正不能替你改变拍摄时的近远关系。",
+        "先辨认哪一种，再处理。画面边缘的拉伸也不能全部叫桶形畸变；一张照片里可能同时出现几种变化。"
+      ],
+      "memory": "弯线查镜头，汇聚查朝向，比例查距离。",
+      "media_ids": [
+        "domain-optical-building-before",
+        "domain-optical-building-after",
+        "s1-close"
+      ],
+      "citations": [
+        {
+          "source_id": "domain-adobe-perspective",
+          "position": "步骤2–5",
+          "detail": "建筑原图与Upright/Vertical结果，均有裁切；不是人脸透视修复或桶形畸变受控对照。"
+        },
+        {
+          "source_id": "domain-adobe-lens-control",
+          "position": "Understanding common lens defects；Correct distortion manually",
+          "detail": "分别解释桶形/枕形、镜头配置文件、透视方向和旋转控制。"
+        },
+        {
+          "source_id": "domain-nikon-distortion-control",
+          "position": "Distortion control 全文",
+          "detail": "减少桶形/枕形边缘畸变，校正越多，边缘裁掉越多。"
+        },
+        {
+          "source_id": "pilot-s1",
+          "position": "00:34–00:56",
+          "detail": "鼻与耳的近拍/后退真人示范；用于距离比例问题，不作为光学畸变样本。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-working-space",
+      "title": "先看退路，再选焦段",
+      "skill_ids": [
+        "perspective-skill-lens-working-distance"
+      ],
+      "lead": "焦段能不能用，先看场地容不容得下你需要的拍摄距离。",
+      "paragraphs": [
+        "Julia 站在同一位置拍 50mm 和 85mm：85mm 的取景更紧。要保留同样的全身范围，通常需要后退；她后面的 85mm 拍摄也明确说要站得更远。",
+        "先确定拍全身、半身还是脸，再找比例合适、能沟通的位置。站稳这个距离后，用焦段收取景；不要为了塞进全身而贴近到脸、手和脚明显失衡。",
+        "背后已经是墙或人群：可以换较短焦段、缩小景别、调整站位或换场地。换短焦段后仍检查近处部位；场地限制不能靠一个焦段数字解决。",
+        "Nikon 的 Gary Small 还提醒，站得太远会影响现场指导。除了画面，也要确认模特听得清、摄影师有退路。"
+      ],
+      "memory": "先定景别，找距离，再收画框。",
+      "media_ids": [
+        "julia-50-85-same-position-00-00-31",
+        "julia-85-working-distance-01-44"
+      ],
+      "citations": [
+        {
+          "source_id": "yt-julia-trotti-50-85-20240320",
+          "position": "00:23–00:46；01:24–01:44",
+          "detail": "同机位50/85mm不同取景；85mm段明确说要后退，01:44可见摄影师和人物站位。没有从画面推算米数。"
+        },
+        {
+          "source_id": "domain-nikon-portrait-distance",
+          "position": "Suggested Settings / Lens Choice",
+          "detail": "长焦取景往往需要更远的工作距离，会影响指导人物；不把该页的简化镜头失真说法当作单变量结论。"
+        },
+        {
+          "source_id": "pilot-s1",
+          "position": "00:34–00:56",
+          "detail": "近拍和后退的脸部比例。有限场地的选择次序是结合资料的现场迁移，并非作者演示了拥挤会场。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-shot-scale-as-story",
+      "title": "景别按叙事信息切换",
+      "skill_ids": [
+        "perspective-skill-shot-scale-vocabulary",
+        "perspective-skill-coverage-variation"
+      ],
+      "lead": "先决定观众要读到什么，再选景别；同一主体可以由环境、动作、表情组成一组。",
+      "paragraphs": [
+        "远景看环境，人物较小；全景/全身保留整体动作；中景或半身看姿态与交流；近景、面部特写看表情，局部特写看手、衣料或道具。名称边界有弹性，交流时再说明“保留到哪里”。",
+        "同一主体的组照，留环境与全身，再收近到关键动作、表情和细节。每张都问：比上一张多看到了什么？只换裁切而没有新信息，就还是重复。",
+        "六斤的溪边全身、林地双人和雪山半身分别说明环境、关系与叙事用途；肆周的近景集中到脸。这里是不同人物的用途例图。训练里的同主体组照由这些知识设计。"
+      ],
+      "memory": "先交代人在何处，再交代正在做什么，最后靠近到最值得看的细节。",
+      "media_ids": [
+        "sd-sixjin-01m16",
+        "sd-sixjin-02m04",
+        "sd-sixjin-02m38",
+        "sd-zhouzhou-01m37"
+      ],
+      "citations": [
+        {
+          "source_id": "bili-sixjin-shot-sizes",
+          "position": "约01:17",
+          "detail": "蓝衣人物在溪边行走，全身与环境同框；字幕谈到没有明确构图想法时可用全身景别。只支持该例的画面用途。"
+        },
+        {
+          "source_id": "bili-sixjin-shot-sizes",
+          "position": "02:04",
+          "detail": "双人环境画面，字幕指出可交代人物关系；主体与01:17不同。"
+        },
+        {
+          "source_id": "bili-sixjin-shot-sizes",
+          "position": "02:38",
+          "detail": "雪山人物画面，字幕谈景别叙事性；为另一人物，不并入同主体组。"
+        },
+        {
+          "source_id": "bili-zhouzhou-shot-sizes",
+          "position": "约01:37",
+          "detail": "实际抽看的近景人像，用于观察较近景别如何集中注意于脸部；未完整检查整集。"
+        },
+        {
+          "source_id": "domain-okstate-cinematography",
+          "position": "Camera distance / Types of framing",
+          "detail": "实际读取已保存的正常页面正文：远景、全景、中景、特写与大特写定义及边界弹性；用于人像取景沟通是项目适配。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-wide-near-lean-control",
+      "title": "手脚伸近，是效果还是失误？",
+      "skill_ids": [
+        "perspective-skill-wide-near-depth"
+      ],
+      "lead": "先决定要突出谁，再让近处的手、脚或道具承担夸张。",
+      "paragraphs": [
+        "佳能的前伸手掌占了很大画面，作者有意用它表现动感；若目标是自然比例，这样的突出就可能抢走脸的注意。",
+        "Neil 的两幅低角度近拍里，手臂相对脸显大。他建议先退远，人物靠近画面中央，减少脸在边缘被拉伸。广角让你更容易近拍并收入环境，近远比例仍要检查拍摄距离。",
+        "想突出手或道具，就让它明确朝镜头前伸；想突出脸，就把近手收回一些，再检查头、手与躯干的大小。两位作者目的不同：一个强调夸张，一个控制夸张。"
+      ],
+      "memory": "近处更突出，先决定突出谁。",
+      "media_ids": [
+        "sd-canon-14mm-forward-hand",
+        "sd-neil-arm-position-example"
+      ],
+      "citations": [
+        {
+          "source_id": "domain-canon-wide-portrait",
+          "position": "页面示例3-2-1至3-2-4",
+          "detail": "实读佳能页面文字并开图。14mm APS-C（约等效22.4mm）前伸手部、24mm近拍脸、10mm APS-C低机位及24mm前伸手腕；样片对应参数见media说明。第一张只拍到裙摆附近。"
+        },
+        {
+          "source_id": "domain-neil-wide-portraits",
+          "position": "正文腰高取景建议与DSC_1494_HDR、DSC_1493-1489配图",
+          "detail": "实读正文并打开页面原图。建议腰高取景、退后、人物轻微前倾并靠近中央；手臂图含姿势变化，不是单变量对照；环境主图标注HDR。"
+        }
+      ]
+    },
+    {
+      "id": "perspective-note-lean-distance",
+      "title": "前倾，是把脸移近",
+      "skill_ids": [
+        "perspective-skill-lean-depth-control"
+      ],
+      "lead": "前倾会改变头、躯干与镜头的距离；幅度要随机位和拍摄距离检查。",
+      "paragraphs": [
+        "Neil 拍广角环境人像时，先退远，再请人物轻微前倾，平衡低角度下手臂与脸的显著程度。他的最终图保留了大幅广告牌；图像有HDR后期，没有提供单独改变前倾的前后组。",
+        "Koldunov 的近拍示范补上另一面：鼻部越靠近，鼻耳差异越突出。已经贴近相机时，再让头肩前探，可能加重头大身小。",
+        "先拍自然站姿，再小幅移动头肩；同时看髋部留在哪里、头身比例是否符合目标。退远后的轻微前倾与近拍时大幅探头，不是同一种拍法。"
+      ],
+      "memory": "前倾先看距离，头肩髋一起看。",
+      "media_ids": [
+        "sd-neil-times-square-24mm",
+        "s1-close",
+        "s1-recede"
+      ],
+      "citations": [
+        {
+          "source_id": "domain-neil-wide-portraits",
+          "position": "正文低角度近拍建议；最终环境人像",
+          "detail": "作者明确先后退、再略微前倾；最终图带HDR。两幅手臂样图不是前倾单变量实验。"
+        },
+        {
+          "source_id": "pilot-s1",
+          "position": "00:34–00:56",
+          "detail": "实际近拍与后退的鼻耳比例；迁用于头肩前探的距离排查。原作者没有演示髋部后移组。"
+        }
       ]
     }
   ],
@@ -82,9 +459,13 @@
       "title": "距离与比例对照",
       "skill_ids": [
         "perspective-skill-height-proportion-diagnosis",
-        "perspective-skill-optical-vs-perspective"
+        "perspective-skill-optical-vs-perspective",
+        "perspective-skill-viewpoint-distance",
+        "perspective-skill-distance-before-focal"
       ],
-      "note_ids": ["perspective-note-distance-first"],
+      "note_ids": [
+        "perspective-note-distance-first"
+      ],
       "basis": "project_designed",
       "steps": [
         "固定人物姿势和相机高度，先近距离拍一张。",
@@ -99,13 +480,22 @@
     {
       "id": "perspective-training-height-by-intent",
       "title": "机位高度与景别",
-      "skill_ids": ["perspective-skill-height-proportion-diagnosis"],
-      "note_ids": ["perspective-note-height-by-shot", "perspective-note-face-direction"],
+      "skill_ids": [
+        "perspective-skill-height-proportion-diagnosis",
+        "perspective-skill-crop-height",
+        "perspective-skill-angle-comparison",
+        "perspective-gap-skill-low-view-expression-context"
+      ],
+      "note_ids": [
+        "perspective-note-height-by-shot",
+        "perspective-note-face-direction"
+      ],
       "basis": "project_designed",
       "steps": [
-        "固定人物、姿势、机距与焦段，拍一组下巴、眼平、额头高度的半身照。",
-        "机距与焦段不变，从下胸高度和膝高各拍一张，记下镜头是否上仰；另拍略高于眼平的俯拍对照。",
-        "标出每张最显眼的部位，并写下它适合普通人像还是刻意表达。"
+        "先安排脸部或半身取景；这组固定人物姿势、机距与焦段，比较下巴、眼平、额头三个高度。",
+        "另设一组能拍下全身的距离与取景；这组固定机距与焦段，从下胸、膝高和略高于眼平分别拍，并记下每次俯仰。",
+        "另设约三分之二身取景，从所保留人物范围的中段附近试两个高度；这组也固定距离、焦段和人物姿势。",
+        "各组分别比较：脸部看下巴、颈部与额头，半身或三分之二身看头肩与躯干，全身看头身与腿脚。"
       ],
       "checks": [
         "能从脸部与全身画面分别指出变化，并说明这次改变了高度还是俯仰。",
@@ -115,8 +505,14 @@
     {
       "id": "perspective-training-foreground-volume",
       "title": "用前景表达体量",
-      "skill_ids": ["perspective-skill-height-proportion-diagnosis"],
-      "note_ids": ["perspective-note-use-the-foreground", "perspective-note-distance-first"],
+      "skill_ids": [
+        "perspective-skill-height-proportion-diagnosis",
+        "perspective-gap-skill-low-view-expression-context"
+      ],
+      "note_ids": [
+        "perspective-note-use-the-foreground",
+        "perspective-note-distance-first"
+      ],
       "basis": "project_designed",
       "steps": [
         "先选一个不会挡住人物的近处前景，让模特保持在舒适的拍摄距离。",
@@ -126,6 +522,175 @@
       "checks": [
         "画面有体量感时，人物脸部比例仍然自然。",
         "能说明体量来自前景、姿态或背景中的哪一处。"
+      ]
+    },
+    {
+      "id": "perspective-training-height-vs-pitch",
+      "title": "机身高度与镜头朝向对照",
+      "skill_ids": [
+        "perspective-skill-height-vs-pitch",
+        "perspective-skill-lens-axis-level"
+      ],
+      "note_ids": [
+        "perspective-note-height-axis-separate"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "固定人物站姿、相机距离和焦段，先在较低机位保持镜头水平拍一张。",
+        "保持机身位置不变，只轻微上仰再拍一张；比较人物头脚比例与背景竖线。",
+        "恢复水平轴线，只抬高机身拍一张，记录这次变化来自高度还是镜头朝向。"
+      ],
+      "checks": [
+        "标出每张里一条可信的建筑竖线；背景没有直线时，不用人物比例猜角度。",
+        "若头部或上身显得突出，先复查人物与相机距离及姿态，再判断俯仰。"
+      ]
+    },
+    {
+      "id": "perspective-training-pitch-vs-roll",
+      "title": "俯仰与滚转线索对照",
+      "skill_ids": [
+        "perspective-skill-pitch-vs-roll",
+        "perspective-gap-skill-intentional-roll"
+      ],
+      "note_ids": [
+        "perspective-note-pitch-roll-cues"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "固定机身高度、人物姿势、焦段和取景，先拍水平基准。",
+        "保持其余条件不变，分别拍轻微滚转和明显滚转；每张都找同一条背景竖线。",
+        "另拍一张只改变俯仰的画面，比较是竖线趋于收敛，还是整组横竖线一起倾斜。"
+      ],
+      "checks": [
+        "不要把人物身体斜线单独当成滚转证据。",
+        "结合背景线、身体方向和目光判断倾斜是否清楚地支持表达；角度大小没有跨作者通用阈值。"
+      ]
+    },
+    {
+      "id": "perspective-training-diagnose-distortion",
+      "title": "先辨认变形，再选处理方式",
+      "skill_ids": [
+        "perspective-skill-optical-vs-perspective"
+      ],
+      "note_ids": [
+        "perspective-note-distortion-diagnosis",
+        "perspective-note-distance-first"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "选一张带门框或建筑竖线的照片，分开标出弯曲和直线汇聚。",
+        "在副本上先开关镜头配置文件，再单独试透视方向调整；各留一份，比较线条和裁切。",
+        "再看一张近距离人像：若问题是近处部位突出，安排后退重拍对照。"
+      ],
+      "checks": [
+        "能区分哪个问题来自弯线、朝向或近远关系。",
+        "没有把建筑拉直的后期效果当成人脸比例恢复。"
+      ]
+    },
+    {
+      "id": "perspective-training-working-space",
+      "title": "在有限场地里选站位与焦段",
+      "skill_ids": [
+        "perspective-skill-lens-working-distance"
+      ],
+      "note_ids": [
+        "perspective-note-working-space",
+        "perspective-note-distance-first"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "选一处有明确后退边界的场地，先确定全身或半身，记下可用退路。",
+        "让人物保持站位，从比例合适的距离取景，分别试已有镜头的短端和长端。",
+        "若目标景别装不下，分别尝试缩小景别、换较短焦段或调整站位；比较比例、背景和沟通距离。"
+      ],
+      "checks": [
+        "能说出为什么这次选这个焦段和站位。",
+        "没有为了装下全身而让近处脸、手或脚意外变大；人物能听清指导。"
+      ]
+    },
+    {
+      "id": "perspective-training-shot-sequence",
+      "title": "同一个人，拍出不同信息",
+      "skill_ids": [
+        "perspective-skill-shot-scale-vocabulary",
+        "perspective-skill-coverage-variation"
+      ],
+      "note_ids": [
+        "perspective-note-shot-scale-as-story"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "同一人物、同一场地，先拍环境与全身，保留人物在何处的信息。",
+        "再拍半身或头肩，保留一个关键动作；最后补表情或手、衣料、道具细节。",
+        "按从宽到紧排四张，写出每张保留到哪里、新增什么信息；移动机位时注明距离也变了。"
+      ],
+      "checks": [
+        "能一致命名并说明实际裁切范围。",
+        "每张都增加信息，细节能与同一人物和场地对应。"
+      ]
+    },
+    {
+      "id": "perspective-training-near-parts",
+      "title": "把夸张放在想强调的部位",
+      "skill_ids": [
+        "perspective-skill-wide-near-depth"
+      ],
+      "note_ids": [
+        "perspective-note-wide-near-lean-control",
+        "perspective-note-distance-first"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "固定相机与人物站位，先拍手靠近身体的基准。",
+        "让手或道具略向镜头伸出，再明显伸出；相机不动，比较近处部位与脸的大小。",
+        "恢复原姿态，摄影师后退重拍；用焦段或裁切收画面，选择夸张或自然的结果。"
+      ],
+      "checks": [
+        "能说出夸张是有意强调，还是抢走脸的注意。",
+        "分别记录改变的是手的前后位置，还是摄影师距离。"
+      ]
+    },
+    {
+      "id": "perspective-training-lean-distance",
+      "title": "头肩和髋部的前后关系",
+      "skill_ids": [
+        "perspective-skill-lean-depth-control"
+      ],
+      "note_ids": [
+        "perspective-note-lean-distance",
+        "perspective-note-distance-first"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "固定相机高度、焦段和站位，拍自然站姿。",
+        "分别拍轻微头肩前倾、髋部稍后移配合前倾；不同时改变镜头朝向。",
+        "比较头肩与躯干的比例；若头部过突出，减小前倾或后退，再收取景。"
+      ],
+      "checks": [
+        "能指出头、肩、髋相对镜头谁更近。",
+        "选姿势时能说明想强调什么；不把前倾当作每个人都适用的口令。"
+      ]
+    },
+    {
+      "id": "perspective-training-fixed-position-focal",
+      "title": "原地变焦，与移动机位分开比较",
+      "skill_ids": [
+        "perspective-skill-focal-length-field-of-view",
+        "perspective-skill-fixed-position-focal-compare"
+      ],
+      "note_ids": [
+        "perspective-note-fixed-position-focal-compare",
+        "perspective-note-distance-first"
+      ],
+      "basis": "project_designed",
+      "steps": [
+        "固定人物和相机站位，选短、长两个焦段各拍一张；标出画面收进了多少环境。",
+        "把短焦段照片裁到接近长焦段的取景，比较人物与一根背景竖杆的相对位置。",
+        "再固定焦段，只后退拍摄，并裁到相近人物大小；比较背景与人物的大小关系。"
+      ],
+      "checks": [
+        "能区分取景范围变窄与近远关系改变。",
+        "说明哪组移动了机位、哪组只改变焦段；不把背景虚化差异当作透视证据。"
       ]
     }
   ],
@@ -157,21 +722,369 @@
       "title": "这3个摄影机位的雷区，你都知道了吗？",
       "url": "https://www.douyin.com/video/7547980275746082087",
       "inspection": "正常播放并读取关键画面、字幕和课件；检查约 00:03–01:18、04:08、20:28–21:10，未声称看完全片。"
+    },
+    {
+      "id": "domain-okstate-cinematography",
+      "author": "Graig Uhlin",
+      "title": "Cinematography – Introduction to Film & TV",
+      "url": "https://open.library.okstate.edu/introfilmtv/part/cinematography/",
+      "inspection": "实际阅读 Camera height 与 Canted 正文，打开 Figure 17、Figure 18 像素检查。教材说明高度和镜头角度相关但不同，并以 floor-level height + eye-level angle 举例；canted 图中窗墙线整体斜置。另实际读Camera distance景别定义与分类边界说明。"
+    },
+    {
+      "id": "domain-photofacts-eljatrump",
+      "author": "Elja Trum",
+      "title": "Portretfotografie tip: Draai de camera",
+      "url": "https://photofacts.nl/portretfotografie/portretfotografie-tip-draai-de-camera",
+      "inspection": "实际阅读文章正文并打开公开文章配图原始像素。作者用窗框与墙板斜线说明滚转效果，并提出自己的幅度建议；照片同时包含俯身姿势和视点变化，不是单变量比较。"
+    },
+    {
+      "id": "domain-nikon-neil-freeman",
+      "author": "Nikon Team; lesson attributed to Nikon School instructor Neil Freeman",
+      "title": "Porträtfotografie für Einsteiger:innen",
+      "url": "https://www.nikon.de/de_DE/learn-and-explore/magazine/tips-and-tricks/nail-portrait-photography-as-a-beginner",
+      "inspection": "实际阅读 Neigen der Kamera 与 Blickwinkel und Perspektive 正文。Neil Freeman 建议人像轻微倾斜；页面图像像素未检查，本笔记仅引用文字建议。"
+    },
+    {
+      "id": "bili-yideng-20230206-perspective",
+      "author": "一灯和一镜",
+      "title": "什么影响摄影透视，焦距还是拍摄距离？实际拍摄来看看",
+      "url": "https://www.bilibili.com/video/BV1od4y1n7Ag/",
+      "inspection": "实际检查6分15秒视频、嵌入字幕与00:34、00:48、01:07、02:20、03:15、03:45、04:15、04:45、05:20帧。没有独立字幕轨；本地ASR用作时间索引，关键条件和结论已与原画/画面文字核对。"
+    },
+    {
+      "id": "yt-julia-trotti-50-85-20240320",
+      "author": "Julia Trotti",
+      "title": "50mm vs 85mm Comparisons for Portrait Photography",
+      "url": "https://www.youtube.com/watch?v=UN30Hjh7c_Y",
+      "inspection": "实际检查10分12秒视频；读取YouTube自动英文字幕并打开00:31、00:38、00:49、01:44、02:10、03:40、04:08、04:45、05:08、05:34、06:04帧。自动字幕未逐字听校；采用的站位、焦段及距离信息均有画面或对应字幕支持。"
+    },
+    {
+      "id": "domain-adobe-perspective",
+      "author": "Adobe Learn；Matthias Heiderich（页面 Contributor）",
+      "title": "Alter a photo’s perspective",
+      "url": "https://www.adobe.com/learn/lightroom-classic/web/fix-lens-distortion-photo",
+      "inspection": "实际读步骤1–6并打开步骤2/5原截图和两张照片裁片；比较建筑竖线、Upright/Vertical及裁切。静态图文，无视频时间。"
+    },
+    {
+      "id": "domain-adobe-lens-control",
+      "author": "Adobe Photoshop Help（页面未署个人作者）",
+      "title": "Correct lens distortion and perspective",
+      "url": "https://helpx.adobe.com/photoshop/desktop/effects-filters/artistic-stylize-filters/correct-lens-distortion-and-perspective.html",
+      "inspection": "实际读镜头缺陷、配置文件与手动畸变/透视/旋转控制正文；未检查配图，不作照片证据。"
+    },
+    {
+      "id": "domain-nikon-distortion-control",
+      "author": "Nikon 在线说明书编辑团队",
+      "title": "Distortion control",
+      "url": "https://onlinemanual.nikonimglib.com/zr/en/20-07.html",
+      "inspection": "实际阅读全文，核读桶形/枕形边缘校正和裁切提醒；没有把菜单图当作真人摄影例图。"
+    },
+    {
+      "id": "domain-nikon-portrait-distance",
+      "author": "Nikon USA；Gary Small（页面 Featuring）",
+      "title": "Quick Tips for Taking Better Portraits",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/quick-tips-for-taking-better-portraits",
+      "inspection": "实际读Suggested Settings的Lens Choice正文，核读后退距离与现场指导提醒；没有检查此页配图，图像证据来自Julia实拍。"
+    },
+    {
+      "id": "bili-sixjin-shot-sizes",
+      "author": "六斤Libra",
+      "title": "终于有人把景别说清楚了！5分钟搞懂5种景别到底怎么用！",
+      "url": "https://www.bilibili.com/video/BV1me41167Nj/",
+      "inspection": "实际抽看约01:17、02:04、02:38并截取播放器画面；简介列远景、全景、中景、近景、特写。01:17单人溪边全身，02:04双人关系，02:38为雪山另一人物；不是同一主体连续序列。画面裁片在evidence/media。"
+    },
+    {
+      "id": "bili-zhouzhou-shot-sizes",
+      "author": "肆周飞行（周周）",
+      "title": "不同景别的写真到底怎么拍？丨如何上手拍写真·第四期",
+      "url": "https://www.bilibili.com/video/BV1BA4y1Q71E/",
+      "inspection": "页面显示片长8:03、发布日期2022-04-19。实际抽看开头分类讲解及约01:37近景人像；未完整观看整集。"
+    },
+    {
+      "id": "domain-canon-wide-portrait",
+      "author": "Canon China（本页未署个人作者）",
+      "title": "广角镜头 3-2：广角人像",
+      "url": "https://www.canon.com.cn/special/widelens/3-2.html",
+      "inspection": "实读正文，检查普通DOM引用的四张完整原图并开图。保留原始图像字节；第一张人物只到裙摆附近。"
+    },
+    {
+      "id": "domain-neil-wide-portraits",
+      "author": "Neil van Niekerk",
+      "title": "Photographing wide-angle portraits",
+      "url": "https://neilvn.com/tangents/photographing-wide-angle-portraits/",
+      "inspection": "实读正文并开图查看DSC_1494_HDR与DSC_1493-1489。截图读取超时；原图来自页面普通DOM图像地址。正文建议腰高取景、后退、轻微前倾、人物居中；手臂图含姿势变量；环境主图标注HDR。"
     }
   ],
   "media": [
-    {"id": "s1-close", "filename": "c124feaa88a61314e1e2a659bca48ec54fe2476c46e79ec4ef606f107ec5e9da.jpg", "sha256": "c124feaa88a61314e1e2a659bca48ec54fe2476c46e79ec4ef606f107ec5e9da", "source_id": "pilot-s1", "position": "00:40", "caption": "近拍示例：鼻部相对更突出。", "alt": "近距离人脸画面，鼻部相对突出于耳部。"},
-    {"id": "s1-recede", "filename": "5b098efb80322065251c4141e9c65fb6b82c196034054e7e3e72c53d53533512.jpg", "sha256": "5b098efb80322065251c4141e9c65fb6b82c196034054e7e3e72c53d53533512", "source_id": "pilot-s1", "position": "00:54", "caption": "后退示例：鼻与耳的视觉差异收敛。", "alt": "较远距离的人脸画面，鼻与耳的相对大小差异较小。"},
-    {"id": "s1-background-near", "filename": "8aaeb6e6e4f1d727d639eb747e1eb7fe08343017621867e2e36f78cc96ba5b3a.jpg", "sha256": "8aaeb6e6e4f1d727d639eb747e1eb7fe08343017621867e2e36f78cc96ba5b3a", "source_id": "pilot-s1", "position": "01:20", "caption": "人物与背景布的大小关系示例。", "alt": "人像与后方背景布同框，人物相对更突出。"},
-    {"id": "s1-background-far", "filename": "17d23b327bec38cadabb4d21392a6d5fdb87a042b78e9c3f6d28a7286d1e8790.jpg", "sha256": "17d23b327bec38cadabb4d21392a6d5fdb87a042b78e9c3f6d28a7286d1e8790", "source_id": "pilot-s1", "position": "01:40", "caption": "后退后人物与背景同框；前后两幅画面的景别不同。", "alt": "后退后的较宽人像画面，人物和背景布同时入画。"},
-    {"id": "s2-face-heights", "filename": "901d7b8b70ed34c4eb4b765753356c35075ce5445955119f94bcf702a78c5158.jpg", "sha256": "901d7b8b70ed34c4eb4b765753356c35075ce5445955119f94bcf702a78c5158", "source_id": "pilot-s2", "position": "00:52", "caption": "下巴、眼平、额头三个机位并排。", "alt": "同一模特在下巴、眼平、额头高度的三联机位示意。"},
-    {"id": "s2-lower-chest", "filename": "11f35cfbf41590991c657771a1d2c964854a75f475e0c433ddf7b2fb8e45a62f.jpg", "sha256": "11f35cfbf41590991c657771a1d2c964854a75f475e0c433ddf7b2fb8e45a62f", "source_id": "pilot-s2", "position": "01:48", "caption": "普通全身人像的下胸高度示例。", "alt": "摄影师在模特下胸高度拍摄全身人像。"},
-    {"id": "s2-knee-level", "filename": "583693b064ee375fb3955113c41a1cc8ba3c7c4bc5eeb70d8b722e4479736ca8.jpg", "sha256": "583693b064ee375fb3955113c41a1cc8ba3c7c4bc5eeb70d8b722e4479736ca8", "source_id": "pilot-s2", "position": "01:56", "caption": "为了强调腿长与力量而有意降低机位。", "alt": "摄影师蹲到膝高位置拍摄全身人像。"},
-    {"id": "s2-above-eye-warning", "filename": "09d109f64888d9e0ab14f395b121336863357b1c4dce841e6623c24621ccb4f8.jpg", "sha256": "09d109f64888d9e0ab14f395b121336863357b1c4dce841e6623c24621ccb4f8", "source_id": "pilot-s2", "position": "02:12", "caption": "略高于眼平的俯拍提醒画面，是作者给出的普通全身反例。", "alt": "摄影师从略高于眼平的位置向下拍摄全身人物。"},
-    {"id": "s4-double-chin", "filename": "be1c2a4dd2bcf181a10ce13621c476c4e27e1c9afc24ec50ec912d2a0ed778a1.png", "sha256": "be1c2a4dd2bcf181a10ce13621c476c4e27e1c9afc24ec50ec912d2a0ed778a1", "source_id": "pilot-s4", "position": "00:07", "caption": "课程开头的仰拍下巴例图；不是后两幅的同人前后对照。", "alt": "课程示例中一名戴太阳镜的女性仰拍下巴画面。"},
-    {"id": "s4-side-upward", "filename": "f935a95b1a5be0428b389f220e8721609bb1f22c4dd7a18a8e5cbf512a45037e.png", "sha256": "f935a95b1a5be0428b389f220e8721609bb1f22c4dd7a18a8e5cbf512a45037e", "source_id": "pilot-s4", "position": "00:10", "caption": "另一场景中的侧面仰头示范。", "alt": "摄影师蹲下仰拍一名侧面望向天空的女性。"},
-    {"id": "s4-front-caption", "filename": "d171a582d27a37242d46d9de2ba9ff9f22aa3f08867ed8570e0e735913b39125.png", "sha256": "d171a582d27a37242d46d9de2ba9ff9f22aa3f08867ed8570e0e735913b39125", "source_id": "pilot-s4", "position": "00:13", "caption": "字幕建议正面略弯腰看镜头；与侧面图不是同一场景。", "alt": "另一名女性略弯腰面向镜头的教程画面。"},
-    {"id": "s3-stone-foreground", "filename": "c000cb62902d53f96e667c9dc7e9a6f4a77626a208b263a98290bdd07f06f0d6.jpg", "sha256": "c000cb62902d53f96e667c9dc7e9a6f4a77626a208b263a98290bdd07f06f0d6", "source_id": "pilot-s3", "position": "02:30", "caption": "低机位森林人像；近处石头与伸出的腿形成前后层次。", "alt": "森林中的坐姿人像，左侧近处有大石头，人物伸出一条腿。"},
-    {"id": "s3-flower-pose", "filename": "96aff82c4bda8286161cec464d595d09a56bf389d6174bbd737f373273d33141.jpg", "sha256": "96aff82c4bda8286161cec464d595d09a56bf389d6174bbd737f373273d33141", "source_id": "pilot-s3", "position": "01:05", "caption": "不同环境与姿态的花间坐姿案例。", "alt": "花草间一名蓝衣女性坐在石头上。"}
+    {
+      "id": "s1-close",
+      "filename": "c124feaa88a61314e1e2a659bca48ec54fe2476c46e79ec4ef606f107ec5e9da.jpg",
+      "sha256": "c124feaa88a61314e1e2a659bca48ec54fe2476c46e79ec4ef606f107ec5e9da",
+      "source_id": "pilot-s1",
+      "position": "00:40",
+      "caption": "近拍示例：鼻部相对更突出。",
+      "alt": "近距离人脸画面，鼻部相对突出于耳部。"
+    },
+    {
+      "id": "s1-recede",
+      "filename": "5b098efb80322065251c4141e9c65fb6b82c196034054e7e3e72c53d53533512.jpg",
+      "sha256": "5b098efb80322065251c4141e9c65fb6b82c196034054e7e3e72c53d53533512",
+      "source_id": "pilot-s1",
+      "position": "00:54",
+      "caption": "后退示例：鼻与耳的视觉差异收敛。",
+      "alt": "较远距离的人脸画面，鼻与耳的相对大小差异较小。"
+    },
+    {
+      "id": "s1-background-near",
+      "filename": "8aaeb6e6e4f1d727d639eb747e1eb7fe08343017621867e2e36f78cc96ba5b3a.jpg",
+      "sha256": "8aaeb6e6e4f1d727d639eb747e1eb7fe08343017621867e2e36f78cc96ba5b3a",
+      "source_id": "pilot-s1",
+      "position": "01:20",
+      "caption": "人物与背景布的大小关系示例。",
+      "alt": "人像与后方背景布同框，人物相对更突出。"
+    },
+    {
+      "id": "s1-background-far",
+      "filename": "17d23b327bec38cadabb4d21392a6d5fdb87a042b78e9c3f6d28a7286d1e8790.jpg",
+      "sha256": "17d23b327bec38cadabb4d21392a6d5fdb87a042b78e9c3f6d28a7286d1e8790",
+      "source_id": "pilot-s1",
+      "position": "01:40",
+      "caption": "后退后人物与背景同框；前后两幅画面的景别不同。",
+      "alt": "后退后的较宽人像画面，人物和背景布同时入画。"
+    },
+    {
+      "id": "s2-face-heights",
+      "filename": "901d7b8b70ed34c4eb4b765753356c35075ce5445955119f94bcf702a78c5158.jpg",
+      "sha256": "901d7b8b70ed34c4eb4b765753356c35075ce5445955119f94bcf702a78c5158",
+      "source_id": "pilot-s2",
+      "position": "00:52",
+      "caption": "下巴、眼平、额头三个机位并排。",
+      "alt": "同一模特在下巴、眼平、额头高度的三联机位示意。"
+    },
+    {
+      "id": "s2-lower-chest",
+      "filename": "11f35cfbf41590991c657771a1d2c964854a75f475e0c433ddf7b2fb8e45a62f.jpg",
+      "sha256": "11f35cfbf41590991c657771a1d2c964854a75f475e0c433ddf7b2fb8e45a62f",
+      "source_id": "pilot-s2",
+      "position": "01:48",
+      "caption": "普通全身人像的下胸高度示例。",
+      "alt": "摄影师在模特下胸高度拍摄全身人像。"
+    },
+    {
+      "id": "s2-knee-level",
+      "filename": "583693b064ee375fb3955113c41a1cc8ba3c7c4bc5eeb70d8b722e4479736ca8.jpg",
+      "sha256": "583693b064ee375fb3955113c41a1cc8ba3c7c4bc5eeb70d8b722e4479736ca8",
+      "source_id": "pilot-s2",
+      "position": "01:56",
+      "caption": "为了强调腿长与力量而有意降低机位。",
+      "alt": "摄影师蹲到膝高位置拍摄全身人像。"
+    },
+    {
+      "id": "s2-above-eye-warning",
+      "filename": "09d109f64888d9e0ab14f395b121336863357b1c4dce841e6623c24621ccb4f8.jpg",
+      "sha256": "09d109f64888d9e0ab14f395b121336863357b1c4dce841e6623c24621ccb4f8",
+      "source_id": "pilot-s2",
+      "position": "02:12",
+      "caption": "略高于眼平的俯拍提醒画面，是作者给出的普通全身反例。",
+      "alt": "摄影师从略高于眼平的位置向下拍摄全身人物。"
+    },
+    {
+      "id": "s4-double-chin",
+      "filename": "be1c2a4dd2bcf181a10ce13621c476c4e27e1c9afc24ec50ec912d2a0ed778a1.png",
+      "sha256": "be1c2a4dd2bcf181a10ce13621c476c4e27e1c9afc24ec50ec912d2a0ed778a1",
+      "source_id": "pilot-s4",
+      "position": "00:07",
+      "caption": "课程开头的仰拍下巴例图；不是后两幅的同人前后对照。",
+      "alt": "课程示例中一名戴太阳镜的女性仰拍下巴画面。"
+    },
+    {
+      "id": "s4-side-upward",
+      "filename": "f935a95b1a5be0428b389f220e8721609bb1f22c4dd7a18a8e5cbf512a45037e.png",
+      "sha256": "f935a95b1a5be0428b389f220e8721609bb1f22c4dd7a18a8e5cbf512a45037e",
+      "source_id": "pilot-s4",
+      "position": "00:10",
+      "caption": "另一场景中的侧面仰头示范。",
+      "alt": "摄影师蹲下仰拍一名侧面望向天空的女性。"
+    },
+    {
+      "id": "s4-front-caption",
+      "filename": "d171a582d27a37242d46d9de2ba9ff9f22aa3f08867ed8570e0e735913b39125.png",
+      "sha256": "d171a582d27a37242d46d9de2ba9ff9f22aa3f08867ed8570e0e735913b39125",
+      "source_id": "pilot-s4",
+      "position": "00:13",
+      "caption": "字幕建议正面略弯腰看镜头；与侧面图不是同一场景。",
+      "alt": "另一名女性略弯腰面向镜头的教程画面。"
+    },
+    {
+      "id": "s3-stone-foreground",
+      "filename": "c000cb62902d53f96e667c9dc7e9a6f4a77626a208b263a98290bdd07f06f0d6.jpg",
+      "sha256": "c000cb62902d53f96e667c9dc7e9a6f4a77626a208b263a98290bdd07f06f0d6",
+      "source_id": "pilot-s3",
+      "position": "02:30",
+      "caption": "低机位森林人像；近处石头与伸出的腿形成前后层次。",
+      "alt": "森林中的坐姿人像，左侧近处有大石头，人物伸出一条腿。"
+    },
+    {
+      "id": "s3-flower-pose",
+      "filename": "96aff82c4bda8286161cec464d595d09a56bf389d6174bbd737f373273d33141.jpg",
+      "sha256": "96aff82c4bda8286161cec464d595d09a56bf389d6174bbd737f373273d33141",
+      "source_id": "pilot-s3",
+      "position": "01:05",
+      "caption": "不同环境与姿态的花间坐姿案例。",
+      "alt": "花草间一名蓝衣女性坐在石头上。"
+    },
+    {
+      "id": "hr-okstate-floor-level",
+      "filename": "72751841ec9acd9e1b10db01ca39da152e7b929f9cd85540bfeb7b89db75a814.png",
+      "sha256": "72751841ec9acd9e1b10db01ca39da152e7b929f9cd85540bfeb7b89db75a814",
+      "source_id": "domain-okstate-cinematography",
+      "position": "Figure 18",
+      "caption": "贴地高度的电影画面：人物鞋和地面进入强调位置。",
+      "alt": "贴近地面的镜头沿瓷砖地面拍向人物腿脚，说明机身高度低不等于镜头必须上仰。"
+    },
+    {
+      "id": "hr-okstate-canted",
+      "filename": "bb53952087c975ca06264414da15ec3ae0f541928fb4f94ea98d84bff0b2e451.png",
+      "sha256": "bb53952087c975ca06264414da15ec3ae0f541928fb4f94ea98d84bff0b2e451",
+      "source_id": "domain-okstate-cinematography",
+      "position": "Figure 17",
+      "caption": "Canted 画格：窗框与墙线整体斜置。",
+      "alt": "坐在窗边的人物及周围建筑线条一起倾斜，示范画面滚转线索。"
+    },
+    {
+      "id": "hr-eljatrump-roll",
+      "filename": "73fa3456285f56bbeaa92a4019597f66747db74c535dc090d99939e403e8b76b.jpg",
+      "sha256": "73fa3456285f56bbeaa92a4019597f66747db74c535dc090d99939e403e8b76b",
+      "source_id": "domain-photofacts-eljatrump",
+      "position": "文章配图；公开原图",
+      "caption": "Bodypaint 肖像中窗框与墙板斜置；身体姿态与视点也有变化。",
+      "alt": "一名身体彩绘人物前倾并低头，背景窗框和墙板呈明显斜线；不是滚转单变量对照。"
+    },
+    {
+      "id": "bili-35-70-same-position-00-01-07",
+      "filename": "d9697fb6bf76313aba71f3d1adce152a3371f41f4c466c994030762a9045a148.jpg",
+      "sha256": "d9697fb6bf76313aba71f3d1adce152a3371f41f4c466c994030762a9045a148",
+      "source_id": "bili-yideng-20230206-perspective",
+      "position": "01:07",
+      "caption": "同一机位：35mm照片裁到接近70mm取景，再比较人物与背景。",
+      "alt": "同一人物的35mm裁切与70mm成片并排，图中文字标注同一位置；背景金属杆与人物的关系接近。"
+    },
+    {
+      "id": "bili-50-close-far-00-02-20",
+      "filename": "20cabc5acc32d7ed2be953282419d95a7b1e589713886939364170d2421f099e.jpg",
+      "sha256": "20cabc5acc32d7ed2be953282419d95a7b1e589713886939364170d2421f099e",
+      "source_id": "bili-yideng-20230206-perspective",
+      "position": "02:20",
+      "caption": "同一焦段50mm近距离与远距离对照；画面字幕指出透视关系不同。",
+      "alt": "左右并列两张同一模特、同一公园场景的人像，分别标注“50mm近距离”和“50mm远距离”；右图还圈出背景行人作为背景关系观察点。"
+    },
+    {
+      "id": "julia-50-85-same-position-00-00-31",
+      "filename": "c3d69b26babcc45e84101962df1a1defd4cde36cfb16ec8681ad8bbb730636b5.jpg",
+      "sha256": "c3d69b26babcc45e84101962df1a1defd4cde36cfb16ec8681ad8bbb730636b5",
+      "source_id": "yt-julia-trotti-50-85-20240320",
+      "position": "00:31",
+      "caption": "同一站位50mm与85mm人像并列。",
+      "alt": "两张同一模特、同一户外地点的竖幅照片并排，顶部标注“STANDING IN THE SAME SPOT”，底部分别标注50MM和85MM；50mm收进全身，85mm裁入较紧。"
+    },
+    {
+      "id": "julia-85-working-distance-01-44",
+      "filename": "b8a5704828faf9984b67347426ffbb1e74fbc212650b8a787368f3deb80340ea.jpg",
+      "sha256": "b8a5704828faf9984b67347426ffbb1e74fbc212650b8a787368f3deb80340ea",
+      "source_id": "yt-julia-trotti-50-85-20240320",
+      "position": "01:44",
+      "caption": "85mm拍摄现场远景，可看到摄影者与模特之间留有工作距离。",
+      "alt": "公园大树下，模特靠树站立，摄影者在草地另一侧举相机拍摄；画面左上标注85MM。画面未给出实际距离数值。"
+    },
+    {
+      "id": "domain-optical-building-before",
+      "filename": "6130eb1e6d0be6dfe95590ce0467b22b38e01a08e1ee26c1eedcdf5c7ab5cd8e.png",
+      "sha256": "6130eb1e6d0be6dfe95590ce0467b22b38e01a08e1ee26c1eedcdf5c7ab5cd8e",
+      "source_id": "domain-adobe-perspective",
+      "position": "步骤2截图",
+      "caption": "原照片：白色建筑的竖线向上汇聚。",
+      "alt": "低角度拍摄的白色建筑，竖线向上汇聚。"
+    },
+    {
+      "id": "domain-optical-building-after",
+      "filename": "b320f9070f4479d015f83584ea34f1d0390f1bfdd19e43565faa66d48ecdc72b.png",
+      "sha256": "b320f9070f4479d015f83584ea34f1d0390f1bfdd19e43565faa66d48ecdc72b",
+      "source_id": "domain-adobe-perspective",
+      "position": "步骤5截图",
+      "caption": "Upright与Vertical调整后；画面同时发生裁切。",
+      "alt": "同一建筑经过透视校正与裁切，竖线更接近直立，图上有原教程的网格。"
+    },
+    {
+      "id": "sd-sixjin-01m16",
+      "filename": "c47778c8f26ccf97969771571e9f34638f9e77a375f71d4a4b3e9743f61bd8eb.png",
+      "sha256": "c47778c8f26ccf97969771571e9f34638f9e77a375f71d4a4b3e9743f61bd8eb",
+      "source_id": "bili-sixjin-shot-sizes",
+      "position": "约01:17",
+      "caption": "溪边全身：人物动作与环境一起入画。",
+      "alt": "溪边全身：人物动作与环境一起入画。"
+    },
+    {
+      "id": "sd-sixjin-02m04",
+      "filename": "6d2592050e692e172060bf1287ff043955dfab94ba1868e7c8595c6209eda114.png",
+      "sha256": "6d2592050e692e172060bf1287ff043955dfab94ba1868e7c8595c6209eda114",
+      "source_id": "bili-sixjin-shot-sizes",
+      "position": "02:04",
+      "caption": "林地双人：用画面说明人物之间的关系。",
+      "alt": "林地双人：用画面说明人物之间的关系。"
+    },
+    {
+      "id": "sd-sixjin-02m38",
+      "filename": "3f74d00f31e9d35455a66df6dc717ae4d5accf4b7e03c93aa84e4c00342d8b0d.png",
+      "sha256": "3f74d00f31e9d35455a66df6dc717ae4d5accf4b7e03c93aa84e4c00342d8b0d",
+      "source_id": "bili-sixjin-shot-sizes",
+      "position": "02:38",
+      "caption": "雪山半身：另一人物与环境；不是同主体对照。",
+      "alt": "雪山半身：另一人物与环境；不是同主体对照。"
+    },
+    {
+      "id": "sd-zhouzhou-01m37",
+      "filename": "b1c9456a6a16a532bd95ce83e7ef69961fa3e8d8cf147de7274355f30e9c7b68.png",
+      "sha256": "b1c9456a6a16a532bd95ce83e7ef69961fa3e8d8cf147de7274355f30e9c7b68",
+      "source_id": "bili-zhouzhou-shot-sizes",
+      "position": "约01:37",
+      "caption": "近景人像：注意集中到脸部。",
+      "alt": "近景人像：注意集中到脸部。"
+    },
+    {
+      "id": "sd-canon-14mm-forward-hand",
+      "filename": "dcde7052127733685bd377f3b6d4c3c23933ccef88af83d5384a20cee0ff6423.jpg",
+      "sha256": "dcde7052127733685bd377f3b6d4c3c23933ccef88af83d5384a20cee0ff6423",
+      "source_id": "domain-canon-wide-portrait",
+      "position": "3-2-1，14mm APS-C，约等效22.4mm",
+      "caption": "近手明显突出，作者用它表现动感。",
+      "alt": "近手明显突出，作者用它表现动感。"
+    },
+    {
+      "id": "sd-neil-times-square-24mm",
+      "filename": "67948078b44b340d27ce869f5c2094129210f6398a26be953b1f11a970fbb866.jpg",
+      "sha256": "67948078b44b340d27ce869f5c2094129210f6398a26be953b1f11a970fbb866",
+      "source_id": "domain-neil-wide-portraits",
+      "position": "DSC_1494_HDR；24mm、1/200s、f/5.6、ISO200",
+      "caption": "24mm环境人像；作者先退远并请人物略前倾，最终图有HDR处理。",
+      "alt": "24mm环境人像；作者先退远并请人物略前倾，最终图有HDR处理。"
+    },
+    {
+      "id": "sd-neil-arm-position-example",
+      "filename": "071661e89bbe7e0f5f6096e009bf7a5b6f5e55ccab4dc53364d09ffe7c299fb5.jpg",
+      "sha256": "071661e89bbe7e0f5f6096e009bf7a5b6f5e55ccab4dc53364d09ffe7c299fb5",
+      "source_id": "domain-neil-wide-portraits",
+      "position": "DSC_1493-1489",
+      "caption": "两种手臂姿态的低角度近拍；作者用它们提醒近臂相对显大。",
+      "alt": "两种手臂姿态的低角度近拍；作者用它们提醒近臂相对显大。"
+    },
+    {
+      "id": "domain-manny-waist-up",
+      "filename": "65b37370c60ce1c0045bdb37db16c0bd8a757de435cccbdeed0c7e56bd0869bd.jpg",
+      "sha256": "65b37370c60ce1c0045bdb37db16c0bd8a757de435cccbdeed0c7e56bd0869bd",
+      "source_id": "pilot-s2",
+      "position": "01:10",
+      "caption": "腰上半身段的现场操作；作者讲解上胸/锁骨附近的起点。",
+      "alt": "Manny举相机拍摄模特，视频旁白在此段讲解腰上半身的相机起始高度。"
+    }
   ]
 }

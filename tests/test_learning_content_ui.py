@@ -8,6 +8,32 @@ from conftest import image_bytes
 HEIGHT_SKILL = "perspective-skill-height-proportion-diagnosis"
 
 
+def test_module_entry_shows_unique_notes_and_training_then_opens_skill(learning_site):
+    _, _, origin, _ = learning_site
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        _unlock(page, origin)
+        atlas = page.request.get(origin + "/static/learning-atlas.json").json()
+        content = atlas["learning_content"]
+        module = next(item for item in atlas["modules"] if item["id"] == "perspective-2")
+        skill_ids = set(module["skill_ids"])
+        trainings = [item for item in content["trainings"] if skill_ids.intersection(item["skill_ids"])]
+        required = {note_id for item in trainings for note_id in item["note_ids"]}
+        notes = [item for item in content["notes"]
+                 if skill_ids.intersection(item["skill_ids"]) or item["id"] in required]
+        label = f"{len(notes)} 篇笔记 · {len(trainings)} 项训练"
+        page.goto(origin + "/learning#domain=perspective")
+        row = page.locator('[data-module="perspective-2"]')
+        expect(row).to_contain_text(label)
+        row.click()
+        expect(page.locator("#module-intro")).to_contain_text(label)
+        page.locator(f'[data-skill-row="{HEIGHT_SKILL}"] .skill-open').click()
+        expect(page.locator("#skill-learning-notes")).to_be_visible()
+        expect(page.locator("#skill-status")).to_have_value("unassessed")
+        browser.close()
+
+
 @pytest.mark.parametrize("width", [1440, 390])
 def test_notes_training_links_preserve_draft_and_do_not_write_state(learning_site, width):
     _, _, origin, _ = learning_site
@@ -54,7 +80,7 @@ def test_existing_skill_has_separate_honest_reading_and_training(learning_site):
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
         _unlock(page, origin)
-        page.goto(origin + "/learning#skill=perspective-skill-height-vs-pitch")
+        page.goto(origin + "/learning#skill=composition-edge-sweep")
         expect(page.locator("#skill-learning-notes")).to_be_visible()
         assert page.locator("[data-learning-note]").count() == 0
         expect(page.locator("#skill-learning-notes")).to_contain_text("现有要点")
@@ -62,6 +88,41 @@ def test_existing_skill_has_separate_honest_reading_and_training(learning_site):
         expect(page.locator("#skill-practice")).to_be_visible()
         expect(page.locator("#skill-practice")).to_contain_text("依据")
         expect(page.locator("#skill-status")).to_have_value("unassessed")
+        browser.close()
+
+
+def test_every_perspective_skill_can_read_notes_train_and_return_without_state_writes(learning_site):
+    _, _, origin, _ = learning_site
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 390, "height": 844})
+        _unlock(page, origin)
+        before = page.request.get(origin + "/api/learning-state").json()
+        atlas = page.request.get(origin + "/static/learning-atlas.json").json()
+        modules = [item for item in atlas["modules"] if item["domain_id"] == "perspective"]
+        for module in modules:
+            page.goto(origin + "/learning#module=" + module["id"])
+            for skill_id in module["skill_ids"]:
+                row = page.locator(f'[data-skill-row="{skill_id}"]')
+                expect(row).to_contain_text("篇笔记")
+                row.locator(".skill-open").click()
+                notes = page.locator("[data-learning-note]")
+                assert notes.count() > 0, skill_id
+                assert page.locator(".existing-reading-hint").count() == 0, skill_id
+                page.locator('[data-learning-panel="training"]').click()
+                training = page.locator("[data-learning-training]").first
+                expect(training).to_be_visible()
+                expect(training).to_contain_text("依据笔记")
+                basis = training.locator("[data-learning-note-target]").first
+                note_id = basis.get_attribute("data-learning-note-target")
+                basis.click()
+                note = page.locator(f'[data-learning-note="{note_id}"]')
+                expect(note).to_be_visible()
+                expect(note.locator("[data-learning-training-target]").first).to_be_visible()
+                assert page.url.endswith("#skill=" + skill_id)
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                page.goto(origin + "/learning#module=" + module["id"])
+        assert page.request.get(origin + "/api/learning-state").json() == before
         browser.close()
 
 

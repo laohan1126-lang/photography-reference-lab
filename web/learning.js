@@ -14,6 +14,16 @@
     const notes = allNotes.filter(item => item.skill_ids.includes(skill.id) || required.has(item.id));
     return {content, notes, trainings, sources:new Map((content.sources || []).map(item => [item.id,item])), media:new Map((content.media || []).map(item => [item.id,item]))};
   }
+  function summary(skills, atlas) {
+    const notes = new Set(), trainings = new Set();
+    skills.forEach(skill => {
+      const content = contentFor(skill, atlas);
+      content.notes.forEach(note => notes.add(note.id));
+      content.trainings.forEach(training => trainings.add(training.id));
+    });
+    return {notes:notes.size, trainings:trainings.size,
+      label:notes.size ? `${notes.size} 篇笔记 · ${trainings.size} 项训练` : ''};
+  }
   function mediaFigure(item, source) {
     if (!item || !safeId(item.id)) return '';
     return `<figure class="learning-media"><button type="button" class="learning-media-open" data-teaching-media="${esc(item.id)}" aria-label="放大：${esc(item.alt)}"><img src="/api/learning-note-media/${esc(item.id)}" alt="${esc(item.alt)}" loading="lazy"></button><p class="learning-media-unavailable" hidden>图片暂不可读 · 可从下方来源回看</p><figcaption>${esc(item.caption)}<span>${sourceLink(source)} · ${esc(item.position)}</span></figcaption></figure>`;
@@ -62,7 +72,7 @@
     }
   }
   function onRouteChange() { const dialog=document.getElementById('learning-image-dialog');if(dialog?.open)dialog.close(); }
-  window.LearningContent={render,mount,onRouteChange,isOpen:()=>Boolean(document.getElementById('learning-image-dialog')?.open)};
+  window.LearningContent={render,mount,summary,onRouteChange,isOpen:()=>Boolean(document.getElementById('learning-image-dialog')?.open)};
 })();
 
 (() => {
@@ -224,10 +234,14 @@
     const domain = maps.domains.get(id);
     if (!domain) return false;
     $('domain-crumb').textContent = domain.name;
-    $('domain-module-count').textContent = `${allModules(domain).length} 个模块`;
+    const domainContent = LearningContent.summary(allModules(domain).flatMap(moduleSkills), atlas);
+    $('domain-module-count').textContent = `${allModules(domain).length} 个模块${domainContent.label ? ` · ${domainContent.label}` : ''}`;
     const cover = domainCover(domain);
     $('domain-hero').innerHTML = `<div><p class="eyebrow">FIELD ${String((atlas.domains||[]).indexOf(domain)+1).padStart(2,'0')} / ${String(atlas.domains.length).padStart(2,'0')}</p><h1 id="domain-title" tabindex="-1">${esc(domain.name)}</h1><p>${esc(domain.description || '')}</p></div><p class="domain-hero-meta">${cover ? '图片用于视觉导航<br>未作像素核验，不作技能证据' : '尚无可用的图片预览'}</p>`;
-    $('module-list').innerHTML = allModules(domain).map((module,index) => `<a class="module-row module-link" data-module="${esc(module.id)}" href="${route('module',module.id)}"><span class="module-number">${String(index+1).padStart(2,'0')}</span><span><h3>${esc(module.name)}</h3><p>${moduleSkills(module).length} 项技能</p></span><span class="arrow" aria-hidden="true">→</span></a>`).join('');
+    $('module-list').innerHTML = allModules(domain).map((module,index) => {
+      const content = LearningContent.summary(moduleSkills(module), atlas);
+      return `<a class="module-row module-link" data-module="${esc(module.id)}" href="${route('module',module.id)}"><span class="module-number">${String(index+1).padStart(2,'0')}</span><span><h3>${esc(module.name)}</h3><p>${moduleSkills(module).length} 项技能${content.label ? ` · ${esc(content.label)}` : ''}</p></span><span class="arrow" aria-hidden="true">→</span></a>`;
+    }).join('');
     return true;
   }
   function renderModule(id) {
@@ -238,7 +252,8 @@
     $('module-domain-link').href = route('domain',domain.id);
     $('module-crumb').textContent = module.name;
     $('module-title').textContent = module.name;
-    $('module-intro').textContent = `${domain.name} · 选一项技能，看笔记或开始训练。`;
+    const content = LearningContent.summary(moduleSkills(module), atlas);
+    $('module-intro').textContent = `${domain.name}${content.label ? ` · ${content.label}` : ''} · 选一项技能，看笔记或开始训练。`;
     renderSkillList(module);
     return true;
   }
@@ -250,8 +265,9 @@
     $('skill-count').textContent = `${skills.length} 项能力`;
     $('skill-list').innerHTML = skills.length ? skills.map(skill => {
       const record = recordOf(skill.id), status = statusOf(skill.id);
+      const content = LearningContent.summary([skill], atlas);
       return `<article class="skill-row" data-status="${esc(status)}" data-skill-row="${esc(skill.id)}">
-        <a class="skill-open" data-skill="${esc(skill.id)}" href="${route('skill',skill.id)}"><h3>${esc(skill.skill_name)}</h3><p>${esc(skill.capability || '')}</p></a>
+        <a class="skill-open" data-skill="${esc(skill.id)}" href="${route('skill',skill.id)}"><h3>${esc(skill.skill_name)}</h3><p>${esc(skill.capability || '')}</p>${content.label ? `<p>${esc(content.label)}</p>` : ''}</a>
         <div class="skill-markers">${record.weak?'<span class="marker active">薄弱项</span>':''}${record.focus?'<span class="marker active">当前重点</span>':''}</div>
         <span class="status-label">${esc(STATUS_LABEL[status])}</span>
       </article>`;

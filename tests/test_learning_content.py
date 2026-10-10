@@ -39,12 +39,11 @@ def test_pilot_catalogue_integrates_notes_training_sources_and_all_real_frames()
     skill_ids = {skill["id"] for skill in payload["skills"]}
     source_ids = {source["id"] for source in content["sources"]}
 
-    assert len(notes) == 4
-    assert len(trainings) == 3
-    assert len(content["sources"]) == 4
-    assert len(content["media"]) == 13
-    assert notes[0]["skill_ids"] == [HEIGHT_SKILL, OPTICAL_SKILL]
-    assert all(note["skill_ids"] == [HEIGHT_SKILL] for note in notes[1:])
+    assert len(notes) >= 4
+    assert len(trainings) >= 3
+    assert {"pilot-s1", "pilot-s2", "pilot-s3", "pilot-s4"} <= source_ids
+    pilot = next(note for note in notes if note["id"] == "perspective-note-distance-first")
+    assert {HEIGHT_SKILL, OPTICAL_SKILL} <= set(pilot["skill_ids"])
     assert all(note["citations"] for note in notes)
     assert all(set(note["skill_ids"]) <= skill_ids for note in notes)
     assert all(training["note_ids"] and set(training["note_ids"]) <= note_ids
@@ -52,7 +51,7 @@ def test_pilot_catalogue_integrates_notes_training_sources_and_all_real_frames()
     assert all(training["basis"] == "project_designed" for training in trainings)
     assert all(citation["source_id"] in source_ids
                for note in notes for citation in note["citations"])
-    assert {media["id"] for media in content["media"]} == {
+    assert {media["id"] for media in content["media"]} >= {
         "s1-close", "s1-recede", "s1-background-near", "s1-background-far",
         "s2-face-heights", "s2-lower-chest", "s2-knee-level", "s2-above-eye-warning",
         "s4-double-chin", "s4-side-upward", "s4-front-caption",
@@ -62,6 +61,24 @@ def test_pilot_catalogue_integrates_notes_training_sources_and_all_real_frames()
         assert media["filename"] in {f"{media['sha256']}.jpg", f"{media['sha256']}.png"}
         assert media["source_id"] in source_ids
         assert len(media["sha256"]) == 64
+
+
+def test_perspective_domain_has_illustrated_multi_source_notes_and_linked_training_for_every_skill():
+    payload = build_payload(RESEARCH)
+    modules = [item for item in payload["modules"] if item["domain_id"] == "perspective"]
+    expected = {skill_id for module in modules for skill_id in module["skill_ids"]}
+    assert len(modules) == 6 and len(expected) == 18
+    content = payload["learning_content"]
+    for skill_id in sorted(expected):
+        notes = [note for note in content["notes"] if skill_id in note["skill_ids"]]
+        trainings = [training for training in content["trainings"] if skill_id in training["skill_ids"]]
+        assert notes, f"{skill_id}: no authored knowledge note"
+        assert trainings, f"{skill_id}: no linked training"
+        for note in notes:
+            assert note["media_ids"] and note["lead"] and note["paragraphs"]
+            assert len({citation["source_id"] for citation in note["citations"]}) >= 2
+        note_ids = {note["id"] for note in notes}
+        assert any(note_ids.intersection(training["note_ids"]) for training in trainings)
 
 
 def test_builder_keeps_legacy_research_input_without_optional_learning_content(tmp_path: Path):
