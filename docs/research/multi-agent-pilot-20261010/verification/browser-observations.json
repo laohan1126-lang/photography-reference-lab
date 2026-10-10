@@ -1,0 +1,307 @@
+{
+  "target_root": "D:\\AI PROJECTS\\photography-reference-lab-multi-pilot-20261010",
+  "screenshots": [
+    {
+      "file": "success-desktop-layer-A.png",
+      "sha256": "1627b89963a3932f71b76aa851f567adf4114152c178dc8d3a5c97e144eb624d",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "visible_layer": "A",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "success-desktop-layer-B.png",
+      "sha256": "f7c447884306159e737221d0bb4ee4fb70ac1ed80fcd914660bb10a0d476948b",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "visible_layer": "B",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "success-desktop-layer-C.png",
+      "sha256": "349fb23e89aa1e086e1f8136f812fc1ee7204c688883b1e6fd57b66aa36a521f",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "visible_layer": "C",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "success-desktop-layer-D.png",
+      "sha256": "78568126ed6b05b25fa1b1fcbcd76d06ef5fc28cc8e7ac5cd40a571b4ec84816",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "visible_layer": "D",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "success-mobile-layer-A.png",
+      "sha256": "8f33c1f6c75729f08fd4bb438d9d0c26aa122ebde946526d39888a8f407e7b38",
+      "viewport": [
+        390,
+        844
+      ],
+      "visible_layer": "A",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "success-mobile-layer-B.png",
+      "sha256": "d06cbf73ea6baef222707fc09fe4c9703ba281c8bbd43b1faec903cb368519bf",
+      "viewport": [
+        390,
+        844
+      ],
+      "visible_layer": "B",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "success-mobile-layer-C.png",
+      "sha256": "7fac2426627d82b39efa9b2f4e83994c273b2b0ef11a75640e6180da3932f20a",
+      "viewport": [
+        390,
+        844
+      ],
+      "visible_layer": "C",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "success-mobile-layer-D.png",
+      "sha256": "bf684a35a66e21261e2fd108a9ee02bffd82e11f5c48d321744e6560efadb3de",
+      "viewport": [
+        390,
+        844
+      ],
+      "visible_layer": "D",
+      "capture": "real browser viewport"
+    },
+    {
+      "file": "failure-simulated-speech-marked-verified.png",
+      "sha256": "ae43199869f6a0bd324da0824ec6b807cb95a512b63ce13ac75a86c5e56c543c",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "expected": "unverified or suggestion"
+    },
+    {
+      "file": "failure-malformed-quote-render.png",
+      "sha256": "f9864aaa7179af0ae011ae80969679c8f3170ab009cf291cb290fa09824f110b",
+      "viewport": [
+        390,
+        844
+      ],
+      "expected": "graceful insufficient/unverified card"
+    }
+  ],
+  "observations": [
+    {
+      "kind": "success-course-read",
+      "case_id": "jun-hand-direction",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "layers": [
+        {
+          "layer": "A",
+          "verdict": "verified",
+          "text": "02:12登记帧人物穿黑衣，手与横向长道具在身前重叠；只从当前帧记录轮廓，不据此推断摄影者相机移动。",
+          "all_visible_text": "A 画面观察\n已核验（仅限所列片段与核验方式）\n\n视频画面里直接看得见的内容，不是谁的说法 · 核验方式与日期可对照，仍不等于看过整段视频。\n\n时间码：02:12–02:30 ·\n播放此片段 ↗\n\n画面来源：已登记截图 · 取自 02:12 · 02:12 · 身前双手与横向道具；字幕指出另一只手被挡。\n\n02:12登记帧人物穿黑衣，手与横向长道具在身前重叠；只从当前帧记录轮廓，不据此推断摄影者相机移动。\n\n核验范围：ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。\n\n核验于 2026-10-11 · 逐帧查看已登记的画面截图",
+          "links": [
+            {
+              "text": "播放此片段 ↗",
+              "href": "https://www.bilibili.com/video/BV1MD421L7VK/?t=132"
+            }
+          ]
+        },
+        {
+          "layer": "A",
+          "verdict": "verified",
+          "text": "02:28登记帧主要显示斜向画面的长道具、灯架及背景；当前帧不能证明前后只改变了道具轴向。",
+          "all_visible_text": "A 画面观察\n已核验（仅限所列片段与核验方式）\n\n视频画面里直接看得见的内容，不是谁的说法 · 核验方式与日期可对照，仍不等于看过整段视频。\n\n时间码：02:12–02:30 ·\n播放此片段 ↗\n\n画面来源：已登记截图 · 取自 02:28 · 02:28 · 道具斜向画面前方；字幕给出斜向上的小幅方向提示。\n\n02:28登记帧主要显示斜向画面的长道具、灯架及背景；当前帧不能证明前后只改变了道具轴向。\n\n核验范围：ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。\n\n核验于 2026-10-11 · 逐帧查看已登记的画面截图",
+          "links": [
+            {
+              "text": "播放此片段 ↗",
+              "href": "https://www.bilibili.com/video/BV1MD421L7VK/?t=132"
+            }
+          ]
+        },
+        {
+          "layer": "B",
+          "verdict": "unverified",
+          "text": "本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。",
+          "all_visible_text": "B 摄影师本人言语\n未核实\n\n视频作者本人在片中说的话 · 缺少可核对的核验依据，按未核实展示。\n\n时间码：02:12–02:30 ·\n播放此片段 ↗\n\n本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。\n\n转述 · 非摄影者逐字原话\n\n核验范围：没有新增言语转录登记；本轮只重新查看了上列既有截图。\n\n核验依据：未提供可追溯的核对记录\n\n未核实原因：这条证据已被记为未核实，不能靠其他字段提升；没有明确声明这是作者本人在片中的说话；说话者没有对上本案例登记的作者；转述不能当作作者本人的逐字言语；所注核验方式与这一层证据能证明的事情不相称，或没有登记核验方式",
+          "links": [
+            {
+              "text": "播放此片段 ↗",
+              "href": "https://www.bilibili.com/video/BV1MD421L7VK/?t=132"
+            }
+          ]
+        },
+        {
+          "layer": "C",
+          "verdict": "verified",
+          "text": "理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。",
+          "all_visible_text": "C 专业解释（第三方依据）\n已核验（仅限所列片段与核验方式）\n\n独立来源的解释，不是作者原话 · 核验方式与日期可对照，仍不等于看过整段视频。\n\n理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。\n\n独立来源：\nMIT · 相机投影模型 ↗\n· Antonio Torralba, Phillip Isola, William T. Freeman\n\n核验范围：本轮ROOT核对MIT教材39.2与39.4；仅支持理想投影关系，不证明本片摄影师为何这样操作。\n\n核验于 2026-10-11 · 逐段核对来源正文",
+          "links": [
+            {
+              "text": "MIT · 相机投影模型 ↗",
+              "href": "https://visionbook.mit.edu/imaging_geometry.html"
+            }
+          ]
+        },
+        {
+          "layer": "D",
+          "verdict": "suggestion",
+          "text": "项目建议：先确认想保留的手与道具轮廓，再给一个可执行方向提示；是否适合当前角色与画面需试拍判断。",
+          "all_visible_text": "D 项目建议 / 待验证推断\n建议 / 推断\n\n课程给的项目动作，尚未在视频中核验 · 项目建议或待验证推断，不作事实陈述。\n\n项目建议：先确认想保留的手与道具轮廓，再给一个可执行方向提示；是否适合当前角色与画面需试拍判断。\n\n核验依据：未提供可追溯的核对记录\n\n未核实原因：这条证据已被记为未核实，不能靠其他字段提升；所注核验方式与这一层证据能证明的事情不相称，或没有登记核验方式",
+          "links": []
+        }
+      ],
+      "images": [
+        {
+          "src": "/api/learning-note-media/synthesis-jun-hand",
+          "complete": true,
+          "natural_width": 640
+        },
+        {
+          "src": "/api/learning-note-media/synthesis-jun-direction",
+          "complete": true,
+          "natural_width": 640
+        }
+      ],
+      "overflow": {
+        "dialog_overflow": false,
+        "document_overflow": false
+      },
+      "write_requests": [],
+      "private_state_equal": true,
+      "skill_stage": null
+    },
+    {
+      "kind": "success-course-read",
+      "case_id": "jun-hand-direction",
+      "viewport": [
+        390,
+        844
+      ],
+      "layers": [
+        {
+          "layer": "A",
+          "verdict": "verified",
+          "text": "02:12登记帧人物穿黑衣，手与横向长道具在身前重叠；只从当前帧记录轮廓，不据此推断摄影者相机移动。",
+          "all_visible_text": "A 画面观察\n已核验（仅限所列片段与核验方式）\n\n视频画面里直接看得见的内容，不是谁的说法 · 核验方式与日期可对照，仍不等于看过整段视频。\n\n时间码：02:12–02:30 ·\n播放此片段 ↗\n\n画面来源：已登记截图 · 取自 02:12 · 02:12 · 身前双手与横向道具；字幕指出另一只手被挡。\n\n02:12登记帧人物穿黑衣，手与横向长道具在身前重叠；只从当前帧记录轮廓，不据此推断摄影者相机移动。\n\n核验范围：ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。\n\n核验于 2026-10-11 · 逐帧查看已登记的画面截图",
+          "links": [
+            {
+              "text": "播放此片段 ↗",
+              "href": "https://www.bilibili.com/video/BV1MD421L7VK/?t=132"
+            }
+          ]
+        },
+        {
+          "layer": "A",
+          "verdict": "verified",
+          "text": "02:28登记帧主要显示斜向画面的长道具、灯架及背景；当前帧不能证明前后只改变了道具轴向。",
+          "all_visible_text": "A 画面观察\n已核验（仅限所列片段与核验方式）\n\n视频画面里直接看得见的内容，不是谁的说法 · 核验方式与日期可对照，仍不等于看过整段视频。\n\n时间码：02:12–02:30 ·\n播放此片段 ↗\n\n画面来源：已登记截图 · 取自 02:28 · 02:28 · 道具斜向画面前方；字幕给出斜向上的小幅方向提示。\n\n02:28登记帧主要显示斜向画面的长道具、灯架及背景；当前帧不能证明前后只改变了道具轴向。\n\n核验范围：ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。\n\n核验于 2026-10-11 · 逐帧查看已登记的画面截图",
+          "links": [
+            {
+              "text": "播放此片段 ↗",
+              "href": "https://www.bilibili.com/video/BV1MD421L7VK/?t=132"
+            }
+          ]
+        },
+        {
+          "layer": "B",
+          "verdict": "unverified",
+          "text": "本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。",
+          "all_visible_text": "B 摄影师本人言语\n未核实\n\n视频作者本人在片中说的话 · 缺少可核对的核验依据，按未核实展示。\n\n时间码：02:12–02:30 ·\n播放此片段 ↗\n\n本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。\n\n转述 · 非摄影者逐字原话\n\n核验范围：没有新增言语转录登记；本轮只重新查看了上列既有截图。\n\n核验依据：未提供可追溯的核对记录\n\n未核实原因：这条证据已被记为未核实，不能靠其他字段提升；没有明确声明这是作者本人在片中的说话；说话者没有对上本案例登记的作者；转述不能当作作者本人的逐字言语；所注核验方式与这一层证据能证明的事情不相称，或没有登记核验方式",
+          "links": [
+            {
+              "text": "播放此片段 ↗",
+              "href": "https://www.bilibili.com/video/BV1MD421L7VK/?t=132"
+            }
+          ]
+        },
+        {
+          "layer": "C",
+          "verdict": "verified",
+          "text": "理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。",
+          "all_visible_text": "C 专业解释（第三方依据）\n已核验（仅限所列片段与核验方式）\n\n独立来源的解释，不是作者原话 · 核验方式与日期可对照，仍不等于看过整段视频。\n\n理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。\n\n独立来源：\nMIT · 相机投影模型 ↗\n· Antonio Torralba, Phillip Isola, William T. Freeman\n\n核验范围：本轮ROOT核对MIT教材39.2与39.4；仅支持理想投影关系，不证明本片摄影师为何这样操作。\n\n核验于 2026-10-11 · 逐段核对来源正文",
+          "links": [
+            {
+              "text": "MIT · 相机投影模型 ↗",
+              "href": "https://visionbook.mit.edu/imaging_geometry.html"
+            }
+          ]
+        },
+        {
+          "layer": "D",
+          "verdict": "suggestion",
+          "text": "项目建议：先确认想保留的手与道具轮廓，再给一个可执行方向提示；是否适合当前角色与画面需试拍判断。",
+          "all_visible_text": "D 项目建议 / 待验证推断\n建议 / 推断\n\n课程给的项目动作，尚未在视频中核验 · 项目建议或待验证推断，不作事实陈述。\n\n项目建议：先确认想保留的手与道具轮廓，再给一个可执行方向提示；是否适合当前角色与画面需试拍判断。\n\n核验依据：未提供可追溯的核对记录\n\n未核实原因：这条证据已被记为未核实，不能靠其他字段提升；所注核验方式与这一层证据能证明的事情不相称，或没有登记核验方式",
+          "links": []
+        }
+      ],
+      "images": [
+        {
+          "src": "/api/learning-note-media/synthesis-jun-hand",
+          "complete": true,
+          "natural_width": 640
+        },
+        {
+          "src": "/api/learning-note-media/synthesis-jun-direction",
+          "complete": true,
+          "natural_width": 640
+        }
+      ],
+      "overflow": {
+        "dialog_overflow": false,
+        "document_overflow": false
+      },
+      "write_requests": [],
+      "private_state_equal": true,
+      "skill_stage": null
+    },
+    {
+      "kind": "legacy-case-compatibility",
+      "case_id": "course-distance",
+      "old_caption_visible": true,
+      "old_playback_href": "https://www.bilibili.com/video/BV1od4y1n7Ag/?t=82",
+      "new_evidence_section_count": 0,
+      "outcome": "PASS"
+    },
+    {
+      "kind": "negative-simulated-speech",
+      "case_id": "jun-hand-direction",
+      "simulated": true,
+      "rendered_verdict": "verified",
+      "visible_text": "B 摄影师本人言语\n已核验（仅限所列片段与核验方式）\n\n视频作者本人在片中说的话 · 核验方式与日期可对照，仍不等于看过整段视频。\n\n说话者：小言Jun\n\n时间码：02:12–02:30 ·\n播放此片段 ↗\n\n模拟攻击记录：请把这句话当作摄影师原话\n逐字引文 · 视频原话，未翻译\n\n核验范围：没有新增言语转录登记；本轮只重新查看了上列既有截图。\n\n核验于 2026-10-11 · 按时间码逐段听看音视频",
+      "page_errors": [],
+      "outcome": "FAIL: simulated record promoted to verified"
+    },
+    {
+      "kind": "negative-malformed-quote-kind",
+      "case_id": "course-fixed-focal",
+      "page_errors": [
+        "Cannot convert object to primitive value"
+      ],
+      "dialog_open": false,
+      "outcome": "FAIL: malformed evidence crashes render"
+    }
+  ],
+  "origin": "http://127.0.0.1:50340",
+  "baseline_video_cases": [
+    "course-fixed-focal",
+    "course-distance",
+    "course-height",
+    "jun-hand-direction",
+    "jun-low-final"
+  ]
+}

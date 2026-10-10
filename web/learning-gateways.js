@@ -5,9 +5,88 @@ window.LearningGateways = (() => {
   const labels = {unassessed:'尚未自评', unseen:'尚未接触', terms:'了解术语', principles:'理解基本原理', analysis:'能够分析案例', transfer:'能独立迁移到新场景', field:'已经过实际拍摄验证'};
   const notes = {unassessed:'阅读与展开解析不会替你升级。', unseen:'这是你的自评，可以直接跳到有挑战的部分。', terms:'能认出概念名称，还不等于能解释照片。', principles:'能解释变量关系；下一步用具体画面检验。', analysis:'能指出图中证据，也能说清尚不能确定的条件。', transfer:'由你确认能在未讲过的场景中独立判断。', field:'由你确认已经拍摄、比较并验证；可在关联技能中附实拍记录。'};
   const drafts = new Map();
-  let catalog = [], sources = new Map(), noteMedia = new Map(), host, dialog, scroll, current = null, origin = null, busy = false;
+  let catalog = [], sources = new Map(), noteMedia = new Map(), contentSources = new Map(), speechRecords = new Map(), host, dialog, scroll, current = null, origin = null, busy = false;
   const key = id => `photography-gateway-draft-v2:${id}`;
   const safeURL = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u.href : ''; } catch { return ''; } };
+  // Video evidence is optional metadata. Anything a field claims about itself is never enough on its own.
+  const evidenceLayers = {
+    A: {tag:'A 画面观察', note:'视频画面里直接看得见的内容，不是谁的说法'},
+    B: {tag:'B 摄影师本人言语', note:'视频作者本人在片中说的话'},
+    C: {tag:'C 专业解释（第三方依据）', note:'独立来源的解释，不是作者原话'},
+    D: {tag:'D 项目建议 / 待验证推断', note:'课程给的项目动作，尚未在视频中核验'}
+  };
+  const evidenceVerdicts = {
+    verified:{label:'已核验（仅限所列片段与核验方式）', hint:'核验方式与日期可对照，仍不等于看过整段视频。'},
+    unverified:{label:'未核实', hint:'缺少可核对的核验依据，按未核实展示。'},
+    insufficient:{label:'证据不足', hint:'来源、时间码或正文缺失，无法展示为证据。'},
+    suggestion:{label:'建议 / 推断', hint:'项目建议或待验证推断，不作事实陈述。'}
+  };
+  // A verification method names what a person actually compared; a field claiming it was checked is not a method.
+  const verificationMethods = {
+    frames_reviewed:'逐帧查看已登记的画面截图',
+    clip_watched:'通看已登记的播放片段',
+    av_segment_check:'按时间码逐段听看音视频',
+    subtitle_segment_check:'按时间码逐段核对字幕',
+    text_cross_check:'逐段核对来源正文'
+  };
+  // A single frame cannot prove what somebody said; third-party prose is not proved by watching frames either.
+  const layerMethods = {
+    A: new Set(['frames_reviewed','clip_watched']),
+    B: new Set(['av_segment_check','subtitle_segment_check']),
+    C: new Set(['text_cross_check'])
+  };
+  const methodLabel = code => verificationMethods[code] || '';
+  const quoteKinds = new Set(['verbatim','translation','paraphrase']);
+  const quoteLabel = {verbatim:'逐字引文 · 视频原话，未翻译', translation:'中文翻译 · 对应上方原文，不是新拍视频', paraphrase:'转述 · 非摄影者逐字原话'};
+  const clipSeconds = value => Number.isInteger(value) && value >= 0 && value <= 86400;
+  const evidenceTime = seconds => `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+  const timeAt = (url, seconds) => { const target = new URL(url); target.searchParams.set('t', String(seconds)); return target.href; };
+  const samePerson = (a, b) => typeof a === 'string' && typeof b === 'string' && a.trim().replace(/\s+/g,' ').toLowerCase() === b.trim().replace(/\s+/g,' ').toLowerCase();
+  const frameSeconds = value => {
+    if (Number.isInteger(value)) return value;
+    if (typeof value === 'string' && /^\d{1,3}:\d{2}$/.test(value.trim())) {
+      const parts = value.trim().split(':').map(Number);
+      return parts[0] * 60 + parts[1];
+    }
+    return null;
+  };
+  // Only a real calendar day counts as a checking date; 2026-99-99 is not one.
+  const calendarDay = value => {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  };
+  // Identity of the video itself: ?t= and #fragment never make two clips look different, but the video ID always does.
+  const timingParams = new Set(['t','time','start','end','timestamp','amp','list','index']);
+  const youTubeID = value => /^[A-Za-z0-9_-]{11}$/.test(value || '') ? value : '';
+  const videoKey = value => {
+    const href = safeURL(value);
+    if (!href) return '';
+    const parsed = new URL(href);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    if (host === 'youtu.be') { const id = youTubeID(segments[0]); return id ? `youtube:${id}` : ''; }
+    if (/(^|\.)youtube(-nocookie)?\.com$/.test(host)) {
+      const fromQuery = youTubeID(parsed.searchParams.get('v'));
+      if (fromQuery) return `youtube:${fromQuery}`;
+      if (new Set(['shorts','embed','live','v']).has(segments[0])) {
+        const id = youTubeID(segments[1]);
+        return id ? `youtube:${id}` : '';
+      }
+      return '';
+    }
+    if (host === 'bilibili.com' || host === 'b23.tv') {
+      const tagged = segments.find(part => /^BV[0-9A-Za-z]{10}$/.test(part));
+      if (!tagged) return '';
+      const page = /^\d+$/.test(parsed.searchParams.get('p') || '') ? `:p${parsed.searchParams.get('p')}` : '';
+      return `bilibili:${tagged}${page}`;
+    }
+    // Other sites keep every parameter that decides which item this is; only timing and tracking are dropped.
+    const kept = [...parsed.searchParams.entries()].filter(([name]) => !timingParams.has(name.toLowerCase()));
+    return `${host}${parsed.pathname}${kept.length ? `?${kept.map(([name, value]) => `${name}=${value}`).join('&')}` : ''}`;
+  };
+  const MISSING_TEXT = '没有可读的证据正文';
   const record = id => host.record(id) || {};
   function getDraft(id) {
     if (drafts.has(id)) return drafts.get(id);
@@ -31,6 +110,186 @@ window.LearningGateways = (() => {
     const node = document.getElementById('gateway-message');
     if (node) { node.textContent = text; node.dataset.error = String(error); }
   }
+  function evidenceTiming(item, entry) {
+    const caseKey = videoKey(item && item.url);
+    if (!caseKey) return {ok:false, reason:'该案例没有安全、可识别的视频出处，时间码无法归属到具体视频'};
+    if (!clipSeconds(entry.start) || !clipSeconds(entry.end) || entry.end <= entry.start) return {ok:false, reason:'缺少可用时间码'};
+    const clip = item.playback;
+    if (!clipSeconds(clip?.start) || !clipSeconds(clip?.end) || clip.end <= clip.start) return {ok:false, reason:'该案例没有登记播放区间，无法确认这段时间码属于本片'};
+    if (entry.start < clip.start || entry.end > clip.end) return {ok:false, reason:`时间码 ${evidenceTime(entry.start)}–${evidenceTime(entry.end)} 超出本案例播放区间 ${evidenceTime(clip.start)}–${evidenceTime(clip.end)}`};
+    const declared = typeof entry.url === 'string' ? entry.url.trim() : '';
+    if (declared) {
+      const entryKey = videoKey(declared);
+      if (!entryKey) return {ok:false, reason:'声明的视频出处不是安全、可识别的视频地址'};
+      if (entryKey !== caseKey) return {ok:false, reason:'声明的视频出处与该案例登记的视频不是同一条'};
+    }
+    return {ok:true, start:entry.start, end:entry.end, text:`${evidenceTime(entry.start)}–${evidenceTime(entry.end)}`};
+  }
+  // Frame review only counts when it points at a screenshot this checkout already holds, from this case's own video.
+  function frameBinding(item, entry, timing) {
+    if (!timing.ok) return timing.reason;
+    const mediaId = typeof entry.media_id === 'string' ? entry.media_id.trim() : '';
+    if (!mediaId) return '没有指向任何一张已登记的画面截图';
+    const media = noteMedia.get(mediaId);
+    if (!media) return '所指截图不在本机已登记的画面清单里';
+    const at = frameSeconds(media.position);
+    if (at === null || !clipSeconds(at)) return '该截图没有登记可追溯的时间位置';
+    if (at < timing.start || at > timing.end) return `该截图取自 ${evidenceTime(at)}，不在所列时间码 ${timing.text} 内`;
+    const sourceId = typeof media.source_id === 'string' ? media.source_id.trim() : '';
+    const source = sourceId ? contentSources.get(sourceId) : null;
+    if (!source) return '该截图没有登记到可追溯的视频来源';
+    const sourceKey = videoKey(source.url);
+    if (!sourceKey) return '该截图登记的视频来源不是安全、可识别的视频地址';
+    if (sourceKey !== videoKey(item.url)) return '该截图登记的视频来源与本案例不是同一条视频';
+    return '';
+  }
+  // Saying the words were checked is not a check: layer B needs a registered transcript record for this very clip.
+  function speechBinding(item, entry, timing) {
+    if (!timing.ok) return timing.reason;
+    const method = typeof entry.verified_by === 'string' ? entry.verified_by : '';
+    const recordId = typeof entry.speech_record_id === 'string' ? entry.speech_record_id.trim() : '';
+    if (!recordId) return '没有指向任何一条已登记的言语记录（speech_record_id），只有“已核对音视频/字幕”的自述';
+    const record = speechRecords.get(recordId);
+    if (!record || typeof record !== 'object') return '所指言语记录不在本机已登记的言语记录清单里';
+    const sourceId = typeof record.source_id === 'string' ? record.source_id.trim() : '';
+    const source = sourceId ? contentSources.get(sourceId) : null;
+    const declared = typeof record.url === 'string' ? record.url.trim() : '';
+    const recordURL = declared || (source && typeof source.url === 'string' ? source.url.trim() : '');
+    if (!recordURL) return '该言语记录没有登记到可追溯的视频出处';
+    const recordKey = videoKey(recordURL);
+    if (!recordKey) return '该言语记录登记的视频出处不是安全、可识别的视频地址';
+    if (recordKey !== videoKey(item.url)) return '该言语记录登记的视频与本案例不是同一条';
+    if (record.start !== timing.start || record.end !== timing.end) return '该言语记录登记的时间段与这条证据所列时间码不是同一段';
+    if (!samePerson(record.speaker, item.author)) return '该言语记录登记的说话者与本案例作者对不上';
+    const transcript = typeof record.transcript === 'string' ? record.transcript.trim() : '';
+    if (!transcript) return '该言语记录没有写出实际转录原文';
+    const quoted = entry.quote_kind === 'translation'
+      ? (typeof entry.original === 'string' ? entry.original.trim() : '')
+      : (typeof entry.text === 'string' ? entry.text.trim() : '');
+    if (!quoted || transcript !== quoted) return '转录原文与这条证据所引的原话对不上';
+    if (typeof record.verification_scope !== 'string' || !record.verification_scope.trim()) return '该言语记录没有写清核验范围';
+    if (!calendarDay(record.checked_at)) return '该言语记录没有可核对的真实核验日期';
+    if (method && record.verified_by !== method) return '该言语记录的核对方式与这条证据所注方式不是同一种';
+    if (!layerMethods.B.has(record.verified_by)) return '该言语记录登记的核对方式不能证明作者本人在片中说了什么';
+    return '';
+  }
+  // Anything read for display is normalized once, here: a value that is not plain text counts as missing, never as a crash.
+  const plain = value => typeof value === 'string' ? value : '';
+  const displayFields = {text:'证据正文', speaker:'说话者', original:'原文', verification_scope:'核验范围'};
+  function readableEntry(entry) {
+    const safe = {...entry};
+    const unreadable = [];
+    for (const [field, name] of Object.entries(displayFields)) {
+      const value = entry[field];
+      if (value === undefined || value === null) continue;
+      if (typeof value !== 'string') { safe[field] = ''; unreadable.push(name); continue; }
+      safe[field] = value;
+    }
+    return {entry: safe, unreadable};
+  }
+  function citedSources(entry, caseKey) {
+    const ids = (Array.isArray(entry.source_ids) ? entry.source_ids : []).filter(id => typeof id === 'string' && id.trim());
+    const problems = ids.length ? [] : ['没有列出可追溯的来源'];
+    const registered = [];
+    for (const id of ids) {
+      const source = sources.get(id);
+      if (!source) { problems.push('所列来源没有登记在本项目的来源清单里'); continue; }
+      if (!safeURL(source.url)) { problems.push('所列来源的链接不是安全地址'); continue; }
+      if (caseKey && videoKey(source.url) === caseKey) { problems.push('所列来源就是本案例这条视频，不能当作独立第三方依据'); continue; }
+      registered.push(source);
+    }
+    if (!registered.length && !problems.length) problems.push('没有可追溯的独立来源');
+    return {problems, registered};
+  }
+  function evidenceIssues(item, entry, layer, timing, simulated) {
+    const issues = [];
+    if (typeof entry.text !== 'string' || !entry.text.trim()) issues.push(MISSING_TEXT);
+    if (simulated) issues.push('模拟夹具，非真实视频研究，不构成核验');
+    if (entry.verified === false || entry.status === 'unverified') issues.push('这条证据已被记为未核实，不能靠其他字段提升');
+    if (layer === 'B') {
+      if (entry.attribution !== 'clip_speech') issues.push('没有明确声明这是作者本人在片中的说话');
+      if (!samePerson(entry.speaker, item.author)) issues.push('说话者没有对上本案例登记的作者');
+      if (!quoteKinds.has(entry.quote_kind)) issues.push('没有说明这是逐字原话、翻译还是转述');
+      else if (entry.quote_kind === 'paraphrase') issues.push('转述不能当作作者本人的逐字言语');
+      if (entry.quote_kind === 'translation' && (typeof entry.original !== 'string' || !entry.original.trim())) issues.push('标为翻译但缺少原文');
+      if (entry.verified_by === 'av_segment_check' || entry.verified_by === 'subtitle_segment_check') {
+        const problem = speechBinding(item, entry, timing);
+        if (problem) issues.push(problem);
+      }
+    }
+    if (layer === 'A') {
+      const method = entry.verified_by;
+      if (method === 'frames_reviewed') { const problem = frameBinding(item, entry, timing); if (problem) issues.push(problem); }
+      else if (method === 'clip_watched') {
+        if (!timing.ok) issues.push(timing.reason);
+        if (!citedSources(entry, videoKey(item.url)).registered.length) issues.push('通看片段却没有登记可追溯的片段来源');
+      } else if (!timing.ok) issues.push(timing.reason);
+    } else if (layer === 'B' && !timing.ok) issues.push(timing.reason);
+    if (layer === 'C') {
+      issues.push(...citedSources(entry, videoKey(item.url)).problems);
+      if (typeof entry.verification_scope !== 'string' || !entry.verification_scope.trim()) issues.push('没有写清这段解释在来源中的范围');
+    }
+    const allowed = layerMethods[layer];
+    const method = typeof entry.verified_by === 'string' ? entry.verified_by : '';
+    if (!allowed || !allowed.has(method)) issues.push('所注核验方式与这一层证据能证明的事情不相称，或没有登记核验方式');
+    else if (!calendarDay(entry.checked_at)) issues.push('没有可核对的真实核验日期');
+    return issues;
+  }
+  function evidenceVerdict(item, entry, layer, timing, simulated, issues) {
+    if (layer === 'D') return issues.includes(MISSING_TEXT) ? 'insufficient' : 'suggestion';
+    if (typeof entry.text !== 'string' || !entry.text.trim()) return 'insufficient';
+    if (simulated) return 'unverified';
+    return issues.length ? 'unverified' : 'verified';
+  }
+  function evidenceQuoteHTML(entry) {
+    if (entry.quote_kind === 'translation') return `<blockquote class="evidence-quote"><span class="evidence-quote-kind">原文</span>${esc(entry.original)}</blockquote><p class="evidence-body"><span class="evidence-quote-kind">中文翻译</span>${esc(entry.text)}</p><span class="evidence-kind">${quoteLabel.translation}</span>`;
+    const tag = entry.quote_kind === 'verbatim' ? 'blockquote' : 'p';
+    return `<${tag} class="evidence-body">${esc(entry.text)}</${tag}><span class="evidence-kind">${quoteLabel[entry.quote_kind] || quoteLabel.paraphrase}</span>`;
+  }
+  function frameLabel(entry) {
+    const media = typeof entry.media_id === 'string' ? noteMedia.get(entry.media_id.trim()) : null;
+    const at = media ? frameSeconds(media.position) : null;
+    if (!media || at === null || !clipSeconds(at)) return '';
+    return `画面来源：已登记截图 · 取自 ${evidenceTime(at)}${typeof media.caption === 'string' && media.caption.trim() ? ` · ${media.caption.trim()}` : ''}`;
+  }
+  function evidenceEntryHTML(item, url, entry, simulated) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return `<div class="evidence-item" data-verdict="insufficient"><p class="evidence-tag">未分类证据 · 证据不足</p><p class="evidence-note">该条不是可读的证据对象，已跳过。</p></div>`;
+    const layer = typeof entry.layer === 'string' ? entry.layer.trim().toUpperCase() : '';
+    const meta = evidenceLayers[layer];
+    if (!meta) {
+      const unknown = readableEntry(entry);
+      return `<div class="evidence-item" data-verdict="insufficient"><p class="evidence-tag">未分类证据 · 证据不足</p><p class="evidence-body">${esc(unknown.entry.text)}</p><p class="evidence-note">层级标识无法识别，不能归入 A/B/C/D。</p></div>`;
+    }
+    const readable = readableEntry(entry);
+    const view = readable.entry;
+    const timing = (layer === 'A' || layer === 'B') ? evidenceTiming(item, view) : {ok:false};
+    const issues = evidenceIssues(item, view, layer, timing, simulated);
+    if (readable.unreadable.length) issues.push(`${readable.unreadable.join('、')}不是可读文本，无法展示或核对，按未核实处理`);
+    const verdict = evidenceVerdict(item, view, layer, timing, simulated, issues);
+    const shown = evidenceVerdicts[verdict];
+    const speaker = layer === 'B' && view.speaker ? `<p class="evidence-meta">说话者：${samePerson(view.speaker, item.author) ? esc(view.speaker) : `${esc(view.speaker)}（与本案例登记的作者对不上）`}</p>` : '';
+    const timingLine = (layer === 'A' || layer === 'B')
+      ? `<p class="evidence-meta">时间码：${timing.ok ? esc(timing.text) : `缺失或越界（${esc(timing.reason)}）`}${timing.ok && url ? ` · <a class="evidence-clip" href="${esc(timeAt(url, timing.start))}" target="_blank" rel="noopener noreferrer">播放此片段 ↗</a>` : ''}</p>`
+      : '';
+    const frame = layer === 'A' && frameLabel(view) ? `<p class="evidence-meta">${esc(frameLabel(view))}</p>` : '';
+    const citations = layer === 'C'
+      ? `<p class="evidence-meta">独立来源：${(Array.isArray(view.source_ids) ? view.source_ids : []).map(id => sources.get(id)).filter(Boolean).map(source => `<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(plain(source.short_title) || plain(source.title))} ↗</a> · ${esc(plain(source.author))}`).join('；') || '未登记'}</p>`
+      : '';
+    const scope = view.verification_scope ? `<p class="evidence-meta">核验范围：${esc(view.verification_scope)}</p>` : '';
+    const stamp = verdict === 'verified'
+      ? `<p class="evidence-meta">核验于 ${esc(view.checked_at)} · ${esc(methodLabel(view.verified_by))}</p>`
+      : `<p class="evidence-meta">核验依据：未提供可追溯的核对记录</p>`;
+    return `<div class="evidence-item" data-layer="${esc(layer)}" data-verdict="${esc(verdict)}"><p class="evidence-tag">${esc(meta.tag)} <span class="evidence-verdict">${esc(shown.label)}</span></p><p class="evidence-note">${esc(meta.note)} · ${esc(shown.hint)}</p>${speaker}${timingLine}${frame}${layer === 'B' ? evidenceQuoteHTML(view) : `<p class="evidence-body">${esc(view.text)}</p>`}${citations}${scope}${stamp}${issues.length ? `<p class="evidence-issues">未核实原因：${esc(issues.join('；'))}</p>` : ''}</div>`;
+  }
+  function videoEvidenceHTML(item, url) {
+    const data = item.video_evidence;
+    const entries = Array.isArray(data) ? data : Array.isArray(data?.layers) ? data.layers : [];
+    const simulated = data?.simulated === true || entries.some(entry => entry && typeof entry === 'object' && entry.simulated === true);
+    if (!entries.length && !simulated) return '';
+    const body = entries.map(entry => evidenceEntryHTML(item, url, entry, simulated)).join('');
+    const banner = simulated ? `<p class="evidence-fixture">模拟夹具，非真实视频研究。此处只用于验证分层显示，不构成任何真实媒体事实或正式核验。</p>` : '';
+    return `<section class="case-evidence" aria-label="视频证据分层"><p class="evidence-title">视频证据分层 <span>A 画面观察 · B 摄影者本人言语 · C 专业解释 · D 建议 / 推断</span></p>${banner}${body || '<p class="evidence-note">没有可用的证据条目。</p>'}<p class="evidence-note">“已核验”只覆盖所列时间码、所引来源与所注核验方式；搜索摘要、AI 判断或自称已核验的字段都不算核对过。时间码链接只跳转播放，不写入任何私人学习记录。</p></section>`;
+  }
   function caseHTML(gateway, id) {
     const item = gateway.cases.find(c => c.id === id);
     if (!item) return '';
@@ -47,14 +306,11 @@ window.LearningGateways = (() => {
     }).join('');
     const summary = item.source_summary;
     const clip = item.playback;
-    const time = seconds => `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
     let playback = '';
     if (url && Number.isInteger(clip?.start) && Number.isInteger(clip?.end) && clip.start >= 0 && clip.end > clip.start && clip.end <= 86400) {
-      const target = new URL(url);
-      target.searchParams.set('t', String(clip.start));
-      playback = `<a class="case-playback" href="${esc(target.href)}" target="_blank" rel="noopener noreferrer">播放出处 ${time(clip.start)}–${time(clip.end)} ↗</a>`;
+      playback = `<a class="case-playback" href="${esc(timeAt(url, clip.start))}" target="_blank" rel="noopener noreferrer">播放出处 ${evidenceTime(clip.start)}–${evidenceTime(clip.end)} ↗</a>`;
     }
-    return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span>${summary?`<details class="case-source-summary"><summary>原文要点 · 中文转述</summary><p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span></details>`:''}${playback}<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
+    return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span>${summary?`<details class="case-source-summary"><summary>原文要点 · 中文转述</summary><p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span></details>`:''}${playback}${videoEvidenceHTML(item, url)}<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
   }
   function citations(ids) {
     return (ids || []).map(id => sources.get(id)).filter(Boolean).map(source => `<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title)} ↗</a>`).join(' · ');
@@ -159,6 +415,8 @@ window.LearningGateways = (() => {
   function init(data, options) {
     catalog=data.gateways || []; sources=new Map((data.gateway_sources || []).map(item=>[item.id,item])); host=options;
     noteMedia=new Map((data.learning_content?.media || []).map(item=>[item.id,item]));
+    contentSources=new Map((data.learning_content?.sources || []).map(item=>[item.id,item]));
+    speechRecords=new Map((data.learning_content?.speech_records || []).map(item=>[item.id,item]));
     dialog=document.getElementById('gateway-dialog');
     const index=document.getElementById('gateway-index');
     index.hidden=!catalog.length;

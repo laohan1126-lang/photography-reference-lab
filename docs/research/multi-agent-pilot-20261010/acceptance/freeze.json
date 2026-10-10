@@ -1,0 +1,17 @@
+{
+  "frozen_at_utc": "2026-10-10T15:59:09Z",
+  "artifacts": {
+    "ACCEPTANCE.md": "857b11c0014203c519130767ef14add01874d6ac576c0bbce882418671be08e7",
+    "test_video_evidence.py": "6f6109a5d73db640b64d7533aeff702482854c3d0251df497cff7039e1bcad0e"
+  },
+  "baseline_runs": [
+    {
+      "command": "D:\\AI PROJECTS\\photography-reference-lab\\.venv\\Scripts\\python.exe -X utf8 -m pytest -q tests\\test_learning_gateways_ui.py tests\\test_learning_course_ui.py",
+      "result": "19 passed, 1 StarletteDeprecationWarning, 89.84s"
+    },
+    {
+      "command": "$env:VERIFIER_TARGET_ROOT=(Get-Location).Path; D:\\AI PROJECTS\\photography-reference-lab\\.venv\\Scripts\\python.exe -X utf8 -m pytest -q .local\\multi-verifier\\test_video_evidence.py",
+      "result": "2 failed, 3 passed, 23.32s; only failures are A/B/C/D role labels absent from rendered course-fixed-focal on 1440px and 390px; link/timecode with legacy fields passed; injected text/unsafe nested URLs passed; read-only private-state check passed"
+    }
+  ]
+}

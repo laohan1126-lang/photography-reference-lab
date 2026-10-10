@@ -1,0 +1,28 @@
+{
+  "independent_report_sha256": "8be2bbe3f6a46979ebfcfa4c0bb546f7a5936b79afc22b186096a7f44c6b35e4",
+  "development_raw_log_sha256": "5bfad6840cbc71363e4d440a55f88a32f28d0a85f82931738f08a918698850d3",
+  "artifacts": {
+    "browser-observations.json": "639ffc44f1f2dc4254ec308a1a11ce934125ef906af363f2002bd3431a373d2f",
+    "capture_candidate_evidence.py": "c4b43206976ac26a0dc532b6a4b78bb5e13152a769bb324a4700a1bc40df9baa",
+    "development-tests.txt": "1e402d002d00eeaa7458bf0bbcbeb7008cb2738eb28cf3279a8bfcb9ad3a06bc"
+  },
+  "local_screenshots": {
+    "failure-malformed-quote-render.png": "f9864aaa7179af0ae011ae80969679c8f3170ab009cf291cb290fa09824f110b",
+    "failure-simulated-speech-marked-verified.png": "ae43199869f6a0bd324da0824ec6b807cb95a512b63ce13ac75a86c5e56c543c",
+    "success-desktop-browser-viewport.png": "38893fc411281cc9d4a071cc37525ae49f4965261b33d0fc3e2273a460063841",
+    "success-desktop-evidence-block.png": "8c99fe3135b9b46772366945ee4425ef53c418221035ed2b0707312dab9142e2",
+    "success-desktop-jun-hand.png": "ff0f992062957fa6c97860888350285a0131d42b3560f7ae5ee9050320ca2ce4",
+    "success-desktop-layer-A.png": "1627b89963a3932f71b76aa851f567adf4114152c178dc8d3a5c97e144eb624d",
+    "success-desktop-layer-B.png": "f7c447884306159e737221d0bb4ee4fb70ac1ed80fcd914660bb10a0d476948b",
+    "success-desktop-layer-C.png": "349fb23e89aa1e086e1f8136f812fc1ee7204c688883b1e6fd57b66aa36a521f",
+    "success-desktop-layer-D.png": "78568126ed6b05b25fa1b1fcbcd76d06ef5fc28cc8e7ac5cd40a571b4ec84816",
+    "success-mobile-browser-viewport.png": "494cb445e09b9603c3244d14e674769f310a23cbeff287b3fb27b2b648731632",
+    "success-mobile-evidence-block.png": "cd11e9a4a606f0cea61dc2cae8b285e8cb21620eb821b65235677c6dbcd0242a",
+    "success-mobile-jun-hand.png": "d249849d3c76dec74ee223342edccce3731690b8ac563b97d5de4c6e551ccb61",
+    "success-mobile-layer-A.png": "8f33c1f6c75729f08fd4bb438d9d0c26aa122ebde946526d39888a8f407e7b38",
+    "success-mobile-layer-B.png": "d06cbf73ea6baef222707fc09fe4c9703ba281c8bbd43b1faec903cb368519bf",
+    "success-mobile-layer-C.png": "7fac2426627d82b39efa9b2f4e83994c273b2b0ef11a75640e6180da3932f20a",
+    "success-mobile-layer-D.png": "bf684a35a66e21261e2fd108a9ee02bffd82e11f5c48d321744e6560efadb3de"
+  },
+  "screenshots_git_excluded": true
+}

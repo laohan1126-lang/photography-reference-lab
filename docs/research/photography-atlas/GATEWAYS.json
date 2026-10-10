@@ -420,6 +420,18 @@
       "locator": "印刷pp38–39，Photo Tips；PDF第20页跨页，Three planes of posing",
       "support": "作者依照场地与灯光安排身体；一例分别安排髋、肩、脸的朝向，而非全身一同转动。",
       "limitation": "一手职业经验刊于镜头厂商刊物，不是宽度比例实验；不转载刊内照片，不把肩部收窄推广为所有体型审美目标。"
+    },
+    {
+      "id": "pilot-camera-geometry",
+      "title": "Foundations of Computer Vision · Camera Modeling and Calibration",
+      "short_title": "MIT · 相机投影模型",
+      "author": "Antonio Torralba, Phillip Isola, William T. Freeman",
+      "url": "https://visionbook.mit.edu/imaging_geometry.html",
+      "reading_depth": "本轮ROOT读取39.2透视投影及39.4外参段；未审阅全书",
+      "checked_at": "2026-10-11",
+      "locator": "39.2 Perspective Projection；39.4 Camera-Extrinsic Parameters",
+      "support": "理想投影 x=fX/Z、y=fY/Z；相机坐标与世界坐标、内参和外参分开。",
+      "limitation": "模型不测本片焦距、人体尺寸、实际距离或承重；教材不是视频摄影师的原话。"
     }
   ],
   "gateways": [
@@ -1624,7 +1636,8 @@
         "course-canon-dof",
         "course-zeiss-dof",
         "course-stability",
-        "course-equilibrium"
+        "course-equilibrium",
+        "pilot-camera-geometry"
       ],
       "cases": [
         {
@@ -1851,6 +1864,46 @@
           "playback": {
             "start": 55,
             "end": 78
+          },
+          "video_evidence": {
+            "layers": [
+              {
+                "layer": "A",
+                "text": "这一登记帧并列展示人物与树列，左标35mm、右标70mm；“同一位置”是片上标注，本轮没有测量相机位置。",
+                "url": "https://www.bilibili.com/video/BV1od4y1n7Ag/",
+                "start": 55,
+                "end": 78,
+                "media_id": "bili-35-70-same-position-00-01-07",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "B",
+                "text": "本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。",
+                "quote_kind": "paraphrase",
+                "status": "unverified",
+                "url": "https://www.bilibili.com/video/BV1od4y1n7Ag/",
+                "start": 55,
+                "end": 78,
+                "verification_scope": "没有新增言语转录登记；本轮只重新查看了上列既有截图。"
+              },
+              {
+                "layer": "C",
+                "text": "理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。",
+                "source_ids": [
+                  "pilot-camera-geometry"
+                ],
+                "verified_by": "text_cross_check",
+                "checked_at": "2026-10-11",
+                "verification_scope": "本轮ROOT核对MIT教材39.2与39.4；仅支持理想投影关系，不证明本片摄影师为何这样操作。"
+              },
+              {
+                "layer": "D",
+                "text": "项目建议：先固定拍摄位置和人物朝向，再比较焦段与裁切；记录其他变化，检验背景关系。该建议不是摄影师原话。",
+                "status": "unverified"
+              }
+            ]
           }
         },
         {
@@ -1879,6 +1932,46 @@
           "playback": {
             "start": 82,
             "end": 142
+          },
+          "video_evidence": {
+            "layers": [
+              {
+                "layer": "A",
+                "text": "这一登记帧左标50mm近距离、右标50mm远距离；人物在两幅中占比接近，右幅背景行人和树列的相对位置不同。姿态也不完全相同。",
+                "url": "https://www.bilibili.com/video/BV1od4y1n7Ag/",
+                "start": 82,
+                "end": 142,
+                "media_id": "bili-50-close-far-00-02-20",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "B",
+                "text": "本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。",
+                "quote_kind": "paraphrase",
+                "status": "unverified",
+                "url": "https://www.bilibili.com/video/BV1od4y1n7Ag/",
+                "start": 82,
+                "end": 142,
+                "verification_scope": "没有新增言语转录登记；本轮只重新查看了上列既有截图。"
+              },
+              {
+                "layer": "C",
+                "text": "理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。",
+                "source_ids": [
+                  "pilot-camera-geometry"
+                ],
+                "verified_by": "text_cross_check",
+                "checked_at": "2026-10-11",
+                "verification_scope": "本轮ROOT核对MIT教材39.2与39.4；仅支持理想投影关系，不证明本片摄影师为何这样操作。"
+              },
+              {
+                "layer": "D",
+                "text": "项目建议：试拍时记录相机距离，再为相近主体占比调整取景；不要从这张并列图推算精确物距。",
+                "status": "unverified"
+              }
+            ]
           }
         },
         {
@@ -1910,6 +2003,57 @@
           "playback": {
             "start": 108,
             "end": 132
+          },
+          "video_evidence": {
+            "layers": [
+              {
+                "layer": "A",
+                "text": "01:48登记帧右侧摄影者站立持相机，左侧是修饰成片小图，画面有Lower chest level标注。只核这张低清帧。",
+                "url": "https://www.youtube.com/watch?v=kHlzwHBCuaE",
+                "start": 108,
+                "end": 132,
+                "media_id": "s2-lower-chest",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "A",
+                "text": "01:56登记帧右侧摄影者蹲低持相机，左侧人物姿态与前帧不同，画面有Knee level标注。不是只改变高度的单变量实验。",
+                "url": "https://www.youtube.com/watch?v=kHlzwHBCuaE",
+                "start": 108,
+                "end": 132,
+                "media_id": "s2-knee-level",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "B",
+                "text": "本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。",
+                "quote_kind": "paraphrase",
+                "status": "unverified",
+                "url": "https://www.youtube.com/watch?v=kHlzwHBCuaE",
+                "start": 108,
+                "end": 132,
+                "verification_scope": "没有新增言语转录登记；本轮只重新查看了上列既有截图。"
+              },
+              {
+                "layer": "C",
+                "text": "理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。",
+                "source_ids": [
+                  "pilot-camera-geometry"
+                ],
+                "verified_by": "text_cross_check",
+                "checked_at": "2026-10-11",
+                "verification_scope": "本轮ROOT核对MIT教材39.2与39.4；仅支持理想投影关系，不证明本片摄影师为何这样操作。"
+              },
+              {
+                "layer": "D",
+                "text": "项目建议：同时记高度、俯仰、人物姿态和取景；比较效果时说明联动变量，不预设低机位一定更好。",
+                "status": "unverified"
+              }
+            ]
           }
         },
         {
@@ -1965,6 +2109,57 @@
             "level": "pixel_reviewed",
             "checked_at": "2026-10-10",
             "detail": "ROOT实际打开所列时间帧，独立视频审查抽查邻近帧；操作与推断分开。不能由帧测器材、承重、机位或归因单一变量。"
+          },
+          "video_evidence": {
+            "layers": [
+              {
+                "layer": "A",
+                "text": "02:12登记帧人物穿黑衣，手与横向长道具在身前重叠；只从当前帧记录轮廓，不据此推断摄影者相机移动。",
+                "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+                "start": 132,
+                "end": 150,
+                "media_id": "synthesis-jun-hand",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "A",
+                "text": "02:28登记帧主要显示斜向画面的长道具、灯架及背景；当前帧不能证明前后只改变了道具轴向。",
+                "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+                "start": 132,
+                "end": 150,
+                "media_id": "synthesis-jun-direction",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "B",
+                "text": "本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。",
+                "quote_kind": "paraphrase",
+                "status": "unverified",
+                "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+                "start": 132,
+                "end": 150,
+                "verification_scope": "没有新增言语转录登记；本轮只重新查看了上列既有截图。"
+              },
+              {
+                "layer": "C",
+                "text": "理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。",
+                "source_ids": [
+                  "pilot-camera-geometry"
+                ],
+                "verified_by": "text_cross_check",
+                "checked_at": "2026-10-11",
+                "verification_scope": "本轮ROOT核对MIT教材39.2与39.4；仅支持理想投影关系，不证明本片摄影师为何这样操作。"
+              },
+              {
+                "layer": "D",
+                "text": "项目建议：先确认想保留的手与道具轮廓，再给一个可执行方向提示；是否适合当前角色与画面需试拍判断。",
+                "status": "unverified"
+              }
+            ]
           }
         },
         {
@@ -1996,6 +2191,57 @@
             "level": "pixel_reviewed",
             "checked_at": "2026-10-10",
             "detail": "ROOT实际打开所列时间帧，独立视频审查抽查邻近帧；操作与推断分开。不能由帧测器材、承重、机位或归因单一变量。"
+          },
+          "video_evidence": {
+            "layers": [
+              {
+                "layer": "A",
+                "text": "04:35登记帧人物一手扶帽、一手握竖向长物；单帧不证明道具承重或消除了颤抖。",
+                "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+                "start": 260,
+                "end": 301,
+                "media_id": "synthesis-jun-low",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "A",
+                "text": "05:00登记帧是修饰成片，人物扶帽并持竖向长物，左侧灯板与现代室内背景仍可见。不能用终片证明前段调整的因果。",
+                "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+                "start": 260,
+                "end": 301,
+                "media_id": "synthesis-jun-final",
+                "verified_by": "frames_reviewed",
+                "checked_at": "2026-10-11",
+                "verification_scope": "ROOT本轮逐图查看既有登记截图并核对文件SHA；仅这张帧的可见内容。时间位置沿用原登记，未重放原视频或听音轨。"
+              },
+              {
+                "layer": "B",
+                "text": "本轮没有核实到摄影师的逐字原话或完整音轨。既有字幕可作画面文字转述，不能据此伪造本人逐字言语。",
+                "quote_kind": "paraphrase",
+                "status": "unverified",
+                "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+                "start": 260,
+                "end": 301,
+                "verification_scope": "没有新增言语转录登记；本轮只重新查看了上列既有截图。"
+              },
+              {
+                "layer": "C",
+                "text": "理想针孔模型把三维位置按相机坐标深度投到画面；距离与视点影响投影关系。它不能由这些截图反算焦距、身体尺寸或承重。",
+                "source_ids": [
+                  "pilot-camera-geometry"
+                ],
+                "verified_by": "text_cross_check",
+                "checked_at": "2026-10-11",
+                "verification_scope": "本轮ROOT核对MIT教材39.2与39.4；仅支持理想投影关系，不证明本片摄影师为何这样操作。"
+              },
+              {
+                "layer": "D",
+                "text": "项目建议：先问人物动作是否舒适可保持，再比较画面取舍；不把角色道具当身体支架，也不预设低机位的审美结果。",
+                "status": "unverified"
+              }
+            ]
           }
         },
         {
