@@ -1,0 +1,9 @@
+{
+  "receipt_id": "rcpt_pkg_xiaoyanjun_posing_study_20261010_5d5e766421",
+  "package_id": "pkg_xiaoyanjun_posing_study_20261010",
+  "verified_at": "2026-10-10T10:43:57.834847+00:00",
+  "decision": "PASS",
+  "total_claims_verified": 3,
+  "approved_manifest_hash": "5d5e766421d52898d9ed9549ee7a548f7820021b6979cac38dd7e2a51a629da3",
+  "scope": "photography_course_curriculum"
+}

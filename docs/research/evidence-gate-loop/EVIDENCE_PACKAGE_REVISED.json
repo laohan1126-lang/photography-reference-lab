@@ -1,0 +1,94 @@
+{
+  "package_id": "pkg_xiaoyanjun_posing_study_20261010",
+  "topic": "人像摄影持械姿态引导与图底遮挡调整实证研究",
+  "author": "Antigravity Research Agent",
+  "created_at": "2026-10-10T12:00:00Z",
+  "sources": [
+    {
+      "url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+      "platform": "bilibili",
+      "author": "小言Jun",
+      "title": "【第一视角】挑战最细节动作引导摄影师",
+      "published_date": "2024-03-24",
+      "duration_seconds": 340.0,
+      "known_equipment": [
+        "Canon EOS R5",
+        "RF 50mm f/1.8 STM"
+      ],
+      "is_tutorial_confirmed": true,
+      "notes": "漫展走廊实战拍摄"
+    }
+  ],
+  "media_artifacts": [
+    {
+      "local_path": "scratch/BV1MD421L7VK/video.mp4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "media_type": "video",
+      "status": "ACCESSIBLE",
+      "file_size_bytes": 104857600
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "claim-1.1",
+      "statement": "小言Jun 在漫展走廊使用的是 Canon EOS R5 + RF 50mm f/1.8 STM 镜头，全程 f/2.8 光圈，搭配三灯系统。",
+      "category": "B",
+      "source_url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+      "time_spans": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 15.0,
+          "formatted_time": "00:00-00:15",
+          "screenshot_timestamp_seconds": 5.0
+        }
+      ],
+      "supporting_evidence": "视频简介明确说明：'设备：佳能r5+rf501.8 光圈全程2.8 三灯阵，一个逆光 一个面光 一个顶光'。画面可见机身挂 50mm 镜头与三灯布光。",
+      "verbatim_quote": "设备：佳能r5+rf501.8 光圈全程2.8 三灯阵",
+      "equipment_tags": [
+        "Canon EOS R5",
+        "RF 50mm f/1.8 STM"
+      ],
+      "unknown_conditions": [
+        "具体外拍灯型号未知"
+      ]
+    },
+    {
+      "claim_id": "claim-1.2",
+      "statement": "摄影师指示模特双手持剑/鞘对调并撑出手臂，是为了解决一只手臂完全遮挡另一只手臂的图底遮挡与负空间坍塌问题。",
+      "category": "B",
+      "source_url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+      "time_spans": [
+        {
+          "start_seconds": 105.0,
+          "end_seconds": 134.0,
+          "formatted_time": "01:45-02:14",
+          "screenshot_timestamp_seconds": 115.0
+        }
+      ],
+      "supporting_evidence": "时间码 02:08-02:14 摄影师原话与视频画面逐字比对一致，解决单臂遮挡后臂问题。",
+      "verbatim_quote": "因为这样一只手，你把那只手完全挡完了！换那只手撑出来，侧过来一点，这只手弯一点。"
+    },
+    {
+      "claim_id": "claim-1.3",
+      "statement": "持械前倾时手肘与关节保持微屈能避免长时间等长肌肉收缩引起的痉挛与紧绷；后半段切换蹲姿是为了在嘈杂商场背景下压低机位仰拍以剔除杂乱人流并突出逆光剪影。",
+      "category": "C",
+      "source_url": "https://www.bilibili.com/video/BV1MD421L7VK/",
+      "time_spans": [
+        {
+          "start_seconds": 230.0,
+          "end_seconds": 250.0,
+          "formatted_time": "03:50-04:10"
+        }
+      ],
+      "supporting_evidence": "时间码 02:40-02:50 摄影师原话：'这里弯一点不要绷'；时间码 03:50-04:06 摄影师坦白不会硬派姿势因此切换蹲姿。依据等长肌肉疲劳力学与仰角视点透视原理。",
+      "verbatim_quote": "这里弯一点不要绷"
+    }
+  ],
+  "cross_document_context": {
+    "external_documents": {
+      "BV1MD421L7VK": {
+        "equipment": "Canon EOS R5 + RF 50mm f/1.8 STM"
+      }
+    }
+  }
+}

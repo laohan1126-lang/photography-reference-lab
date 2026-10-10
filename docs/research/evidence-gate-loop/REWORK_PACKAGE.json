@@ -1,0 +1,163 @@
+{
+  "package_id": "pkg_xiaoyanjun_posing_study_20261010",
+  "cycle": 1,
+  "max_cycles": 2,
+  "decision": "REVISE",
+  "issues": [
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "SELF_ATTESTATION_IGNORED",
+      "severity": "WARNING",
+      "claim_id": "claim-1.1",
+      "field": "self_attested_verified",
+      "message": "Claim researcher marked verified=true; self-attestation is ignored by the Quality Gate.",
+      "actual_value": true,
+      "expected_or_conflict": null,
+      "remediation": "Verification must be established through independent gate checks."
+    },
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "EQUIPMENT_CONTRADICTION",
+      "severity": "ERROR",
+      "claim_id": "claim-1.1",
+      "field": "equipment_tags",
+      "message": "Claim cites equipment 'Sony A7R IV' which directly contradicts author source gear ['Canon EOS R5', 'RF 50mm f/1.8 STM'].",
+      "actual_value": "Sony A7R IV",
+      "expected_or_conflict": [
+        "Canon EOS R5",
+        "RF 50mm f/1.8 STM"
+      ],
+      "remediation": "Correct equipment citation to match author's authentic gear."
+    },
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "SELF_ATTESTATION_IGNORED",
+      "severity": "WARNING",
+      "claim_id": "claim-1.2",
+      "field": "self_attested_verified",
+      "message": "Claim researcher marked verified=true; self-attestation is ignored by the Quality Gate.",
+      "actual_value": true,
+      "expected_or_conflict": null,
+      "remediation": "Verification must be established through independent gate checks."
+    },
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "SCREENSHOT_TIMESTAMP_MISMATCH",
+      "severity": "ERROR",
+      "claim_id": "claim-1.2",
+      "field": "screenshot_timestamp_seconds",
+      "message": "Screenshot timestamp 270.0s does not match claimed interval [105.0s, 134.0s].",
+      "actual_value": 270.0,
+      "expected_or_conflict": "[105.0s, 134.0s]",
+      "remediation": "Align screenshot timestamp with cited claim interval."
+    },
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "SELF_ATTESTATION_IGNORED",
+      "severity": "WARNING",
+      "claim_id": "claim-1.3",
+      "field": "self_attested_verified",
+      "message": "Claim researcher marked verified=true; self-attestation is ignored by the Quality Gate.",
+      "actual_value": true,
+      "expected_or_conflict": null,
+      "remediation": "Verification must be established through independent gate checks."
+    },
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "UNVERIFIED_PSEUDO_PRECISION",
+      "severity": "ERROR",
+      "claim_id": "claim-1.3",
+      "field": "statement",
+      "message": "Statement asserts ungrounded ratio '90/10' without empirical force/sensor basis.",
+      "actual_value": "90/10",
+      "expected_or_conflict": "Empirical measurement basis",
+      "remediation": "Remove fabricated ratios like 90/10 or 60/40 unless backed by physical sensor data."
+    },
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "UNVERIFIED_PSEUDO_PRECISION",
+      "severity": "ERROR",
+      "claim_id": "claim-1.3",
+      "field": "statement",
+      "message": "Statement asserts ungrounded ratio '60/40' without empirical force/sensor basis.",
+      "actual_value": "60/40",
+      "expected_or_conflict": "Empirical measurement basis",
+      "remediation": "Remove fabricated ratios like 90/10 or 60/40 unless backed by physical sensor data."
+    },
+    {
+      "tier": "TIER_1_PROGRAMMATIC",
+      "issue_code": "CROSS_DOCUMENT_EQUIPMENT_CONTRADICTION",
+      "severity": "ERROR",
+      "claim_id": null,
+      "field": "cross_document_context",
+      "message": "External document reports equipment 'Sony A7R IV' for BV1MD421L7VK, contradicting author's genuine gear ['Canon EOS R5', 'RF 50mm f/1.8 STM'].",
+      "actual_value": "Sony A7R IV",
+      "expected_or_conflict": [
+        "Canon EOS R5",
+        "RF 50mm f/1.8 STM"
+      ],
+      "remediation": "Harmonize cross-document records with author's verified Canon R5 gear."
+    },
+    {
+      "tier": "TIER_2_SEMANTIC",
+      "issue_code": "VERBATIM_HALLUCINATION",
+      "severity": "ERROR",
+      "claim_id": "claim-1.2",
+      "field": "verbatim_quote",
+      "message": "Hallucinated dialogue detected: '像个小棍子'. The photographer never uttered this line in audio or verified transcripts.",
+      "actual_value": "像个小棍子",
+      "expected_or_conflict": "因为这样一只手，你把那只手完全挡完了！",
+      "remediation": "Replace fabricated quote with verified dialogue from transcript at 02:08-02:14: '因为这样一只手，你把那只手完全挡完了！'"
+    },
+    {
+      "tier": "TIER_2_SEMANTIC",
+      "issue_code": "VERBATIM_HALLUCINATION",
+      "severity": "ERROR",
+      "claim_id": "claim-1.2",
+      "field": "verbatim_quote",
+      "message": "Hallucinated dialogue detected: '剑根本看不出来，像个小棍子'. The photographer never uttered this line in audio or verified transcripts.",
+      "actual_value": "剑根本看不出来，像个小棍子",
+      "expected_or_conflict": "因为这样一只手，你把那只手完全挡完了！",
+      "remediation": "Replace fabricated quote with verified dialogue from transcript at 02:08-02:14: '因为这样一只手，你把那只手完全挡完了！'"
+    },
+    {
+      "tier": "TIER_2_SEMANTIC",
+      "issue_code": "PSEUDOSCIENCE_OVERGENERALIZATION",
+      "severity": "ERROR",
+      "claim_id": "claim-1.3",
+      "field": "statement",
+      "message": "Unverified speculative hypothesis '胎儿期' asserted as definitive causal explanation without anatomical/medical evidence.",
+      "actual_value": "胎儿期",
+      "expected_or_conflict": "Grounded ergonomic/biomechanical explanation (e.g. isometric muscle fatigue)",
+      "remediation": "Replace speculative evolutionary/embryological claims with grounded biomechanical explanations (e.g., isometric muscle contraction fatigue)."
+    },
+    {
+      "tier": "TIER_2_SEMANTIC",
+      "issue_code": "PSEUDOSCIENCE_OVERGENERALIZATION",
+      "severity": "ERROR",
+      "claim_id": "claim-1.3",
+      "field": "statement",
+      "message": "Unverified speculative hypothesis '惊跳反射' asserted as definitive causal explanation without anatomical/medical evidence.",
+      "actual_value": "惊跳反射",
+      "expected_or_conflict": "Grounded ergonomic/biomechanical explanation (e.g. isometric muscle fatigue)",
+      "remediation": "Replace speculative evolutionary/embryological claims with grounded biomechanical explanations (e.g., isometric muscle contraction fatigue)."
+    }
+  ],
+  "affected_claim_ids": [
+    "claim-1.1",
+    "claim-1.2",
+    "claim-1.3"
+  ],
+  "summary": "Gate evaluation REVISE at cycle 1/2: Found 9 fact/semantic error(s) across 3 claim(s).",
+  "remediation_guidance": [
+    "[EQUIPMENT_CONTRADICTION] (claim-1.1): Correct equipment citation to match author's authentic gear.",
+    "[SCREENSHOT_TIMESTAMP_MISMATCH] (claim-1.2): Align screenshot timestamp with cited claim interval.",
+    "[UNVERIFIED_PSEUDO_PRECISION] (claim-1.3): Remove fabricated ratios like 90/10 or 60/40 unless backed by physical sensor data.",
+    "[UNVERIFIED_PSEUDO_PRECISION] (claim-1.3): Remove fabricated ratios like 90/10 or 60/40 unless backed by physical sensor data.",
+    "[CROSS_DOCUMENT_EQUIPMENT_CONTRADICTION] (GENERAL): Harmonize cross-document records with author's verified Canon R5 gear.",
+    "[VERBATIM_HALLUCINATION] (claim-1.2): Replace fabricated quote with verified dialogue from transcript at 02:08-02:14: '因为这样一只手，你把那只手完全挡完了！'",
+    "[VERBATIM_HALLUCINATION] (claim-1.2): Replace fabricated quote with verified dialogue from transcript at 02:08-02:14: '因为这样一只手，你把那只手完全挡完了！'",
+    "[PSEUDOSCIENCE_OVERGENERALIZATION] (claim-1.3): Replace speculative evolutionary/embryological claims with grounded biomechanical explanations (e.g., isometric muscle contraction fatigue).",
+    "[PSEUDOSCIENCE_OVERGENERALIZATION] (claim-1.3): Replace speculative evolutionary/embryological claims with grounded biomechanical explanations (e.g., isometric muscle contraction fatigue)."
+  ]
+}
