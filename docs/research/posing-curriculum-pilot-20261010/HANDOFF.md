@@ -1,70 +1,73 @@
 # Antigravity 独立摄影教学研究 Loop｜交接报告（HANDOFF）
 
-> **分支**：`antigravity/posing-curriculum-pilot-20261010`
-> **基线提交**：`b8807fe02f23d75887f464fc53a5ebe9f346582d`
-> **独立研究目录**：`docs/research/posing-curriculum-pilot-20261010/`
-> **面向用户交付入口**：`docs/research/posing-curriculum-pilot-20261010/reader/index.html`
+> **所属任务**：真实视频研究与专业决策补全（Loop 2）  
+> **任务分支**：`antigravity/posing-video-evidence-20261010`  
+> **前置交付分支**：`antigravity/posing-curriculum-pilot-20261010` (`5d2e6d760408ff078953981bdb8dd94f55a24c60`)  
+> **基线提交**：`b8807fe02f23d75887f464fc53a5ebe9f346582d`  
+> **独立工作目录**：`D:\AI PROJECTS\photography-reference-lab-antigravity\`  
+> **独立研究目录**：`docs/research/posing-curriculum-pilot-20261010/`  
+> **交互试读入口**：`docs/research/posing-curriculum-pilot-20261010/reader/index.html`
 
 ---
 
-## 1. 成果清单与交付物总览
+## 1. 核心研究突破与本轮交付总览
 
-本次独立研究 Loop 产出以下完整交付成果，全部收敛于专属独立目录中，未污染 Codex 工作区，未擅自修改现有 SKILL_TREE、LEARNING_CONTENT 及生产 UI：
+针对上一轮的核心缺口——“理论解释较丰富，但缺少对职业摄影师真实拍摄过程的充分研究”，本轮在独立工作分支 `antigravity/posing-video-evidence-20261010` 上聚焦解决核心命题：
+**持剑人物前倾时，摄影师怎样同时处理人物气势、姿态张力、身体比例、道具和现场空间的多变量冲突？**
 
-1. **面向用户的独立交互式试读页（Standalone Reader）**：
-   - 路径：`docs/research/posing-curriculum-pilot-20261010/reader/index.html`
-   - 包含：完整的视觉暗房排版、高清实拍大图画廊（1080p WebP）、解剖机理图解、前后口令速查表、以及支持互动折叠揭晓的**盲测案例实战训练区**。支持本地双击直接打开或经由静态服务器预览。
-2. **完整教学样板正文（Pilot Chapter Markdown）**：
-   - 路径：`docs/research/posing-curriculum-pilot-20261010/PILOT_CHAPTER.md`
-   - 章节：《为什么人物摆姿势会显得拘谨、缩成一团或缺乏力量？》——系统攻克视觉诊断、解剖力学、三步动作重构、角色表达对齐、现场口令工程与副作用警示 6 大教学目标。
-3. **专业文献研读清单与证据矩阵（Sources & Evidence）**：
-   - 路径：`docs/research/posing-curriculum-pilot-20261010/SOURCES.md`
-   - 详尽记录实际研读的 Roberto Valenzuela P3S 15点系统、Nikon COSGENIC 系列、COSPLAY MODE 动作顾问专题、Peter Hurley 肖像眼神法及现场摄影师伦理规范，区分实读与候选，拒绝目录冒充。
-4. **全新姿态课程全景大纲与技能映射（Curriculum Outline）**：
-   - 路径：`docs/research/posing-curriculum-pilot-20261010/CURRICULUM_OUTLINE.md`
-   - 6 大递进模块架构，明确标注【原理】、【经验】、【教学】与【审美】四层属性，并与现有技能树中 `posing` (18个)、`character` (17个)、`costume` (11个) 技能建立完整对应。
-5. **盲测未讲解真人照片案例分析（Blind Case Analysis）**：
-   - 路径：`docs/research/posing-curriculum-pilot-20261010/BLIND_CASE_ANALYSIS.md`
-   - 针对正文未解析的实拍案例 COS-031（长柄镰刀低机位），设计了“学员自主观察引导”与“导师级四维深度解构”，并给出下一张照片的针对性微调与代价评估（Trade-offs）。
-6. **实际检验记录（Verification Record）**：
-   - 路径：`docs/research/posing-curriculum-pilot-20261010/VERIFICATION.md`
-   - 包含图片物理存在核验、HTML 语法校验、以及回归测试套件执行证据（核心库 123 个测试全部 PASS，node check PASS）。
-
----
-
-## 2. 核心教学突破与关键专业判断
-
-1. **从“死记体式”升级为“解剖力学诊断”**：
-   - 明确了人物“拘谨、缩紧”的本质是**大臂压紧肋骨导致的负空间塌陷与肌肉被挤扁横向增粗**；
-   - 提出了立竿见影的“**手肘外推两指宽法则（Two-Finger Elbow Rule）**”，用极微小的肘部外移瞬间重塑天使负空间（Negative Space Triangle）与纤细腰线；
-2. **从“站军姿”升级为“对立平衡（Contrapposto）与宽步幅下沉”**：
-   - 揭示了两腿均分重量锁死脊柱的力学陷阱，引入单腿承重（90-10 原则）激活脊柱 S 弯；在战斗与重武器场景下引入“1.5倍肩宽弓步与重心下沉 8~10 公分”，赋予动作真实可信的物理力矩；
-3. **现场口令工程的精准翻译**：
-   - 彻底取缔“自然点、霸气点”等情绪毒药；确立了“**动词 + 解剖部位 + 方位 + 物理参照物/距离**”的标准口令模板（如：“右手肘向外推开一拳，让腰侧透点光”）；
-4. **角色戏剧叙事优先于标准站姿**：
-   - 明确划定界限：弱气防卫角色的“收缩姿势”属于合法角色表达，而大将角色因大臂贴身导致的缩手缩脚属于纯粹摄影失误；不能拿日杂少女的并腿娇羞套用所有 Cosplay 角色。
+本轮交付成果清单：
+1. **真实视频研究记录（`VIDEO_SOURCE_LOG.md`）**：
+   - 深度下载、解帧并核验 5 个核心专业视频（小言Jun POV 实录、松田理奈杀阵动作、Roberto Valenzuela B&H 实讲、Manny Ortiz 机位透视、Yume 持剑反例）。
+   - 详尽记录作者、原始 URL、实际观看范围、精确时间码、解帧观察事实与知识局限。
+2. **现场拍摄决策深度解剖（`SHOOTING_DECISIONS.md`）**：
+   - 全程还原小言Jun在嘈杂商场古风街拍摄女侠客持剑前倾的四阶段演进；
+   - 严格区隔 **A 实际操作、B 摄影师自述、C 原理推断、D 未知/未验证** 四级证据链；
+   - 深度解构“轴向严重短缩”、“力学失稳死锁”、“手臂肌肉压迫”与“机位俯仰透视中和”的多变量动态权衡。
+3. **原有理论过度绝对化断言校准（Curriculum Calibration）**：
+   - 降级撤回并校准原有 `PILOT_CHAPTER.md`、`SOURCES.md`、`CURRICULUM_OUTLINE.md` 中的教条化表述：
+     - 将机械的“90/10 承重法则”降级为站姿非对称承重启发法，强调搏击/战斗弓步保留 60/40 或 70/30 双向拉扯；
+     - 剔除伪精确的“横向视觉增粗 20%~30%”百分比，改为光学 2D 投影黏连与腰线遮蔽机理解释；
+     - 将“手肘外移两指宽”校准为依袖型而定的透光负空间窗口启发；
+     - 将“所有关节至少弯曲 15°”校准为“防范无意识肌肉锁死超伸”，明确允许刺枪、点剑等刚性直线；
+     - 剔除“进化心理学胎儿防御反射”假说，改为被动常态习惯与相机 2D 投影空间失察。
+4. **完整课程教学补丁（`LESSON_PATCH.md`）**：
+   - 完成专题教学特辑：《职业摄影师怎样把局促、无力的持剑姿态调整为有明确角色表达的动作？》；
+   - 包含多变量冲突化解表、跨领域杀阵/人像大师印证、以及现场可直接落地的摄影师口令指挥卡。
+5. **试读页交互升级（`reader/index.html`）**：
+   - 试读页新增第 4 节“现场决策特辑：职业摄影师第一视角实录爆改”；
+   - 更新所有导航锚点、校准后的解剖文字，并维持原生纯净离线可读性。
 
 ---
 
-## 3. 与 Codex 主线的未来结合点（Future Convergence Opportunities）
+## 2. 真实拍摄关键证据与摄影师决策链（小言Jun 实录）
 
-Codex 正在另一条线上攻克「机位、焦段与透视」。两者的研究成果未来存在高度互补的结合空间：
-1. **机位透视与姿态动态的交叉互锁**：
-   - Codex 研究的“广角低机位透视”，正是本篇中“宽步幅弓步力量姿态”的最佳拍档（如长柄武器刀尖冲向前景时的近大远小视觉冲击）；
-   - Codex 研究的“长焦空间压缩与腰部裁切”，正是本篇中“大臂负空间与肩线高低倾斜”最敏感的测试场；
-2. **知识资产与 UI 呈现的合流**：
-   - 本次产出的 `PILOT_CHAPTER.md`、`CURRICULUM_OUTLINE.md` 以及盲测案例数据结构，未来可直接平滑导入项目正式的 `/learning` 模块或 Darkroom 交互界面中，无需任何重构成本。
+- **视频坐标**：Bilibili `BV1MD421L7VK`（小言Jun · 05:02），核心阶段 01:45 - 05:01。
+- **四阶段决策演进**：
+  1. **初试挫折 (01:45-02:15)**：模特前刺长剑、大弓步悬空前倾。摄影师平视拍摄后摇头：*“不对，太板了，而且你看剑根本看不出来，像个小棍子。”*（确证：武器直刺镜头发生轴向严重短缩，悬空失去平衡导致肌群紧张锁死）。
+  2. **手臂负空间与刃线 (02:20-02:50)**：摄影师轻托右肘将剑收回胸前横斜抱持，口令：*“换一换……这个弯一点点自然放着这里，不要夹紧，留个缝。”*（确证：手肘外推一拳拉开负空间三角窗，长剑呈 45° 贯穿对角线，投影面积最大化）。
+  3. **转体破对称 (03:00-03:20)**：摄影师侧身示范：*“身体还得转过来一点哎……侧一点，头留给我，眼神看我镜头左上角一点点，带一点杀气。”*（确证：躯干侧转收窄肩宽截面，胸头拧转激活胸锁乳突肌，视线脱轴营造警惕故事感）。
+  4. **终局三点稳固与机位下潜 (03:45-05:01)**：摄影师指令：*“退一点……往下沉！往下蹲一点点！剑尖点地上撑住！”*，摄影师自身迅速深蹲至腰胸高度微仰拍，诞生成片 `final_030.jpg`（确证：双脚+剑尖构成三角闭合支撑面消除颤抖；机位下潜微仰反向等化物距拉长下肢，彻底中和前倾透视畸变并切除商场顶灯穿帮）。
 
 ---
 
-## 4. 建议使用者的试读方式
+## 3. 供 Codex 审查与主线整合的建议（Cross-Agent Integration）
 
-请直接在浏览器中打开：
-```
-file:///D:/AI%20PROJECTS/photography-reference-lab-antigravity/docs/research/posing-curriculum-pilot-20261010/reader/index.html
-```
-或者在项目根目录下通过本地静态服务器访问：
-```
-http://127.0.0.1:18770/docs/research/posing-curriculum-pilot-20261010/reader/index.html
-```
-阅读时请重点体验第 6 节的**盲测实战训练**：先遮住解析，自己回答 4 个问题，再点击揭晓专业复盘。
+Codex 正在主线上研究「机位、焦段与透视」。本轮研究为 Codex 提供了极具价值的**机位透视与姿态动态耦合证据**：
+
+1. **“机位高低中和前倾透视”的理论结合**：
+   - 当人物由于角色动作需要向前倾斜时，纯平视或微俯视角（1.5m）必然发生近大远小的身材恶化（头大、身短、腿粗短）；
+   - **Codex 可直接引用的实拍法则**：`模特前倾倾角 θ 越大 ➔ 摄影师机位高度必须同步下潜 h 越低 + 镜头仰角 α 同步微仰`。机位从眼平下潜至腰平微仰，能够精确消除前倾物距差，拉长下肢投影。
+2. **多变量协同而不是单变量教条**：
+   - 现场决不能把动作摆姿、焦段透视与背景构图割裂看待。小言Jun的下蹲不仅拯救了模特的身材比例，还完成了对杂乱商场顶光的物理遮挡。
+3. **资产与模块合流建议**：
+   - `LESSON_PATCH.md` 可作为独立专题直接并入主课程大纲的“模块 5·角色剧力与外延”；
+   - `SHOOTING_DECISIONS.md` 可作为教学案例库中的真实案例拆解（Case Study）。
+
+---
+
+## 4. 验证与检查记录（Verification Summary）
+
+- **测试套件**：`python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py`（123 passed）。
+- **脚本语法检查**：`node --check web/app.js`（退出码 0，语法无误）。
+- **静态试读页验证**：浏览器直接打开 `file:///D:/AI%20PROJECTS/photography-reference-lab-antigravity/docs/research/posing-curriculum-pilot-20261010/reader/index.html`，排版无截断，锚点跳转正常，盲测互动折叠正常。
+- **Git 状态隔离**：严格保持在 `D:\AI PROJECTS\photography-reference-lab-antigravity`，当前分支 `antigravity/posing-video-evidence-20261010`，无任何跨分支污染。
