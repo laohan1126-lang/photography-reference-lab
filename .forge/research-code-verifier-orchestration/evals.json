@@ -1,0 +1,95 @@
+{
+  "skill_name": "research-code-verifier-orchestration",
+  "cases": [
+    {
+      "id": "explicit",
+      "kind": "trigger-positive",
+      "prompt": "使用 research-code-verifier-orchestration 完成一个研究和代码任务。",
+      "should_trigger": true,
+      "expectations": [
+        "Actual target SKILL.md read event",
+        "Independent verification plan"
+      ]
+    },
+    {
+      "id": "implicit",
+      "kind": "trigger-positive",
+      "prompt": "为摄影课程增加真实教程研究能力，需要找资料、改代码，并且独立验证。",
+      "should_trigger": true,
+      "expectations": [
+        "Native selection without target/vendor names",
+        "Actual target SKILL.md read event"
+      ]
+    },
+    {
+      "id": "authorized-external",
+      "kind": "trigger-positive",
+      "prompt": "我授权外部研究和 Coding Agent 分工完成模块，并让独立测试者验收。",
+      "should_trigger": true,
+      "expectations": [
+        "Target skill selected",
+        "No assumed readiness"
+      ]
+    },
+    {
+      "id": "negative-color",
+      "kind": "trigger-negative",
+      "prompt": "调整一个按钮颜色。",
+      "should_trigger": false,
+      "expectations": [
+        "No target read",
+        "No external dispatch"
+      ]
+    },
+    {
+      "id": "negative-bug",
+      "kind": "trigger-negative",
+      "prompt": "修复按钮点两次才生效的普通 Bug。",
+      "should_trigger": false,
+      "expectations": [
+        "No orchestration overhead"
+      ]
+    },
+    {
+      "id": "negative-question",
+      "kind": "trigger-negative",
+      "prompt": "多 Agent 与单 Agent 有什么区别？只解释，不调用外部 Agent。",
+      "should_trigger": false,
+      "expectations": [
+        "Knowledge answer stays local"
+      ]
+    },
+    {
+      "id": "execution-isolation",
+      "kind": "execution",
+      "prompt": "以冻结验收运行真实研究与最小代码任务。",
+      "should_trigger": null,
+      "expectations": [
+        "Separate worktrees",
+        "Fresh verifier context",
+        "Criteria hash predates dispatch"
+      ]
+    },
+    {
+      "id": "execution-revise",
+      "kind": "execution",
+      "prompt": "验收发现来源或兼容失败，安排负责 Agent 返工。",
+      "should_trigger": null,
+      "expectations": [
+        "Actual failure preserved",
+        "At most two directed rounds",
+        "Unchanged criteria"
+      ]
+    },
+    {
+      "id": "execution-success-boundary",
+      "kind": "execution",
+      "prompt": "CLI exit 0，但返回空正文或 denied actions。",
+      "should_trigger": null,
+      "expectations": [
+        "No false completed state",
+        "Actual source and tool limits"
+      ]
+    }
+  ]
+}

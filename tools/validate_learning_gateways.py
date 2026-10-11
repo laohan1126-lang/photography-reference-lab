@@ -1,11 +1,26 @@
 """Validate teaching provenance/relationships, never certify instructional quality."""
 from __future__ import annotations
 
+import re
+from datetime import date
 from urllib.parse import urlparse
 from ref_lab.learning_media import SOURCE_CASE_MEDIA
 
 CHAPTERS = ('problem', 'observe', 'principle', 'contrast', 'boundary', 'transfer', 'reflect', 'sources')
 ACTIVITIES = {'observation', 'comparison', 'transfer'}
+
+# Optional per-case teaching evidence. Each layer is independent; only the quote layer
+# may claim the author's own wording, and only with a verified original-text check.
+EVIDENCE_TEXT = re.compile(r'\S')
+EVIDENCE_DATE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+EVIDENCE_LAYERS = {
+    'observation': ({'text'}, {'checked_at'}),
+    'quote': ({'text'}, {'language', 'source_id', 'locator', 'checked_at', 'verification'}),
+    'explanation': ({'text'}, {'source_ids', 'checked_at'}),
+    'advice': ({'text'}, {'checked_at'}),
+}
+QUOTE_ONLY_FIELDS = {'language', 'verification', 'source_id', 'locator'}
+QUOTE_VERIFICATIONS = {'unverified', 'verbatim_checked'}
 
 
 def public_url(value):
@@ -17,6 +32,91 @@ def public_url(value):
                 and url.hostname not in {'localhost', '127.0.0.1', '::1'} and '\\' not in value)
     except ValueError:
         return False
+
+
+def _text(value) -> bool:
+    return isinstance(value, str) and bool(EVIDENCE_TEXT.search(value))
+
+
+def _real_date(value) -> bool:
+    """A shaped date is not a date: 2026-13-40 must never count as a checking date."""
+    if not isinstance(value, str) or not EVIDENCE_DATE.match(value):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def validate_case_evidence(evidence, case_id, source_ids: set, sources: dict,
+                           case_url: str | None = None) -> list[str]:
+    """Check the optional A/B/C/D teaching layers; absence stays valid and unchanged."""
+    if evidence is None:
+        return []
+    label = f'{case_id}'
+    if not isinstance(evidence, dict) or not evidence:
+        return [f'Invalid case evidence block: {label}']
+    errors = []
+    for layer, value in evidence.items():
+        if layer not in EVIDENCE_LAYERS:
+            errors.append(f'Unknown case evidence layer: {label}/{layer}')
+            continue
+        required, optional = EVIDENCE_LAYERS[layer]
+        if not isinstance(value, dict):
+            errors.append(f'Missing case evidence {layer}: {label}')
+            continue
+        if not _text(value.get('text')):
+            errors.append(f'Missing case evidence {layer} text: {label}')
+        extra = set(value) - required - optional
+        if extra:
+            errors.append(f'Unknown case evidence {layer} fields: {label}/{sorted(extra)}')
+        # Only the quote layer may speak for the author; C and D stay labelled as our own words.
+        if layer != 'quote' and QUOTE_ONLY_FIELDS & set(value):
+            errors.append(f'Case evidence {layer} cannot claim the author wording: {label}')
+        if 'checked_at' in value and not _real_date(value['checked_at']):
+            errors.append(f'Invalid case evidence {layer} date: {label}/{value.get("checked_at")!r}')
+        if layer == 'explanation':
+            listed = value.get('source_ids', [])
+            if not isinstance(listed, list) or not all(isinstance(i, str) for i in listed):
+                errors.append(f'Malformed case evidence explanation sources: {label}')
+            elif not set(listed) <= source_ids:
+                errors.append(f'Unknown case evidence explanation source: {label}')
+        if layer == 'quote':
+            errors.extend(_validate_quote(value, label, source_ids, sources, case_url))
+    return errors
+
+
+def _validate_quote(quote: dict, label: str, source_ids: set, sources: dict,
+                    case_url: str | None = None) -> list[str]:
+    errors = []
+    verification = quote.get('verification')
+    # A list, dict or absent level is unverified too; hashing it against the allowed
+    # names must not raise, it only has to stay conservative.
+    if not isinstance(verification, str) or verification not in QUOTE_VERIFICATIONS:
+        return [f'Unknown case evidence quote verification: {label}/{verification!r}']
+    if verification == 'verbatim_checked':
+        source_id = quote.get('source_id')
+        source = sources.get(source_id) if isinstance(source_id, str) else None
+        if not (isinstance(source_id, str) and source_id in source_ids and source
+                and source.get('url')):
+            errors.append(f'Verified quote needs a known source: {label}/{source_id!r}')
+        else:
+            # Two pages that fail the same unsafe way are not evidence of a matching page.
+            if not public_url(source['url']):
+                errors.append(f'Verified quote needs a public source page: {label}/{source_id!r}')
+            if not public_url(case_url):
+                errors.append(f'Verified quote needs a public case page: {label}')
+            elif source['url'] != case_url:
+                # Another case's source may not be promoted into this author's verified record.
+                errors.append(f'Veified quote source is not this case page: {label}/{source_id!r}')
+        if not _text(quote.get('text')):
+            errors.append(f'Verified quote needs the quoted words themselves: {label}')
+        if not _text(quote.get('locator')) or not _text(quote.get('language')):
+            errors.append(f'Verified quote needs a text locator and language: {label}')
+        if not _real_date(quote.get('checked_at')):
+            errors.append(f'Verified quote needs the real checking date: {label}')
+    return errors
 
 
 def validate_gateways(catalog: dict, tree: dict, learning_content: dict | None = None) -> list[str]:
@@ -113,6 +213,8 @@ def validate_gateways(catalog: dict, tree: dict, learning_content: dict | None =
             for name in ('author', 'title', 'caption', 'alt'):
                 if not case.get(name):
                     errors.append(f'Missing case {name}: {cid}')
+            errors.extend(validate_case_evidence(case.get('evidence'), cid,
+                                                 source_ids, sources, case.get('url')))
         sections = gateway.get('sections', [])
         if [s.get('id') for s in sections] != list(CHAPTERS):
             errors.append(f'Invalid gateway chapters: {ident}')

@@ -31,6 +31,75 @@ window.LearningGateways = (() => {
     const node = document.getElementById('gateway-message');
     if (node) { node.textContent = text; node.dataset.error = String(error); }
   }
+  const evidenceText = value => typeof value === 'string' && value.trim() ? value : '';
+  const evidenceDate = value => {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+    // A date shape is not a date: 2026-13-40 has to fail the same way 2026-13 does.
+    const [year, month, day] = value.split('-').map(Number);
+    const stamp = new Date(0);
+    stamp.setUTCFullYear(year, month - 1, day);
+    return stamp.getUTCFullYear() === year && stamp.getUTCMonth() === month - 1 && stamp.getUTCDate() === day ? value : '';
+  };
+  const evidenceRow = (layer, label, body, state) => `<div class="case-evidence-row" data-evidence-layer="${esc(layer)}" data-evidence-state="${esc(state)}"><dt class="case-evidence-label">${esc(label)}</dt><dd>${body}</dd></div>`;
+  const evidenceMissing = text => `<p class="case-evidence-missing">${esc(text)}</p>`;
+  // Only this gateway's own source, on this case's own readable page, quoting words that
+  // exist, with locator/language/date, may present the author's wording as checked.
+  // Two unsafe URLs that both fail the same way are not a match; anything else stays unverified.
+  function checkedQuoteSource(item, gateway, quote, sourceMap) {
+    if (!quote || quote.verification !== 'verbatim_checked') return null;
+    if (!evidenceText(quote.text)) return null;
+    const sourceId = evidenceText(quote.source_id);
+    const source = sourceMap.get(sourceId);
+    if (!source || !(gateway.source_ids || []).includes(sourceId)) return null;
+    const caseURL = safeURL(item && item.url), sourceURL = safeURL(source.url);
+    if (!caseURL || !sourceURL || caseURL !== sourceURL) return null;
+    if (!evidenceText(quote.locator) || !evidenceText(quote.language) || !evidenceDate(quote.checked_at)) return null;
+    return source;
+  }
+  function caseEvidenceHTML(item, gateway, sourceMap) {
+    const registry = sourceMap instanceof Map ? sourceMap : new Map(Object.entries(sourceMap || {}));
+    const evidence = item && item.evidence;
+    const scope = gateway && typeof gateway === 'object' && Array.isArray(gateway.source_ids) ? gateway.source_ids : [];
+    const readable = evidence && typeof evidence === 'object' && !Array.isArray(evidence) ? evidence : null;
+    const rows = [];
+    // An absent or empty record is how older cases already look: they render nothing at all.
+    const present = !!readable && Object.keys(readable).length > 0;
+    if (present) {
+      const layer = (name, label, state, body) => rows.push(evidenceRow(name, label, body, state));
+      // A. What is visible in the picture, in our words.
+      const observation = readable.observation && typeof readable.observation === 'object' ? readable.observation : {};
+      const seen = evidenceText(observation.text);
+      layer('observation', 'A · 画面观察 · 我们在图中看到的事实', seen ? 'present' : 'missing',
+        seen ? `<p>${esc(seen)}</p>` : evidenceMissing('未提供画面观察：这张照片里到底看见了什么，需要你自己先描述。'));
+      // B. The author's own wording, kept separate from everything we wrote.
+      const quote = readable.quote && typeof readable.quote === 'object' && !Array.isArray(readable.quote) ? readable.quote : {};
+      const quoted = evidenceText(quote.text);
+      const source = checkedQuoteSource(item, {source_ids:scope}, quote, registry);
+      const body = quoted ? `<blockquote class="case-evidence-quote">${esc(quoted)}</blockquote>` : evidenceMissing('未提供作者原话。');
+      const status = source
+        ? `<p class="case-evidence-status" data-verified="true">已逐字核对原文 · 语言：${esc(quote.language)} · 原文定位：${esc(quote.locator)} · 核验日期：${esc(quote.checked_at)} · 出处：<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title || quote.source_id)} ↗</a></p>`
+        : '<p class="case-evidence-status" data-verified="false">未核验：缺少完整的原文比对记录（逐字核对、原文定位、语言、核验日期，以及与本案例页面一致的来源），不能当作作者已确认的原话。</p>';
+      layer('quote', source ? 'B · 作者原话 · 已核对原文' : 'B · 作者原话 · 未核验', source ? 'verified' : 'unverified', body + status);
+      // C. Our professional reading, explicitly not the author's words.
+      const explanation = readable.explanation && typeof readable.explanation === 'object' && !Array.isArray(readable.explanation) ? readable.explanation : {};
+      const reading = evidenceText(explanation.text);
+      // A source we cannot actually link is not a citable basis, so it never becomes one.
+      const listed = Array.isArray(explanation.source_ids) ? explanation.source_ids.filter(id => evidenceText(id) && scope.includes(id) && safeURL((registry.get(id) || {}).url)) : [];
+      const cited = listed.map(id => { const source = registry.get(id); return `<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title || id)} ↗</a>`; }).join(' · ');
+      const links = listed.length ? `<p class="case-evidence-sources">解释依据：${cited}</p>` : '<p class="case-evidence-missing">这段解释缺少可核对的来源记录。</p>';
+      layer('explanation', 'C · 专业解释 · 我们的理解，不代表作者原话', reading ? 'present' : 'missing',
+        (reading ? `<p>${esc(reading)}</p>` : evidenceMissing('未提供专业解释。')) + links);
+      // D. What this changes in your own next shoot.
+      const advice = readable.advice && typeof readable.advice === 'object' && !Array.isArray(readable.advice) ? readable.advice : {};
+      const next = evidenceText(advice.text);
+      layer('advice', 'D · 项目建议 · 下一次实拍怎么用', next ? 'present' : 'missing',
+        next ? `<p>${esc(next)}</p>` : evidenceMissing('未提供练习建议。'));
+    } else if (readable === null && evidence !== undefined && evidence !== null) {
+      rows.push(evidenceRow('evidence', '教学证据 · 缺失', evidenceMissing('这条证据记录无法读取，四层内容均标记为未核验。'), 'unreadable'));
+    }
+    if (!rows.length) return '';
+    return `<dl class="case-evidence" data-evidence-rows="${rows.length}">${rows.join('')}</dl>`;
+  }
   function caseHTML(gateway, id) {
     const item = gateway.cases.find(c => c.id === id);
     if (!item) return '';
@@ -46,7 +115,7 @@ window.LearningGateways = (() => {
       return `<div class="case-media">${image.label?`<p class="case-media-label">${esc(image.label)}</p>`:''}<div class="case-image"><img src="${esc(mediaURL(image.src))}" alt="${esc(image.alt)}" loading="lazy"${dimensions} referrerpolicy="no-referrer"><span class="case-loading" role="status">正在加载原案例照片…</span><span class="case-load-error" hidden>这张图片暂时无法加载。中文要点仍可阅读，原案例链接在下方。</span></div></div>`;
     }).join('');
     const summary = item.source_summary;
-    return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span>${summary?`<details class="case-source-summary"><summary>原文要点 · 中文转述</summary><p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span></details>`:''}<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
+    return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span>${caseEvidenceHTML(item,gateway,sources)}${summary?`<details class="case-source-summary"><summary>原文要点 · 中文转述</summary><p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span></details>`:''}<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
   }
   function citations(ids) {
     return (ids || []).map(id => sources.get(id)).filter(Boolean).map(source => `<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title)} ↗</a>`).join(' · ');
@@ -201,5 +270,5 @@ window.LearningGateways = (() => {
     const id=new URLSearchParams(location.search).get('course');
     if(catalog.some(item=>item.id===id && item.kind==='course')) open(id);
   }
-  return {init,links,close,openFromURL,onRouteChange:()=>{if(dialog?.open)close(false);},isOpen:()=>!!dialog?.open};
+  return {init,links,close,openFromURL,caseEvidenceHTML,onRouteChange:()=>{if(dialog?.open)close(false);},isOpen:()=>!!dialog?.open};
 })();

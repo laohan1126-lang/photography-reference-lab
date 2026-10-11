@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Code Verifier Orchestration"
+  short_description: "Coordinate authorized research, coding and independent verification"
+  default_prompt: "Use $research-code-verifier-orchestration to organize the authorized work and independent acceptance."

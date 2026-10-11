@@ -58,6 +58,17 @@
 .case-source-summary summary {font-size:12px;color:var(--blue)}
 .case-source-summary p+p {margin-top:var(--space-1)}
 .case-source-locator {margin-top:var(--space-2);font-size:11px;color:var(--muted)}
+.case-evidence {margin:var(--space-3) 0;padding:var(--space-3) var(--space-4);border-left:2px solid var(--line);background:var(--soft)}
+.case-evidence-row+.case-evidence-row {margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--line)}
+.case-evidence-label {margin:0;font-size:11px;color:var(--blue)}
+.case-evidence-row dd {margin:var(--space-1) 0 0;color:var(--ink)}
+.case-evidence-row dd p+p {margin-top:var(--space-1)}
+.case-evidence-missing {color:var(--muted)}
+.case-evidence-quote {margin:0;padding-left:var(--space-3);border-left:2px solid var(--line)}
+.case-evidence-status {font-size:11px;line-height:1.8;color:var(--muted)}
+.case-evidence-row[data-evidence-state="unverified"] .case-evidence-status,.case-evidence-row[data-evidence-state="unreadable"] {color:var(--muted)}
+.case-evidence-row[data-evidence-state="unverified"] .case-evidence-status {font-style:italic}
+.case-evidence-sources {font-size:11px;color:var(--muted)}
 .gateway-case figcaption {margin-top:var(--space-2);font-size:12px;line-height:1.75;color:var(--muted)}
 .gateway-case figcaption strong,.gateway-case figcaption span {display:block}
 .gateway-case figcaption strong {font-weight:500;color:var(--ink)}

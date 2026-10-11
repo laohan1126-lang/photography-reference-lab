@@ -444,6 +444,31 @@
             "locator": "第一组对照：distraction-1-before 图注及其相邻段落",
             "source_id": "src-berkenfeld-composing",
             "checked_at": "2026-10-09"
+          },
+          "evidence": {
+            "observation": {
+              "text": "本轮查看的并排网页截图左图可见细长竖向草茎，后方有大片浅色区域，上缘有模糊的深绿与灰色块；下缘视口外未观察。只描述可见范围，不由此判断拍摄参数或水面反射机制。",
+              "checked_at": "2026-10-11"
+            },
+            "quote": {
+              "text": "the background is distracting the viewer's focus",
+              "verification": "verbatim_checked",
+              "source_id": "src-berkenfeld-composing",
+              "locator": "正文第一组并排前后对照的前图图注；本栏为七词原文片段，不是完整句子。",
+              "language": "en",
+              "checked_at": "2026-10-11"
+            },
+            "explanation": {
+              "text": "细茎与背景之间的明暗、边缘复杂度和占框面积需要一起比较；虚化的背景仍可能带来明显亮区。这是基于本图组及作者说明的项目分析，不是作者逐字原话，也不能从两张图证明某个焦距、光圈或单一机位变化的因果。",
+              "source_ids": [
+                "src-berkenfeld-composing"
+              ],
+              "checked_at": "2026-10-11"
+            },
+            "advice": {
+              "text": "漫展拍肖像时，先观察人物轮廓旁是否出现高亮背景块；在空间与安全允许时各试一步侧移和轻微转向，分别检查脸或头盔边缘的可辨度，保留两张对照。是否更喜欢新图由你决定；这不是作者对漫展的原话，也不会改变你的学习状态。",
+              "checked_at": "2026-10-11"
+            }
           }
         },
         {
