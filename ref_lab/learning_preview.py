@@ -11,7 +11,8 @@ from .learning_content import router as learning_content_router
 
 
 STATIC_FILES = {"learning.css", "learning.js",
-                "learning-gateways.css", "learning-gateways.js", "learning-icons.json", "learning-atlas.json"}
+                "learning-gateways.css", "learning-gateways.js", "learning-icons.json",
+                "learning-atlas.json", "learning-action-directing.json"}
 
 
 def preview_router(web_dir: Path) -> APIRouter:

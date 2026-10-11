@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "task": "action-directing-module-pilot-20261011",
+  "verifier": "independent_verifier",
+  "completed_at_utc": "2026-10-11T08:21:09.189362+00:00",
+  "baseline_commit": "fc6290cc4978529fdd9f58ed6cea02bab736de8a",
+  "frozen_criteria": {
+    "frozen_at_utc": "2026-10-11T07:22:55.590737+00:00",
+    "baseline_commit": "fc6290cc4978529fdd9f58ed6cea02bab736de8a",
+    "files": {
+      "CRITERIA.json": "a762419dfd97e1754b6a10a84dc7ff095d6c976c4a33b2f751498e4e0a2aacfe",
+      "CRITERIA.md": "bd9e02617861cbaf3907edcdfecfb9071f3e80fda455cd24114da64295ec5e69"
+    }
+  },
+  "criteria_unchanged": true,
+  "overall_status": "PASS",
+  "status_scope": "Observable course engineering, factual/source evidence and documented process only; human learning and publication are separate.",
+  "entry": "http://127.0.0.1:18772/learning?course=action-directing-module",
+  "requirements": [
+    {
+      "id": "AD-01",
+      "status": "PASS",
+      "finding": "完整八节中文课程已在实际 ROOT HTTP 深链打开。现有课程选择与章节阅读器可发现并进入；扩展包原子合并，业务变化局限八文件及独立课程数据。",
+      "evidence": [
+        "root-desktop-start.png",
+        "root-mobile-analysis.png"
+      ]
+    },
+    {
+      "id": "AD-02",
+      "status": "PASS",
+      "finding": "全文逐段核对：角色意图、服装/道具/场地约束；承重/朝向/手/视线/遮挡/机位的可观察诊断及未知边界；慢任务、短口令、复拍判据和舒适替代均有具体教学。",
+      "evidence": [
+        "../../docs/research/photography-atlas/action-directing/MODULE.md"
+      ]
+    },
+    {
+      "id": "AD-03",
+      "status": "PASS",
+      "finding": "宽袖信件非武器案例形成意图→遮挡问题→递进短口令→复拍看脸手关系→副作用链。A/B 是假设练习而非真实改片；原站单人照未被冒充坏姿势前图。",
+      "evidence": [
+        "../../docs/research/photography-atlas/action-directing/MODULE.md",
+        "SOURCE_AUDIT.md"
+      ]
+    },
+    {
+      "id": "AD-04",
+      "status": "PASS",
+      "finding": "独立实际读取 Lindsay 官方视频说明/五个暂停帧、署名 Rangefinder 原文及 Jerry/Westcott 合作教程原文/两幅原图。AGY 研究权限拒绝、空输出如实保留，不算完成研究。",
+      "evidence": [
+        "SOURCE_AUDIT.md",
+        "source_capture_receipts.json",
+        "ORIGINAL_PROCESS_AUDIT.json"
+      ]
+    },
+    {
+      "id": "AD-05",
+      "status": "PASS",
+      "finding": "独立打开五帧 80/86/200/218/228 秒与两幅1366×2048原图；重要最终事实与像素及原文一致。课程把作者说明、项目迁移、未知腿脚/承重、同时变化与成片效果分开；未发现已确认高影响事实错误。",
+      "evidence": [
+        "SOURCE_AUDIT.md",
+        "independent-lindsay-80.png",
+        "independent-lindsay-228.png",
+        "independent-jerry-solo.png",
+        "independent-jerry-couple.png"
+      ]
+    },
+    {
+      "id": "AD-06",
+      "status": "PASS",
+      "finding": "transfer 的双人照片此前未讲解；保护/对峙两目标需选择动作、机位与代价。面罩厚手套乐器固定位置情境加入新限制并保留仅视线及停止选项。三个问题解析默认折叠，含十分钟真人试拍和复盘。",
+      "evidence": [
+        "reader-390-transfer.png",
+        "isolated-readonly-390.json",
+        "../../docs/research/photography-atlas/action-directing/MODULE.md"
+      ]
+    },
+    {
+      "id": "AD-07",
+      "status": "PASS",
+      "finding": "真实第二轮 AGY 全文输出与原始 response 字节相等；解析后八节均改动，案例/技能/来源保持。两段保留 diff 独立重算完全一致；最终三处事实修正已逐差异复核。首轮实际错误输出未进入网站。",
+      "evidence": [
+        "ORIGINAL_PROCESS_AUDIT.json",
+        "ORIGINAL_ARTIFACT_HASH_AUDIT.json"
+      ]
+    },
+    {
+      "id": "AD-08",
+      "status": "PASS",
+      "finding": "实际桌面 ROOT 入口打开正文与原图；独立1440×1000浏览器遍历八节、展开/收起、关闭/重开/重载、技能导航、旧课程；无未捕获错误。另真实阻断图片请求验证文本/署名/原址回退。",
+      "evidence": [
+        "root-desktop-case.png",
+        "reader-1440-start.png",
+        "isolated-readonly-1440.json"
+      ]
+    },
+    {
+      "id": "AD-09",
+      "status": "PASS",
+      "finding": "实际 ROOT 与独立390×844浏览器验证阅读/章节/解析/媒体路径，无横向溢出，控件和文字可用。ROOT 两幅真实图滚动后 naturalWidth=1366、loading/error隐藏；初始懒加载0宽度未误判为失败。",
+      "evidence": [
+        "reader-390-start.png",
+        "reader-390-transfer.png",
+        "root-mobile-analysis.png",
+        "real-http-images.json",
+        "real-http-transfer-inspect.png"
+      ]
+    },
+    {
+      "id": "AD-10",
+      "status": "PASS",
+      "finding": "该课无回答/自评/保存表单。隔离 seed revision=3 的旧技能/旧gateway状态，在阅读、导航、重开重载前后 GET及底层文件字节完全相等；网络无POST/PUT/DELETE，课程写入404。",
+      "evidence": [
+        "isolated-readonly-1440.json",
+        "isolated-readonly-390.json",
+        "../../tests/test_action_directing_acceptance.py"
+      ]
+    },
+    {
+      "id": "AD-11",
+      "status": "PASS",
+      "finding": "14域/71模块/247技能基库及旧课程保留。16现有技能映射逐项核对；character-4/posing-6/character-1 等未建平行树。真实旧剑课与gateway回答表单/既有回答保持；隔离旧revision写冲突409且字节不变。",
+      "evidence": [
+        "isolated-readonly-390.json",
+        "catalogue.xml",
+        "../../tests/test_action_directing_acceptance.py"
+      ]
+    },
+    {
+      "id": "AD-12",
+      "status": "PASS",
+      "finding": "最终 scoped status/diff 与权利说明核对：原图只远程展示精确URL，未下载视频或纳入商业原图/私有库/浏览器数据；本独立证据仅 ignored .local。无业务数据库迁移或本Agent全局权限/付费API/发布操作。",
+      "evidence": [
+        "SOURCE_AUDIT.md",
+        "FINAL_CANDIDATE_SHA256.json"
+      ]
+    },
+    {
+      "id": "AD-13",
+      "status": "PASS",
+      "finding": "独立默认回归123通过；相关49初次48通过1失败，获用户单点授权后该失败用例独立1通过；独立端到端2通过；目录30通过1环境skip。canonical build/check与atlas验证、JS语法、diff检查通过。首次失败和命令使用错误均保留。",
+      "evidence": [
+        "TEST_RESULT_SUMMARY.json",
+        "default.xml",
+        "related.xml",
+        "authorized-csp.xml",
+        "independent.xml",
+        "catalogue.xml"
+      ]
+    },
+    {
+      "id": "AD-14",
+      "status": "PASS",
+      "finding": "七次真实进程的PID/UTC/exit/event数已核原始记录；28原始started/events/stderr/result的SHA256及字节全等。报告保留权限拒绝/空输出/turn上限/provider错误/AGY事实错误和哈希字段曾缺漏；stream计数不误称去重调用，无因果收益宣称。",
+      "evidence": [
+        "ORIGINAL_PROCESS_AUDIT.json",
+        "ORIGINAL_ARTIFACT_HASH_AUDIT.json",
+        "../../docs/research/photography-atlas/action-directing/AGENT_COLLAB_REPORT.md"
+      ]
+    },
+    {
+      "id": "AD-15",
+      "status": "PASS",
+      "finding": "本报告仅接受可观察工程及事实证据，真人学习/审美/实拍迁移另为UNVERIFIED；Git/Notion及发布结果由ROOT独立报告，本Agent未发布。",
+      "evidence": [
+        "ACCEPTANCE.md",
+        "ACCEPTANCE.json"
+      ]
+    }
+  ],
+  "test_results": {
+    "default.xml": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "123",
+        "time": "61.554",
+        "timestamp": "2026-10-11T16:04:47.534895+08:00",
+        "hostname": "DESKTOP-PVMGVTM"
+      }
+    ],
+    "related.xml": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "49",
+        "time": "107.223",
+        "timestamp": "2026-10-11T16:04:47.534895+08:00",
+        "hostname": "DESKTOP-PVMGVTM"
+      }
+    ],
+    "independent.xml": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "2",
+        "time": "13.617",
+        "timestamp": "2026-10-11T16:06:47.091704+08:00",
+        "hostname": "DESKTOP-PVMGVTM"
+      }
+    ],
+    "authorized-csp.xml": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "1",
+        "time": "0.938",
+        "timestamp": "2026-10-11T16:10:14.727637+08:00",
+        "hostname": "DESKTOP-PVMGVTM"
+      }
+    ],
+    "catalogue.xml": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "1",
+        "tests": "31",
+        "time": "1.894",
+        "timestamp": "2026-10-11T16:11:46.556702+08:00",
+        "hostname": "DESKTOP-PVMGVTM"
+      }
+    ]
+  },
+  "original_artifact_hash_check": {
+    "status": "PASS",
+    "file_count": 28,
+    "evidence": "ORIGINAL_ARTIFACT_HASH_AUDIT.json"
+  },
+  "historical_findings": [
+    {
+      "kind": "confirmed_test_compatibility_failure",
+      "path": "tests/test_learning_gateways_ui.py:18",
+      "trigger": "New exact Westcott image URLs extend img-src; legacy test expected old full directive immediately ending in semicolon.",
+      "initial_result": "48 passed, 1 failed",
+      "repair_authorization": "User explicitly allowed this one single-point repair after the two directed revision rounds.",
+      "independent_review": "Exact token set equality includes self/data/blob/old registered URLs/two exact new URLs; private homepage excludes westcottu.com; existing auth/CSRF path unchanged.",
+      "retest": "1 passed; authorized-csp.xml",
+      "current_status": "RESOLVED"
+    },
+    {
+      "kind": "confirmed_report_metadata_omission",
+      "path": "docs/research/photography-atlas/action-directing/AGENT_COLLAB_REPORT.md / PROCESS_RECEIPTS.json",
+      "trigger": "Report initially claimed original hashes existed but receipt had no hash fields.",
+      "repair": "Parent appended actual 28 SHA256/byte records and retained omission history.",
+      "independent_check": "All 28 hash/size checks match original bytes.",
+      "current_status": "RESOLVED"
+    }
+  ],
+  "directed_revision_rounds": 2,
+  "extra_repair": "One expressly user-authorized test-only single-point correction; not counted silently as one of original two.",
+  "remaining_confirmed_defects": [],
+  "unverified": [
+    "Owner personally learned, remembered or successfully transferred directing skills in a real shoot; aesthetic/human acceptance.",
+    "Continuous full BTS viewing, soundtrack transcription, and full Jerry 60-minute video; source verification is five paused frames, official description/original articles and two actual original photos.",
+    "All Rangefinder article illustrations were not visually opened.",
+    "Windows symlink-creation regression skipped because current environment lacks capability (catalogue.xml).",
+    "Redistribution license of commercial source images; source display attribution and rights caution do not grant redistribution.",
+    "Git/Notion publication, remote SHA and production deployment; ROOT owns publication and its separate blockers."
+  ],
+  "execution_errors": [
+    "YouTube web fetch throttled; legitimate existing BrowserSkill access succeeded without changing permissions.",
+    "Quoted PowerShell BSK target and -X utf8 corrected verifier target parsing/emoji encoding errors.",
+    "Direct invocation tools/validate_photography_tutorials.py failed ModuleNotFoundError: tools; canonical build_photography_atlas.py --check later ran the actual validators and passed.",
+    "Verifier initial inline Python inspection command had quoting SyntaxError; saved inspection script then executed and verified live images."
+  ],
+  "independent_owned_paths": [
+    ".local/verifier/",
+    "tests/test_action_directing_acceptance.py"
+  ],
+  "parent_existing_dirty_dependency_copies": [
+    "web/learning-atlas.json",
+    "ref_lab/learning_media.py",
+    "docs/research/photography-atlas/GATEWAYS.json",
+    "tests/test_learning_gateways.py"
+  ],
+  "publication": {
+    "performed_by_verifier": false,
+    "git": "UNVERIFIED",
+    "notion": "UNVERIFIED"
+  }
+}

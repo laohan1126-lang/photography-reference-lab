@@ -1,0 +1,109 @@
+{
+  "checked_at_utc": "2026-10-11T08:21:09.189362+00:00",
+  "files": {
+    "web/learning.js": {
+      "sha256": "40bb3c1d28825bd99cd3902164fc4d0669d0a01d03062c99473d2daf04256388",
+      "bytes": 77757
+    },
+    "web/learning-gateways.js": {
+      "sha256": "c1293b7362dcf2154e5caae755bfe3a2a7042843210d16ff1bfdb39a50c11874",
+      "bytes": 27648
+    },
+    "ref_lab/learning_preview.py": {
+      "sha256": "b913223392bd63a9221009eba1b191d1d958b2f40d4119a587b3706b2823f129",
+      "bytes": 1976
+    },
+    "ref_lab/api.py": {
+      "sha256": "95a8f6d807896351303c44650cea00c511df124874bf3a707e1bab12d660eff3",
+      "bytes": 32148
+    },
+    "ref_lab/action_directing_media.py": {
+      "sha256": "8c0196aea72d8e44c78eb729c1ad22b768efc99502ee6c5837f65703302877d3",
+      "bytes": 1346
+    },
+    "tools/validate_learning_gateways.py": {
+      "sha256": "121ade533d51d7e10d67e9c9947d5025d1fc79872c43ee776994a00cdcf77003",
+      "bytes": 15738
+    },
+    "tools/build_action_directing.py": {
+      "sha256": "2ea91ebcf10550d899239bdeeb06a81b1f607ceb7edc9896ad0ca3834435f8f9",
+      "bytes": 9816
+    },
+    "tests/test_action_directing.py": {
+      "sha256": "109c3823ebc0cbb7bc0d0cb45a0e4d294f74ea5b2ac0fd2bc412e956c77e8df7",
+      "bytes": 28212
+    },
+    "tests/test_learning_gateways_ui.py": {
+      "sha256": "776de09ad3bbde6eb6984a4747733338ed6f0371c738480deb68add73306224b",
+      "bytes": 20076
+    },
+    "tests/test_action_directing_acceptance.py": {
+      "sha256": "a347c4c3e52198741dc274bac2c3b1d018661bb5798774f52593e016ffc5a625",
+      "bytes": 6519
+    },
+    "web/learning-action-directing.json": {
+      "sha256": "40687140bb77603ee95dee0fddad7b79616bb4684f118be9e187b842a4698ad8",
+      "bytes": 42299
+    },
+    "docs/research/photography-atlas/action-directing/ACCEPTANCE_CRITERIA.json": {
+      "sha256": "a762419dfd97e1754b6a10a84dc7ff095d6c976c4a33b2f751498e4e0a2aacfe",
+      "bytes": 9819
+    },
+    "docs/research/photography-atlas/action-directing/AGENT_COLLAB_REPORT.md": {
+      "sha256": "8095ada32e88f4622f1efb4bdb3e4953542200c5da094ab0752f5572dca53a05",
+      "bytes": 7610
+    },
+    "docs/research/photography-atlas/action-directing/AGY_POLISH_DIFF.md": {
+      "sha256": "d73066a2d9650edd0673808c018255b7f12777adc7c0306c2c4469fb46229efd",
+      "bytes": 47927
+    },
+    "docs/research/photography-atlas/action-directing/AGY_POLISHED.json": {
+      "sha256": "6cc9815a95f0866f3d231e44fab79cc0433a63c3820e6325b6d63c3780dabbdc",
+      "bytes": 42075
+    },
+    "docs/research/photography-atlas/action-directing/AGY_POLISHED.md": {
+      "sha256": "e724b6c17d71acd1d751a25581f6c4f4d6b014470f61bbebf9dbe1f117d91d97",
+      "bytes": 28770
+    },
+    "docs/research/photography-atlas/action-directing/AGY_RESPONSE_FINAL.txt": {
+      "sha256": "ba0fec692eb6ba3e84af7632e8304469a0fc4b13e232685a1e4690991f9cebf5",
+      "bytes": 28382
+    },
+    "docs/research/photography-atlas/action-directing/COURSE.json": {
+      "sha256": "427e4f8228cf7463f1df36f9105f1e43eaa4dd53747adfc998f37a511642f92a",
+      "bytes": 42144
+    },
+    "docs/research/photography-atlas/action-directing/FACTS.md": {
+      "sha256": "7d98dc74d06828eb33ac61c9bf412323be89c7e2250e621ac229b6fc1b6ecaeb",
+      "bytes": 5931
+    },
+    "docs/research/photography-atlas/action-directing/MODULE.md": {
+      "sha256": "851c3aaae8e0594558a9ffe7f6f82ed498ce51af88f510ed854251a839bc4864",
+      "bytes": 28779
+    },
+    "docs/research/photography-atlas/action-directing/PRE_POLISH.json": {
+      "sha256": "1a3c68243d988eaf3852a8d6fc0f6a40dabd5f9bf79e15cdbc6ecb0ec0a285c9",
+      "bytes": 36601
+    },
+    "docs/research/photography-atlas/action-directing/PRE_POLISH.md": {
+      "sha256": "f13419c5e1a3f5e390fdd3ced8664d6a7d049c026bad704ccf8e692bceae8524",
+      "bytes": 23296
+    },
+    "docs/research/photography-atlas/action-directing/PROCESS_RECEIPTS.json": {
+      "sha256": "c5cbd782075a4389900bc6ce1d2fd84969bbe0101c3209ee0a0fb354104f44ef",
+      "bytes": 36105
+    },
+    "docs/research/photography-atlas/action-directing/ROOT_FACT_AUDIT.json": {
+      "sha256": "8e5de4d12a9fe9f27acea28360517489e3ffdd7217bbc1186388c4ec70521b5a",
+      "bytes": 1785
+    },
+    "docs/research/photography-atlas/action-directing/SOURCE_AUDIT.md": {
+      "sha256": "28a69c1bd1dfa4b3a252595ebc5a8e109db4b16d819a8b830efc35774d809c4e",
+      "bytes": 4682
+    },
+    "docs/research/photography-atlas/action-directing/SOURCES.md": {
+      "sha256": "662c1b62bca6f590a8217be1ade81207bd1068a0e5dd065bfb3deab255a93358",
+      "bytes": 5286
+    }
+  }
+}

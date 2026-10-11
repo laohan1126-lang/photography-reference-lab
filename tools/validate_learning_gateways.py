@@ -119,7 +119,13 @@ def _validate_quote(quote: dict, label: str, source_ids: set, sources: dict,
     return errors
 
 
-def validate_gateways(catalog: dict, tree: dict, learning_content: dict | None = None) -> list[str]:
+def validate_gateways(catalog: dict, tree: dict, learning_content: dict | None = None,
+                      extra_source_media: dict | None = None) -> list[str]:
+    # A separate extension registry is copied in for this call only; the base map
+    # keeps owning exactly its own reviewed cases and is never mutated here.
+    source_media = dict(SOURCE_CASE_MEDIA)
+    if extra_source_media:
+        source_media.update(extra_source_media)
     errors = []
     if not isinstance(catalog, dict) or catalog.get('schema_version') != 1:
         return ['Invalid gateway schema']
@@ -178,7 +184,7 @@ def validate_gateways(catalog: dict, tree: dict, learning_content: dict | None =
                     errors.append(f'Missing intrinsic image dimensions: {cid}')
             elif case.get('display') == 'source_remote':
                 images = case.get('images', [])
-                registered = SOURCE_CASE_MEDIA.get(cid)
+                registered = source_media.get(cid)
                 if (not isinstance(images, list) or not images or not registered
                         or tuple(i.get('src') for i in images if isinstance(i, dict)) != registered
                         or case.get('src')):

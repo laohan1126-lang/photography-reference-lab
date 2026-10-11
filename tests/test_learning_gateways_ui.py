@@ -13,10 +13,17 @@ def test_gateway_endpoint_requires_session_and_csrf(learning_app):
     app, _, origin, _, _ = learning_app
     with TestClient(app, base_url=origin) as client:
         from ref_lab.learning_media import SOURCE_IMAGE_CSP
+        from ref_lab.action_directing_media import ACTION_DIRECTING_SOURCE_IMAGE_CSP
         policy = client.get('/learning').headers['content-security-policy']
         reference_policy = client.get('/').headers['content-security-policy']
-        assert f"img-src 'self' data: blob: {SOURCE_IMAGE_CSP};" in policy
+        image_directive = next(part.strip() for part in policy.split(';')
+                               if part.strip().startswith('img-src '))
+        assert set(image_directive.split()[1:]) == {
+            "'self'", 'data:', 'blob:', *SOURCE_IMAGE_CSP.split(),
+            *ACTION_DIRECTING_SOURCE_IMAGE_CSP.split(),
+        }
         assert 'wikimedia' not in reference_policy
+        assert 'westcottu.com' not in reference_policy
         assert "script-src 'self';" in policy and "connect-src 'self';" in policy
         gateway = client.get('/static/learning-atlas.json').json()['gateways'][0]['id']
         endpoint = '/api/learning-gateways/' + gateway

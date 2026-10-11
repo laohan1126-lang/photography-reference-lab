@@ -1,0 +1,40 @@
+{
+  "status": "FACTUAL_AUDIT_PASS_WITH_RECORDED_CORRECTIONS",
+  "whole_module_reviewed": true,
+  "sections": 8,
+  "structure_and_references_unchanged": true,
+  "cases_and_sources_unchanged": true,
+  "human_learning": "UNVERIFIED",
+  "root_corrections": [
+    {
+      "section": "principle",
+      "block_index": 3,
+      "field": "text",
+      "before": "至于正文里提到的镜像示范，属于教程的方法讲解",
+      "after": "至于 Jerry / Westcott 正文所说的镜像示范，属于该教程的方法讲解",
+      "reason": "明确所属作者：不能让上下文把 Jerry 正文方法误认为 Adler 抽样画面的新增认证。"
+    },
+    {
+      "section": "boundary",
+      "block_index": 2,
+      "field": "text",
+      "before": "即使是安全仿制道具",
+      "after": "即使是仿制道具",
+      "reason": "避免无条件预先认证道具安全；实际安全取决于场地、可控程度及当事人。"
+    },
+    {
+      "section": "contrast",
+      "block_index": 3,
+      "field": "rows[2].cost",
+      "before": "背景内容、面部光影方向以及衣服正面的图案展示都会受到影响",
+      "after": "背景内容、面部光影呈现以及衣服正面的图案展示也可能改变",
+      "reason": "将必然变化恢复为条件性预计；机位移动不证明每项均变化，也不证明光源方向物理移动。"
+    }
+  ],
+  "metadata_changes": [
+    "Added bounded course label",
+    "Corrected contributor attribution to disclose research block"
+  ],
+  "original_response_sha256": "ba0fec692eb6ba3e84af7632e8304469a0fc4b13e232685a1e4690991f9cebf5",
+  "case_review_basis": "FACTS.md and independent SOURCE_AUDIT.md; no dialogue/settings/mechanics additions accepted"
+}

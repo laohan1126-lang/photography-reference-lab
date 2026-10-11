@@ -83,8 +83,10 @@
   const STATUS_NOTE = {unassessed:'状态尚未由你评估。',unstarted:'由你标记为尚未开始。',learning:'由你标记为正在学习。',practicing:'由你标记为正在练习。',field_verified:'由你确认已在实拍中验证。',mastered:'由你确认已掌握。'};
   const api = {
     atlas:'/static/learning-atlas.json', state:'/api/learning-state', session:'/api/session',
-    preview:'/api/learning-preview', photos:'/api/learning-state'
+    preview:'/api/learning-preview', photos:'/api/learning-state',
+    extension:'/static/learning-action-directing.json'
   };
+  const EXTENSION_ID = /^[a-z][a-z0-9-]{0,64}$/;
   let atlas = null, state = {revision:0,skills:{}}, csrf = '', sessionReady = false, stateReady = false;
   let assets = [], activeSkill = null, returnFocus = null, photoReturnFocus = null, searchTimer = 0, recent = [];
   let profileWriteInFlight = false, recordWriteInFlight = false, dialogPhotoSaved = '', recordDialogSkill = null;
@@ -665,6 +667,120 @@
     $('problem-view').innerHTML = `<nav class="breadcrumbs"><a href="#map">能力地图</a><span>/</span><a href="#q=${encodeURIComponent(gap.title || '')}">问题搜索</a></nav><article class="problem-panel"><p class="eyebrow">RESEARCH GAP</p><h1 id="problem-title" tabindex="-1">${esc(gap.title || '研究缺口')}</h1><p>${esc(gap.description || '')}</p>${gap.synonyms?.length?`<p>相关说法：${gap.synonyms.map(esc).join('、')}</p>`:''}<p class="problem-disclaimer">资料不足。此缺口不会自动转为相邻方法或未经证实的操作建议。</p><section class="problem-matches"><p class="eyebrow">关联技能</p>${skills.length?skills.map(skill=>skillResult(skill)).join(''):'<p class="empty-result">暂未关联技能。</p>'}</section></article>`;
     return true;
   }
+  // A second teaching payload adds read-only courses to the existing reader.
+  // Everything is checked first and merged in one step: a rejected extension
+  // leaves the base atlas, its courses, sources and personal records untouched.
+  const COURSE_CHAPTERS = ['problem','observe','principle','contrast','boundary','transfer','reflect','sources'];
+  const BLOCK_TYPES = ['paragraph','heading','list','comparison','tradeoffs','case','case_pair','exercise','reveal'];
+  const GATEWAY_TEXT = ['title','question','outcome','method','author','reading_depth','prior_knowledge'];
+  const SOURCE_TEXT = ['url','title','author','reading_depth','checked_at','locator','support','limitation'];
+  const filled = value => typeof value === 'string' && value.trim().length > 0;
+  const rowsOK = (block, keys) => Array.isArray(block.rows) && block.rows.length > 0
+    && block.rows.every(row => row && keys.every(key => filled(row[key])));
+  // The reader indexes sections, blocks, cases and citations directly, so a payload with
+  // legal ids but a null section list would throw while opening the dialog and take the
+  // whole page with it. These are the pre-render conditions, bounded to what render()
+  // actually dereferences; teaching quality stays the builder's and the author's job.
+  function renderPrecheck(gateway, knownSources) {
+    const ident = gateway.id;
+    if (GATEWAY_TEXT.some(name => !filled(gateway[name])))
+      return `课程 ${ident} 缺少必填的教学字段。`;
+    const sections = gateway.sections;
+    if (!Array.isArray(sections) || sections.length !== COURSE_CHAPTERS.length
+        || sections.some((section, index) => !section || section.id !== COURSE_CHAPTERS[index] || !filled(section.title)))
+      return `课程 ${ident} 的八个教学章节缺失或顺序不正确。`;
+    if (!Array.isArray(gateway.cases) || !gateway.cases.length)
+      return `课程 ${ident} 没有可显示的案例列表。`;
+    const cases = new Set();
+    for (const item of gateway.cases) {
+      if (!item || typeof item.id !== 'string' || !EXTENSION_ID.test(item.id) || cases.has(item.id))
+        return `课程 ${ident} 的案例 ID 无效或重复：${String(item && item.id)}。`;
+      if (['title','author','caption'].some(name => !filled(item[name])) || !item.rights
+          || !filled(item.rights.url) || !filled(item.rights.statement)
+          || !item.review || !filled(item.review.detail))
+        return `课程 ${ident} 的案例 ${item.id} 缺少说明、权利或图像核验记录。`;
+      cases.add(item.id);
+    }
+    const listed = ids => ids === undefined || (Array.isArray(ids) && ids.every(id => knownSources.has(id)));
+    for (const section of sections) {
+      if (!Array.isArray(section.blocks) || !section.blocks.length)
+        return `课程 ${ident} 的章节 ${section.id} 没有内容块。`;
+      if (!listed(section.source_ids))
+        return `课程 ${ident} 的章节 ${section.id} 关联了不存在的出处。`;
+      for (const block of section.blocks) {
+        if (!block || !BLOCK_TYPES.includes(block.type))
+          return `课程 ${ident} 的章节 ${section.id} 含无法显示的内容块。`;
+        if (['paragraph','heading'].includes(block.type) && !filled(block.text))
+          return `课程 ${ident} 的章节 ${section.id} 有空文本块。`;
+        if (block.type === 'list' && !(Array.isArray(block.items) && block.items.length && block.items.every(filled)))
+          return `课程 ${ident} 的章节 ${section.id} 的列表块无效。`;
+        if (block.type === 'comparison' && !rowsOK(block, ['novice','expert','question']))
+          return `课程 ${ident} 的章节 ${section.id} 的对照块无效。`;
+        if (block.type === 'tradeoffs' && !rowsOK(block, ['action','effect','cost','test']))
+          return `课程 ${ident} 的章节 ${section.id} 的取舍块无效。`;
+        if (block.type === 'case_pair' && !(Array.isArray(block.case_ids) && block.case_ids.length))
+          return `课程 ${ident} 的章节 ${section.id} 的案例对无效。`;
+        if (block.type === 'case' || block.type === 'case_pair') {
+          const ids = block.type === 'case' ? [block.case_id] : block.case_ids;
+          if (!ids.every(id => cases.has(id)))
+            return `课程 ${ident} 的章节 ${section.id} 引用了课程中不存在的案例。`;
+        }
+        if (block.type === 'exercise' && (!filled(block.id) || !filled(block.title) || !filled(block.prompt)))
+          return `课程 ${ident} 的章节 ${section.id} 的观察题无效。`;
+        if (block.type === 'reveal' && (!filled(block.activity_id) || !filled(block.title)
+            || !(Array.isArray(block.paragraphs) && block.paragraphs.length && block.paragraphs.every(filled))
+            || !listed(block.source_ids)))
+          return `课程 ${ident} 的章节 ${section.id} 的解析块无效。`;
+      }
+    }
+    return '';
+  }
+  function mergeExtension(result) {
+    if (result.status !== 'fulfilled') {
+      // An absent bundle is "not built yet", not a broken one; both stay visible.
+      return result.reason.status === 404
+        ? '动作指导课程扩展包尚未生成或未启用（/static/learning-action-directing.json）。'
+        : `动作指导课程扩展包读取失败：${result.reason.message}`;
+    }
+    const data = result.value;
+    if (!data || data.schema_version !== 1 || typeof data.extension !== 'string' || !EXTENSION_ID.test(data.extension)
+        || !Array.isArray(data.gateways) || !Array.isArray(data.gateway_sources))
+      return '课程扩展包格式无效，未载入其中任何课程。';
+    const skillIds = new Set(maps.skills.keys());
+    const gatewayIds = new Set((atlas.gateways || []).map(item => item.id));
+    const sourceIds = new Set((atlas.gateway_sources || []).map(item => item.id));
+    const extraSources = [], extraGateways = [];
+    for (const source of data.gateway_sources) {
+      if (!source || typeof source.id !== 'string' || !EXTENSION_ID.test(source.id) || sourceIds.has(source.id))
+        return `课程扩展包中的来源 ID 无效或与现有出处冲突：${String(source && source.id)}。未载入其中任何课程。`;
+      // The source panel prints every listed field, so a blank one is not shippable.
+      if (SOURCE_TEXT.some(name => !filled(source[name])))
+        return `课程扩展包中的来源 ${source.id} 缺少必填字段：${SOURCE_TEXT.filter(name => !filled(source[name])).join('、')}。未载入其中任何课程。`;
+      sourceIds.add(source.id); extraSources.push(source);
+    }
+    for (const gateway of data.gateways) {
+      const ident = String(gateway && gateway.id);
+      if (typeof (gateway || {}).id !== 'string' || !EXTENSION_ID.test(ident) || gatewayIds.has(ident))
+        return `课程扩展包中的课程 ID 无效或与现有课程冲突：${ident}。未载入其中任何课程。`;
+      // Only read-only chapters may travel in an extension payload.
+      if (gateway.kind !== 'course')
+        return `课程扩展包只接受课程条目（kind=course），发现 ${JSON.stringify(gateway.kind)}：${ident}。未载入其中任何课程。`;
+      if ('label' in gateway && !(typeof gateway.label === 'string' && gateway.label.trim() && gateway.label.length <= 60))
+        return `课程 ${ident} 的标签无效。未载入其中任何课程。`;
+      if (!Array.isArray(gateway.skill_ids) || !gateway.skill_ids.length || !gateway.skill_ids.every(id => skillIds.has(id)))
+        return `课程 ${ident} 关联了能力地图中不存在的技能。未载入其中任何课程。`;
+      if (!Array.isArray(gateway.source_ids) || !gateway.source_ids.every(id => sourceIds.has(id)))
+        return `课程 ${ident} 关联了扩展包中不存在的出处。未载入其中任何课程。`;
+      // Structural preconditions first: an unusable course is refused while the loaded
+      // atlas is still untouched, not after it has been merged and opened.
+      const reason = renderPrecheck(gateway, sourceIds);
+      if (reason) return `${reason}未载入其中任何课程。`;
+      gatewayIds.add(ident); extraGateways.push(gateway);
+    }
+    atlas.gateways = [...(atlas.gateways || []), ...extraGateways];
+    atlas.gateway_sources = [...(atlas.gateway_sources || []), ...extraSources];
+    return '';
+  }
   function wire() {
     document.addEventListener('click',event=>{
       const sectionLink=event.target.closest('[data-section-target]');
@@ -733,17 +849,19 @@
   async function boot() {
     wire();
     stateNotice('正在读取个人学习记录…');
-    const [atlasResult,sessionResult,stateResult,previewResult] = await Promise.allSettled([
+    const [atlasResult,sessionResult,stateResult,previewResult,extensionResult] = await Promise.allSettled([
       fetch(api.atlas,{credentials:'same-origin',cache:'no-store'}).then(responseJson),
       fetch(api.session,{credentials:'same-origin',cache:'no-store'}).then(responseJson),
       fetch(api.state,{credentials:'same-origin',cache:'no-store'}).then(responseJson),
-      fetch(api.preview,{credentials:'same-origin',cache:'no-store'}).then(responseJson)
+      fetch(api.preview,{credentials:'same-origin',cache:'no-store'}).then(responseJson),
+      fetch(api.extension,{credentials:'same-origin',cache:'no-store'}).then(responseJson)
     ]);
     if (atlasResult.status !== 'fulfilled' || !atlasResult.value || atlasResult.value.schema_version !== 1 || !Array.isArray(atlasResult.value.skills)) {
       showMainError(atlasResult.status==='rejected' ? `研究数据暂不可用：${atlasResult.reason.message}` : '研究数据格式无效。请在构建并验证学习数据包后重新加载。');
       $('home-view').hidden=true; return;
     }
     atlas=atlasResult.value; buildMaps(); recent=readRecent(); renderDomainGrid(); renderRecent();
+    const extensionError = mergeExtension(extensionResult);
     if (sessionResult.status==='fulfilled') { csrf=sessionResult.value.csrf || ''; sessionReady=!!csrf; }
     if (stateResult.status==='fulfilled') { state=stateResult.value; stateReady=true; stateNotice('个人学习记录已读取。','ok'); }
     else { stateReady=false; stateNotice(stateResult.reason.status===401?'请先解锁私人参考库；当前仅可浏览研究内容。':`个人记录暂不可用：${stateResult.reason.message}`,'error'); }
@@ -775,6 +893,14 @@
     renderNextPractice();
     if (atlas.domains.length) { $('load-error').hidden=true; renderRoute(); gateways.openFromURL(); }
     else showMainError('研究数据中没有能力领域。');
+    // A course link that never opened must say why, not look like an empty map.
+    const requestedCourse = new URLSearchParams(location.search).get('course');
+    if (requestedCourse && !document.getElementById('gateway-dialog')?.open
+        && !(atlas.gateways || []).some(item => item.id === requestedCourse && item.kind === 'course')) {
+      showMainError(extensionError
+        ? `无法打开课程「${requestedCourse}」：${extensionError}能力地图、原有认知入口与已有课程不受影响，可用原样浏览；修好扩展包后重新加载本页。`
+        : `未找到课程「${requestedCourse}」。请从首页「从现场问题，连续学一章」选择现有课程。`);
+    }
   }
   boot();
 })();
