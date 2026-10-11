@@ -24,4 +24,36 @@
 
 ## 结果
 
-进行中。最终实际清理清单、快进提交、远端核验和工具回执在完成后追加；不能以扫描或快照替代实际合并与删除。
+当前版本已正常提交为 `1b6e665f1d94a3ef58fcad97b61d952f0732393e`，83 个精确路径（包括 rename 的旧名删除），父提交为原 HEAD。通过祖先检查和 compare-and-swap 快进 main，再正常 `git push origin main`；UTC `2026-10-11T15:22:09.474475+00:00` 读回远端 SHA 与该提交一致。此过程没有改写共享历史、force-push 或修改原 Publisher baseline。整合过程中保持当前工作区正文原字节，避免先切回旧 main 再检出造成换行重写。
+
+12 个旧目录完整归档，普通文件总计 3,250,806,819 字节。归档解压读取逐文件 SHA256 与原文件相同，删除前又复核源目录完整文件集合/hash；7 个指向主 `.venv` 的 junction 单独记录目标，仅移除指针、不递归链接目标。随后以 PowerShell 7 原生 `Remove-Item -LiteralPath` 清理，目标每次均解析确认是授权顶层目录，主环境保留。实际移除路径：
+
+```text
+D:\AI PROJECTS\photography-reference-lab-agy-headless-20261010
+D:\AI PROJECTS\photography-reference-lab-antigravity
+D:\AI PROJECTS\photography-reference-lab-calibration-20261010
+D:\AI PROJECTS\photography-reference-lab-cc-minimax-20261010
+D:\AI PROJECTS\photography-reference-lab-gate-20261010
+D:\AI PROJECTS\photography-reference-lab-multi-agy-20261010
+D:\AI PROJECTS\photography-reference-lab-multi-cc-20261010
+D:\AI PROJECTS\photography-reference-lab-multi-pilot-20261010
+D:\AI PROJECTS\photography-reference-lab-multi-repair-20261011
+D:\AI PROJECTS\photography-reference-lab-multi-verifier-20261010
+D:\AI PROJECTS\photography-course-synthesis-20261010
+D:\AI PROJECTS\_backup_codex-darkroom-20261007-203745
+```
+
+Git `worktree prune --expire now` 清除不存在目录的登记；对应 11 个本地分支逐一核对已备份的精确 HEAD、未被其他工作树使用后移除。9 个不在当前版本历史中的实验提交仍能从 bundle 恢复，没有硬塞进 main。远端分支和其他项目未删。完整清单与恢复映射为 `.local/backups/consolidation-20261011-2305/manifest-external.json`，原 index/patch 和 refs 位于同一归档；恢复一个旧实验时先在主仓库 `.local/worktrees/` 内新建隔离目录，从 bundle 取回相应 refs，并按 zip/manifest 恢复其文件；junction 指针记录单独保留。
+
+目录约束已进入 AGENTS、README、当前项目编排 Skill 和回归入口。当前发现验收脚本 `.forge/codex-multi-agent-orchestration/run_discovery.py` 的用户案例目录从顶层改到主目录 `.local/validation/`，创建前核对解析后的边界。实际正反路径检查通过：仓库内目录创建成功，外部测试路径在创建前被拒绝；没有启动新的模型发现会话，历史 native 发现结果不冒充新路径的发现结果。
+
+## 实际验证与限制
+
+- 两门课六个最终 canonical 文件与原独立 LP-01–LP-05 PASS 候选 SHA256 相同；原 28 个过程/来源文件也保持。复用未变内容的手机/桌面阅读证据。
+- `.venv/Scripts/python.exe -X utf8 tools/build_action_directing.py --check`、`tools/build_photography_atlas.py --check`：PASS。
+- `.venv/Scripts/python.exe -X utf8 -m pytest -q tests/test_agy_browser_bridge.py`：63 passed，2 skipped（本环境无法创建测试用 symlink），1 原有依赖 warning，3.19 秒；没有删除或削弱这些测试。
+- 三份实际 `node --check`（app.js、learning.js、learning-gateways.js）及验收脚本 Python 编译：PASS。实际路径约束正反例：PASS。
+- 首次 `git diff --cached --check` 对原始 `AGY_POLISH_DIFF.md` 的嵌入统一 diff 空上下文行报 trailing whitespace；核对其原字节和单空格语义后原样保留，记录原 FAIL。其余 82 个 staged 路径的 scoped check：PASS。未通过改写原始证据消除检查结果。
+- 独立 Reviewer 核对恢复快照、候删绝对路径、bundle 分支、junction 和删除脚本，通过后才执行；进程命令行未发现依赖旧目录，日用 Python 和只读预览使用主目录环境。未把合成测试当作实拍或审美认可。
+
+收尾规则与本记录的最终提交、切换 main、远端 SHA 及 canonical Publisher 实际回执继续保存在本事务私有交付证据中；只按真实结果报告。Publisher 无 dirty adoption 能力，其失败不抹掉上述实际 Git 成功；Notion 如受其 Git 前置条件阻止则待同步，不改目的地。

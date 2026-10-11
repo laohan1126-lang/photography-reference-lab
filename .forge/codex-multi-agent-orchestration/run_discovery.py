@@ -14,9 +14,10 @@ import subprocess
 import winreg
 
 
-ROOT = Path(r"D:\AI PROJECTS\photography-reference-lab")
+ROOT = Path(__file__).resolve().parents[2]
+CANONICAL_ROOT = Path(r"D:\AI PROJECTS\photography-reference-lab")
 OUT = ROOT / ".local/orchestration-rename/discovery"
-EXTERNAL = Path(r"D:\AI PROJECTS\orchestration-rename-validation-20261011")
+EXTERNAL = ROOT / ".local/validation/skill-discovery-user-cases"
 USER_SKILL = Path(r"C:\Users\Dell\.agents\skills\codex-multi-agent-orchestration\SKILL.md")
 PROJECT_SKILL = ROOT / ".agents/skills/codex-multi-agent-orchestration/SKILL.md"
 PROJECT_RULES = ROOT / "AGENTS.md"
@@ -250,6 +251,9 @@ def main() -> int:
     if Path(args.batch).name != args.batch or args.batch in (".", ".."):
         raise RuntimeError("Batch name must be one path component")
     out_dir = OUT / args.batch
+    for destination in (ROOT, out_dir, EXTERNAL):
+        if not destination.resolve().is_relative_to(CANONICAL_ROOT.resolve()):
+            raise RuntimeError("Discovery workspace must stay inside the canonical project directory")
     if out_dir.exists():
         raise RuntimeError(f"Refusing to overwrite batch evidence directory: {out_dir}")
     out_dir.mkdir(parents=True)
