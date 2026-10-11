@@ -63,44 +63,47 @@ window.LearningGateways = (() => {
     const evidence = item && item.evidence;
     const scope = gateway && typeof gateway === 'object' && Array.isArray(gateway.source_ids) ? gateway.source_ids : [];
     const readable = evidence && typeof evidence === 'object' && !Array.isArray(evidence) ? evidence : null;
-    const rows = [];
+    const paragraphs = [], notes = [];
     // An absent or empty record is how older cases already look: they render nothing at all.
     const present = !!readable && Object.keys(readable).length > 0;
     if (present) {
-      const layer = (name, label, state, body) => rows.push(evidenceRow(name, label, body, state));
-      // A. What is visible in the picture, in our words.
+      // Observations and course advice belong in the reading flow. Verification
+      // metadata belongs in a closed source record, never four mandatory empty cells.
+      const paragraph = (name, text, prefix='') => {
+        if (text) paragraphs.push(`<p data-evidence-layer="${esc(name)}">${esc(prefix + text)}</p>`);
+      };
       const observation = readable.observation && typeof readable.observation === 'object' ? readable.observation : {};
       const seen = evidenceText(observation.text);
-      layer('observation', 'A · 画面观察 · 我们在图中看到的事实', seen ? 'present' : 'missing',
-        seen ? `<p>${esc(seen)}</p>` : evidenceMissing('未提供画面观察：这张照片里到底看见了什么，需要你自己先描述。'));
+      paragraph('observation', seen);
       // B. The author's own wording, kept separate from everything we wrote.
       const quote = readable.quote && typeof readable.quote === 'object' && !Array.isArray(readable.quote) ? readable.quote : {};
       const quoted = evidenceText(quote.text);
       const source = checkedQuoteSource(item, {source_ids:scope}, quote, registry);
-      const body = quoted ? `<blockquote class="case-evidence-quote">${esc(quoted)}</blockquote>` : evidenceMissing('未提供作者原话。');
+      const body = quoted ? `<blockquote class="case-evidence-quote">${esc(quoted)}</blockquote>` : '';
       const status = source
         ? `<p class="case-evidence-status" data-verified="true">已逐字核对原文 · 语言：${esc(quote.language)} · 原文定位：${esc(quote.locator)} · 核验日期：${esc(quote.checked_at)} · 出处：<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title || quote.source_id)} ↗</a></p>`
-        : '<p class="case-evidence-status" data-verified="false">未核验：缺少完整的原文比对记录（逐字核对、原文定位、语言、核验日期，以及与本案例页面一致的来源），不能当作作者已确认的原话。</p>';
-      layer('quote', source ? 'B · 作者原话 · 已核对原文' : 'B · 作者原话 · 未核验', source ? 'verified' : 'unverified', body + status);
-      // C. Our professional reading, explicitly not the author's words.
+        : '<p class="case-evidence-status" data-verified="false">引文未核验；缺少完整原文比对记录。</p>';
+      if (source) paragraphs.push(`<div data-evidence-layer="quote" data-evidence-state="verified"><p>${esc(item.author || source.author || '作者')}写道：</p>${body}</div>`);
+      if (Object.keys(quote).length) notes.push(evidenceRow('quote', source ? '原文记录' : '未核验记录', source ? status : body + status, source ? 'verified' : 'unverified'));
+      // Source-backed analysis is still our reading, not an implied author quote.
       const explanation = readable.explanation && typeof readable.explanation === 'object' && !Array.isArray(readable.explanation) ? readable.explanation : {};
       const reading = evidenceText(explanation.text);
       // A source we cannot actually link is not a citable basis, so it never becomes one.
       const listed = Array.isArray(explanation.source_ids) ? explanation.source_ids.filter(id => evidenceText(id) && scope.includes(id) && safeURL((registry.get(id) || {}).url)) : [];
       const cited = listed.map(id => { const source = registry.get(id); return `<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title || id)} ↗</a>`; }).join(' · ');
       const links = listed.length ? `<p class="case-evidence-sources">解释依据：${cited}</p>` : '<p class="case-evidence-missing">这段解释缺少可核对的来源记录。</p>';
-      layer('explanation', 'C · 专业解释 · 我们的理解，不代表作者原话', reading ? 'present' : 'missing',
-        (reading ? `<p>${esc(reading)}</p>` : evidenceMissing('未提供专业解释。')) + links);
-      // D. What this changes in your own next shoot.
+      paragraph('explanation', reading, '本课分析：');
+      if (reading) notes.push(evidenceRow('explanation-sources', '分析来源', links, listed.length ? 'present' : 'unverified'));
       const advice = readable.advice && typeof readable.advice === 'object' && !Array.isArray(readable.advice) ? readable.advice : {};
       const next = evidenceText(advice.text);
-      layer('advice', 'D · 项目建议 · 下一次实拍怎么用', next ? 'present' : 'missing',
-        next ? `<p>${esc(next)}</p>` : evidenceMissing('未提供练习建议。'));
+      paragraph('advice', next, '现场试拍：');
+      if (!paragraphs.length && !notes.length) notes.push(evidenceRow('evidence', '来源记录', evidenceMissing('这条记录没有可读的教学内容。'), 'unreadable'));
     } else if (readable === null && evidence !== undefined && evidence !== null) {
-      rows.push(evidenceRow('evidence', '教学证据 · 缺失', evidenceMissing('这条证据记录无法读取，四层内容均标记为未核验。'), 'unreadable'));
+      notes.push(evidenceRow('evidence', '来源记录', evidenceMissing('这条证据记录无法读取。'), 'unreadable'));
     }
-    if (!rows.length) return '';
-    return `<dl class="case-evidence" data-evidence-rows="${rows.length}">${rows.join('')}</dl>`;
+    if (!paragraphs.length && !notes.length) return '';
+    const record = notes.length ? `<details class="case-evidence-record"><summary>来源记录</summary><dl class="case-evidence">${notes.join('')}</dl></details>` : '';
+    return `<div class="case-teaching">${paragraphs.join('')}${record}</div>`;
   }
   function caseHTML(gateway, id) {
     const item = gateway.cases.find(c => c.id === id);

@@ -1,7 +1,7 @@
-"""A/B/C/D teaching evidence: display contract and validator wiring, not pedagogy.
+"""Readable teaching evidence and conservative attribution, not photographic truth.
 
 The browser fixtures below are synthetic strings. They prove that evidence renders as
-four labelled layers, that an incomplete record stays marked unverified, and that text
+useful prose, collapsed source records, conservative quote checks, and that text
 never reaches the DOM as markup. They say nothing about real photography material.
 """
 import copy
@@ -67,16 +67,19 @@ def complete_evidence():
     }
 
 
-def test_complete_evidence_shows_four_named_layers(tmp_path):
+def test_complete_evidence_reads_as_prose_with_collapsed_source_records(tmp_path):
     html = render(tmp_path, complete_evidence())
-    for layer, label in (('observation', '画面观察'), ('quote', '作者原话'),
-                         ('explanation', '专业解释'), ('advice', '项目建议')):
+    for layer in ('observation', 'quote', 'explanation', 'advice'):
         assert f'data-evidence-layer="{layer}"' in html
-        assert label in html
+    prose, records = html.split('<details', 1)
+    assert '剑士右腿在前' in prose and '作者写道：' in prose
+    assert '本课分析：' in prose and '现场试拍：' in prose
+    assert 'case-evidence-row' not in prose
+    assert ' open' not in records.split('>', 1)[0]
     assert 'data-evidence-state="verified"' in html
     assert '核验日期：2026-10-10' in html and '第 3 章 第 2 节' in html
     assert 'data-verified="true"' in html
-    assert '不代表作者原话' in html
+    assert '核验日期' not in prose
 
 
 def test_case_without_evidence_keeps_the_previous_display(tmp_path):
@@ -84,8 +87,10 @@ def test_case_without_evidence_keeps_the_previous_display(tmp_path):
     # all three keep the old rendering, which is nothing at all.
     assert render(tmp_path, None) == ''
     assert render(tmp_path, {}) == ''
-    assert render(tmp_path, {'observation': {'text': '只有观察层'}}).count(
-        'data-evidence-layer="') == 4
+    html = render(tmp_path, {'observation': {'text': '只有观察层'}})
+    assert html.count('data-evidence-layer="') == 1
+    assert '只有观察层' in html and '未提供' not in html
+    assert 'data-evidence-layer="quote"' not in html
 
 
 @pytest.mark.parametrize('layer', ['observation', 'explanation', 'advice'])
@@ -133,11 +138,11 @@ def test_a_real_calendar_day_still_counts_as_a_checking_date(tmp_path, checked_a
 
 
 def test_an_empty_quote_never_shows_a_checked_original_next_to_the_missing_words(tmp_path):
-    # The four layers stay on screen, but "未提供作者原话" and "已核对原文" cannot both appear.
+    # A missing quote adds no teaching placeholder or author certification.
     evidence = complete_evidence()
     evidence['quote']['text'] = ''
     html = render(tmp_path, evidence)
-    assert '未提供作者原话' in html
+    assert '<blockquote' not in html and '未提供作者原话' not in html
     assert '已核对原文' not in html and 'data-verified="true"' not in html
     assert 'data-evidence-state="unverified"' in html
 
@@ -169,9 +174,20 @@ def test_malformed_evidence_stays_conservative_and_does_not_crash(tmp_path, evid
     html = render(tmp_path, evidence, sources=[SOURCE])
     assert 'data-evidence-state="unverified"' in html or 'data-evidence-state="unreadable"' in html
     assert 'data-verified="true"' not in html
-    assert 'data-evidence-layer="quote"' in html
-    if evidence.get('explanation'):
+    assert '来源记录' in html and '<details' in html
+    if isinstance(evidence.get('explanation'), dict) and evidence['explanation'].get('text'):
         assert '缺少可核对的来源' in html
+
+
+def test_unverified_words_stay_in_a_closed_record_not_the_teaching_prose(tmp_path):
+    evidence = complete_evidence()
+    evidence['quote']['verification'] = 'unverified'
+    html = render(tmp_path, evidence)
+    prose, records = html.split('<details', 1)
+    assert evidence['quote']['text'] not in prose
+    assert evidence['quote']['text'] in records and 'data-verified="false"' in records
+    assert ' open' not in records.split('>', 1)[0]
+    assert '作者写道' not in prose
 
 
 def test_explanation_never_inherits_another_gateways_source(tmp_path):
