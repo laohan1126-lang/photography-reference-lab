@@ -70,3 +70,30 @@ node --check web/learning-gateways.js
 自动选择、真实 AGY/CC、独立冻结 Verifier、自然发现开发问题、真实返工均有证据。AGY 自主网页研究不成立；样板通过主控提供正常浏览器输入完成。独立验收确实拦下了假核验与崩溃，但没有单 Agent 对照，不能作“更快/更便宜/统计上更可靠”的 A/B 结论。
 
 仍需主控处理权限阻断与材料取舍；主人决定审美、教学价值和实拍迁移；新域名浏览授权配置不在基础 Skill 内。暂不全局安装，先重复发现边界和不同领域复用。正式 Git/Notion 状态在实际运行收据后独立报告，不由本文预先宣称。
+
+## 本轮接续：自主浏览与内容接入（2026-10-11）
+
+修复后完成三次 AGY 研究运行，覆盖 Neil 同一公开教程的两次取景及 Nikon 教程一次。ROOT 核对每次均有桥接 capture、AGY 实际打开 PNG 并写出研究材料；网页与图像由 AGY 自行取得，主控未提供页面或图像。三次均绑定 Chrome `1f5bd99b`，会话 `nlbx/juum/hdzk/eqzk/tuyi`，并各自清理。前两来源运行间配置保护字节未变；第三次前只加一条精确顶部取景命令，CLI 重排设置 JSON 后字节改变，语义仍符合原配置加授权规则。
+
+| AGY 运行 | PID | UTC（2026-10-11） | 浏览边界 |
+| --- | ---: | --- | --- |
+| Neil 教程 | 32512 | 05:15:14.337804–05:20:37.325640 | 两次 capture/view/write。首批截图只见主图下缘或正文，完整脸部光线未观察；不推断 groomsman 身份或全部 C 因果。 |
+| Nikon 教程 | 56212 | 05:21:19.483189–05:26:18.512137 | capture/view/write 已完成；限于实际打开的截图观察。 |
+| Neil 顶部取景 | 46868 | 05:27:09.966818–05:29:45.241172 | 新取景补充人像观察；画面仍裁切，身份、器材与功率未知。 |
+
+真实 CC 内容接入由 PID 48252 于 05:30:51.812880–05:32:42.045712 运行，因 `error_max_turns` 以 exit 1 结束；它实际读取 AGY 私有输入并编辑 GATEWAYS、`ref_lab/learning_media.py` 与测试，不能当作正常收尾。ROOT 随后补齐必填 case alt，按截图修订背景与裁切描述并生成 bundle。新增 `neil-directional-bounce` 案例与 `gw-light-neil-bounce` 来源；旧 22 案例、32 来源逐项保留，现为 23 案例、33 来源；媒体记录由 13/15 增至 14/16。案例仍引用原站地址，未获转载许可；像素观察、作者文字和教学推论分层记录。未改阅读器 JS/CSS 或学习状态 API。
+
+内容接入首轮 build 因缺少 alt 真实失败；focused 回归初次为 1 failed / 96 passed，失败是“没有下载原图”与“未下载原图”的文案不一致。保留失败历史并修正材料后为 97 passed / 1 warning（8.34s）。其他实跑检查：
+
+| 检查 | 结果 | 限制 |
+| --- | --- | --- |
+| 默认 core 回归 | 123 passed / 1 warning（79.49s） | 不证明网页媒体加载。 |
+| 桥接回归 | 63 passed / 2 skipped（5.53s） | 两项 skipped 仍未验证。 |
+| HTTP/Chromium focused UI | 7 passed / 9 deselected（37.62s） | 图片 fixture 为合成数据；该 UI 结果本身不证明原站图片 HTTP 200。 |
+| build --check、Node 语法、diff --check | PASS | ROOT 记录的实际执行结果。 |
+
+独立 Verifier 于 2026-10-11 05:41:46 UTC 给出完整冻结 **V01–V10 PASS，限本次工程范围**。独立回归为 92 passed / 2 skipped / 1 warning（103s），另一次实际图片截图检查 1 passed。原图在 reader 请求返回 HTTP 200、natural size 900×599；学习状态前后 revision 0、`skills={}`、`gateways={}` 完全相等，`learning_writes=[]`，图片失败仍保留四层正文，旧案例/来源与基线逐项一致。标准 SHA `383add69…ba5f21`、原失败回归保持；最终 verdict SHA `4f634f73…620acb`。完整报告见 [VERIFIER_REPORT.md](VERIFIER_REPORT.md)。
+
+Skill 发现复测中显式、隐式正例为 true，负例为 false；原显式评估器假阴性保留，详情见 [SKILL_VALIDATION.md](SKILL_VALIDATION.md)。自动选择、真实 AGY/CC、独立冻结验收、自然发现缺陷和两轮定向返工均有当前证据；旧章节记载的 AGY 阻断在本次受控浏览范围已解决，旧手机异步滚动失败没有被改成 PASS。没有单 Agent A/B 对照，可靠性收益只按本次独立发现并拦截的异常假成功/越界采集等问题陈述。
+
+仍需 ROOT 准备来源白名单、有限命令和取景目标，宿主提供正常模型/代理连接，主人决定审美及教学价值。两次来源复用不证明任意来源、视频或长期稳定性；本次选用网页教材，时间码不适用，不伪称视频核验。未全局安装；下一步先验证另一领域及多轮近负向任务，再评估全局安装。Git/Notion 的真实状态以 Publisher 收据和最终交付消息为准，不从工程 PASS 推断。

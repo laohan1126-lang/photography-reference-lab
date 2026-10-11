@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex 多 Agent 编排"
+  short_description: "Coordinate authorized research, coding and independent verification"
+  default_prompt: "Use $codex-multi-agent-orchestration to organize the authorized work and independent acceptance."

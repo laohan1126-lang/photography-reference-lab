@@ -1,9 +1,9 @@
 ---
-name: research-code-verifier-orchestration
+name: codex-multi-agent-orchestration
 description: "Organize substantive research plus coding plus independent testing, explicit multi-agent collaboration, or authorized external research/coding agents. Select only when the requested goal needs this coordination and external-agent use is authorized. Do not load for button colors, simple CSS edits, routine bug fixes or knowledge questions; an authorization or a planning wrapper alone is not a trigger."
 ---
 
-# Research Code Verifier Orchestration
+# Codex Multi-Agent Orchestration
 
 ## Decide before dispatch
 
@@ -20,7 +20,7 @@ Separate this orchestration procedure from domain skills: choose the narrow doma
 | CC | Code implementation, bounded refactoring and test repair | Diff, actual commands/results, unresolved issues |
 | Verifier | Independent test design, red-team checks and failure reproduction | PASS / REVISE / BLOCKED with reproducible evidence |
 
-Create separate worktrees and branches from an inspected baseline for execution and verification. Give each agent exact writable paths; never allow concurrent edits to the same key file. Preserve unrelated dirty work. ROOT alone integrates and publishes under the project's delivery rules; child agents return files and evidence only.
+Create separate worktrees and branches from an inspected baseline for execution and verification. For this project, resolve every new worktree, experiment, verification and backup destination inside `D:\AI PROJECTS\photography-reference-lab`; use `.local/worktrees/<task>/<role>` and `.local/backups/<timestamp>`. Never create project siblings at `D:\AI PROJECTS` top level or use a default external managed-worktree location. Give each agent exact writable paths; never allow concurrent edits to the same key file. Preserve unrelated dirty work. ROOT alone integrates and publishes under the project's delivery rules; child agents return files and evidence only.
 
 Start Verifier in a fresh context containing only the goal, constraints and existing product. Do not pass implementation discussions, agent prompts, self-assessments or suggested tests. Freeze its observable acceptance criteria before dispatching implementation; record their hash and time. Codex may reconcile criteria against the user's requirements before freezing, but cannot relax them after seeing results. Verifier subsequently receives candidate artifacts and original evidence only. Independent does not mean unable to inspect the finished code.
 
@@ -28,7 +28,7 @@ Start Verifier in a fresh context containing only the goal, constraints and exis
 
 1. Record intent, observable requirements, dependencies, ownership and applicable delivery transaction before editing.
 2. Dispatch only genuinely independent tasks in parallel. Research and a generic compatible renderer may overlap; integrating research content waits for the research result. Acceptance waits for candidate artifacts. Do not prescribe a specific vendor in the user's reuse goal; derive roles from the selected skill and available authorized agents.
-3. Use the installed, previously probed external AGY and CC CLI/MCP interfaces, with scoped permissions. Never simulate them with an internal Codex subagent. An unavailable CLI or necessary denied tool is BLOCKED; do not bypass permission controls or silently substitute another provider. See [external handoffs](references/external-handoffs.md).
+3. Before substantive dispatch, verify the current model entry point and a small representative operation through the exact transport required by the task. Executable presence, logged-in UI and an old successful run are insufficient. Record readiness separately for model, permissions, selected execution context, actual operation and returned artifact. Use the installed external AGY and CC CLI/MCP interfaces with scoped permissions; never simulate them with an internal Codex subagent. A necessary unavailable or denied capability is BLOCKED. Resolve an authorized setup repair as a separate dependency before resuming; never bypass controls or silently substitute another provider. See [external handoffs](references/external-handoffs.md).
 4. For every process record role, exact non-secret argv, cwd/branch/baseline, PID, UTC start/end, exit code, timeout/denied tools, writable paths and evidence locations. Preserve failed attempts. Keep long runs checkpointed and poll without restarting successes.
 5. Inspect actual tool events, files, diffs and tests. CLI SUCCESS/exit 0 is transport evidence only; an agent's self-assessment is never acceptance. Missing evidence remains unknown.
 

@@ -20,6 +20,7 @@ from . import __version__
 from .config import Settings
 from .learning_preview import STATIC_FILES as LEARNING_STATIC_FILES, preview_router
 from .learning_state import router as learning_state_router
+from .action_directing_media import ACTION_DIRECTING_SOURCE_IMAGE_CSP
 from .learning_media import SOURCE_IMAGE_CSP
 from .export import build_job_pack, build_pack, build_contact_board
 from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
@@ -112,7 +113,9 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         # The private reference app and all executable/network directives stay local.
         image_sources = "'self' data: blob:"
         if path == "/learning":
-            image_sources += " " + SOURCE_IMAGE_CSP
+            # Exact reviewed originals only, including the separate action-directing
+            # course registry. No wildcard host, and no other route gains these.
+            image_sources += " " + SOURCE_IMAGE_CSP + " " + ACTION_DIRECTING_SOURCE_IMAGE_CSP
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
             f"img-src {image_sources}; connect-src 'self'; object-src 'none'; "

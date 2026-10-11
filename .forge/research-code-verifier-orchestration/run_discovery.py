@@ -19,6 +19,40 @@ PREFIX = ('本次仅进行只读任务规划，允许用shell或工具读取相�
           '请按当前可用技能和项目规则决定如何处理以下用户目标，完成规划后停止。\n\n')
 
 
+def _normalized_lines(value):
+    return value.replace('\r\n', '\n').replace('\r', '\n').strip('\n')
+
+
+def _complete_skill_in(value, skill_text):
+    if isinstance(value, str):
+        body = _normalized_lines(skill_text)
+        return bool(body) and body in _normalized_lines(value)
+    if isinstance(value, dict):
+        return any(_complete_skill_in(v, skill_text) for v in value.values())
+    if isinstance(value, list):
+        return any(_complete_skill_in(v, skill_text) for v in value)
+    return False
+
+
+def _target_skill_read(command, skill_text):
+    cmd = command.get('command', '')
+    output = command.get('aggregated_output', '')
+    targets_skill = ('research-code-verifier-orchestration' in cmd and 'SKILL.md' in cmd)
+    if not targets_skill:
+        return False
+    # A later compound command can fail after the complete source was returned.
+    # A title, path or partial body is insufficient even when exit_code is zero.
+    return (_complete_skill_in(output, skill_text)
+            and (command.get('exit_code') == 0 or 'Get-Content' in cmd))
+
+
+def _target_skill_mcp_read(item, skill_text):
+    arguments = json.dumps(item.get('arguments', {}))
+    return ('research-code-verifier-orchestration' in arguments
+            and 'SKILL.md' in arguments
+            and _complete_skill_in(item.get('result', {}), skill_text))
+
+
 def run(case):
     attempt = sys.argv[1] if len(sys.argv) > 1 else 'initial'
     directory = OUT / (case['id'] + '-' + attempt)
@@ -64,14 +98,11 @@ def run(case):
             pass
     commands = [e['item'] for e in events if e.get('type') == 'item.completed'
                 and e.get('item', {}).get('type') == 'command_execution']
-    reads = [c for c in commands if 'research-code-verifier-orchestration' in c.get('command', '')
-             and 'SKILL.md' in c.get('command', '') and c.get('exit_code') == 0
-             and '# Research Code Verifier Orchestration' in c.get('aggregated_output', '')]
+    skill_text = SKILL.read_text(encoding='utf-8')
+    reads = [c for c in commands if _target_skill_read(c, skill_text)]
     mcp_reads = [e['item'] for e in events if e.get('type') == 'item.completed'
                  and e.get('item', {}).get('type') == 'mcp_tool_call'
-                 and 'research-code-verifier-orchestration' in json.dumps(e['item'].get('arguments', {}))
-                 and 'SKILL.md' in json.dumps(e['item'].get('arguments', {}))
-                 and '# Research Code Verifier Orchestration' in json.dumps(e['item'].get('result', {}))]
+                 and _target_skill_mcp_read(e['item'], skill_text)]
     meta['target_read_commands'] = reads
     meta['target_read_mcp_events'] = mcp_reads
     meta['thread_ids'] = [e.get('thread_id') for e in events if e.get('type') == 'thread.started']

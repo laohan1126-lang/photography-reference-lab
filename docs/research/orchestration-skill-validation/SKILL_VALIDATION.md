@@ -38,3 +38,23 @@
 暂不值得全局安装。基础触发成立，但经历真实负向误读与评估器边界修正，尚缺多轮随机复测和第二个不同领域的成功复用。下一步先在本项目增加授权/未授权及近负向复测，确认独立来源/UI验收稳定后再由用户决定安装。当前会话启动时并无这个新 Skill；自动选择证据来自创建后的新 CLI 会话，不能倒推原会话启动即自动发现。
 
 发现机制参考已实际打开的 [OpenAI 官方 Skill 文档](https://learn.chatgpt.com/docs/build-skills)；以上触发结论来自本机运行，不从文档推断。
+
+## AGY 通路修复后的当前 Skill 复测
+
+本次宿主技能目录已列出项目 Skill，ROOT 按真实研究、实现和独立验证目标自动读取使用；新增的是代表性运输前检、依赖修复与实际工具证据门槛。浏览器具体权限与操作保留在领域 [运行说明](AGY_BROWSER_RUNBOOK.md)，未写入基础技能，也未增加 AGENTS 强制调度规则。
+
+更新后另开三个原生 Codex 临时会话，正文 SHA256 均为 `5860238f763d488062e98624b828e94ddb9927a28e7f2f942ecc6eaec06c78a2`，与实际当前文件一致：
+
+| 请求 | PID | UTC 起止 | 正文读取证据 |
+| --- | ---: | --- | --- |
+| 显式使用同名 Skill | 47820 | 05:04:17–05:06:01 | 实际完整 Get-Content 正文返回；其后 rg 无结果导致复合命令 exit 1 |
+| 只给摄影课程研究、代码与独立验证目标 | 54912 | 05:04:17–05:06:51 | 实际自动读取完整正文 |
+| 调整按钮颜色 | 52328 | 05:04:17–05:05:34 | 未读取目标正文，未调度外部 Agent |
+
+三个进程本身均 exit 0。显式原 `result.json` 因读取后的 rg 返回 1 而记 false；这是评估器假阴性，不是 Skill 未读。保留原 events/results，单独在 `.local/orchestration-validation/discovery/reassessed.json` 审计：显式 false→true、隐式 true→true、负向 false→false。评估器仅在目标 Get-Content 输出包含与本次完整正文逐字匹配的内容时接受非零复合命令；partial/filename-only 两个负例均拒绝。没有用 Agent 自述补通过，没有编辑 Verifier、提示词或原失败记录。
+
+当前 `quick_validate.py` 与 `eval_lint.py` 实跑 PASS（0 errors / 0 warnings），评估器 AST 和原事件正负断言 PASS。仍是提示词约束的只读规划测试，真实执行由 ROOT 接续；三类各一轮不证明长期稳定或无人值守。继续只在本项目使用，未全局安装。
+
+最终只读审计进一步发现旧“exit 0 + 标题”规则会接受仅标题输出。ROOT 用内存负例真实复现后，移除这个不足的成功信号；shell 与结构化 MCP 均要求返回完整当前正文，完整 Get-Content 后的其他命令失败仍可按已返回正文认定读取。独立发现测试审计实际通过14项断言：header-only/partial/path-only 在零与非零退出下均拒绝，完整 CRLF 正文与非零复合读取接受，MCP 的完整正文/目标路径边界正确。当前评估器 SHA256 `00f3bc4938134e2044049730b06c41014895d5275bb4718c6952d3ec8af98402`。
+
+按收紧后的评估器直接重审三份原始 events 仍为 **true/true/false**；原 result 的 **false/true/false** 与早期 `reassessed.json` 保持，另存 `.local/agy-flow/discovery-strict-final.json` 和 `discovery-final-review.json`。未重跑新外部会话、未改 Skill 正文/描述或冻结 Verifier。独立 V01–V10 本轮不包含发现评估器源码；本段来自单独的只读审计，不混用验收范围。

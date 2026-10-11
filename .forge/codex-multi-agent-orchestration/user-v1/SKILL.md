@@ -1,11 +1,11 @@
 ---
-name: research-code-verifier-orchestration
+name: codex-multi-agent-orchestration
 description: "Organize substantive research plus coding plus independent testing, explicit multi-agent collaboration, or authorized external research/coding agents. Select only when the requested goal needs this coordination and external-agent use is authorized. Do not load for button colors, simple CSS edits, routine bug fixes or knowledge questions; an authorization or a planning wrapper alone is not a trigger."
 metadata:
   version: "1.0.0"
 ---
 
-# Research Code Verifier Orchestration
+# Codex Multi-Agent Orchestration
 
 ## Decide and dispatch automatically
 

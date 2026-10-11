@@ -5,10 +5,26 @@ window.LearningGateways = (() => {
   const labels = {unassessed:'尚未自评', unseen:'尚未接触', terms:'了解术语', principles:'理解基本原理', analysis:'能够分析案例', transfer:'能独立迁移到新场景', field:'已经过实际拍摄验证'};
   const notes = {unassessed:'阅读与展开解析不会替你升级。', unseen:'这是你的自评，可以直接跳到有挑战的部分。', terms:'能认出概念名称，还不等于能解释照片。', principles:'能解释变量关系；下一步用具体画面检验。', analysis:'能指出图中证据，也能说清尚不能确定的条件。', transfer:'由你确认能在未讲过的场景中独立判断。', field:'由你确认已经拍摄、比较并验证；可在关联技能中附实拍记录。'};
   const drafts = new Map();
+  // Rebuilding a reader must not turn settled photos back into zero-height lazy
+  // placeholders. Keep the observed presentation for this page, by exact media URL;
+  // a fresh page retries failures, and a newly loaded image updates its real dimensions.
+  const mediaPresentation = new Map();
+  // Optional bounded label per course entry, so a full chapter is not called a sample.
+  const courseLabel = gateway => typeof gateway?.label === 'string' && gateway.label.trim() ? gateway.label.trim() : 'PHOTO ATLAS · 课程样板';
   let catalog = [], sources = new Map(), noteMedia = new Map(), host, dialog, scroll, current = null, origin = null, busy = false;
   const key = id => `photography-gateway-draft-v2:${id}`;
   const safeURL = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u.href : ''; } catch { return ''; } };
   const record = id => host.record(id) || {};
+  // Reading position and revealed folds belong to one revision of the course text. A
+  // field-guide rewrite changes both, so a stale scroll offset or reveal no longer means
+  // anything; the private server record and the typed answers are not affected.
+  function contentVersion(gateway) {
+    if (!isFieldGuide(gateway)) return '';
+    const text = JSON.stringify([gateway.content_version, gateway.sections, gateway.cases]);
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 16777619);
+    return `${FIELD_GUIDE}:${(hash >>> 0).toString(16)}`;
+  }
   function getDraft(id) {
     if (drafts.has(id)) return drafts.get(id);
     let saved;
@@ -18,6 +34,15 @@ window.LearningGateways = (() => {
       ? saved : {stage:server.stage || 'unassessed', answers:{...(server.answers || {})}, revealed:[...(server.revealed || [])], last_section:server.last_section || 'problem', revision:host.revision(), serverSnapshot:JSON.stringify(server), scroll:0, dirty:false};
     if (!Array.isArray(value.revealed)) value.revealed = [];
     if (!(value.stage in labels)) value.stage = 'unassessed';
+    const gateway = catalog.find(item => item.id === id);
+    const version = contentVersion(gateway);
+    if (version && value.version !== version) {
+      value.scroll = 0;
+      value.revealed = [];
+      value.last_section = (gateway.sections || [])[0]?.id || 'problem';
+      value.dirty = !!Object.keys(value.answers || {}).length;
+    }
+    if (version) value.version = version;
     drafts.set(id, value);
     return value;
   }
@@ -42,6 +67,51 @@ window.LearningGateways = (() => {
   };
   const evidenceRow = (layer, label, body, state) => `<div class="case-evidence-row" data-evidence-layer="${esc(layer)}" data-evidence-state="${esc(state)}"><dt class="case-evidence-label">${esc(label)}</dt><dd>${body}</dd></div>`;
   const evidenceMissing = text => `<p class="case-evidence-missing">${esc(text)}</p>`;
+  const EVIDENCE_LAYER_LABEL = {observation:'画面观察', quote:'作者原话', explanation:'专业解释', advice:'项目建议'};
+  // The one format boundary the reader trusts. The extension reader and the base bundle
+  // reader both refuse an unrecognised course_format before anything is rendered.
+  const FIELD_GUIDE = 'field-guide-v1';
+  const isFieldGuide = gateway => !!gateway && gateway.course_format === FIELD_GUIDE;
+  // A reading order over one original video. It links out to precise points on the source
+  // page and never embeds, proxies or downloads the video: this page plays nothing, so
+  // research inspection is retained separately from the learner's navigation.
+  const clock = value => { const total = Math.floor(Number(value) || 0); return `${String(Math.floor(total / 60)).padStart(2,'0')}:${String(total % 60).padStart(2,'0')}`; };
+  const timedURL = (url, seconds) => {
+    const base = safeURL(url);
+    if (!base || !Number.isFinite(Number(seconds))) return base;
+    try { const parsed = new URL(base); parsed.searchParams.set('t', `${Math.floor(Number(seconds))}s`); return parsed.href; }
+    catch { return base; }
+  };
+  const BASIS_LABEL = {visible_marker:'画面里能直接看见的停止点', source_measured:'来源实测的停止点', practice_start:'建议练习起点（不是作者实测）'};
+  const RELATION_LABEL = {same_session:'同一次拍摄内', illustrative:'姿态与拍法参照'};
+  function recipeTargetHTML(target) {
+    const label = BASIS_LABEL[target.basis] || '';
+    const basis = `<p class="field-basis" data-basis="${esc(target.basis)}">${esc(label)}</p>`;
+    if (target.basis === 'source_measured') {
+      const source = sources.get(target.source_id);
+      const link = source && safeURL(source.url)
+        ? `<a href="${esc(safeURL(source.url))}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title || target.source_id)} ↗</a> · ` : '';
+      return `${basis}<p>${esc(target.text)}</p><p class="gateway-small">原文定位：${esc(target.locator)}${link ? ' · 出处：' + link : ''}</p><ul class="field-conditions">${(target.conditions||[]).map(text=>`<li>${esc(text)}</li>`).join('')}</ul>`;
+    }
+    if (target.basis === 'practice_start') return `${basis}<p>${esc(target.text)}</p><p class="gateway-small">这是本课程提出的练习起点，不是作者实测的数值；拍出来以后以你自己的照片为准。</p>`;
+    return `${basis}<p>${esc(target.text)}</p>`;
+  }
+  function recipeHTML(block, gateway) {
+    const comparison = block.comparison;
+    return `<article class="field-recipe" data-recipe="${esc(block.id)}"><h3>${esc(block.instruction)}</h3><dl class="field-recipe-meta"><dt>要解决的问题</dt><dd>${esc(block.problem)}</dd><dt>先准备什么</dt><dd>${esc(block.setup)}</dd></dl><div class="field-stop"><p class="field-label">做到这里就停</p>${recipeTargetHTML(block.target)}</div><div class="field-compare"><p class="field-label">实际对照照片 · ${esc(RELATION_LABEL[comparison.relation] || comparison.relation)}</p><p class="gateway-small">${esc((comparison.conditions||[]).join('；'))}</p><div class="gateway-case-pair">${(comparison.case_ids||[]).map(id=>caseHTML(gateway,id)).join('')}</div><p class="field-look"><span class="field-label">看什么</span>${esc(comparison.look_for)}</p></div><div class="field-check"><p class="field-label">怎么算做到</p><p>${esc(block.check.success)}</p><p class="field-failed"><span class="field-label">没做到怎么办</span>${esc(block.check.if_failed)}</p></div><p class="field-cost"><span class="field-label">代价</span>${esc(block.cost)}</p><p class="field-why">${esc(block.why)}</p>${block.source_ids?.length?`<p class="gateway-citation">本条依据：${citations(block.source_ids)}</p>`:''}</article>`;
+  }
+  function videoHTML(block) {
+    const source = sources.get(block.source_id);
+    const url = source ? safeURL(source.url) : '';
+    const inspection = block.inspection || {};
+    const steps = (block.steps || []).map(step => {
+      const href = timedURL(url, step.start_seconds);
+      const range = `${clock(step.start_seconds)}–${clock(step.end_seconds)}`;
+      return `<li class="video-step" data-stage="${esc(step.stage)}">${href?`<a class="video-time" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(range)} ↗</a>`:`<span class="video-time">${esc(range)}</span>`}<strong>${esc(step.stage)}</strong><span>${esc(step.summary)}</span></li>`;
+    }).join('');
+    const heading = url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(source.short_title || source.title || block.source_id)} ↗</a>` : esc(block.source_id);
+    return `<section class="field-video" data-video="${esc(block.id)}"><h3>${heading} · ${esc(clock(block.start_seconds))}–${esc(clock(block.end_seconds))}</h3><p class="gateway-small">按时间点回看老师的动作，再用停点检查自己的下一张。</p><ol class="video-steps">${steps}</ol><details class="video-inspection"><summary>片段核对范围</summary><p>${esc(inspection.detail || '')} · 核对于 ${esc(inspection.checked_at || '')}</p></details></section>`;
+  }
   // Only this gateway's own source, on this case's own readable page, quoting words that
   // exist, with locator/language/date, may present the author's wording as checked.
   // Two unsafe URLs that both fail the same way are not a match; anything else stays unverified.
@@ -104,10 +174,11 @@ window.LearningGateways = (() => {
     const item = gateway.cases.find(c => c.id === id);
     if (!item) return '';
     const url = safeURL(item.url);
-    const images = item.display === 'note_media' ? (item.images || []).map(image=>{
+    const listedImages = Array.isArray(item.images) ? item.images : [];
+    const images = item.display === 'note_media' ? listedImages.map(image=>{
       const registered=noteMedia.get(image.media_id);
       return registered ? {src:`/api/learning-note-media/${encodeURIComponent(registered.id)}`,alt:registered.alt,label:image.label || registered.position} : null;
-    }).filter(Boolean) : item.display === 'source_remote' ? item.images || []
+    }).filter(Boolean) : item.display === 'source_remote' ? listedImages
       : item.display === 'licensed_remote' && item.rights.allowed === true ? [item] : [];
     const mediaURL = value => /^\/api\/learning-note-media\/[a-z0-9-]+$/.test(value) ? value : safeURL(value);
     const media = images.filter(image=>mediaURL(image.src)).map(image=>{
@@ -115,6 +186,25 @@ window.LearningGateways = (() => {
       return `<div class="case-media">${image.label?`<p class="case-media-label">${esc(image.label)}</p>`:''}<div class="case-image"><img src="${esc(mediaURL(image.src))}" alt="${esc(image.alt)}" loading="lazy"${dimensions} referrerpolicy="no-referrer"><span class="case-loading" role="status">正在加载原案例照片…</span><span class="case-load-error" hidden>这张图片暂时无法加载。中文要点仍可阅读，原案例链接在下方。</span></div></div>`;
     }).join('');
     const summary = item.source_summary;
+    const rights = item.rights || {}, review = item.review || {};
+    // A field-guide case carries its evidence as one closed record. The legacy course and
+    // the three conceptual gateways keep their four visible layers untouched.
+    if (isFieldGuide(gateway)) {
+      const record = [
+        summary ? `<p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span>` : '',
+        item.evidence && typeof item.evidence === 'object' && !Array.isArray(item.evidence)
+          ? Object.entries(item.evidence).filter(([,value])=>value && typeof value==='object' && evidenceText(value.text))
+            .map(([layer,value])=> {
+              if (layer !== 'quote') return `<p class="case-record-line"><span>${esc(EVIDENCE_LAYER_LABEL[layer] || layer)}</span>${esc(evidenceText(value.text))}</p>`;
+              const checked = checkedQuoteSource(item, gateway, value, sources);
+              return `<p class="case-record-line" data-verified="${!!checked}"><span>${checked?'作者原话 · 已核对':'待核引文 · 未核验'}</span>${esc(evidenceText(value.text))}${checked?` · 原文定位：${esc(value.locator)} · <a href="${esc(safeURL(checked.url))}" target="_blank" rel="noopener noreferrer">出处 ↗</a>`:''}</p>`;
+            }).join('')
+          : '',
+        review.detail ? `<p><span>图像核验范围</span>${esc(review.detail)}${review.checked_at?` · 核对于 ${esc(review.checked_at)}`:''}</p>` : '',
+        rights.statement ? `<p><span>使用与限制</span>${esc(rights.statement)}${safeURL(rights.url)?` <a href="${esc(safeURL(rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a>`:''}</p>` : '',
+      ].filter(Boolean).join('');
+      return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a>${record?`<details class="case-record"><summary>来源与研究记录</summary>${record}</details>`:''}</figcaption></figure>`;
+    }
     return `<figure class="gateway-case" data-case="${esc(id)}">${media || `<a class="gateway-case-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">打开原站实拍对照 ↗<span>${esc(item.title)}</span></a>`}<figcaption><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(item.caption)}</span>${caseEvidenceHTML(item,gateway,sources)}${summary?`<details class="case-source-summary"><summary>原文要点 · 中文转述</summary><p>${esc(summary.text)}</p><span class="case-source-locator">原文定位：${esc(summary.locator)} · 核对于 ${esc(summary.checked_at)}</span></details>`:''}<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">原案例与图像出处 ↗</a><details><summary>图像使用与核验范围</summary><p>${esc(item.review.detail)}</p><p>${esc(item.rights.statement)} <a href="${esc(safeURL(item.rights.url))}" target="_blank" rel="noopener noreferrer">权利说明 ↗</a></p></details></figcaption></figure>`;
   }
   function citations(ids) {
@@ -129,6 +219,8 @@ window.LearningGateways = (() => {
       case 'case': return caseHTML(gateway, block.case_id);
       case 'tradeoffs': return `<div class="course-tradeoffs">${block.rows.map(row=>`<article><h3>${esc(row.action)}</h3><p><strong>预计变化：</strong>${esc(row.effect)}</p><p><strong>代价：</strong>${esc(row.cost)}</p><p><strong>怎样检查：</strong>${esc(row.test)}</p></article>`).join('')}</div>`;
       case 'case_pair': return `<div class="gateway-case-pair">${block.case_ids.map(id=>caseHTML(gateway,id)).join('')}</div>`;
+      case 'field_recipe': return recipeHTML(block, gateway);
+      case 'video_sequence': return videoHTML(block);
       case 'exercise': {
         const question = `<h3>${esc(block.title)}</h3><p>${esc(block.prompt)}</p>`;
         if (gateway.kind === 'course') return `<div class="gateway-exercise">${question}</div>`;
@@ -145,19 +237,39 @@ window.LearningGateways = (() => {
     return `<form id="gateway-form" class="gateway-reflection"><label for="gateway-stage">我目前能做到什么 · 自评</label><select id="gateway-stage">${Object.entries(labels).map(([value,label])=>`<option value="${value}"${draft.stage===value?' selected':''}>${label}</option>`).join('')}</select><p id="gateway-stage-note" class="gateway-small">${esc(notes[draft.stage])}</p><label for="gw-confusion">仍然困惑的部分 / 下次实拍如何验证</label><textarea id="gw-confusion" data-gw-answer="confusion" rows="3" maxlength="8000">${esc(draft.answers.confusion || '')}</textarea><div class="gateway-save-row"><button id="gateway-save" class="primary-button" type="submit"${host.canWrite()&&!busy?'':' disabled'}>保存观察与自评</button><p id="gateway-message" role="status">${host.canWrite() ? (draft.dirty?'有未保存的草稿；关闭抽屉仍会保留在本标签页。':'只有主动保存才会写入私人记录。') : '私人记录当前不可写；可阅读和在本标签页暂存草稿。'}</p></div><button type="button" id="gateway-reload" class="text-link" hidden>加载服务器记录（替换此入口的本页草稿）</button></form>`;
   }
   function render() {
-    const gateway = current, draft = getDraft(gateway.id);
-    dialog.innerHTML = `<header class="gateway-reader-header"><div><p class="eyebrow">${gateway.kind==='course'?'PHOTO ATLAS · 课程样板':'CONCEPTUAL GATEWAY · 认知入口'}</p><h2 id="gateway-title" tabindex="-1">${esc(gateway.title)}</h2></div><button id="gateway-close" class="close-button" type="button" aria-label="关闭阅读，返回原位置">×</button></header><div class="gateway-scroll"><div class="gateway-reading-layout"><aside class="gateway-outline"><details open><summary>阅读目录</summary><nav aria-label="阅读章节">${gateway.sections.map((section,index)=>`<button type="button" data-gw-section="${esc(section.id)}"><span>${String(index+1).padStart(2,'0')}</span>${esc(section.title)}</button>`).join('')}</nav></details><label for="gateway-switch">切换课程 / 认知入口</label><select id="gateway-switch">${catalog.map(item=>`<option value="${esc(item.id)}"${gateway.id===item.id?' selected':''}>${esc(item.title)}</option>`).join('')}</select></aside><article class="gateway-reading"><div class="gateway-reading-intro"><p class="gateway-byline">${esc(gateway.author)} · ${esc(gateway.reading_depth)}</p><p>${esc(gateway.outcome)}</p><p class="gateway-small">${esc(gateway.prior_knowledge)}</p><p class="gateway-citation">专业依据：${citations(gateway.source_ids.slice(0,3))}</p></div>${gateway.sections.map(section=>`<section class="gateway-chapter" id="gw-${esc(section.id)}" tabindex="-1"><p class="eyebrow">${esc(section.kicker || section.id.toUpperCase())}</p><h2>${esc(section.title)}</h2>${section.blocks.map(block=>blockHTML(block,gateway,draft)).join('')}${section.source_ids?.length?`<p class="gateway-citation">本节依据：${citations(section.source_ids)}</p>`:''}${section.id==='reflect' && gateway.kind!=='course'?selfAssessment(draft):''}${section.id==='sources'?sourceHTML(gateway):''}</section>`).join('')}<footer class="gateway-reading-footer"><p>继续在技能地图里练习</p>${gateway.skill_ids.map(id=>`<button type="button" data-gw-skill="${esc(id)}">${esc(host.skillName(id))} →</button>`).join('')}</footer></article></div></div>`;
+    const gateway = current, draft = getDraft(gateway.id), field = isFieldGuide(gateway);
+    dialog.innerHTML = `<header class="gateway-reader-header"><div><p class="eyebrow">${gateway.kind==='course'?esc(courseLabel(gateway)):'CONCEPTUAL GATEWAY · 认知入口'}</p><h2 id="gateway-title" tabindex="-1">${esc(gateway.title)}</h2></div><button id="gateway-close" class="close-button" type="button" aria-label="关闭阅读，返回原位置">×</button></header><div class="gateway-scroll"><div class="gateway-reading-layout"><aside class="gateway-outline"><details open><summary>阅读目录</summary><nav aria-label="阅读章节">${gateway.sections.map((section,index)=>`<button type="button" data-gw-section="${esc(section.id)}"><span>${String(index+1).padStart(2,'0')}</span>${esc(section.title)}</button>`).join('')}</nav></details><label for="gateway-switch">切换课程 / 认知入口</label><select id="gateway-switch">${catalog.map(item=>`<option value="${esc(item.id)}"${gateway.id===item.id?' selected':''}>${esc(item.title)}</option>`).join('')}</select></aside><article class="gateway-reading"><div class="gateway-reading-intro"><p class="gateway-byline">${esc(gateway.author)} · ${esc(gateway.reading_depth)}</p><p>${esc(gateway.outcome)}</p><p class="gateway-small">${esc(gateway.prior_knowledge)}</p><p class="gateway-citation">专业依据：${citations(gateway.source_ids.slice(0,3))}</p></div>${gateway.sections.map((section,index)=>`<section class="gateway-chapter" id="gw-${esc(section.id)}" tabindex="-1"><p class="eyebrow">${esc(section.kicker || (field ? `STEP ${String(index+1).padStart(2,'0')}` : section.id.toUpperCase()))}</p><h2>${esc(section.title)}</h2>${section.blocks.map(block=>blockHTML(block,gateway,draft)).join('')}${section.source_ids?.length?`<p class="gateway-citation">本节依据：${citations(section.source_ids)}</p>`:''}${section.id==='reflect' && gateway.kind!=='course'?selfAssessment(draft):''}${section.id==='sources'&&!field?sourceHTML(gateway):''}</section>`).join('')}${field?`<details class="gateway-source-fold"><summary>来源与研究记录</summary>${sourceHTML(gateway)}</details>`:''}<footer class="gateway-reading-footer"><p>继续在技能地图里练习</p>${gateway.skill_ids.map(id=>`<button type="button" data-gw-skill="${esc(id)}">${esc(host.skillName(id))} →</button>`).join('')}</footer></article></div></div>`;
     scroll = dialog.querySelector('.gateway-scroll');
-    scroll.scrollTop = draft.scroll || 0;
     dialog.querySelectorAll('img').forEach(img=>{
       const loading=img.parentElement.querySelector('.case-loading'), error=img.parentElement.querySelector('.case-load-error');
-      img.addEventListener('load',()=>{loading.hidden=true;});
-      img.addEventListener('error',()=>{img.hidden=true;loading.hidden=true;error.hidden=false;});
+      const url = img.src, known = mediaPresentation.get(url);
+      const loaded = () => {
+        if (!img.naturalWidth) return;
+        mediaPresentation.set(url, {status:'loaded', width:img.naturalWidth, height:img.naturalHeight});
+        img.hidden=false; loading.hidden=true; error.hidden=true;
+      };
+      const failed = () => {
+        mediaPresentation.set(url, {status:'failed'});
+        img.hidden=true; loading.hidden=true; error.hidden=false;
+      };
+      if (known?.status === 'failed') {
+        failed();
+      } else if (known?.status === 'loaded') {
+        // width:auto ignores HTML dimensions while a lazy image has no intrinsic
+        // size. Reserve its observed ratio within the same responsive height cap.
+        img.style.width=`min(100%, ${known.width}px, calc(var(--case-image-limit) * ${known.width / known.height}))`;
+        img.style.aspectRatio=`${known.width} / ${known.height}`;
+      }
+      img.addEventListener('load',loaded);
+      img.addEventListener('error',failed);
       if(img.complete) {
-        loading.hidden=true;
-        if(!img.naturalWidth) {img.hidden=true;error.hidden=false;}
+        if(img.naturalWidth) loaded();
+        else failed();
       }
     });
+    // Restore only after settled media has its prior geometry. Native scroll anchoring
+    // should handle genuinely new content, not compensate for state we just discarded.
+    scroll.scrollTop = draft.scroll || 0;
     dialog.querySelectorAll('[data-gw-reveal]').forEach(details=>details.addEventListener('toggle',()=>{
       const active = getDraft(gateway.id), id = details.dataset.gwReveal;
       const before = active.revealed.includes(id);
@@ -229,7 +341,10 @@ window.LearningGateways = (() => {
     index.hidden=!catalog.length;
     const courses=catalog.filter(item=>item.kind==='course'), gateways=catalog.filter(item=>item.kind!=='course');
     const entries=items=>items.map((gateway,i)=>`<button type="button" class="gateway-entry" data-open-gateway="${esc(gateway.id)}"><span class="gateway-index-number">${String(i+1).padStart(2,'0')}</span><span><strong>${esc(gateway.title)}</strong><span>${esc(gateway.question)}</span></span><span aria-hidden="true">↗</span></button>`).join('');
-    index.innerHTML=`${courses.length?`<section class="course-index"><div class="section-heading"><div><p class="eyebrow">PHOTO ATLAS · COURSE</p><h2>从现场问题，连续学一章</h2></div><p class="section-note">解释原因、比较代价，再用新照片判断。样板等你试读，暂不批量扩展。</p></div>${entries(courses)}</section>`:''}<div class="section-heading"><div><p class="eyebrow">LEARN TO SEE</p><h2>从一个问题，换一种看法</h2></div><p class="section-note">原有认知入口。能力地图用于检索与记录；短笔记用于回看。</p></div><div class="gateway-index-list">${entries(gateways)}</div>`;
+    // One course may name itself; the "sample" wording only survives while no entry does.
+    const labelled=courses.filter(item=>typeof item.label==='string'&&item.label.trim()).map(item=>item.label.trim());
+    const courseNote=labelled.length?`${labelled.join(' · ')}。解释原因、比较代价，再用新照片判断。`:'解释原因、比较代价，再用新照片判断。样板等你试读，暂不批量扩展。';
+    index.innerHTML=`${courses.length?`<section class="course-index"><div class="section-heading"><div><p class="eyebrow">PHOTO ATLAS · COURSE</p><h2>从现场问题，连续学一章</h2></div><p class="section-note">${esc(courseNote)}</p></div>${entries(courses)}</section>`:''}<div class="section-heading"><div><p class="eyebrow">LEARN TO SEE</p><h2>从一个问题，换一种看法</h2></div><p class="section-note">原有认知入口。能力地图用于检索与记录；短笔记用于回看。</p></div><div class="gateway-index-list">${entries(gateways)}</div>`;
     dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
     dialog.addEventListener('click',event=>{
       const target=event.target;

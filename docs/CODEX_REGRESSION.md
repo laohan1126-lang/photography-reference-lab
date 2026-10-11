@@ -1,6 +1,6 @@
 # v0.3 回归与接手
 
-目标分支 `codex/reference-library-rebuild`，本轮起点 `b95f37540ada1bae18de949873bdbbcce021e621`。旧 v0.2 验收记录保留在日期任务文档中，**不是当前测试结果**。最新实跑命令、统计和限制见 [2026-09-27 任务记录](tasks/2026-09-27-personal-library.md)。
+当前权威版本为主目录的 `main`；新任务的隔离工作树只能放在本仓库 `.local/worktrees/` 内。历史 v0.3 起点为 `codex/reference-library-rebuild` / `b95f37540ada1bae18de949873bdbbcce021e621`；旧 v0.2/v0.3 验收记录保留在日期任务文档中，**不是本次测试结果**。历史实跑统计见 [2026-09-27 任务记录](tasks/2026-09-27-personal-library.md)，整合记录见 [main 整合与清理](tasks/2026-10-11-main-consolidation-cleanup.md)。
 
 ## 保全与安装
 
@@ -8,7 +8,7 @@
 git fetch origin
 git status --short
 git log --oneline -5
-git switch codex/reference-library-rebuild
+git switch main
 # 有其他未完成工作时不要切换/覆盖，改用独立 worktree。
 python -m pip install -e '.[test]'
 python -m playwright install chromium
@@ -16,7 +16,20 @@ python -m playwright install chromium
 
 先读 AGENTS、README、ARCHITECTURE、WORKER_PROTOCOL 和最近 tasks。已有库备份后再升级；使用新的空 LAB_DATA_DIR 试迁移，不覆盖用户日用数据。数据库 v2 不可由旧代码继续写入。
 
-## 自动回归
+## 按实际影响选择验证
+
+下面是现有命令目录，不是每次发布的必跑清单。Agent 从本次行为、调用方和共享状态判断范围，自主选择全量或 focused 验证；仅在额外外部操作或资源预算需确认时询问用户。同一被测工作树内容、依赖、配置、命令及相关环境未变，复用本轮证据。提交、切换 Agent 或 Publisher finish 本身不使证据失效。Publisher `checks: []` 避免收尾无条件重跑，但仍要求具体 manifest.verification 与内容 seal。
+
+Windows 用已有 `.venv/Scripts/python.exe -X utf8`；其他环境使用本 checkout 的 Python。不要为了执行目录里的命令安装新软件。
+
+| 改动 | 现有 focused 入口 | 扩大范围的触发条件 |
+| --- | --- | --- |
+| 动作导演正文/数据 | `tools/build_action_directing.py --check`；`tests/test_action_directing_acceptance.py` | builder/schema 修改时加 `tests/test_action_directing.py`；引用或事实改变时核对对应原始来源 |
+| 共享案例阅读器 | `tests/test_tutorial_evidence_display.py`；`tests/test_learning_gateways_ui.py::test_original_case_photos_and_source_summaries_render_inside_each_gateway`；`node --check web/learning-gateways.js` | save/草稿/导航身份改变时加相应 gateway 状态和 UI 用例，不能只看动作导演 |
+| 学习记录/共享状态 | `tests/test_learning_state.py`、`tests/test_learning_gateways_state.py` 和修改入口的 UI 用例 | revision、atomic write、API 或共用持久化边界变化时追所有调用方并加旧技能/课程冲突与数据保全验证 |
+| 参考库/导入/采集 | 按下列现有 suite 的实际数据流选择 | 共享 service、数据库 schema、Asset/revision 或任务状态变化时扩大到跨模块集成与真实受影响入口 |
+
+## 现有完整回归命令目录
 
 ```bash
 python -m pytest -q tests/test_library.py tests/test_imports_jobs.py tests/test_workers.py tests/test_operations.py tests/test_personal_library.py tests/test_collection_runner.py tests/test_modality_archive.py tests/test_reference_transfer_board.py tests/test_collect_adapter.py tests/test_candidate_pipeline.py
@@ -65,7 +78,7 @@ HTTP 测试真实启动 Uvicorn、登录取得 Cookie、上传/下载候选 ZIP 
 
 ## Collector 检查点回归（2026-09-28，未发布）
 
-最新该检查点结果以 [collector 任务记录](tasks/2026-09-28-collector-checkpoint.md) 为准，不把历史 CI 成功写成本轮成功。运行全部测试：`python -m pytest -q tests`；不能把退出码 1 或带失败的 XML 当成全绿。
+最新该检查点结果以 [collector 任务记录](tasks/2026-09-28-collector-checkpoint.md) 为准，不把历史 CI 成功写成本轮成功。只有实际影响整个采集/共享数据边界时才扩大为 `python -m pytest -q tests`；不能把退出码 1 或带失败的 XML 当成全绿。
 
 `tests/test_collection_runner.py` 使用隔离库和真实启动的 Python 合成适配器，覆盖配置错误、无执行器、非零退出、无结果/坏 ZIP/错任务、超时、取消、旧轮次覆盖、本次空结果不借历史数量、部分图片受阻和正常包幂等。它不是任何真实供应商 CLI/BrowserSkill 的联调证据。`tests/test_collection_ui.py` 是真实 Chromium + TestClient 桥接；检查真实 absent-adapter 路径、各状态响应和迟到回执不破坏另一对话框。
 

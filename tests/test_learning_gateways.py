@@ -24,7 +24,10 @@ def test_three_teaching_paths_preserve_original_research_and_use_known_skills():
         assert set(gateway['skill_ids']) <= skill_ids
         sections = {s['id']: s for s in gateway['sections']}
         assert set(sections) == {'problem', 'observe', 'principle', 'contrast', 'boundary', 'transfer', 'reflect', 'sources'}
-        assert any(b['type'] == 'exercise' for b in sections['problem']['blocks'])
+        if gateway.get('course_format') == 'field-guide-v1':
+            assert any(b['type'] == 'field_recipe' for s in gateway['sections'] for b in s['blocks'])
+        else:
+            assert any(b['type'] == 'exercise' for b in sections['problem']['blocks'])
         assert any(b['type'] == 'exercise' for b in sections['transfer']['blocks'])
         assert any(b['type'] == 'reveal' for b in sections['transfer']['blocks'])
         assert all(c['review']['level'] == 'pixel_reviewed' for c in gateway['cases'])
@@ -61,8 +64,8 @@ def test_source_case_images_are_exact_registered_originals_with_truthful_rights_
     source_cases = {case_id: entry for case_id, entry in case_entries.items()
                     if entry[1].get('display') == 'source_remote'}
     assert set(source_cases) == set(SOURCE_CASE_MEDIA)
-    assert len(SOURCE_CASE_MEDIA) == 13
-    assert sum(len(urls) for urls in SOURCE_CASE_MEDIA.values()) == 15
+    assert len(SOURCE_CASE_MEDIA) == 17
+    assert sum(len(urls) for urls in SOURCE_CASE_MEDIA.values()) == 19
 
     for case_id, urls in SOURCE_CASE_MEDIA.items():
         gateway, case = source_cases[case_id]
@@ -90,6 +93,39 @@ def test_source_case_images_are_exact_registered_originals_with_truthful_rights_
     licensed = [case for _, case in case_entries.values() if case.get('display') == 'licensed_remote']
     assert len(licensed) == 3
     assert all(case['rights']['allowed'] is True and case['rights'].get('license') for case in licensed)
+
+
+def test_new_source_case_keeps_complete_evidence_and_truthful_capture_limits():
+    from ref_lab.learning_media import SOURCE_CASE_MEDIA
+
+    catalog = json.loads((RESEARCH / 'GATEWAYS.json').read_text(encoding='utf-8'))
+    gateway = next(g for g in catalog['gateways'] if g['id'] == 'separate-light-contributions')
+    case = next(c for c in gateway['cases'] if c['id'] == 'neil-directional-bounce')
+
+    assert case['display'] == 'source_remote' and case['rights']['allowed'] is False
+    assert tuple(image['src'] for image in case['images']) == SOURCE_CASE_MEDIA[case['id']]
+    source = next(s for s in catalog['sources'] if s['id'] == 'gw-light-neil-bounce')
+    assert source['url'] == case['url'] and 'gw-light-neil-bounce' in gateway['source_ids']
+
+    evidence = case['evidence']
+    assert set(evidence) == {'observation', 'quote', 'explanation', 'advice'}
+    assert all(evidence[layer]['text'].strip() for layer in evidence)
+    assert set(evidence['explanation']['source_ids']) <= set(gateway['source_ids'])
+    quote = evidence['quote']
+    assert quote['verification'] == 'verbatim_checked'
+    assert quote['source_id'] == 'gw-light-neil-bounce'
+    assert len(quote['text'].split()) <= 12 and quote['language'] and quote['locator'].strip()
+
+    # The pixels must stay tied to the capture that was actually viewed, and the
+    # record must keep saying what it cannot know: no download, no EXIF, no experiment.
+    detail = case['review']['detail']
+    assert 'agy-neil-portrait' in detail
+    assert '未下载原图' in detail and '未提取EXIF' in detail and '受控对照实验' in detail
+
+    # A taught case may be revisited, but it may not also sit in the transfer chapter.
+    taught_in = {s['id'] for s in gateway['sections'] for b in s['blocks']
+                 if b.get('case_id') == case['id']}
+    assert taught_in == {'observe'}
 
 
 def test_gateway_validator_rejects_unregistered_or_cross_case_source_media():

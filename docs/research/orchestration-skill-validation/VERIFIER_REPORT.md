@@ -67,3 +67,41 @@ build --check、node --check reader、git diff --check PASS，研究版本 `818f
 ROOT 后续只读受控对照（不是修改本 Verifier）：新候选与未修改 `805c289` 均在图片从 0 高度加载后产生约 517 像素 scroll anchoring；close/reopen 均正确保存并恢复变化后的 top。既有图片占位/旧测试采样竞态仍待另项修复，完整 ROOT suite 仍记录 114 PASS / 1 FAIL，不改为全绿。对照原记录在 `.local/orchestration-validation/scroll-controlled-probe/events.json`。
 
 原失败没有加载事件记录，不能精确断言其变化发生于关闭前或重开后；不能将受控探针成功写成原断言 PASS。
+
+## 2026-10-11 AGY 修复复用：独立最终验收
+
+**PASS，限冻结 V01–V10 的本次工程范围。** 本节追加当前验收，不修改上面的历史 F01–F13、旧手机滚动失败或早期 AGY 阻断记录。独立 Verifier 在新上下文与独立 worktree 中只接收用户目标、约束及已有接口，先冻结标准，再读取候选文件与原始工具/来源证据；未读取实现过程会话、未改实现、未发布。
+
+冻结时间为 2026-10-11 04:35:56 UTC，决策时间为 05:41:46 UTC。标准 SHA256 `383add69bd140165b86d60909118fc26c6c1d128d9bd031fea0ae115c5ba5f21`，原独立失败回归 SHA256 `4156aec48aa7088b788aef13c9347e33d334689fa9fbdf48cceb5310bfbf7b92`，均前后相同。最终 `final-verdict.json` SHA256 `4f634f735f8738c6bdb7dedd8b98eef77a6f7679805fb2ee3c0d37efff620acb`；原始证据在 Git 忽略的 `.local/agy-flow-verifier-20261011/.local/verifier/`，不提交截图、配置或研究全文。
+
+| 冻结标准 | 结果 | 独立证据 |
+| --- | --- | --- |
+| V01 既有 Chrome 绑定 | PASS | 连接实例 `1f5bd99b`，每次任务新 tab；共享 daemon PID20332 保持。未借用户 tab。 |
+| V02 AGY 自主研究 | PASS | 原生 AGY preflight/capture、HTML读取、实际材料写入事件与 URL/时间/产物一致，不采用 ROOT smoke。 |
+| V03 真实像素与核验 | PASS | 实开五张 PNG，核对 Neil 人像与 Nikon hero；裁切、未见比较图保留未知。作者短引文在实际 HTML 中匹配。 |
+| V04 有限权限 | PASS | 12 条新增规则含6精确命令、2来源域名、4读路径；原备份/整份JSON语义保护及guarded rollback预演通过。两项symlink测试仍跳过。 |
+| V05 进程与真实结果 | PASS | AGY/CC各PID、UTC、工作区、工具事件与失败记录齐全；CC内容exit1轮次上限单列，不从exit0推任务完成。 |
+| V06 数据与工作保护 | PASS | 证据/截图/配置在忽略目录，既有dirty字节保持，使用隔离测试数据库，无主人学习选择写入。 |
+| V07 真实交接与内容 | PASS | AGY四份输入复制hash一致，CC成功Read两份研究MD并Edit真实源码；ROOT补齐单列。新案例实际原图和A–D呈现。 |
+| V08 可复用Skill边界 | PASS | 基础Skill组织角色、依赖与验收；浏览器权限/操作位于独立runbook与薄桥接，链接有效。 |
+| V09 两次复用 | PASS | Neil PID32512与Nikon PID56212分别新问题/来源/产物，相同桥接/策略/Chrome、两次间配置不变；补充顶部取景另记录有限授权。 |
+| V10 独立冻结与返工上限 | PASS | 原标准/失败测试不变；普通异常假成功与最终URL越界缺陷保留复现，在两轮桥接定向返工内修复，无第三轮。 |
+
+### 独立实际检查
+
+```powershell
+.venv/Scripts/python.exe -X utf8 -m pytest -q -p no:cacheprovider tests/test_agy_browser_bridge.py tests/test_learning_gateways.py tests/test_learning_gateways_state.py tests/test_learning_gateways_ui.py .local/agy-flow-verifier-20261011/.local/verifier/test_final_case_ui.py --basetemp=.local/agy-flow-verifier-20261011/.local/verifier/pytest-final --junitxml=.local/agy-flow-verifier-20261011/.local/verifier/pytest-final.xml
+.venv/Scripts/python.exe -X utf8 tools/build_photography_atlas.py --check
+node --check web/learning-gateways.js
+git diff --check
+```
+
+回归 **92 passed / 2 skipped / 1 既有 Starlette warning，103.10s**；另实跑 `test_real_new_case_media_four_layers_and_readonly_state` **1 passed，9.26s** 补图片截图。build、JS语法和diff检查PASS。这些独立计数与ROOT套件有重叠，不相加冒充全仓测试数。
+
+真实 reader 原站图片返回 HTTP200、natural900×599，四层及来源正常；前后学习状态 `{revision:0,skills:{},gateways:{}}` 完全相等，学习写请求数组为空。故意中断隔离测试的图片请求时，A–D、来源和摘要仍保留。旧22案例与32来源逐项一致；新案例为 `neil-directional-bounce`。CC真实Read/Edit与四份原AGY输入hash证实，达到turn上限exit1及ROOT后续alt/观察文案整合没有藏成CC成功。
+
+### 未验证与责任边界
+
+当前源码范围内没有剩余验收问题。未核验任意网站、挑战/付费墙、长期无人值守、多实例竞态、视频/时间码、私人登录内部、symlink/junction特权下运行、主人审美与学习成效、全项目Golden Path、日用服务升级与发布。本任务采用网页教程，时间码不适用。旧手机图片加载/滚动竞态仍属既有未解决范围。
+
+独立最终源码审查没有覆盖 `.forge/research-code-verifier-orchestration/run_discovery.py` 与 `SKILL_VALIDATION.md`；它们由ROOT与发现测试审计单独记录，不扩大本Verifier结论。Git/Notion仍由ROOT按精确路径交付及验远端，不属于Verifier的PASS。两次受控来源复用支持项目级继续使用，尚不足以建议全局安装或宣称彻底稳定。

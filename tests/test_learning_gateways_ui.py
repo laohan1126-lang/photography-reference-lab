@@ -13,10 +13,17 @@ def test_gateway_endpoint_requires_session_and_csrf(learning_app):
     app, _, origin, _, _ = learning_app
     with TestClient(app, base_url=origin) as client:
         from ref_lab.learning_media import SOURCE_IMAGE_CSP
+        from ref_lab.action_directing_media import ACTION_DIRECTING_SOURCE_IMAGE_CSP
         policy = client.get('/learning').headers['content-security-policy']
         reference_policy = client.get('/').headers['content-security-policy']
-        assert f"img-src 'self' data: blob: {SOURCE_IMAGE_CSP};" in policy
+        image_directive = next(part.strip() for part in policy.split(';')
+                               if part.strip().startswith('img-src '))
+        assert set(image_directive.split()[1:]) == {
+            "'self'", 'data:', 'blob:', *SOURCE_IMAGE_CSP.split(),
+            *ACTION_DIRECTING_SOURCE_IMAGE_CSP.split(),
+        }
         assert 'wikimedia' not in reference_policy
+        assert 'westcottu.com' not in reference_policy
         assert "script-src 'self';" in policy and "connect-src 'self';" in policy
         gateway = client.get('/static/learning-atlas.json').json()['gateways'][0]['id']
         endpoint = '/api/learning-gateways/' + gateway
@@ -236,11 +243,29 @@ def test_each_gateway_full_path_keeps_legacy_status_and_persists_observations(le
 
 
 @pytest.mark.parametrize('width,height', [(1440,1000),(390,844)])
-def test_drawer_position_switching_drafts_keyboard_and_history(learning_site, width, height):
+@pytest.mark.parametrize('media_state', ['failed', 'loaded'])
+def test_drawer_position_switching_drafts_keyboard_and_history(learning_site, width, height, media_state):
     _, _, origin, _ = learning_site
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page(viewport={'width':width,'height':height})
+        # Exercise returning to settled success/failure layouts without relying on a
+        # remote CDN or the browser cache. These pixels are software fixtures only.
+        cdp = page.context.new_cdp_session(page)
+        cdp.send('Network.enable')
+        cdp.send('Network.setCacheDisabled', {'cacheDisabled': True})
+
+        def media_response(route):
+            if route.request.resource_type != 'image':
+                route.continue_()
+            elif media_state == 'failed':
+                route.abort()
+            else:
+                route.fulfill(status=200, content_type='image/svg+xml',
+                              headers={'Cache-Control': 'no-store'},
+                              body='<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200"><rect width="800" height="1200" fill="#496b55"/></svg>')
+
+        page.route('**/*', media_response)
         _unlock(page, origin)
         buttons = page.locator('#gateway-index .gateway-index-list [data-open-gateway]')
         first = buttons.nth(0)
@@ -250,13 +275,21 @@ def test_drawer_position_switching_drafts_keyboard_and_history(learning_site, wi
         page.keyboard.press('Enter')
         page.locator('#gw-answer-observation').fill('关闭、切换和重开必须保留。')
         page.locator('[data-gw-section="transfer"]').click()
+        page.locator('#gw-transfer .gateway-case').scroll_into_view_if_needed()
+        if media_state == 'failed':
+            expect(page.locator('#gw-transfer .case-load-error')).to_be_visible()
+        else:
+            page.wait_for_function('document.querySelector("#gw-transfer img").naturalWidth > 0')
         pos = page.locator('.gateway-scroll').evaluate('(el)=>el.scrollTop')
+        geometry = page.locator('.gateway-chapter').evaluate_all('(items)=>items.map(el=>el.offsetTop)')
         assert pos > 0
         page.keyboard.press('Escape')
+        cdp.send('Network.clearBrowserCache')
         expect(first).to_be_focused()
         assert abs(page.evaluate('window.scrollY') - before) < 3
         first.click()
         assert abs(page.locator('.gateway-scroll').evaluate('(el)=>el.scrollTop') - pos) < 5
+        assert page.locator('.gateway-chapter').evaluate_all('(items)=>items.map(el=>el.offsetTop)') == geometry
         expect(page.locator('#gw-answer-observation')).to_have_value('关闭、切换和重开必须保留。')
         ids = page.locator('#gateway-switch option').evaluate_all('(items)=>items.map(x=>x.value)')
         page.locator('#gateway-switch').select_option(ids[1])

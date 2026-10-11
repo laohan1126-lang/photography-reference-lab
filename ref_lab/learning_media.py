@@ -7,6 +7,9 @@ Keep the exact URLs linked by the source; never infer alternate CDN versions.
 COMMONS_IMAGE_SOURCE = "https://thumb.wikimedia.org/wikipedia/commons/thumb/"
 
 SOURCE_CASE_MEDIA = {
+    "sword-greatsword-kneel": ("https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_36.webp",),
+    "sword-greatsword-lean": ("https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_37.webp",),
+    "sword-greatsword-low": ("https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_35.webp",),
     "sword-forward": ("https://cosplaymode.net/wp-content/uploads/2022/06/nihontou043.jpg",),
     "sword-hip-back": ("https://cosplaymode.net/wp-content/uploads/2022/06/nihontou011.jpg",),
     "sword-hip-side": ("https://cosplaymode.net/wp-content/uploads/2022/06/nihontou012.jpg",),
@@ -27,6 +30,7 @@ SOURCE_CASE_MEDIA = {
         "https://d1kw7y14plrcrj.cloudfront.net/assets/images/ppmag_articles/201711-8vh_1901_header.jpg",
     ),
     "allan-head-turn": ("https://thelenslounge.com/wp-content/uploads/2020/03/butterfly-light-portraits.jpg",),
+    "neil-directional-bounce": ("https://neilvn.com/tangents/images/flash/Erin-1627-900.jpg",),
     "hobby-ambient-sequence": (
         "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjMEM1vTKrvAcH32joHeDALxRlnrb-hOk0rnMrJdSZmRKPvbc9fhUHBcMLOAHdzuJbbhOIOxJsWe8olSSr-KsaUCJo_o_P7-VfhkhXUapaD0aoY-hc25a4WXKOrz9hCc1eFnoVHew/s1600/Shade.jpg",
         "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhnoYibIPZhFZM35edo5JqGvXsUDV_oyNVowML1fI0a8-vR21fpnhhOJ0ffJPP4KeLSaSJOkgUV9VyTqJ1FvN1gEAggm4m6xXiTlr-geWHYW3e9sA29nuxo9yMutGmxJvxkFP67XQ/s1600/Dark.jpg",

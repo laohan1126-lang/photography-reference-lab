@@ -1,0 +1,76 @@
+{
+  "suite": "codex-multi-agent-orchestration-rename-discovery-v1",
+  "session_limit_seconds": 300,
+  "max_parallel": 3,
+  "notes": "The initial seven-case pilot is preserved at the discovery root. Its neutral CSV prompt lacked explicit authorization for later external collaboration; it remains evidence of that wording only. The original explicit case self-reported skill use without a successful full-body tool read. The original project case did return the full project Skill and AGENTS.md bodies, but Codex -C pointed to the external session directory, so it does not establish native project-scope discovery; the initial path matcher also missed escaped Windows separators. Corrected cases below require actual full-body tool results, and the project case runs with -C at the project root. No original logs are overwritten.",
+  "cases": [
+    {
+      "id": "user_explicit_new_name",
+      "diagnostic_only": true,
+      "diagnostic_reason": "Initial prompt requested skill use but did not require an actual full-body tool read; the final self-report is preserved but does not meet the frozen evidence standard.",
+      "expected_skill": "user",
+      "expected_path": "C:\\Users\\Dell\\.agents\\skills\\codex-multi-agent-orchestration\\SKILL.md",
+      "prompt": "使用 $codex-multi-agent-orchestration 处理摄影参考实验室的一项实质任务：根据摄影器材厂商资料，设计并实现一个本地 CSV 导入审计报告，并由独立验收者核对来源、边界案例和现有导入流程。我明确授权使用当前已配置且已获授权的外部研究、编码与验收协作能力。请先判断技能适用性，给出角色分工、依赖、验收标准和隔离路径，然后按本会话只读规划限制停止。"
+    },
+    {
+      "id": "user_implicit_neutral_csv",
+      "diagnostic_only": true,
+      "diagnostic_reason": "Initial prompt disallowed external collaboration and lacked clear later-task authorization; preserve the observed read as evidence for that wording only.",
+      "expected_skill": "user",
+      "expected_path": "C:\\Users\\Dell\\.agents\\skills\\codex-multi-agent-orchestration\\SKILL.md",
+      "prompt": "我需要整理一批 CSV 研究数据：先查阅权威资料，设计并实现一项可复跑的数据清理与汇总流程，再由独立验收者检查来源、边界案例和结果是否可复现。请只依据可用技能 catalog 选择并读取直接相关的 SKILL.md，然后给出简短分工计划并停止。不要读取任何 CSV、源码、项目仓库、历史日志或实现讨论；不要调用其他代理或外部服务。"
+    },
+    {
+      "id": "negative_button_color",
+      "expected_skill": "none",
+      "expected_path": null,
+      "prompt": "把设置页的主要按钮改成深蓝色。"
+    },
+    {
+      "id": "negative_routine_bug",
+      "expected_skill": "none",
+      "expected_path": null,
+      "prompt": "修复图库里筛选按钮偶尔要点两次才生效的普通缺陷，只定位并修复这个小问题。"
+    },
+    {
+      "id": "negative_knowledge_question",
+      "expected_skill": "none",
+      "expected_path": null,
+      "prompt": "简要解释多人分别研究、实现和验收，与一个人独立完成相比有什么优缺点？"
+    },
+    {
+      "id": "negative_explicit_no_external",
+      "expected_skill": "none",
+      "expected_path": null,
+      "prompt": "请研究摄影厂商资料、设计并实现一项现场测光练习，再独立检查来源和交互流程。这确实包含研究、编码和独立验收，但我明确不授权外部代理或任何外部协作服务，只允许本地 Codex 完成。请给一个简短本地计划。"
+    },
+    {
+      "id": "project_explicit_new_name",
+      "diagnostic_only": true,
+      "diagnostic_reason": "Initial run used an external -C directory, so its real absolute-path full-body read does not prove native project-scope discovery.",
+      "expected_skill": "project",
+      "expected_path": "D:\\AI PROJECTS\\photography-reference-lab\\.agents\\skills\\codex-multi-agent-orchestration\\SKILL.md",
+      "prompt": "在 D:\\AI PROJECTS\\photography-reference-lab 中，使用项目级 $codex-multi-agent-orchestration 规则，为一项涉及资料研究、实现和独立验收的摄影学习功能变更规划工作。请只读取指定的新项目 Skill 与该项目的 AGENTS.md，给出简短职责和依赖计划后停止；不得读取源码、旧日志或用户级 Skill，也不得启动代理、浏览器或外部服务。"
+    },
+    {
+      "id": "user_explicit_actual_read_new_name",
+      "expected_skill": "user",
+      "expected_path": "C:\\Users\\Dell\\.agents\\skills\\codex-multi-agent-orchestration\\SKILL.md",
+      "prompt": "使用 $codex-multi-agent-orchestration 处理摄影参考实验室的一项实质任务：根据相机厂商资料设计并实现 CSV 数据导入规范，兼容现有导入流程，并由独立验收者检查来源与边界案例。我明确授权当前已配置的外部研究和编码协作能力用于后续实施，要求 Codex 最终审核。本轮只做只读规划；请先按 catalog 定位，并通过工具实际读取当前安装的该技能全文以确认规则，再给出简短计划后停止。不得启动代理、读取项目源码或旧日志，也不得访问外部服务。"
+    },
+    {
+      "id": "user_implicit_authorized_csv",
+      "expected_skill": "user",
+      "expected_path": "C:\\Users\\Dell\\.agents\\skills\\codex-multi-agent-orchestration\\SKILL.md",
+      "prompt": "为摄影参考实验室规划一项 CSV 导入规范：研究相机厂商的权威资料，设计并实现规范化导入与汇总，兼容现有导入流程，再安排独立验收来源和边界案例。我明确授权当前已配置的外部研究与编码能力用于后续实施，并要求 Codex 最终审核。本轮只需只读理解需求并给出简短分工计划后停止；不得读取任何 CSV、源码、其他仓库或历史日志，不得启动代理或访问外部服务。"
+    },
+    {
+      "id": "project_explicit_native_scope",
+      "expected_skill": "project",
+      "expected_path": "D:\\AI PROJECTS\\photography-reference-lab\\.agents\\skills\\codex-multi-agent-orchestration\\SKILL.md",
+      "execution_cwd": "project",
+      "require_project_rules_read": true,
+      "prompt": "在当前摄影参考实验室项目中，使用项目级 $codex-multi-agent-orchestration 规则，为一项涉及资料研究、实现和独立验收的摄影学习功能变更规划工作。请通过工具实际读取当前项目的项目级 Skill 全文及项目规则，再给出简短职责与依赖计划后停止；不得读取源码、旧日志或用户级 Skill，也不得启动代理、浏览器或外部服务。"
+    }
+  ]
+}

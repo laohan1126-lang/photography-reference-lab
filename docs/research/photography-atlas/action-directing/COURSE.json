@@ -1,0 +1,705 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "action-lindsay-video",
+      "title": "How to coach your subjects when posing hands",
+      "author": "Lindsay Adler Photography（官方频道）",
+      "url": "https://www.youtube.com/watch?v=fG_XVo8YmhE",
+      "reading_depth": "ROOT 正常连续播放01:05–01:29，逐张查看约1.6秒间隔的15张屏幕记录；AGY 阅读页面文字。",
+      "checked_at": "2026-10-11",
+      "locator": "01:05–01:18讲解和手势示范；01:18–01:29转向模特并引导手从膝部移动到脸侧。",
+      "support": "可见的示范、模特跟随和手部移动过程；官方文字中的 coach movement 思路。",
+      "limitation": "此轮为静音像素过程检查，不作逐音引文；未连续看全片，不把其中画面当作受控成片改善。"
+    },
+    {
+      "id": "action-jerry-westcott",
+      "title": "Portrait Lighting & Posing Techniques: An In-Depth Tutorial Guide with Jerry Ghionis",
+      "author": "Jerry Ghionis / Westcott 官方合作教学",
+      "url": "https://westcottu.com/portrait-lighting-posing-techniques-an-in-depth-guide-with-jerry-ghionis",
+      "reading_depth": "Codex 实读方法及相关案例正文、实开两张成片；页面长视频未观看",
+      "checked_at": "2026-10-11",
+      "locator": "Posing Tips That Make Every Shot Count；Couple Portrait with Intentional Lighting；Sculpting Light and Curves in a Classic Female Portrait。",
+      "support": "正文介绍镜像示范、转向和轮廓间隙；两幅真实成片供观察及新情境判断。",
+      "limitation": "不同成片不构成动作前后实验；不存在对应现场对白认证；合作商品教程不是独立交叉印证或转载许可。"
+    },
+    {
+      "id": "action-lindsay-flow",
+      "title": "How Lindsay Adler Bridges Fashion Posing and Senior Portraiture",
+      "author": "Lindsay Adler（署名原文，Rangefinder）",
+      "url": "https://rangefinderonline.com/wedding-portrait/high-school-seniors-sports/lindsay-adler-bridges-worlds-fashion-posing-senior-portraiture/",
+      "reading_depth": "Codex 实读 Add Movement / Clear Concept / Movement Techniques 正文；未核验全部插图",
+      "checked_at": "2026-10-11",
+      "locator": "2017-09-29，By Lindsay Adler；Movement Techniques 1–3；DON’T FORCE WHAT ISN’T WORKING。",
+      "support": "动作服务表达意图；控制动作范围；不强迫复制不适合的姿势。",
+      "limitation": "与官方视频属同一摄影师；非中国漫展/宽袖实测。本课慢动作、安全替代与复查口令属于项目设计。"
+    },
+    {
+      "id": "action-rpg-posing",
+      "title": "RPG风武器持姿图鉴",
+      "author": "文・解説：まめまよ；写真：涼子、大関敦；モデル：竹田ネロ、甘飴、女将",
+      "url": "https://cosplaymode.net/howto/34432/",
+      "reading_depth": "AGY 阅读原页正文；ROOT 逐张打开下列精确原图并看像素。",
+      "checked_at": "2026-10-11",
+      "locator": "大物武器：腰を落として構える、しゃがんで構える、斬りかかる；图34、35、36、37、47。",
+      "support": "双手、屈膝、低位与前倾可构成不同角色动作；作者把重型武器的重量印象与角色选择相联系。",
+      "limitation": "同页不同完成姿势，不是改变一个变量的受控前后组；原页没有这些照片的焦距、米数或机高。"
+    },
+    {
+      "id": "action-cosplay-sword",
+      "title": "日本刀动作与明确NG姿态",
+      "author": "文 まめまよ；監修 龍村自斎；写真 涼子、大関敦",
+      "url": "https://cosplaymode.net/howto/1680/",
+      "reading_depth": "AGY 阅读原页；ROOT 实看 nihontou011、012、043 三张精确原图。",
+      "checked_at": "2026-10-11",
+      "locator": "腰が引けている；末尾成片。",
+      "support": "区分髋后缩与主动向前表达；明确的动作停点。",
+      "limitation": "011与012都是NG的两个角度，不是改善前后；043还改变了表情、服装轮廓与构图。"
+    },
+    {
+      "id": "action-focus-servo",
+      "title": "移动人物的单次与连续对焦",
+      "author": "Canon 官方支持",
+      "url": "https://my.canon/en/support/8202478300",
+      "reading_depth": "ROOT 实读官方正文 One-Shot / Servo 两节。",
+      "checked_at": "2026-10-11",
+      "locator": "One-Shot AF for Still Subjects；Servo AF for Subjects Moving Back and Forth。",
+      "support": "单次合焦后锁定；Servo 随前后移动持续对焦，具体操作按本机说明书。",
+      "limitation": "这是 EOS M3 说明，不代表所有机身的按钮、检测对象或成功率。"
+    },
+    {
+      "id": "action-shutter-motion",
+      "title": "用快门选择冻结或保留动作",
+      "author": "Nikon 官方教程",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/capturing-or-freezing-motion-in-photos",
+      "reading_depth": "ROOT 实读正文与运动速度、快门和模糊的说明；未取该页例图作案例。",
+      "checked_at": "2026-10-11",
+      "locator": "正文 action speed / shutter speed；静止背景与移动主体的模糊。",
+      "support": "快门须随动作速度选择；背景清楚而移动主体模糊可提示动作模糊。",
+      "limitation": "本文例子不是本课 Cosplay 慢前倾；1/250→1/500s 是本课试拍步骤，不是原图参数。"
+    }
+  ],
+  "gateways": [
+    {
+      "id": "action-directing-module",
+      "kind": "course",
+      "title": "动作导演：一句口令，拍清角色动作",
+      "question": "下一张怎样给口令、什么时候拍、看哪一处决定重来？",
+      "outcome": "用一个静态修正轮和一个缓慢动作轮，把角色意图落实到停点、机位与下一张检查。",
+      "method": "先选目标；一句口令只改一个主动作；拍一张、看一处、决定保留或重来。",
+      "author": "课程编写：Codex；原照片与教学视频逐项署名。",
+      "reading_depth": "现场专题图文；逐张实看选图；01:05–01:29连续播放过程导航。",
+      "prior_knowledge": "带能安全持稳的道具；先确认动作范围、服装限制与双方站位。中文口令和练习数值由本课设计。",
+      "skill_ids": [
+        "posing-instruction-clarity",
+        "posing-small-adjustments",
+        "posing-demonstrate-without-contact",
+        "field-direction-comfort",
+        "posing-directed-small-movement",
+        "posing-between-pose-capture",
+        "posing-gesture-task",
+        "posing-intent-elicitation",
+        "field-cosplay-collaboration",
+        "posing-body-face-expression-alignment",
+        "posing-action-stance-context",
+        "posing-purposeful-hand-placement",
+        "posing-arm-torso-separation",
+        "posing-movement-limits-check",
+        "posing-outfit-prop-limit-negotiation",
+        "cosplay-gap-c01-small-prop-face-outline"
+      ],
+      "source_ids": [
+        "action-rpg-posing",
+        "action-cosplay-sword",
+        "action-lindsay-video",
+        "action-jerry-westcott",
+        "action-lindsay-flow",
+        "action-focus-servo",
+        "action-shutter-motion"
+      ],
+      "cases": [
+        {
+          "id": "action-lindsay-hand",
+          "title": "看一段真的动作指导，而不是只看完成姿势",
+          "author": "Lindsay Adler",
+          "url": "https://www.youtube.com/watch?v=fG_XVo8YmhE&t=80s",
+          "display": "external_only",
+          "caption": "从01:05连续看到01:29：先看摄影师示范，再看模特把手移动到脸侧。",
+          "alt": "视频过程参考，打开原视频观看手从膝部到脸侧的变化。",
+          "rights": {
+            "url": "https://www.youtube.com/watch?v=fG_XVo8YmhE&t=80s",
+            "allowed": false,
+            "statement": "保留原作者版权。原站远程引用/链接不是转载或离线复制许可；本仓库不分发原图或视频。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "ROOT 连续播放并实看15张约1.6秒间隔的屏幕记录；静音，不声称逐音对白。"
+          }
+        },
+        {
+          "id": "action-jerry-solo",
+          "title": "长裙单人像：先看你真正能看到的轮廓",
+          "author": "Jerry Ghionis",
+          "url": "https://westcottu.com/portrait-lighting-posing-techniques-an-in-depth-guide-with-jerry-ghionis",
+          "display": "source_remote",
+          "caption": "官方成片；没有对应错误前图，也不推断裙内承重脚。",
+          "alt": "一手在肩部附近，一手在腰侧；两肘弯曲，手臂与躯干间有局部空隙。长裙覆盖腿脚，成片不能说明承重脚、身体角度或她是否舒适。",
+          "rights": {
+            "url": "https://westcottu.com/portrait-lighting-posing-techniques-an-in-depth-guide-with-jerry-ghionis",
+            "allowed": false,
+            "statement": "保留原作者版权。原站远程引用/链接不是转载或离线复制许可；本仓库不分发原图或视频。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "Codex 实开实际浏览器像素；具体读取人、时间码与截图索引见 FACTS.md。仅核验所列范围，不认证画面外、拍摄参数或用户效果。"
+          },
+          "evidence": {
+            "observation": {
+              "text": "一手在肩部附近，一手在腰侧；两肘弯曲，手臂与躯干间有局部空隙。长裙覆盖腿脚，成片不能说明承重脚、身体角度或她是否舒适。",
+              "checked_at": "2026-10-11"
+            },
+            "quote": {
+              "text": "没有逐音核验对应现场对白。下文中文指导句是本课程设计，不是摄影师对白翻译。",
+              "verification": "unverified"
+            },
+            "explanation": {
+              "text": "这里区分实际展示与本课分析；变化中其他变量可能同时改变，不能据此证明某一调整必然改善。",
+              "source_ids": []
+            },
+            "advice": {
+              "text": "在宽袖角色迁移时，可先改变持物高度或由摄影师移位，检查实际轮廓，不要求模特复制原图的关节幅度。"
+            }
+          },
+          "images": [
+            {
+              "src": "https://westcottu.com/wp-content/uploads/Portrait-Lit-from-the-Front-Using-One-Ice-Light-3-on-a-Boom-Arm.jpg",
+              "width": 1366,
+              "height": 2048,
+              "alt": "一手在肩部附近，一手在腰侧；两肘弯曲，手臂与躯干间有局部空隙。长裙覆盖腿脚，成片不能说明承重脚、身体角度或她是否舒适。",
+              "label": "长裙单人像：先看你真正能看到的轮廓"
+            }
+          ],
+          "source_summary": {
+            "text": "官方教程介绍示范、转向及观察轮廓的方法。本张是成片，不是控制实验或错误动作示例。",
+            "source_id": "action-jerry-westcott",
+            "locator": "Couple Portrait / Sculpting Light and Curves 对应图注",
+            "checked_at": "2026-10-11"
+          }
+        },
+        {
+          "id": "action-jerry-transfer",
+          "title": "新照片：两个人靠近，究竟要分开多少",
+          "author": "Jerry Ghionis",
+          "url": "https://westcottu.com/portrait-lighting-posing-techniques-an-in-depth-guide-with-jerry-ghionis",
+          "display": "source_remote",
+          "caption": "留到第六节再判断。照片不是 Cosplay；下面的角色任务是本课假设情境。",
+          "alt": "前景侧脸与后方脸有前后层次；前景人物闭眼，后方人物眼睛可见。裁切不含脚和完整手，无法判断下半身及持物安全。",
+          "rights": {
+            "url": "https://westcottu.com/portrait-lighting-posing-techniques-an-in-depth-guide-with-jerry-ghionis",
+            "allowed": false,
+            "statement": "保留原作者版权。原站远程引用/链接不是转载或离线复制许可；本仓库不分发原图或视频。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "Codex 实开实际浏览器像素；具体读取人、时间码与截图索引见 FACTS.md。仅核验所列范围，不认证画面外、拍摄参数或用户效果。"
+          },
+          "evidence": {
+            "observation": {
+              "text": "前景侧脸与后方脸有前后层次；前景人物闭眼，后方人物眼睛可见。裁切不含脚和完整手，无法判断下半身及持物安全。",
+              "checked_at": "2026-10-11"
+            },
+            "quote": {
+              "text": "没有逐音核验对应现场对白。下文中文指导句是本课程设计，不是摄影师对白翻译。",
+              "verification": "unverified"
+            },
+            "explanation": {
+              "text": "这里区分实际展示与本课分析；变化中其他变量可能同时改变，不能据此证明某一调整必然改善。",
+              "source_ids": []
+            },
+            "advice": {
+              "text": "先确定亲近、保护还是对峙的意图，再决定脸部遮挡与距离；不把一切重叠都当作错误。"
+            }
+          },
+          "images": [
+            {
+              "src": "https://westcottu.com/wp-content/uploads/Studio-Couples-Portrait-with-Two-Ice-Light-3-Bi-Color-Lights.jpg",
+              "width": 1366,
+              "height": 2048,
+              "alt": "前景侧脸与后方脸有前后层次；前景人物闭眼，后方人物眼睛可见。裁切不含脚和完整手，无法判断下半身及持物安全。",
+              "label": "新照片：两个人靠近，究竟要分开多少"
+            }
+          ],
+          "source_summary": {
+            "text": "官方教程介绍示范、转向及观察轮廓的方法。本张是成片，不是控制实验或错误动作示例。",
+            "source_id": "action-jerry-westcott",
+            "locator": "Couple Portrait / Sculpting Light and Curves 对应图注",
+            "checked_at": "2026-10-11"
+          }
+        },
+        {
+          "id": "action-greatsword-high",
+          "title": "脸前大剑：保留力量感",
+          "author": "文・解説：まめまよ；写真：涼子、大関敦；モデル：竹田ネロ、甘飴、女将",
+          "url": "https://cosplaymode.net/howto/34432/",
+          "display": "source_remote",
+          "images": [
+            {
+              "src": "https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_34.webp",
+              "width": 800,
+              "height": 1200,
+              "alt": "模特屈膝开立，一手握柄，另一手在额头旁张开；红色大剑斜穿身体前方，脸露在剑柄旁，两只眼睛可见。"
+            }
+          ],
+          "caption": "模特屈膝开立，一手握柄，另一手在额头旁张开；红色大剑斜穿身体前方，脸露在剑柄旁，两只眼睛可见。",
+          "alt": "模特屈膝开立，一手握柄，另一手在额头旁张开；红色大剑斜穿身体前方，脸露在剑柄旁，两只眼睛可见。",
+          "source_summary": {
+            "text": "原页实际完成姿势；本课把它用于动作选择与画面检查。",
+            "locator": "大物武器；2205_RPGposing_34",
+            "source_id": "action-rpg-posing",
+            "checked_at": "2026-10-11"
+          },
+          "rights": {
+            "allowed": false,
+            "url": "https://cosplaymode.net/howto/34432/",
+            "statement": "引用原站公开图作个人学习参考；保留署名与原页，不离线打包或再分发。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "ROOT 在 BrowserSkill 独立窗口打开原页所链接的精确原图，实看像素；私有截图 greatsword-34.png。观察限此成片，不反推参数。"
+          }
+        },
+        {
+          "id": "action-greatsword-low",
+          "title": "低位大剑：先把脸和剑读清",
+          "author": "文・解説：まめまよ；写真：涼子、大関敦；モデル：竹田ネロ、甘飴、女将",
+          "url": "https://cosplaymode.net/howto/34432/",
+          "display": "source_remote",
+          "images": [
+            {
+              "src": "https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_35.webp",
+              "width": 800,
+              "height": 1200,
+              "alt": "模特双手把剑放到腰下，剑尖伸向画面左侧；脸与双手分开，双脚开立。"
+            }
+          ],
+          "caption": "模特双手把剑放到腰下，剑尖伸向画面左侧；脸与双手分开，双脚开立。",
+          "alt": "模特双手把剑放到腰下，剑尖伸向画面左侧；脸与双手分开，双脚开立。",
+          "source_summary": {
+            "text": "原页实际完成姿势；本课把它用于动作选择与画面检查。",
+            "locator": "大物武器；2205_RPGposing_35",
+            "source_id": "action-rpg-posing",
+            "checked_at": "2026-10-11"
+          },
+          "rights": {
+            "allowed": false,
+            "url": "https://cosplaymode.net/howto/34432/",
+            "statement": "引用原站公开图作个人学习参考；保留署名与原页，不离线打包或再分发。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "ROOT 在 BrowserSkill 独立窗口打开原页所链接的精确原图，实看像素；私有截图 greatsword-35.png。观察限此成片，不反推参数。"
+          }
+        },
+        {
+          "id": "action-greatsword-kneel",
+          "title": "后重心跪姿：先稳定再移动",
+          "author": "文・解説：まめまよ；写真：涼子、大関敦；モデル：竹田ネロ、甘飴、女将",
+          "url": "https://cosplaymode.net/howto/34432/",
+          "display": "source_remote",
+          "images": [
+            {
+              "src": "https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_36.webp",
+              "width": 800,
+              "height": 1200,
+              "alt": "模特一膝着地、一膝抬起，上身较直；双手持柄，宽剑身位于身体前方。"
+            }
+          ],
+          "caption": "模特一膝着地、一膝抬起，上身较直；双手持柄，宽剑身位于身体前方。",
+          "alt": "模特一膝着地、一膝抬起，上身较直；双手持柄，宽剑身位于身体前方。",
+          "source_summary": {
+            "text": "原页实际完成姿势；本课把它用于动作选择与画面检查。",
+            "locator": "大物武器；2205_RPGposing_36",
+            "source_id": "action-rpg-posing",
+            "checked_at": "2026-10-11"
+          },
+          "rights": {
+            "allowed": false,
+            "url": "https://cosplaymode.net/howto/34432/",
+            "statement": "引用原站公开图作个人学习参考；保留署名与原页，不离线打包或再分发。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "ROOT 在 BrowserSkill 独立窗口打开原页所链接的精确原图，实看像素；私有截图 greatsword-36.png。观察限此成片，不反推参数。"
+          }
+        },
+        {
+          "id": "action-greatsword-lean",
+          "title": "前倾跪姿：停在能看清脸的位置",
+          "author": "文・解説：まめまよ；写真：涼子、大関敦；モデル：竹田ネロ、甘飴、女将",
+          "url": "https://cosplaymode.net/howto/34432/",
+          "display": "source_remote",
+          "images": [
+            {
+              "src": "https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_37.webp",
+              "width": 800,
+              "height": 1200,
+              "alt": "模特一膝着地，脸和上身向前；大剑斜向右下，剑身覆盖部分躯干但脸仍可见。"
+            }
+          ],
+          "caption": "模特一膝着地，脸和上身向前；大剑斜向右下，剑身覆盖部分躯干但脸仍可见。",
+          "alt": "模特一膝着地，脸和上身向前；大剑斜向右下，剑身覆盖部分躯干但脸仍可见。",
+          "source_summary": {
+            "text": "原页实际完成姿势；本课把它用于动作选择与画面检查。",
+            "locator": "大物武器；2205_RPGposing_37",
+            "source_id": "action-rpg-posing",
+            "checked_at": "2026-10-11"
+          },
+          "rights": {
+            "allowed": false,
+            "url": "https://cosplaymode.net/howto/34432/",
+            "statement": "引用原站公开图作个人学习参考；保留署名与原页，不离线打包或再分发。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "ROOT 在 BrowserSkill 独立窗口打开原页所链接的精确原图，实看像素；私有截图 greatsword-37.png。观察限此成片，不反推参数。"
+          }
+        },
+        {
+          "id": "action-greatsword-transfer",
+          "title": "新图练习：动作很强，下一张先改什么？",
+          "author": "文・解説：まめまよ；写真：涼子、大関敦；モデル：竹田ネロ、甘飴、女将",
+          "url": "https://cosplaymode.net/howto/34432/",
+          "display": "source_remote",
+          "images": [
+            {
+              "src": "https://cosplaymode.net/wp-content/uploads/2025/01/2205_RPGposing_47.webp",
+              "width": 800,
+              "height": 1200,
+              "alt": "模特单脚支撑、另一腿抬起，双手低位持剑，身体和目光朝画面右上；脚部与剑身都可见。"
+            }
+          ],
+          "caption": "模特单脚支撑、另一腿抬起，双手低位持剑，身体和目光朝画面右上；脚部与剑身都可见。",
+          "alt": "模特单脚支撑、另一腿抬起，双手低位持剑，身体和目光朝画面右上；脚部与剑身都可见。",
+          "source_summary": {
+            "text": "原页实际完成姿势；本课把它用于动作选择与画面检查。",
+            "locator": "大物武器；2205_RPGposing_47",
+            "source_id": "action-rpg-posing",
+            "checked_at": "2026-10-11"
+          },
+          "rights": {
+            "allowed": false,
+            "url": "https://cosplaymode.net/howto/34432/",
+            "statement": "引用原站公开图作个人学习参考；保留署名与原页，不离线打包或再分发。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-11",
+            "detail": "ROOT 在 BrowserSkill 独立窗口打开原页所链接的精确原图，实看像素；私有截图 greatsword-47.png。观察限此成片，不反推参数。"
+          }
+        },
+        {
+          "id": "action-hip-back",
+          "title": "同类姿态反例 A · 正面观察",
+          "author": "text まめまよ；adviser 龍村自斎；photo 涼子、大関敦",
+          "url": "https://cosplaymode.net/howto/1680/",
+          "display": "source_remote",
+          "images": [
+            {
+              "src": "https://cosplaymode.net/wp-content/uploads/2022/06/nihontou011.jpg",
+              "width": 925,
+              "height": 1200,
+              "alt": "白背景持剑人物屈膝，上身与髋的位置呈后撤，袖口与双手位于身前。"
+            }
+          ],
+          "caption": "原站归于腰が引けている；不称为本章头大实测反例。",
+          "alt": "白背景持剑人物屈膝，上身与髋的位置呈后撤，袖口与双手位于身前。",
+          "source_summary": {
+            "text": "本章中文解析由项目撰写；原页定位见下。原作者没有提供这一张的机位与距离测量。",
+            "locator": "刀NGポージング → 腰が引けている（该段第一张，nihontou011.jpg）",
+            "source_id": "action-cosplay-sword",
+            "checked_at": "2026-10-10"
+          },
+          "rights": {
+            "allowed": false,
+            "url": "https://cosplaymode.net/howto/1680/",
+            "statement": "有限个人学习引用原站公开图，保留出处与署名；未取得再分发/离线打包许可，不缓存、不提交图片。"
+          },
+          "review": {
+            "level": "pixel_reviewed",
+            "checked_at": "2026-10-10",
+            "detail": "ROOT通过Edge打开页面精确原图并检查屏幕像素。原站归于腰が引けている；不称为本章头大实测反例。；未据单图反推器材、精确距离或高度。"
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "problem",
+          "title": "拍前30秒：选一个目标",
+          "kicker": "现场专题",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "先和模特选一句：正在抵挡、准备出击，还是让人看清服装与武器？大剑可以挡住部分躯干，冷酷角色也可以有意遮口；若今天要读清脸，至少让两只眼睛和目标面部特征可见。"
+            },
+            {
+              "type": "paragraph",
+              "text": "先问“哪里活动受限、剑能稳稳拿多久？”宽袖就用上臂带动并减小幅度；重道具就先双脚着地、双手持稳；面具或头盔就用头部朝向和视线替代细微表情。背后有墙或人群时，摄影师先站稳，不边退边指挥。"
+            }
+          ],
+          "source_ids": [
+            "action-rpg-posing"
+          ]
+        },
+        {
+          "id": "observe",
+          "title": "静态轮：先修一处遮挡",
+          "kicker": "现场专题",
+          "blocks": [
+            {
+              "type": "field_recipe",
+              "id": "clear-face",
+              "problem": "剑有气势，脸却被手或剑柄切开。",
+              "setup": "人物双脚着地、剑持稳；摄影师从正前或斜前看取景器，先拍1张作为本轮基线，不移动站位。",
+              "instruction": "“脚先不动。把剑柄慢慢往你右侧移，直到我能看见两只眼睛；停住，我拍1张。”",
+              "target": {
+                "text": "在取景器里两只眼睛完整露出、剑柄不穿眼线；任一肩或腕不适就停。",
+                "basis": "visible_marker"
+              },
+              "comparison": {
+                "case_ids": [
+                  "action-greatsword-high",
+                  "action-greatsword-low"
+                ],
+                "relation": "illustrative",
+                "controlled": false,
+                "conditions": [
+                  "根据目标选择画面轮廓；用自己的下一张检验效果。"
+                ],
+                "look_for": "两图都成立：高位强调剑，低位更清楚地分开脸与手；选图看自己的目标。"
+              },
+              "check": {
+                "success": "放大看近侧眼睛和剑柄交界；遮挡减少且仍保留目标气势，就留这一张。",
+                "if_failed": "手已经到舒适极限而遮挡仍在：请人物恢复持稳，摄影师横移到能分开眼与剑的位置，再拍；若目标是遮口留眼，则保留嘴部遮挡。"
+              },
+              "cost": "剑移开后压迫感会减弱；横移摄影师会改变背景、剑的投影和光线。",
+              "why": "明确的口令把抽象的“更帅”，转化为模特能执行、摄影师能从画面确认的具体停点。",
+              "source_ids": [
+                "action-rpg-posing"
+              ]
+            }
+          ],
+          "source_ids": [
+            "action-rpg-posing"
+          ]
+        },
+        {
+          "id": "principle",
+          "title": "动作轮：移动到停点，拍过渡",
+          "kicker": "现场专题",
+          "blocks": [
+            {
+              "type": "field_recipe",
+              "id": "slow-lean",
+              "problem": "站姿像在等拍照，想表现“正准备压上来”。",
+              "setup": "先做无移动的稳定跪姿或双脚站姿。摄影师站稳，连续自动对焦（AF-C/Servo）跟随近侧眼部；没有可靠跟焦时只拍定式，到停点重新对眼合焦再拍。模特知道起点和结束位置。用环境光、等效50mm附近和3秒慢前倾试拍时，可从1/250s起试；先拍静止1张检查自身手抖。",
+              "instruction": "“双手把剑稳住，脚不动。上身用3秒慢慢向前，到你还能舒服停住的位置；我说停就保持，再回到起点。”摄影师在途中脸与剑刚分开时拍1张，停点再拍1张。",
+              "target": {
+                "text": "3秒是本课缓慢练习节奏；移动范围到能随时停稳、脸未被剑遮住为止，不以低到地面为目标。",
+                "basis": "practice_start",
+                "proposed": true
+              },
+              "comparison": {
+                "case_ids": [
+                  "action-greatsword-kneel",
+                  "action-greatsword-lean"
+                ],
+                "relation": "illustrative",
+                "controlled": false,
+                "conditions": [
+                  "根据目标选择画面轮廓；用自己的下一张检验效果。"
+                ],
+                "look_for": "观察前倾前后可选的身体轮廓，注意前倾时剑遮住更多躯干；两幅是姿态示例。"
+              },
+              "check": {
+                "success": "两张回放放大看眼睛：动作方向更清楚，眼睛可辨、脸与手没有糊成一块，模特能轻松返回起点。",
+                "if_failed": "先暂停。若背景清楚而脸或手有拖线，先把1/250s提高到1/500s，重做同一慢动作；还糊就减小动作或只拍停点。若另一深度清楚、眼睛均匀发虚却无明显拖线，检查焦点是否落到剑/袖子，改到近眼连续跟焦；跟不上就停点重新对眼合焦再拍。两类可同时存在：拍停稳、重对焦的一张作排查。静止背景也拖线则先稳定持机。脸突然过近先缩小前倾；重剑或人群旁取消动态轮。"
+              },
+              "cost": "快门加快后，可能需要提高ISO或增加环境光，画面噪点会上升。只拍停点虽然更稳，但会缺少过渡动作的生动感。",
+              "why": "在动作过程中，眼睛与相机的距离会发生变化。跟焦用于对准清晰平面，快门用于控制移动拖影。",
+              "source_ids": [
+                "action-lindsay-video",
+                "action-rpg-posing",
+                "action-focus-servo",
+                "action-shutter-motion"
+              ]
+            },
+            {
+              "type": "video_sequence",
+              "id": "hands-process",
+              "source_id": "action-lindsay-video",
+              "start_seconds": 65,
+              "end_seconds": 89,
+              "inspection": {
+                "method": "continuous_segment",
+                "detail": "ROOT 从65秒启动1倍正常播放，监测到88.37秒；15张屏幕记录逐张实看。观察过程与动作，不把讲解段当作实拍快门或效果证明。",
+                "checked_at": "2026-10-11"
+              },
+              "steps": [
+                {
+                  "start_seconds": 65,
+                  "end_seconds": 78,
+                  "stage": "摄影师示范",
+                  "summary": "摄影师面向镜头讲解，并用自己的手部做演示；模特此时仍把手放在膝部。"
+                },
+                {
+                  "start_seconds": 78,
+                  "end_seconds": 89,
+                  "stage": "转向模特、跟随移动",
+                  "summary": "摄影师转向模特，模特把一只手从膝部抬到额头与脸侧附近；摄影师随后转回镜头。"
+                }
+              ]
+            }
+          ],
+          "source_ids": [
+            "action-lindsay-video",
+            "action-rpg-posing",
+            "action-focus-servo",
+            "action-shutter-motion"
+          ]
+        },
+        {
+          "id": "contrast",
+          "title": "大剑、匕首和日常人像换的是条件",
+          "kicker": "现场专题",
+          "blocks": [
+            {
+              "type": "field_recipe",
+              "id": "weight-read",
+              "problem": "轻道具显得飘，或者剑面被拍成细线。",
+              "setup": "大剑先双手持柄、双脚稳定开立，不把身体重量压在道具上。摄影师在取景器里确认剑身轮廓；道具不挥向镜头或旁人。",
+              "instruction": "“膝盖舒服地弯一点，双手把剑稳在腰前。只转一点剑身，宽面能看见就停；我拍1张。”",
+              "target": {
+                "text": "剑的宽面可辨，手和脸分开；无需用力到手臂颤抖或把剑尖压进地面。",
+                "basis": "visible_marker"
+              },
+              "comparison": {
+                "case_ids": [
+                  "action-greatsword-high",
+                  "action-greatsword-low"
+                ],
+                "relation": "illustrative",
+                "controlled": false,
+                "conditions": [
+                  "根据目标选择画面轮廓；用自己的下一张检验效果。"
+                ],
+                "look_for": "宽面、双手和屈膝的关系；重型角色可用低位，也可刻意选高位或单手表达强者。"
+              },
+              "check": {
+                "success": "剑轮廓、握持关系与人物目标都可读；不把“像重物”误当成真的负重。",
+                "if_failed": "剑只剩细线：先小幅转剑面；碰到袖子或护甲就换摄影师方向。只想表现轻快角色，可保留轻松握持，不硬做重量感。"
+              },
+              "cost": "转动剑面会改变反光；双手低位持剑更为稳定，但会占据躯干面积，减少开放轮廓。",
+              "why": "原作者用双手、屈膝与支点表达重物感；在画面中交代清楚持握与剑面，比增加危险动作更实用。",
+              "source_ids": [
+                "action-rpg-posing"
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": "短匕首先拍静态可读性测试：“握柄手停在胸口旁，刃面稍转向我，直到刀尖和刀身都能辨认；脸不动，我拍1张。”检查刀是否被手套和袖口吞掉；失败就移到身体外轮廓旁或缩小景别。这里是本课对短道具的试拍方案：本轮没有核验到真实短匕首成功/失败照片，长刀忍者图不充作匕首证据。"
+            },
+            {
+              "type": "paragraph",
+              "text": "无武器日常人像把“剑”换成手：“手从膝部慢慢移到脸侧，指尖刚到下颌边就停；不用把脸压进手掌。”从眼平看近侧眼睛与手指交界，先拍过渡和停点各1张；挡眼就降低手或横移机位。手套、宽袖或不能抬腕时，改为扶领口，别强迫复制视频的手势。"
+            }
+          ],
+          "source_ids": [
+            "action-rpg-posing",
+            "action-lindsay-video"
+          ]
+        },
+        {
+          "id": "transfer",
+          "title": "新图：先选动作轮还是静态轮",
+          "kicker": "现场专题",
+          "blocks": [
+            {
+              "type": "case",
+              "case_id": "action-greatsword-transfer"
+            },
+            {
+              "type": "exercise",
+              "id": "transfer",
+              "title": "先给出下一张的方案",
+              "prompt": "这张前面没有分析过。今天要“看清脸与剑、避免在拥挤通道失稳”：给出一句口令、摄影师站位、拍摄时刻和一个回放标准。若脚一直抬起、后方有人，你会删掉哪一步？"
+            },
+            {
+              "type": "reveal",
+              "activity_id": "transfer",
+              "title": "做完判断，再看一种处理",
+              "paragraphs": [
+                "一种方案：先请模特放下抬起的脚，双脚站稳并保持低位双手持剑；摄影师选脸与剑面都清楚的斜前方，站稳后拍静态1张。口令是“脚落稳，脸朝这边，剑宽面露出来就停”。",
+                "回放只先检查眼睛与剑身是否都可读；若仍被手遮挡，让模特恢复舒适姿态再换机位。不在拥挤通道要求抬腿跳跃或快速挥砍。若场地空旷且角色目标就是跃进，可以另约安全动作轮，这张本身不算失败。"
+              ],
+              "source_ids": [
+                "action-rpg-posing"
+              ]
+            }
+          ],
+          "source_ids": [
+            "action-rpg-posing"
+          ]
+        },
+        {
+          "id": "reflect",
+          "title": "10分钟练习：回看决定下一张",
+          "kicker": "现场专题",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "用同一目标做三轮，每轮只改一个主动作：①静态基线1张；②一条带停点的口令，复拍1张；③条件允许时缓慢动作，过渡与停点各1张。每轮选一处回放检查，然后说出“保留什么、下轮改什么、代价是什么”。练习次数与节奏是本课安排。"
+            },
+            {
+              "type": "paragraph",
+              "text": "能把“再帅一点”改成听得懂的动作，能在失败后选择改人物还是改摄影师，才算这次练习有收获。先读完不等于已经掌握。原图、连续片段和资料范围都可在来源记录里回查。"
+            }
+          ],
+          "source_ids": [
+            "action-rpg-posing",
+            "action-lindsay-video"
+          ]
+        },
+        {
+          "id": "sources",
+          "title": "回查原图和视频",
+          "kicker": "现场专题",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "原图作者与原页在每张图下；研究深度与引用范围在“来源与研究记录”中。视频链接直接定位原作者时间点。"
+            }
+          ],
+          "source_ids": [
+            "action-rpg-posing",
+            "action-cosplay-sword",
+            "action-lindsay-video",
+            "action-jerry-westcott",
+            "action-lindsay-flow",
+            "action-focus-servo",
+            "action-shutter-motion"
+          ]
+        }
+      ],
+      "label": "PHOTO ATLAS · 完整课程",
+      "course_format": "field-guide-v1",
+      "content_version": "2026-10-11-field-v1"
+    }
+  ]
+}

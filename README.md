@@ -6,6 +6,8 @@
 
 本地正式项目目录为 `D:\AI PROJECTS\photography-reference-lab`，双击此目录的 `start.bat`。默认地址 `http://127.0.0.1:18765/` 提供拍摄参考、跨项目图库和 Dot 待筛摄影参考；侧栏的“摄影学习”进入同一服务的 `/learning`，学习页也可直接返回拍摄参考。无需分别启动收敛副本或独立学习预览服务。
 
+以本目录的 `main` 为当前版本。后续工作树、实验副本、验收目录及备份统一放在本目录内部：工作树用 `.local/worktrees/`，恢复归档用 `.local/backups/`；不得再建到 `D:\AI PROJECTS` 顶层或其他目录。旧版本整合与清理记录见 [本次任务](docs/tasks/2026-10-11-main-consolidation-cleanup.md)。
+
 摄影学习现为有出处的能力地图：14 个领域 → 71 个模块 → 247 项技能，支持逐层浏览、真实问题检索和个人训练记录。专业材料、项目设计练习与本人评估分开；所有技能初始未评估。两轮覆盖审计、来源和原子性审查保存在 [独立研究目录](docs/research/photography-atlas/README.md)，匕首、宽袖及中国漫展移动场控等资料边界仍明确标为待研究。私人封面不作为技能证据；原技能树案例仍按各自核验深度显示，不因新增课程而升级。个人记录和上传原图存于数据目录的 `learning/`，与参考库数据库及人工选择分离，不提交 Git。新版界面仍须主人审美验收。
 
 技能页的「学习笔记」与「训练」独立切换；训练注明依据的笔记，支持双向定位且保留未保存备注。比例失真诊断试点有四篇多来源图文笔记、三项项目设计训练和十三张实拍教学截图；其他技能先保留现有要点与原训练，不冒充已经完成资料融合。长教程与研究出处收在「资料与完整教程」。完整独立试读：`.venv/Scripts/python.exe tools/preview_learning.py --port 18770 --reference-url http://127.0.0.1:18765/`，打开 `/learning#skill=perspective-skill-height-proportion-diagnosis`。截图只存于本机 `.local/learning-note-media/`，不随 Git 或安装包分发；无图片时仍显示出处。运行中的旧服务需受控重启才能获得新增媒体路由，本轮保持日用服务运行。见 [笔记与训练任务记录](docs/tasks/2026-10-10-notes-and-training.md)。
@@ -77,7 +79,7 @@ WSL/Linux 兼容环境必须使用**自己的数据目录**。不要让 Windows 
 v0.3 的数据库版本为 2。升级版本 1 前，自动通过 SQLite backup API 生成同数据目录下的 `library-before-v2-*.sqlite3`，然后事务迁移。图片原字节、旧选择、反馈、卡片和版本号保留；这份自动备份只有数据库，完整备份仍需：
 
 ```bash
-python -m ref_lab backup --output ../reference-lab-backup.zip
+python -m ref_lab backup --output .local/backups/reference-lab-backup.zip
 ```
 
 恢复须停服务，在新的空目录解压完整备份，再用该目录启动并 `doctor`。不要把旧版本代码指向已升级数据库。
