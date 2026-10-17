@@ -20,7 +20,7 @@ import shutil
 import subprocess
 import sys
 import time
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from uuid import uuid4
 import zipfile
 
@@ -666,7 +666,8 @@ def wait_for_cards(
         if isinstance(data, dict):
             cards = data.get("cards", [])
             if data.get("is_login_wall"):
-                login_wall_detected = True
+                # A later login layer invalidates any earlier visible sample.
+                return [], True
         elif isinstance(data, list):
             cards = data
         else:
@@ -681,6 +682,95 @@ def wait_for_cards(
             if stable >= settle:
                 break
     return best, login_wall_detected
+
+
+PINTEREST_DETAIL_JS = """(() => {
+    const visible = el => {
+        const r = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && r.top < innerHeight && r.bottom > 0
+            && style.visibility !== 'hidden' && style.display !== 'none';
+    };
+    const is_login_wall = Array.from(document.querySelectorAll('[role="dialog"]'))
+        .some(el => visible(el) && el.querySelector('input[type="password"], form[data-test-id="registerForm"]'));
+    if (is_login_wall) return {purl: location.href, is_login_wall: true};
+    // Only the target Pin's primary image; never substitute a related Pin.
+    const image = Array.from(document.querySelectorAll(
+        'img[elementtiming*="MainPinImage"], img[data-test-id="pin-closeup-image"], '
+        + '[data-test-id="pin-closeup-image"] img, [data-test-id="closeup-image"] img'
+    )).find(img => visible(img) && img.naturalWidth > 0);
+    if (!image) return {purl: location.href, image_url: ''};
+    const root = image.closest('[data-test-id="closeup-container"], [data-test-id="pin-closeup"]')
+        || document.querySelector('main');
+    return {
+        purl: location.href,
+        title: root?.querySelector('h1')?.innerText?.trim() || '',
+        desc: root?.querySelector('[data-test-id="pin-description"], [data-test-id="closeup-description"]')?.innerText?.trim() || '',
+        image_url: image.currentSrc || image.src,
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        author: ''
+    };
+})()"""
+
+
+def _pinterest_pin_id(url: str) -> str:
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return ""
+    if parsed.scheme != "https" or parsed.hostname not in {"www.pinterest.com", "pinterest.com"}:
+        return ""
+    match = re.fullmatch(r"/pin/(\d+)/?", parsed.path)
+    return match.group(1) if match else ""
+
+
+def fetch_pinterest_detail_metadata(
+    bsk_bin: str, session_id: str, page_url: str, env: dict[str, str]
+) -> dict:
+    """Resolve a visible Pin to its actual primary image without rewriting URLs.
+
+    Missing title/foreign text is not a visual rejection. This function obtains
+    review input only: neither a character prediction nor original-author proof.
+    """
+    expected = _pinterest_pin_id(page_url)
+    if not expected:
+        return {}
+    try:
+        navigated = subprocess.run(
+            [bsk_bin, "navigate", page_url, "--session", session_id,
+             "--wait-until", "domcontentloaded", "--timeout", "25s"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30,
+        )
+        if getattr(navigated, "returncode", 0) != 0:
+            return {}
+        for attempt in range(3):
+            if attempt:
+                time.sleep(1)
+            completed = subprocess.run(
+                [bsk_bin, "evaluate", "--session", session_id, "--json", PINTEREST_DETAIL_JS],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=15,
+            )
+            payload = json.loads(completed.stdout)
+            if not isinstance(payload, dict) or payload.get("ok") is False:
+                return {}
+            data = payload.get("value", {})
+            if not isinstance(data, dict):
+                return {}
+            if data.get("is_login_wall"):
+                return {"is_login_wall": True}
+            if _pinterest_pin_id(str(data.get("purl") or "")) != expected:
+                return {}  # A redirect must not bind another Pin to this candidate.
+            if data.get("image_url"):
+                image_url = urlsplit(str(data["image_url"]))
+                if image_url.scheme != "https" or not image_url.hostname or not (
+                    image_url.hostname == "pinimg.com" or image_url.hostname.endswith(".pinimg.com")
+                ):
+                    return {}
+                return data
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return {}
+    return {}
 
 
 def fetch_xhs_detail_metadata(
@@ -839,6 +929,10 @@ def fetch_bsk_candidates(
     note_kept_counts: dict[str, int] = {}
     note_dhashes: dict[str, list[str]] = {}
     xhs_login_wall: bool = False
+    pinterest_seen_pages: set[str] = set()
+    pinterest_detail_checks = 0
+    # One bounded review batch, not an unbounded replacement for a vision model.
+    pinterest_detail_limit = min(20, max(1, target_count * 2))
 
     browser_queries = build_queries(job, for_browser=True)
 
@@ -1064,7 +1158,7 @@ def fetch_bsk_candidates(
 
             elif source == "pinterest" and len(candidates) < target_count:
                 for query in browser_queries:
-                    if len(candidates) >= target_count:
+                    if len(candidates) >= target_count or pinterest_detail_checks >= pinterest_detail_limit:
                         break
                     kept = 0
                     rejected_metadata = 0
@@ -1079,6 +1173,13 @@ def fetch_bsk_candidates(
                     time.sleep(3.0)
 
                     pin_js = """(() => {
+                        const visible = el => {
+                            const r = el.getBoundingClientRect();
+                            return r.width > 0 && r.height > 0;
+                        };
+                        const is_login_wall = Array.from(document.querySelectorAll('[role="dialog"]'))
+                            .some(el => visible(el) && el.querySelector('input[type="password"], form[data-test-id="registerForm"]'));
+                        if (is_login_wall) return {cards: [], is_login_wall: true};
                         const pins = [];
                         const imgs = Array.from(document.querySelectorAll("img")).filter(img => {
                             return (img.src.includes("pinimg.com") || (img.currentSrc && img.currentSrc.includes("pinimg.com")))
@@ -1095,24 +1196,51 @@ def fetch_bsk_candidates(
                                 height: img.naturalHeight
                             });
                         }
-                        return pins;
+                        return {cards: pins, is_login_wall: false};
                     })()"""
 
-                    pins, _ = wait_for_cards(bsk_bin, session_id, pin_js, env)
+                    pins, login_wall = wait_for_cards(bsk_bin, session_id, pin_js, env)
+                    if login_wall:
+                        query_log.append({"query": query, "source": "pinterest", "kept": 0,
+                                          "stop_reason": "login_required"})
+                        break
 
                     for pin in pins:
-                        if len(candidates) >= target_count:
+                        if len(candidates) >= target_count or pinterest_detail_checks >= pinterest_detail_limit:
                             break
-                        allowed, reason = result_metadata_allowed({
+                        record = {
                             "t": pin["title"],
                             "desc": pin["desc"],
                             "purl": pin["purl"]
-                        }, policy)
-                        if not allowed:
+                        }
+                        allowed, reason = result_metadata_allowed(record, policy)
+                        if not allowed and not reason.startswith("needs_detail_evidence:"):
                             rejected_metadata += 1
                             continue
 
-                        img_url = pin.get("image_url", "").strip()
+                        page_id = _pinterest_pin_id(str(pin.get("purl") or ""))
+                        if not page_id or page_id in pinterest_seen_pages:
+                            rejected_duplicate += 1
+                            continue
+                        pinterest_seen_pages.add(page_id)
+                        pinterest_detail_checks += 1
+                        detail = fetch_pinterest_detail_metadata(bsk_bin, session_id, pin["purl"], env)
+                        if detail.get("is_login_wall"):
+                            login_wall = True
+                            break
+                        if not detail.get("image_url"):
+                            rejected_image += 1
+                            continue
+                        record.update(t=detail.get("title") or record["t"],
+                                      desc=detail.get("desc") or record["desc"])
+                        allowed, reason = result_metadata_allowed(record, policy)
+                        if not allowed and not reason.startswith("needs_detail_evidence:"):
+                            rejected_metadata += 1
+                            continue
+                        # Inconclusive metadata reaches schema2 review input, never a
+                        # positive identity/modality claim or a human keep decision.
+                        review_reason = "" if allowed else f"；待视觉核验（{reason}）"
+                        img_url = str(detail["image_url"]).strip()
                         if not img_url or img_url in seen_urls:
                             rejected_duplicate += 1
                             continue
@@ -1134,12 +1262,12 @@ def fetch_bsk_candidates(
                             rejected_image += 1
                             continue
 
-                        title = str(pin.get("title") or f"{policy['character']} Pinterest 参考")[:350]
-                        desc = str(pin.get("desc") or "")[:800]
+                        title = str(record["t"] or "Pinterest 待核验图片")[:350]
+                        desc = str(record["desc"] or "")[:800]
                         base_meta = {
                             "title": title,
                             "source": {
-                                "page_url": str(pin.get("purl") or pin_url)[:2000],
+                                "page_url": str(detail.get("purl") or pin["purl"])[:2000],
                                 "image_url": img_url[:2000],
                                 "author": "",
                                 "title": title,
@@ -1149,7 +1277,7 @@ def fetch_bsk_candidates(
                                 "obtained_as": "platform_variant",
                             },
                             "discovery_intent": "exact_character" if policy["require_cosplay"] else "transferable_pose",
-                            "discovery_reason": f"通过 BrowserSkill 检索「{query}」在 Pinterest 发现",
+                            "discovery_reason": (f"通过 BrowserSkill 检索「{query}」在 Pinterest 发现" + review_reason)[:400],
                             "discovery_url": pin_url[:2000],
                             "notes": desc,
                         }
@@ -1170,10 +1298,14 @@ def fetch_bsk_candidates(
                         "source": "pinterest",
                         "kept": kept,
                         "stop_reason": (
+                            "login_required" if login_wall else
                             f"kept={kept}; metadata_filtered={rejected_metadata}; "
-                            f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}"
+                            f"image_filtered={rejected_image}; duplicate_filtered={rejected_duplicate}; "
+                            f"detail_checked_total={pinterest_detail_checks}"
                         ),
                     })
+                    if login_wall:
+                        break
     finally:
         subprocess.run([bsk_bin, "session", "stop", session_id],
                        capture_output=True, text=True, env=env, timeout=5)
@@ -1219,6 +1351,8 @@ def main() -> None:
                 attempts = [entry for entry in query_log if entry.get("source") == source]
                 if source == "xiaohongshu" and xhs_login_wall:
                     status, detail = "blocked", "小红书登录已失效；请在宿主机 Edge 浏览器中扫码登录后再试。"
+                elif any(entry.get("stop_reason") == "login_required" for entry in attempts):
+                    status, detail = "blocked", "本来源显示登录门槛，已停止检索；保留此前取得的候选，待正常登录后再继续。"
                 elif any(entry.get("kept", 0) > 0 for entry in attempts):
                     status, detail = "usable", "已实际检索并得到候选；候选仍需看图核验。"
                 elif attempts:

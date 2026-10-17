@@ -24,6 +24,12 @@ python -m ref_lab export-job --job JOB_ID --output job.zip
 
 ## 搜图计划与质量
 
+### Pinterest 候选补证（2026-10-18）
+
+本地搜索适配器在 Pinterest 上先排除明确的文本类型反证，再打开具体 Pin 的正常发布页，读取实际渲染的主图 currentSrc。外语、空标题或缺少字面角色名返回的 needs_detail_evidence 只表示待补证，不直接丢弃；这类图片以 schema 2 未核验候选交回，不能据此宣称真人、角色或版本匹配。每批最多打开20个不同 Pin，已有图片按原哈希去重。相关 Pin 的大图、搜索页、被重定向到的其他 Pin 不能代替目标图片；不改写 CDN 地址。登录弹层出现后停止该来源并报告 blocked，不能把弹层后的 DOM 图片当作可用结果。
+
+以上只修复进入视觉审查前的漏选。实际视觉 Agent 仍须逐图筛除不符内容并按 schema 3 返回观察；未经看图的 schema 2 数量不能当作 A 类命中数。用户明确喜欢的单张图片应保留该条人工反馈及精确图片身份，不能用系统推荐覆盖，也不能外推成永久风格或同批全部认可。
+
 优先小红书、Pinterest，按角色再评估 Cosplayers Archive、Curecos/WorldCosplay 公开线索、X、Instagram、微博；审美扩展可用 FilmGrab、已有合法权限的 ShotDeck。静态建议不是登录验证，见 [来源评估](SOURCE_ASSESSMENT.md)。每轮 source_checks 记录实际结果，未尝试写 untested，不机械把全部网站跑一遍。
 
 核实中日英角色/作品/服装别名，组合 cosplay / cos / コスプレ / 正片 / 场照 / 摄影 / pose / photography，加动作、情绪、构图关键词。先看少量产出，低产或重复就换词/来源；同套连拍只留确有不同借鉴价值的画面，不下载前 N 张凑数。
