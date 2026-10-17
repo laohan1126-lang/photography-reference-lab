@@ -153,6 +153,21 @@ def _negative_suffix() -> str:
 
 def build_queries(job: dict, for_browser: bool = False) -> list[str]:
     policy = build_policy(job)
+    plan = job.get("query_plan")
+    if plan is not None:
+        # An explicitly authored discovery plan is tied to the frozen task,
+        # not to a literal spelling of its costume in every language. This
+        # changes discovery only; it cannot grant image identity/quality PASS.
+        expected = {key: policy[key] for key in ("character", "costume", "work")}
+        if not isinstance(plan, dict) or plan.get("scope") != expected:
+            raise ValueError("query_plan scope must match the current task snapshot")
+        queries = plan.get("queries")
+        if (not isinstance(queries, list) or not 1 <= len(queries) <= 8
+                or any(not isinstance(query, str) or not query.strip() or len(query) > 350 for query in queries)):
+            raise ValueError("query_plan requires 1-8 nonempty query strings of at most 350 characters")
+        planned = list(dict.fromkeys(query.strip() for query in queries))
+        suffix = _negative_suffix() if policy["require_cosplay"] and not for_browser else ""
+        return [f"{query} {suffix}".strip() for query in planned]
     character, costume, work = policy["character"], policy["costume"], policy["work"]
     core = " ".join(x for x in (work, character, costume) if x).strip()
     generated: list[str] = []

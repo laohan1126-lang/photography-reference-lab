@@ -1,5 +1,12 @@
 # 当前任务
 
+- 本轮任务：[Learning Loop V1：指定版本召回、审美/规则学习与露比留出](2026-10-18-learning-loop-v1.md)
+- 分支：`codex/learning-loop-v1-20261018`；起点：`e6738cd00a50c7165a453532181d4b2221ff9677`。
+- 检查点：有界实验与技术复盘已完成，核心及旧查询调用方回归通过；原库保护状态、原图字节和冻结输入核验通过，file://盲评入口可打开。审美收益NOT_PROVEN、参数训练NOT_TRAINABLE，人工盲评待验收；原事务Git/Notion状态分别见实际Publisher回执。
+- 下一步：打开本地 `.local/learning-v1/index.html` 或 `ruby-blind-review.html` 人工审查；本轮停止，不自动调参、继续搜图或合并main。
+
+## 前序任务（状态保留）
+
 - 任务：[2026-10-18 有马加奈搜图结果补入正式图库](2026-10-18-kana-search-import.md)
 - 关联前序：[2026-10-18 精准高质量搜图试验](2026-10-18-search-quality-loop.md)
 - 分支：`codex/search-quality-20261018`
