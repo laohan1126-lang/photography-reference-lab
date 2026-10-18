@@ -22,6 +22,24 @@ Read README.md, docs/ARCHITECTURE.md, and the relevant docs/tasks entry. For acq
 4. Update task outcomes, limitations and next regression steps. Run `tools/finish_task.py` with explicit paths, or equivalent reviewed commands. Push the task branch only when authorized; verify the remote SHA before claiming success. An incomplete checkpoint must be explicitly labelled, never presented as released.
 5. Git versioned tasks are canonical. Sync a compact Notion view only when configured and authorized. A failed Notion sync is pending, not a successful write, and must not erase a valid Git checkpoint.
 6. Final handoff: branch + commit + tested scope + unverified scope + runnable regression instructions. Never call a waiting job completed, or an unrun test passed.
+## 跨会话接续
+
+### 开始工作
+- 用户要求继续已有任务时，先检查 docs/tasks/CURRENT.md。若不存在，则根据已有任务记录和当前 Git 状态恢复任务，并建立该文件；不得凭猜测选择任务。
+  再核对当前工作目录、分支、HEAD 和未提交改动；不要要求用户重新介绍项目。
+- 只读取本次任务相关的历史决定和失败证据，不重新扫描全部历史。
+- 用户提出新任务时，以新请求为准；不得自行继续旧目标。
+- 记录与实际工作树不一致时先核实，不把旧记录当作当前事实。
+- 开始新的开发任务时，按原协议创建任务记录，并更新当前任务指针。已有任务尚未完成时，不得将其状态直接覆盖或标记为完成。
+### 工作中与结束前
+- 在形成有效进展、否定一个方案或遇到阻塞时，更新对应任务记录；
+  不只在整项任务结束时才保存。
+- 保留原始目标，并记录：已验证结果、未验证部分、失败原因与证据、
+  下一步具体动作、需要用户决定的事项。
+- 同步更新 docs/tasks/CURRENT.md 的任务指针和最近检查点。仅在当前任务、关键检查点或下一步发生实质变化时更新 CURRENT.md。它只是任务索引，详细记录以 docs/tasks/<task>.md 为准。并行工作树分别维护自己的当前任务状态，不互相覆盖。
+- 已明确的长期纠正，应修改实际产生问题的模板、组件或相关规则；
+  不能只写“已记住”。仅适用于本次的反馈不得升级为全局偏好。
+- 普通问答、无状态变化的回复不制造交接报告；保存检查点不触发无关测试。
 
 ## Canonical checkout and workspace placement (owner instruction, 2026-10-11)
 - The sole daily checkout is `D:\AI PROJECTS\photography-reference-lab`; `main` is the consolidated current version. This task explicitly authorizes integrating the current complete version into main. Future main merges still need the owner's authorization.

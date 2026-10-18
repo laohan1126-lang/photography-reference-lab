@@ -28,6 +28,7 @@ def acquisition_contract(job: dict) -> dict:
         "source_options": SOURCES,
         "source_verification": "Planning guidance only; record actual access/quality for this run in source_checks.",
         "query_strategy": [
+            "正式自动入口使用多语言名称小样本和来源交替；URL/搜索框正确仍须检查结果区是否自动纠词、明确无结果或给出泛化推荐。",
             "保留全部角色、作品、服装和自由要求；核实中／日／英角色别名，不编造译名。",
             "组合 cosplay / cos / コスプレ / 正片 / 场照 / 摄影 / pose / photography 与动作、情绪、构图要求。",
             "先比较来源和关键词的小样本产出；低产或大量重复就换词／来源，不下载前 N 张凑数。",
@@ -59,6 +60,8 @@ def agent_instructions(job: dict) -> str:
 使用授权浏览器实例，在独立可见 Agent Window 操作。按本机技能选择 session／导航／下载命令；结束时停止自己的 session。
 连接不可用、需要登录或出现验证码时记录 blocked 原因；不得导出 Cookie、调用隐藏 API 或绕过限制。
 按 acquisition.query_strategy 与 source_options 选择来源、扩展关键词，不机械跑所有网站。
+正式本地适配器为tools/collect_verified.py：先生成发现用多语言别名并自动寻找/核查原作一手角色与服装参照，再交替查询授权摄影来源；纠词/无结果换词，少量样本不符就换名或来源，不能下载满数量便停止。参照资料独立存储，不得作为摄影候选；存疑或未覆盖造型在给最终结论前按预算主动补证，缺可靠参照保持待补证/阻断。
+必须由视觉Agent先核验真人类型、角色和指定服装。未知/反证只留私有执行记录，不交给主人打审美分；默认主筛图只交付实际核验通过的schema3候选。别名是发现假设，不是官方身份事实。
 A exact_character / B transferable_pose / C aesthetic 是发现意图，不能写成已核实图像事实。
 逐张独立查看、下载和去重；追到发布页和作者。搜索页仅写 discovery_url，不能冒充 source.page_url。
 达不到软目标时返回更少的好图和缺口。不下载前 N 张凑数。

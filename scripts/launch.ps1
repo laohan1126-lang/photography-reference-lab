@@ -17,7 +17,7 @@ Assert-ReferenceLabPythonMatchesRepo -Python $python
 
 $revision = Get-ReferenceLabRevision -RepoRoot $config.RepoRoot
 
-$adapter = Join-Path $config.RepoRoot "tools\collect_adapter.py"
+$adapter = Join-Path $config.RepoRoot "tools\collect_verified.py"
 if (-not (Test-Path $adapter)) {
     throw "Collection adapter is missing from this checkout: $adapter"
 }
@@ -89,20 +89,17 @@ if ($alreadyHealthy) {
         "{task_file}",
         "{result_file}"
     ) | ConvertTo-Json -Compress)
-    if (-not $env:HTTP_PROXY -and -not $env:http_proxy) {
-        $env:HTTP_PROXY = "http://127.0.0.1:12000"
-        $env:HTTPS_PROXY = "http://127.0.0.1:12000"
-        $env:ALL_PROXY = "http://127.0.0.1:12000"
-    }
 
     Write-Host "[*] Starting repo-local Windows backend..." -ForegroundColor Yellow
     # Avoid an inherited console/pipe: the stdlib owns only OS process creation.
     $spawnCode = @"
 import subprocess, sys
+from ref_lab.providers import antigravity_environment
 with open(sys.argv[3], 'ab') as out, open(sys.argv[4], 'ab') as err:
     proc = subprocess.Popen(
         [sys.executable, '-m', 'ref_lab', 'serve', '--host', '127.0.0.1', '--port', sys.argv[2]],
         cwd=sys.argv[1], stdin=subprocess.DEVNULL, stdout=out, stderr=err,
+        env=antigravity_environment(),
         creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW,
     )
     print(proc.pid)

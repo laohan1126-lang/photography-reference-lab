@@ -62,6 +62,7 @@ def test_real_process_returns_valid_package_not_human_facts(library, project, mo
 assert 'LAB_ACCESS_TOKEN' not in os.environ
 assert 'LAB_COLLECTION_COMMAND' not in os.environ
 assert pathlib.Path(os.environ['LAB_DATA_DIR']).parent == pathlib.Path.cwd()
+assert pathlib.Path(os.environ['LAB_COLLECTION_HISTORY_DIR']).name == 'assets'
 assert 'acquisition.query_strategy' in pathlib.Path(sys.argv[1]).read_text(encoding='utf-8')
 assert pathlib.Path('job.json').is_file()
 shutil.copyfile(sys.argv[3], sys.argv[2])
@@ -234,6 +235,7 @@ def test_default_collection_timeout_survives_a_real_browserskill_pass():
     previous = os.environ.pop("LAB_COLLECTION_TIMEOUT_SECONDS", None)
     try:
         assert timeout_seconds() >= 1800
+        assert timeout_seconds(30)==3000 and timeout_seconds(100)==3600
     finally:
         if previous is not None:
             os.environ["LAB_COLLECTION_TIMEOUT_SECONDS"] = previous
