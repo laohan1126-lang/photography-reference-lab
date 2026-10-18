@@ -56,13 +56,27 @@ Publisher 事务 `adcc1167-e0bb-431f-b8ca-9c9cf1894d90` 已在编辑前 start �
 - `python -B -X utf8 tools/learning_v1.py check-freeze` → PASS（20 个冻结文件哈希一致）。
 - `python -B -X utf8 -m tools.learning_v1_human verify --baseline .local/learning-v1/human-review-before.json` → PASS，33 项（17 个受保护文件 + 16 张原图）全部一致。
 - 自动化：`pytest -q tests/test_learning_v1_human.py` → 18 passed。合并回归 `pytest -q tests/test_learning_v1.py tests/test_learning_v1_human.py tests/test_learning_query_plan.py tests/test_search_quality_loop.py -k "not detail_dom"` → 46 passed, 2 deselected（本机 `python -m pytest` 不可用，实际用 PATH 中的 pytest 并设置 `PYTHONPATH`；仓库 `.venv` 的 pytest 缺 `iniconfig`，未修环境）。
-- 空标签真实报告：16 张独立 SHA、0 人评价、所有指标 N/A、`NOT_PROVEN` 不变；未创建真实 `ruby-human-labels.json`。
+- 空标签真实报告（提交前）：16 张独立 SHA、0 人评价、所有指标 N/A、`NOT_PROVEN` 不变；未创建真实 `ruby-human-labels.json`。
 - 真实浏览器（Playwright/Chromium）：合成数据完成保存、刷新恢复、关闭标签页后重开恢复、跳过、提交、只读快照、报告生成、桌面与 390px 窄屏；真实露比页只读浏览 16 张，全部图片实际加载、R01–R16 唯一、无策略/分数泄漏、无标签写入。证据见 `.local/learning-v1/browser-human-review-verification.json`、`e2e-review-mobile.png`、`real-review-mobile.png`。
 - 验收中发现并修复一个回归：离开页面时 `visibilitychange` 会 POST 空草稿，生成全空标签文件。现客户端只刷新有内容的条目，服务端对空草稿返回 `noop` 且不写文件；已补回归测试，并确认重新打开/翻页/返回总览后真实标签文件仍不存在。该全空文件已核验无任何用户选择后删除。
 
-尚未验证 / 仍缺少：
+## 用户实际提交与真实对照（追加，2026-10-18 16:12 JST）
 
-- 用户本人的逐图评价尚未发生；因此没有有人工真值的最终对照结论。
-- 本轮浏览器验收走 HTTP；未重新用 `file://` 打开新页面（工具阻止 file 协议），静态相对路径与旧入口保持一致。
+用户已实际完成 16/16 逐图评价。此前页面是直接以 `file://` 打开，草稿只保存在该 Edge 标签页的 `localStorage`，因此点击提交时正确提示需要本地评价服务（不是按钮故障）。经用户确认后，借用该标签页读取其草稿，原样保存为私有导出文件，并通过 `LabelStore.draft` 导入全部 16 条（0 missing、0 extra），再通过回环 API 提交；没有修改、推断或补写任何用户选择/原因。
+
+提交结果（逐图标签与原因只在 `.local`，不进入 Git）：
+
+- 16/16 审美标签完整，0 缺失、0 跳过；只读快照已生成。
+- baseline0 / baseline1：Top-5 喜欢 3/5，NDCG@5 0.969，摄影可用 2/5。
+- candidate2：Top-5 喜欢 3/5，NDCG@5 0.892，摄影可用 3/5。
+- candidate2 没有同时超过两个基线，且把 1 张明确不喜欢的图片提前到前 3、把 2 张明确喜欢的图片推后；结论仍为 **NOT_PROVEN**，不是 `NO_RANKING_DIFFERENCE`。
+- 用户确认 16 张都是目标角色真人 Cosplay；冻结规则的 AI 身份证据仍是 `needs_evidence`，因此规则与人工角色判断存在明显不一致。该不一致已写入报告，不用于调参。
+
+私有产物：`.local/learning-v1/ruby-human-labels.json`、`ruby-human-labels-final.json`、`ruby-human-labels-localstorage-export.json`、`ruby-human-labels-import-log.json`、`ruby-human-metrics.json`、`ruby-human-report.html`、`real-human-submission-verification.json`。
+
+仍缺少 / 限制：
+
+- `file://` 仍只适合浏览和本地草稿；保存/提交必须使用 `serve`，本轮没有新增“文件页导入”按钮，而是人工恢复了一次真实草稿。
 - 来源作者为空、16 张集中在 Pinterest；报告标记 `UNVERIFIED_PLATFORM_ONLY`，不能宣称独立拍摄组或外推。
+- 只有一个固定候选池、一次评价；即使 candidate2 数值更高也不能宣称泛化收益，本轮它更低，`NOT_PROVEN` 保持。
 - Git/Notion 最终状态见 Publisher 实际回执；不得由测试通过推定发布成功。

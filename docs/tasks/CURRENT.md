@@ -2,8 +2,8 @@
 
 - 本轮任务：[星野露比逐图人工评价闭环（评估方法修复）](2026-10-18-ruby-single-image-review.md)
 - 分支：`codex/learning-loop-v1-20261018`；起点：`d3486efaf3f4079c0d7dfa65b553127c32a74c7d`。
-- 检查点：Publisher 事务 `adcc1167-e0bb-431f-b8ca-9c9cf1894d90` 已 start 并声明合同。逐图评价模块、原子草稿/只读快照、冻结三路指标与诚实报告已实现；18 项新测试与合并 46 项回归通过，check-freeze PASS，33 项受保护输入/图片 SHA 核验一致。空标签真实报告为 N/A + NOT_PROVEN；真实浏览器完成合成保存/刷新与关闭重开恢复/提交/报告及真实图片只读验收。发现并修复“离开页面生成空草稿”回归。人工真值尚未产生。
-- 下一步：用户运行 `python -B -X utf8 -m tools.learning_v1_human serve --open` 完成 16 张逐图评价并提交；提交后自动生成有人工真值的对照报告。本轮代码在 Publisher finish 前不合并 main。
+- 检查点：逐图评价模块、原子草稿/只读快照、冻结三路指标与诚实报告已实现并发布（commit `b1c9985`，远端一致，Notion 成功）；18 项新测试、合并 46 项回归、check-freeze 与 33 项保护输入核验通过。用户已实际完成并提交 16/16 逐图评价（从 `file://` 本地草稿恢复后经回环服务提交），真实报告为 SCORED；candidate2 NDCG@5 0.892 低于 baseline0/1 的 0.969，且把 1 张不喜欢的图提前、2 张喜欢的图推后，结论仍为 NOT_PROVEN。逐图标签与原因只在 `.local`，未进入 Git。
+- 下一步：用户可直接查看 `.local/learning-v1/ruby-human-report.html`；本轮停止，不调参、不重排、不合并 main。
 
 ## 前序任务（状态保留）
 
