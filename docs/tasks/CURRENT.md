@@ -1,11 +1,16 @@
 # 当前任务
 
-- 本轮任务：[Learning Loop V1：指定版本召回、审美/规则学习与露比留出](2026-10-18-learning-loop-v1.md)
-- 分支：`codex/learning-loop-v1-20261018`；起点：`e6738cd00a50c7165a453532181d4b2221ff9677`。
-- 检查点：有界实验与技术复盘已完成，核心及旧查询调用方回归通过；原库保护状态、原图字节和冻结输入核验通过，file://盲评入口可打开。审美收益NOT_PROVEN、参数训练NOT_TRAINABLE，人工盲评待验收；原事务Git/Notion状态分别见实际Publisher回执。
-- 下一步：打开本地 `.local/learning-v1/index.html` 或 `ruby-blind-review.html` 人工审查；本轮停止，不自动调参、继续搜图或合并main。
+- 本轮任务：[星野露比逐图人工评价闭环（评估方法修复）](2026-10-18-ruby-single-image-review.md)
+- 分支：`codex/learning-loop-v1-20261018`；起点：`d3486efaf3f4079c0d7dfa65b553127c32a74c7d`。
+- 检查点：Publisher 事务 `adcc1167-e0bb-431f-b8ca-9c9cf1894d90` 已 start 并声明合同。逐图评价模块、原子草稿/只读快照、冻结三路指标与诚实报告已实现；18 项新测试与合并 46 项回归通过，check-freeze PASS，33 项受保护输入/图片 SHA 核验一致。空标签真实报告为 N/A + NOT_PROVEN；真实浏览器完成合成保存/刷新与关闭重开恢复/提交/报告及真实图片只读验收。发现并修复“离开页面生成空草稿”回归。人工真值尚未产生。
+- 下一步：用户运行 `python -B -X utf8 -m tools.learning_v1_human serve --open` 完成 16 张逐图评价并提交；提交后自动生成有人工真值的对照报告。本轮代码在 Publisher finish 前不合并 main。
 
 ## 前序任务（状态保留）
+
+- 任务：[Learning Loop V1：指定版本召回、审美/规则学习与露比留出](2026-10-18-learning-loop-v1.md)
+- 分支：`codex/learning-loop-v1-20261018`；起点：`e6738cd00a50c7165a453532181d4b2221ff9677`。
+- 检查点：有界实验与技术复盘已完成，核心及旧查询调用方回归通过；原库保护状态、原图字节和冻结输入核验通过，file://盲评入口可打开。审美收益NOT_PROVEN、参数训练NOT_TRAINABLE，人工盲评待验收；原事务Git/Notion状态分别见实际Publisher回执。
+- 下一步：旧版 A/B 盲评入口保留为历史证据，不再作为本轮评价入口；结论仍为 NOT_PROVEN，不自动调参、继续搜图或合并main。
 
 - 任务：[2026-10-18 有马加奈搜图结果补入正式图库](2026-10-18-kana-search-import.md)
 - 关联前序：[2026-10-18 精准高质量搜图试验](2026-10-18-search-quality-loop.md)

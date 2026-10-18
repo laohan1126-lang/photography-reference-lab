@@ -8,6 +8,39 @@ Open `.local/learning-v1/index.html` locally. The entry page links to a blind co
 
 The blind page compares two frozen methods on the same candidate pool. The method mapping is in a separate local JSON file. Do not inspect that mapping before recording a preference. A changed order does not establish improved taste; owner acceptance is separate from engineering verification.
 
+## Single-image human review (2026-10-18)
+
+The older A/B page is retained only as historical evidence. The current human-truth entry is a single-image review: each original SHA is shown once, and the owner records three independent dimensions (character accuracy, photography usefulness, personal aesthetic) plus an optional short reason. Skipping a photo is a missing label, not a dislike. The review page shows no model score, strategy name or ranking suggestion.
+
+Start a loopback-only server from the repository:
+
+```powershell
+python -B -X utf8 -m tools.learning_v1_human serve --open
+```
+
+The page is served at `http://127.0.0.1:<random-port>/` (only that interface is opened). It reads the frozen `ruby-pool.json`, `ruby-predictions.json` and `ruby-evaluation.json` without changing them, serves original image bytes, and stores drafts keyed by SHA. Drafts survive refresh/close because they are written atomically to `.local/learning-v1/ruby-human-labels.json`. Submitting writes a write-once read-only snapshot `.local/learning-v1/ruby-human-labels-final.json` and generates the report.
+
+The review page can also be opened directly as a file for browsing, but saving and submission require the local server. Opening or leaving the page does not create an empty label entry; only an actual selection, reason or explicit skip is persisted.
+
+Generate the report only after submission (the server does this on submit):
+
+```powershell
+python -B -X utf8 -m tools.learning_v1_human report
+```
+
+Before submission, `report` refuses to produce metrics. For the empty-label acceptance check only, an explicitly marked N/A page can be generated with `--allow-unsubmitted`; it contains no accuracy claim. The server is never exposed beyond `127.0.0.1`, and no image or label is uploaded.
+
+The report table follows the frozen `baseline0`, `baseline1` and `candidate2` orders. It reports Top-5 likes, graded NDCG@5, photography-useful counts, character confirmation/wrong/uncertain counts, coverage and missing labels. Missing aesthetic labels are never treated as 0: NDCG@5 is `N/A` until the relevant Top-5 is fully labelled. Identical frozen orders are reported as `NO_RANKING_DIFFERENCE`; if the two methods have the same Top-5, the report says the result did not improve the owner's Top-5. The conclusion remains `NOT_PROVEN` because this is one fixed pool evaluated once, not an independent held-out taste benchmark.
+
+Protected-input verification:
+
+```powershell
+python -B -X utf8 tools/learning_v1.py check-freeze
+python -B -X utf8 -m tools.learning_v1_human verify --baseline .local/learning-v1/human-review-before.json
+```
+
+`tools/learning_v1_report.py` is itself in `freeze.json`, so this round adds the human-review module rather than editing that frozen renderer; the existing style and helpers are imported unchanged. `learning_v1_human.py` never re-ranks, trains or writes production K/I/M/X.
+
 ## Reproduce without new network work
 
 Use the existing Python environment that has Pillow installed:
@@ -35,7 +68,7 @@ There is no production enable switch to undo: the experiment was never connected
 ## Verification boundary
 
 ```powershell
-python -B -X utf8 -m pytest -q tests/test_learning_v1.py tests/test_learning_query_plan.py tests/test_search_quality_loop.py -k "not detail_dom" -p no:cacheprovider
+python -B -X utf8 -m pytest -q tests/test_learning_v1.py tests/test_learning_v1_human.py tests/test_learning_query_plan.py tests/test_search_quality_loop.py -k "not detail_dom" -p no:cacheprovider
 ```
 
 The remaining two existing `detail_dom` cases can be run with the installed Playwright runtime, or verified with the exact same extraction function against local DOM fixtures in the connected browser. Fixture success is not evidence of real-image accuracy. Detailed commands, actual results, failed attempts, original-byte checks, and browser screenshots belong in the private experiment report rather than in a public repository artifact.
