@@ -441,4 +441,26 @@ node --check web/app.js                                         # OK
   仍只在 review-audit/候选队列，不冒充人工 K/I/M。旧历史隐私导致的 Git/Notion 暂停沿用；
   本轮不写 Notion、不合并 main、不切换日用服务。
 
+## Git 发布
+
+- 任务分支：`codex/search-15-review-20261020`（从 `0731cf5c1554cb73d7b3d0b24b4109b56a51cfe7`
+  创建）。
+- 提交：`0e0fd33e837510654481e441cc8db083ff4f7609`（B 修复 + 回归）；
+  `0d0c1fb77a779d8b508b7e0589dac8e21f3afe3a`（C 修复 + 回归 + 真实 A/C 结果文档）。
+- 已推送 `origin/codex/search-15-review-20261020`；远端 SHA 与本地一致（见收尾核对）。
+- 私有真实证据（不提交 Git）：`.local/run-15-20261020/`、`.local/collection-runs/bedd28c4.../`、
+  `.local/ui-data-15-20261020/`。未写 Notion（本轮用户明确禁止）、未合并 main、未切换日用服务。
+
+## 停止状态与查看入口
+
+- 隔离服务仍在运行：`http://127.0.0.1:18789/`（仓库内启动器、独立数据目录，
+  与日用 `18765` 服务无关）。
+- 候选图库：`http://127.0.0.1:18789/#view=jobs&project=a3ba6fc091d5402285618dbea4891688`
+  → “候选图库”（18 原图、15 名称命中、3 未确认、2 AI 通过、2 AI 拒绝、1 受阻、13 待审）。
+- 项目候选：`http://127.0.0.1:18789/#view=references&project=a3ba6fc091d5402285618dbea4891688&job=bedd28c47ee5483caba160057673fbd8`。
+- 停止隔离服务（不改日用）：在 `.local/worktrees/search-15-review-20261020/root` 运行
+  `powershell -ExecutionPolicy Bypass -File scripts\terminate.ps1`。
+- 本轮到此停止：不自动开新开发 Loop、不重跑 15 张、不补审剩余 13 张、不合并 main、不写 Notion。
+
+
 
