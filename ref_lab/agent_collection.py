@@ -28,6 +28,7 @@ from .export import build_job_pack
 from .imports import import_candidates, read_archive, MAX_ARCHIVE_BYTES
 from .models import CandidatePackage
 from .service import Library, Problem
+from .storage import atomic_write
 
 
 class AttemptStop(Exception):
@@ -241,10 +242,35 @@ def _job_artifacts(job: dict, folder: Path) -> tuple[Path, Path, Path]:
     return task_dir, task_file, result_file
 
 
+def _refresh_task_job(library: Library, job_id: str, task_dir: Path) -> None:
+    """Keep ``job.json`` current without replacing the task package.
+
+    Search / Review stages share one package, but continuing the same job changes
+    runtime fields such as ``search_extra_target``. The adapter reads ``job.json``
+    once at process start, so a frozen old copy silently capped a continued search
+    at its previous target. Only this one file is refreshed, atomically; the
+    project snapshot, rules and image assignment stay frozen.
+    """
+    try:
+        bundle = library.job_bundle(job_id)
+    except (Problem, OSError, ValueError, KeyError, TypeError):
+        # Keep the existing package; the stage reports its own failure honestly.
+        return
+    target = task_dir / "job.json"
+    payload = json.dumps(bundle, ensure_ascii=False, default=str, sort_keys=True).encode("utf8")
+    try:
+        if target.is_file() and target.read_bytes() == payload:
+            return
+        atomic_write(target, payload)
+    except OSError:
+        return
+
+
 def _prepare_task(library: Library, job_id: str, task_dir: Path, task_file: Path) -> None:
     if task_dir.is_dir():
         if not task_file.is_file():
             raise AttemptStop("task_package_incomplete", "已保存的任务包不完整，保留现有文件并停止恢复。")
+        _refresh_task_job(library, job_id, task_dir)
         return
     stage = task_dir.parent / ("task-init-" + uuid4().hex)
     stage.mkdir(mode=0o700)

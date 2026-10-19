@@ -481,6 +481,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     pages=set(state['pages']);page_attempts=state['page_attempts'];searches=state['searches']
     duplicates=state['duplicates'];collisions=state['collisions'];gaps=state['gaps']
     details=state['details'];windows=state['windows'];steps=state.get('steps',[])
+    previous_elapsed=float(state.get('elapsed_seconds_total') or 0.0)
+    continue_info=None
     candidates=[];images={};seen={r['asset_sha'] for r in received};blocked=False;stop_reason='';interrupted=False;kept=0
     reviewed=sum(bool(r.get('review')) for r in audit);attempted=len(received)
     by_sha={r['asset_sha']:r for r in received}
@@ -499,14 +501,35 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if state.get('final_manifest'):
             # A historical full-review run is not a quick-search checkpoint; refuse to mix modes.
             raise AgentUnavailable('该 Job 已有正式审核交付；快速搜图不覆盖旧结果，请新建任务。')
-        if state.get('search_complete') and (folder/'search-summary.json').exists() and not extra_target:
-            return json.loads((folder/'search-summary.json').read_text('utf8')),{}
-        if state.get('search_complete') and extra_target:
-            # Same job, additional target: keep originals and duplicate counts, but
-            # allow the existing queries/pages to be revisited without re-counting.
-            state['search_complete']=False;state['search_summary']={};state['queries']=[]
-            state['searches']={};state['pages']=[];state['page_attempts']={}
-            gaps.append('用户继续加搜：目标累计 %s 张。' % target)
+        saved_summary=read_json(folder/'search-summary.json',{})
+        summary_exists=isinstance(saved_summary,dict) and bool(saved_summary)
+        if state.get('search_complete') and summary_exists and not extra_target:
+            return saved_summary,{}
+        if extra_target:
+            # Same job, additional target. The local dicts are the objects that
+            # ``checkpoint`` persists, so every reset must mutate them in place:
+            # rebinding ``state['searches']`` alone silently restored the old
+            # ``done=True`` flags on the next save. Originals, human decisions,
+            # duplicate/error logs and cumulative budget counters stay untouched.
+            previous_target=(int(saved_summary.get('effective_target') or saved_summary.get('target') or 0)
+                             if summary_exists else 0)
+            if summary_exists and previous_target>=target:
+                return saved_summary,{}
+            state['search_complete']=False;state['search_summary']={}
+            state['search_attempts']=int(state.get('search_attempts',0))+1
+            searches.clear();pages.clear()
+            blocked_by=''
+            if time.monotonic()>=getattr(agent,'deadline',float('inf'))-30:
+                blocked_by='time_budget_exhausted'
+            elif details>=MAX_DETAIL_PAGES:
+                blocked_by='detail_budget_exhausted'
+            elif len(received)>=agent.candidate_limit:
+                blocked_by='candidate_budget_exhausted'
+            continue_info={'attempt_index':state['search_attempts'],'extra_target':extra_target,
+                           'previous_target':previous_target,'target':target,
+                           'confirmed_at_start':confirmed_count(received),
+                           'queries_before':len(queries),'blocked_by':blocked_by}
+            gaps.append('用户继续加搜：目标累计 %s 张；已有候选、原图与人工决定保留。' % target)
     if state.get('final_manifest') and (finalize_only or state.get('terminal',state.get('outcome')=='complete')):
         manifest=state['final_manifest'];CandidatePackage.model_validate(manifest)
         if manifest['candidates']!=candidates:raise AgentUnavailable('封存交付与原准入记录不一致。')
@@ -847,6 +870,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 if any(q['source']==source and q['query']==query for q in queries):
                     queries[:]=[entry if q['source']==source and q['query']==query else q for q in queries]
                 else:queries.append(entry)
+                if search_only and search.get('done'):
+                    query_log=state.setdefault('query_history',[])
+                    query_log.append({**entry,'attempt':int(state.get('search_attempts',1)),'at':time.time()})
+                    if len(query_log)>120:del query_log[:len(query_log)-120]
                 checkpoint()
     except AgentUnavailable as exc:
         blocked=True;gaps.append(str(exc))
@@ -882,6 +909,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 status='partial'
             else:
                 status='blocked'
+            elapsed_total=previous_elapsed+(time.monotonic()-started)
             summary=write_search_summary(
                 folder,status=status,stop_reason=stop_reason,received=received,queries=queries,checks=checks,
                 searches=searches,started=started,
@@ -892,6 +920,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'budget_note':('本轮上限 100 张；请求 %s 张，按 %s 张执行。' % (requested_total,target)
                                                              if requested_total>target else ''),
                                               'search_only':True,
+                                              'cumulative_elapsed_seconds':round(elapsed_total,3),
+                                              'continue':continue_info,
+                                              'query_history':len(state.get('query_history',[])),
                                               'skipped_other_character':skipped['other_character'],
                                               'skipped_non_photo':skipped['non_photo'],
                                               'skipped_exploration_budget':skipped['exploration_budget'],
@@ -900,7 +931,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'history_errors':len(getattr(history,'errors',[])),
                                               'source_blocked':any(c.get('status') in ('blocked','login_required') for c in checks.values())})
             state.update(search_complete=True,search_summary=summary,search_stop_reason=stop_reason,
-                         phase='search_finished',first_usable=first_usable)
+                         phase='search_finished',first_usable=first_usable,elapsed_seconds_total=elapsed_total)
             try:browser.close()
             except (ValueError,OSError,subprocess.SubprocessError):
                 gaps.append('本轮浏览器会话清理未确认，请检查自有会话。')
@@ -1269,6 +1300,7 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
     if extra:
         for key in ('target','requested_target','effective_target','target_reached','budget_note',
                     'search_only','history_ready','history_known','history_errors','source_blocked',
+                    'cumulative_elapsed_seconds','continue','query_history',
                     'skipped_other_character','skipped_non_photo','skipped_exploration_budget'):
             if key in extra:summary[key]=extra[key]
     save(folder/'search-summary.json',summary)
@@ -1374,9 +1406,25 @@ def main():
             folder=ROOT/'.local'/'collection-runs'/job['id']/'current'
             folder.mkdir(parents=True,exist_ok=True)
             existing=read_json(folder/'search-summary.json',{})
-            if isinstance(existing,dict) and existing.get('status') in ('completed','blocked','failed','cancelled'):
+            requested=int(job.get('target_count') or 12)+max(0,int(job.get('search_extra_target') or 0))
+            extra=int(job.get('search_extra_target') or 0)
+            previous_target=(int(existing.get('effective_target') or existing.get('target') or 0)
+                             if isinstance(existing,dict) and existing else 0)
+            terminal=isinstance(existing,dict) and existing.get('status') in ('completed','blocked','failed','cancelled')
+            continuing=bool(extra) and previous_target<requested
+            if terminal and not continuing:
                 print('Search already finished; no new acquisition: '+json.dumps(existing.get('counts',{}),ensure_ascii=False))
                 return
+            if terminal and continuing:
+                # A continued job must not be judged by the previous terminal
+                # summary. Keep it for inspection, then let the new attempt write
+                # a fresh receipt; a killed continue is reported as incomplete,
+                # never as the old success.
+                archive=folder/f'search-summary-previous-{int(time.time())}.json'
+                if archive.exists():archive=folder/f'search-summary-previous-{int(time.time())}-{uuid4().hex[:6]}.json'
+                (folder/'search-summary.json').replace(archive)
+                print('SEARCH_CONTINUE '+json.dumps({'archived':archive.name,'extra_target':extra,
+                                                     'target_total':requested},ensure_ascii=False))
             agent=AntigravityCollectionAgent(folder,target_count=int(job.get('target_count') or 12),runtime_budget=False)
             _write_run_info(folder,job,agent,args.vision_workers,mode='search_only')
             history=_history_for_search(folder)

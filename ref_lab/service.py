@@ -457,13 +457,133 @@ class Library:
                 self._save_job(con, job, "collection.imported", {"reference_id": ref["id"]}, actor)
             return {"created": created, "reference": self._decorate(con, ref, project)}
 
+    def _queue_candidate_input(self, job: dict, item: dict) -> CandidateInput:
+        """Build the project candidate from the durable candidate-queue row."""
+        project = job.get("project_snapshot") or {}
+        relevance = item.get("relevance") if isinstance(item.get("relevance"), dict) else {}
+        tier = str(relevance.get("tier") or "unconfirmed")
+        label = str(relevance.get("label") or "角色相关性未确认")
+        source = item.get("source") if isinstance(item.get("source"), dict) else {}
+        title = (str(project.get("character") or "") + " · " +
+                 ("名称命中候选（未视觉核验）" if tier == "target_named"
+                  else "角色相关性未确认候选"))[:400]
+        return CandidateInput(
+            asset_sha=item["asset_sha"], title=title,
+            source=Source(page_url=str(source.get("page_url") or ""),
+                          image_url=str(source.get("image_url") or ""),
+                          author=str(source.get("author") or ""),
+                          search_query=str(source.get("search_query") or ""),
+                          obtained_as="platform_variant"),
+            job_id=job["id"],
+            discovery_intent="exact_character" if tier == "target_named" else "unknown",
+            discovery_reason=f"快速搜图已下载并保存原图；{label}；尚未通过视觉审核。",
+            discovery_url=str(item.get("discovery_url") or ""))
+
+    def _sync_queue_decision(self, ref: dict, decision: str) -> str:
+        """Apply one candidate-gallery decision to its project ref.
+
+        Returns ``synced``, ``unchanged`` or ``conflicts``. A formal project human
+        choice (K/I/M/X) is authoritative and is never silently replaced.
+        """
+        current = self.reference(ref["id"])
+        target = "pending" if decision == "clear" else str(decision)
+        if target not in {"pending", "keep", "reject"}:
+            raise ValueError("Unsupported candidate decision")
+        for _ in range(2):
+            previous = str(current.get("decision") or "pending")
+            origin = str(current.get("decision_origin") or "")
+            if origin in {"human_curation", "human"} and previous != "pending" and previous != target:
+                return "conflicts"
+            if target == previous and (target == "pending" or origin == "human_candidate_queue"):
+                return "unchanged"
+            try:
+                self.edit_reference(current["id"], ReferenceEdit(expected_revision=current["revision"],
+                                                                 decision=target),
+                                    origin="human_candidate_queue")
+                return "synced"
+            except Problem as exc:
+                if exc.status != 409:
+                    raise
+                current = self.reference(ref["id"])
+        return "conflicts"
+
+    def import_search_candidates(self, job_id: str, *, sha: str = "") -> dict:
+        """Project durable Search candidates into pending project references.
+
+        This is the single import/sync path used by the Search stage, the Review
+        stage and the candidate-gallery decision endpoint. A human decision stored
+        before the reference existed (decided while Search was still downloading)
+        is applied in the same pass, so a later import cannot downgrade it to
+        ``pending``. Repeated imports are idempotent and never overwrite a formal
+        project human decision.
+        """
+        from . import collection_queue
+        job = self.job(job_id)
+        result = {"created": 0, "existing": 0, "errors": 0, "synced": 0,
+                  "unchanged": 0, "conflicts": 0}
+        if job["status"] == "cancelled":
+            return result
+        attempt_id = str(job.get("active_attempt_id") or "") if job["status"] == "running" else ""
+        for item in collection_queue.snapshot(job_id, limit=500)["items"]:
+            if sha and item["asset_sha"] != sha:
+                continue
+            human = str(item.get("human_decision") or "")
+            try:
+                with self.db.read() as con:
+                    hit = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                                      (job["project_id"], item["asset_sha"])).fetchone()
+                if job["status"] == "succeeded":
+                    # A validated review package is the formal admission step; no
+                    # new pending ref is created after it, but a queue decision on
+                    # an already imported ref is still reconciled.
+                    if hit is not None and human in {"keep", "reject"}:
+                        result[self._sync_queue_decision(self.reference(hit["id"]), human)] += 1
+                    continue
+                if hit is None:
+                    path, raw = collection_queue.original_bytes(job_id, item["asset_sha"])
+                    asset = self.ingest_asset(raw, path.name)
+                    data = self._queue_candidate_input(job, {**item, "asset_sha": asset["id"]})
+                    decision = human if human in {"keep", "reject"} else "pending"
+                    try:
+                        added = self.add_candidate(job["project_id"], data, decision=decision,
+                                                   actor="search", attempt_id=attempt_id)
+                    except sqlite3.IntegrityError:
+                        # A concurrent decision/import created the same
+                        # (project, asset) ref first; reuse it instead of failing.
+                        with self.db.read() as con:
+                            raced = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                                                (job["project_id"], item["asset_sha"])).fetchone()
+                        if raced is None:
+                            raise
+                        result["existing"] += 1
+                        ref = self.reference(raced["id"])
+                    else:
+                        result["created" if added["created"] else "existing"] += 1
+                        ref = added["reference"]
+                else:
+                    result["existing"] += 1
+                    ref = self.reference(hit["id"])
+                if human in {"keep", "reject"}:
+                    result[self._sync_queue_decision(ref, human)] += 1
+            except Problem as exc:
+                if exc.status == 409:
+                    result["conflicts"] += 1
+                else:
+                    result["errors"] += 1
+            except (ValueError, OSError, KeyError, TypeError):
+                result["errors"] += 1
+        return result
+
     def decide_candidate_human(self, job_id: str, sha: str, decision: str) -> dict:
         """Apply the candidate-gallery human choice to the real project ref.
 
         The candidate JSON remains the gallery's source of truth; the project ref
-        is the formal selection. A previous formal human choice is never
-        overwritten. Human keep is recorded as ``human_candidate_queue`` and is
-        still distinct from an AI ``accepted`` review.
+        is the formal selection. If the ref does not exist yet (Search still
+        running, or before the finished Search imported its candidates), it is
+        created immediately when the job permits, and otherwise reconciled by the
+        next import from the same durable decision. A previous formal human choice
+        is never overwritten. Human keep is recorded as ``human_candidate_queue``
+        and is still distinct from an AI ``accepted`` review.
         """
         from . import collection_queue
         job = self.job(job_id)
@@ -473,6 +593,7 @@ class Library:
         row = next((item for item in snapshot["items"] if item["asset_sha"] == sha), None)
         if row is None:
             raise Problem(404, "该图片不在本任务候选队列")
+        target = "pending" if decision == "clear" else decision
         with self.db.read() as con:
             found = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
                                 (job["project_id"], sha)).fetchone()
@@ -480,15 +601,26 @@ class Library:
         if ref is not None:
             origin = str(ref.get("decision_origin") or "")
             previous = str(ref.get("decision") or "pending")
-            target = "pending" if decision == "clear" else decision
             if origin in {"human_curation", "human"} and previous != "pending" and previous != target:
                 raise Problem(409, "项目里已有正式人工决定，候选图库不会覆盖；请到项目图库中修改")
-            if target != previous:
-                self.edit_reference(ref["id"], ReferenceEdit(expected_revision=ref["revision"],
-                                                              decision=target),
-                                    origin="human_candidate_queue")
         result = collection_queue.decide(job_id, sha, decision)
-        result["project_decision"] = (None if ref is None else self.reference(ref["id"]))
+        imported = {"created": 0, "existing": 0, "synced": 0, "unchanged": 0,
+                    "conflicts": 0, "errors": 0}
+        if decision in {"keep", "reject"}:
+            imported = self.import_search_candidates(job_id, sha=sha)
+            if job["status"] == "cancelled" and ref is not None:
+                imported[self._sync_queue_decision(ref, decision)] += 1
+        elif ref is not None:
+            imported[self._sync_queue_decision(ref, "clear")] += 1
+        with self.db.read() as con:
+            hit = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                              (job["project_id"], sha)).fetchone()
+        result["project_decision"] = self.reference(hit["id"]) if hit else None
+        result["project_sync"] = {key: imported.get(key, 0)
+                                  for key in ("created", "existing", "synced", "unchanged",
+                                              "conflicts", "errors")}
+        if imported.get("conflicts"):
+            result["project_sync"]["detail"] = "项目里已有正式人工决定；候选图库没有覆盖它"
         return result
 
     def references(self, project_id: str, *, limit: int = 60, offset: int = 0, query: str = "",
@@ -1411,9 +1543,16 @@ class Library:
                 job["collection_outcome"] = "blocked"
             if terminal:
                 job["search_finished_at"] = time.time()
-                elapsed = summary.get("elapsed_seconds")
+                elapsed = summary.get("cumulative_elapsed_seconds")
+                if not isinstance(elapsed, (int, float)):
+                    elapsed = summary.get("elapsed_seconds")
                 if isinstance(elapsed, (int, float)) and math.isfinite(float(elapsed)):
-                    job["search_elapsed_seconds"] = max(0.0, float(elapsed))
+                    # Cumulative across continues: a new target must not refund
+                    # the wall budget already spent on the same job. Never move
+                    # backwards even if the adapter checkpoint only counted its
+                    # own process time.
+                    job["search_elapsed_seconds"] = max(
+                        float(job.get("search_elapsed_seconds", 0.0) or 0.0), float(elapsed))
                 elif job.get("search_attempt_started_at"):
                     job["search_elapsed_seconds"] = float(job.get("search_elapsed_seconds", 0.0)) + max(
                         0.0, time.time() - float(job["search_attempt_started_at"]))

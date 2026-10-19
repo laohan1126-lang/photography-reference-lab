@@ -23,7 +23,6 @@ from .agent_collection import (AttemptFileLock, AttemptStop, _owner_record, _pre
                                run_process, stage_timeout_seconds)
 from .collection_queue import read_json
 from .imports import import_candidates, read_archive
-from .models import CandidateInput, Source
 from .service import Library, Problem
 
 _LAUNCH_LOCK = threading.RLock()
@@ -331,40 +330,11 @@ def run_review_stage(library: Library, job_id: str, attempt_id: str) -> dict:
 
 
 def _import_search(library: Library, job_id: str) -> dict:
-    """Persist acquired originals as *pending* project candidates for normal UI use."""
-    job = library.job(job_id)
-    if job["status"] in {"cancelled", "succeeded"}:
-        return {"created": 0, "existing": 0, "errors": 0}
-    project = job.get("project_snapshot") or {}
-    created = existing = errors = 0
-    for item in collection_queue.snapshot(job_id, limit=500)["items"]:
-        try:
-            path, raw = collection_queue.original_bytes(job_id, item["asset_sha"])
-            asset = library.ingest_asset(raw, path.name)
-            relevance = item.get("relevance") or {}
-            tier = str(relevance.get("tier") or "unconfirmed")
-            label = str(relevance.get("label") or "角色相关性未确认")
-            data = CandidateInput(
-                asset_sha=asset["id"],
-                title=(str(project.get("character") or "") + " · " +
-                       ("名称命中候选（未视觉核验）" if tier == "target_named"
-                        else "角色相关性未确认候选"))[:400],
-                source=Source(page_url=item["source"].get("page_url", ""),
-                              image_url=item["source"].get("image_url", ""),
-                              author=item["source"].get("author", ""),
-                              search_query=item["source"].get("search_query", ""),
-                              obtained_as="platform_variant"),
-                job_id=job_id,
-                discovery_intent="exact_character" if tier == "target_named" else "unknown",
-                discovery_reason=(f"快速搜图已下载并保存原图；{label}；尚未通过视觉审核。"),
-                discovery_url=item.get("discovery_url", ""),
-            )
-            result = library.add_candidate(job["project_id"], data, decision="pending", actor="search")
-            created += int(bool(result.get("created")))
-            existing += int(not result.get("created"))
-        except (Problem, ValueError, OSError, KeyError, TypeError):
-            errors += 1
-    return {"created": created, "existing": existing, "errors": errors}
+    """Persist acquired originals as *pending* project candidates for normal UI use.
+
+    Idempotent, and it replays human decisions taken before the reference existed.
+    """
+    return library.import_search_candidates(job_id)
 
 
 def _import_review(library: Library, job_id: str) -> dict | None:

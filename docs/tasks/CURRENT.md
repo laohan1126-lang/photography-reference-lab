@@ -1,6 +1,10 @@
 # 当前任务
 
-- 当前任务：[搜图相关性失败复盘与定向修复](2026-10-20-search-relevance-fix.md)，独立分支 `codex/search-relevance-fix-20261020`，审查基线 `5aec401`。只做定向修复，不跑20张、不跑真实AI审核、不改main/正式库、不合并、不写Notion。
+- 当前任务：[真姬15张真实搜图、人工同步修复与独立AI审核闭环](2026-10-20-search-15-real-review.md)，独立分支 `codex/search-15-review-20261020`，基线 `0731cf5`。先修 B（继续加搜/边搜边人工同步），再做一次 15 张真实搜索 A，最后有界真实 AI 审核 C；不改main/正式库/人工判断、不合并、不写Notion、不切换日用。
+- 检查点：已创建隔离工作树并完成代码/状态流初读；B1 根因已定位两处：`submit` 时 `state['searches']` 被重绑但局部 `searches/pages/queries` 继续指向旧对象，且 `--search-only` CLI 遇旧 terminal `search-summary.json` 直接退出、任务包 `job.json` 冻结旧 `target_count` 无 `search_extra_target`。B2 根因：ref 不存在时 `decide_candidate_human` 只写 `human-decisions.json`，导入器 `add_candidate(decision="pending")` 不回放人工决定。
+- 下一步：先写 B1/B2 失败回归并确认失败，再最小修复；B 退出前不启动真实 15 张搜图。
+
+- 前轮任务：[搜图相关性失败复盘与定向修复](2026-10-20-search-relevance-fix.md)，独立分支 `codex/search-relevance-fix-20261020`，审查基线 `5aec401`。只做定向修复，不跑20张、不跑真实AI审核、不改main/正式库、不合并、不写Notion。
 - 检查点：549b 保存的 name-plan/两页快照/collector-state/search-summary/数据库记录已读完；根因是仅中文猜测名称、无条件切“最新”、`discovery_rank`只排序、`assess_search`无命中未拦阻、目标4只按下载数计数，以及候选人工决定未同步项目ref。当前已实现名称来源/多语言查询、五级文字相关性、探索预算、小红书综合优先+有界最新、默认30/上限100、继续加搜、人工同步；定向190项通过。四张原始基线SHA/accepted未改，快速Search仍0模型调用。
 - 下一步：任务分支已提交并推送 `718a553`；真实外网排序与召回、真实AI审核仍UNVERIFIED；未启动新的外网搜图。
 
