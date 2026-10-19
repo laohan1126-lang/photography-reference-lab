@@ -1,5 +1,7 @@
 # 当前任务
 
+- CI续修：[发布后CI编码与结果状态收尾](2026-10-20-ci-recovery-encoding.md)，基线9620072，原收尾发布回执保留。测试父子进程UTF-8解码及合成包错误成功断言已修，本地禁用UTF-8父进程模式14+1 PASS；不改运行代码，不新跑20图。按用户要求收口到任务分支供GitHub讨论，远端CI按实际状态查看。真实搜图结论仍BLOCKED_WITH_EVIDENCE。
+
 - 当前任务：[正式交付收尾 Loop](2026-10-19-collection-finalization.md)，分支`codex/collection-finalization-20261019`，基线`0216224`。沿用编辑前Publisher事务，Git-only；不改日用main/正式库，不写Notion。
 - 检查点：**BLOCKED_WITH_EVIDENCE**。唯一正常UI冷启动20图任务收到5、核验3、待核2，准入/入库0；原点击至受阻回执2541.780秒，含修复/恢复，不是无中断基准。实跑发现隔离历史遗漏与GBK解码损坏，已修且离线回归；编码76PASS、独立终审接受工程修复，完整领域验收不通过。25/25原回执、18准入及四图基线保持，1541文件/1177原图/937 Reference未变。
 - 收尾：最终运行源码SHA256为e32a67228c8b3be787c2e9037637043e84618949a81c2c25f23fde1baf357565；限定任务分支Git-only发布，实际SHA见Publisher回执。修复后完整新模型验收仍未做，本轮停止，不自动新开20图、不合并main、不切日用、不写Notion。

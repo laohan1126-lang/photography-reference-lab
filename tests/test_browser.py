@@ -213,7 +213,9 @@ def test_browser_notes_collection_download_import(live_site,browser_page,tmp_pat
     assert library.references(job['project_id'])['total']==1
     ref=library.references(job['project_id'])['items'][0]
     assert ref['decision']=='pending' and ref['review'] is None
-    assert library.job(job['id'])['status']=='succeeded'
+    saved=library.job(job['id'])
+    assert saved['status']=='blocked' and saved['collection_outcome']=='partial'
+    assert saved['last_receipt_reference_ids']==[ref['id']]
 
 
 @pytest.mark.parametrize('auto',[False,True])

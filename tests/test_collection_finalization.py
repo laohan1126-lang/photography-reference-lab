@@ -95,9 +95,9 @@ manifest,images=worker.collect({**job(),'target_count':3},Agent(states=['match',
 (folder/'child-result.json').write_text(json.dumps({'manifest':manifest,'images':list(images)}),encoding='utf8')
 ''',encoding='utf8')
     command=[sys.executable,'-X','utf8',str(script),str(root),str(tmp_path)]
-    crashed=subprocess.run([*command,fault],capture_output=True,text=True,timeout=30)
+    crashed=subprocess.run([*command,fault],capture_output=True,text=True,encoding='utf8',timeout=30)
     assert crashed.returncode=={'received':71,'audit':72,'inflight':73}[fault],crashed.stderr
-    resumed=subprocess.run([*command,'resume'],capture_output=True,text=True,timeout=30)
+    resumed=subprocess.run([*command,'resume'],capture_output=True,text=True,encoding='utf8',timeout=30)
     assert resumed.returncode==0,resumed.stderr
     calls=[json.loads(line) for line in (tmp_path/'model-calls.jsonl').read_text('utf8').splitlines()]
     assert calls.count('a.png')==1
@@ -160,19 +160,19 @@ agent=Agent(folder);research=ReferenceResearch(agent,folder,PROJECT,PLAN,fetch=f
 save_evidence(folder/'research-result.json',research.report())
 ''',encoding='utf8')
     command=[sys.executable,'-X','utf8',str(script),str(root),str(tmp_path)]
-    crashed=subprocess.run([*command,fault],capture_output=True,text=True,timeout=30)
+    crashed=subprocess.run([*command,fault],capture_output=True,text=True,encoding='utf8',timeout=30)
     assert crashed.returncode==74,crashed.stderr
-    resumed=subprocess.run([*command,'resume'],capture_output=True,text=True,timeout=30)
+    resumed=subprocess.run([*command,'resume'],capture_output=True,text=True,encoding='utf8',timeout=30)
     assert resumed.returncode==0,resumed.stderr
     calls=[json.loads(line) for line in (tmp_path/'research-calls.jsonl').read_text('utf8').splitlines()]
     assert calls.count('SourceAssessment')==1 and calls.count('ReferenceDiscovery')==2
     report=json.loads((tmp_path/'research-result.json').read_text('utf8'))
     assert report['prepared'] and report['search_queries']==2 and len(report['references'])==1
-    again=subprocess.run([*command,'resume'],capture_output=True,text=True,timeout=30)
+    again=subprocess.run([*command,'resume'],capture_output=True,text=True,encoding='utf8',timeout=30)
     assert again.returncode==0,again.stderr
     assert len((tmp_path/'research-calls.jsonl').read_text('utf8').splitlines())==3
     image=Path(report['references'][0]['path']);image.write_bytes(b'changed reference')
-    changed=subprocess.run([*command,'resume'],capture_output=True,text=True,timeout=30)
+    changed=subprocess.run([*command,'resume'],capture_output=True,text=True,encoding='utf8',timeout=30)
     assert changed.returncode!=0 and 'resume_reference_changed' in changed.stderr
     assert len((tmp_path/'research-calls.jsonl').read_text('utf8').splitlines())==3
 
