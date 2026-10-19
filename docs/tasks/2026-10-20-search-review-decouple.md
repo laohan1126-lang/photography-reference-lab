@@ -181,3 +181,9 @@ UI/JS：`node --check web/app.js` 通过；`test_collection_ui.py` 含新模式/
 - 候选队列审核中的真实视频/动图、超大文件、平台登录变化等极端情况仍有限。
 - 未合并 main、未切换日用服务/正式库、未写 Notion；单页新 UI 的最终审美仍待主人实际使用。
 
+## Git 发布
+
+- 任务分支：`codex/search-review-decouple-20261020`（从 `1cff011766cc5169074c89577b74175b4d0bfeec` 创建）。
+- 代码/测试/文档提交：`6b1bab384fae592e92818ca1fb4b3ebf17b41671`；已推送，远端 `origin` 同名分支 SHA 与本地一致。
+- 本任务的私有运行/验收证据在 `.local/acceptance-20261020/` 和 `.local/collection-runs/549b320f.../current/`，不提交 Git；未写 Notion、未合并 main、未切换日用。
+
