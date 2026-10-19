@@ -295,3 +295,20 @@ class ImageHistory:
     def match(self,path):
         """A discovery preview can match history but must never become an original."""
         return self._match(self._fingerprint(path))
+
+    def exclude(self,shas):
+        """Drop already-acquired images from history comparison.
+
+        Search imports each downloaded original into the project asset store, so a
+        later Review sees those exact bytes as "historical". They are the current
+        job's own candidates, not repeats: comparing them against history would
+        quarantine every candidate as ``same_bytes`` before any visual call.
+        """
+        removed=False
+        with self._lock:
+            for sha in shas:
+                if sha in self.known_shas:
+                    self.known_shas.discard(sha);removed=True
+                if sha in self.records:
+                    self.records.pop(sha,None);removed=True
+        return removed

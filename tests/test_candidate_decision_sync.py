@@ -9,11 +9,14 @@ reference as ``pending``, so the gallery said "人工保留" while the project s
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import threading
+import zipfile
 
 from ref_lab import collection_queue, collection_stages
-from ref_lab.models import JobInput
+from ref_lab.imports import import_candidates
+from ref_lab.models import CandidateInput, JobInput
 from ref_lab.service import Library
 from conftest import image_bytes
 
@@ -203,6 +206,45 @@ def test_concurrent_import_and_human_decision_converge(
     assert ref["decision_origin"] == "human_candidate_queue"
     snapshot = collection_queue.snapshot(job["id"])
     assert snapshot["items"][0]["status"] == "human_keep"
+
+
+def test_schema3_review_preflight_reaches_a_preexisting_search_candidate(
+        tmp_path, monkeypatch, library, client, project):
+    """Search imports a pending ref first; the later Review package must upgrade it."""
+    _isolate(tmp_path, monkeypatch)
+    job = _job(library, project)
+    raw = image_bytes(508)
+    sha = _sha(raw)
+    asset = library.ingest_asset(raw, "search-candidate.png")
+    created = library.add_candidate(project["id"], CandidateInput(
+        asset_sha=asset["id"], job_id=job["id"]), actor="search")
+    ref = created["reference"]
+    assert ref["preflight_status"] in {"uncertain", "unreviewed"}
+
+    manifest = {
+        "schema_version": 3, "job_id": job["id"], "batch_id": "synthetic-review-batch",
+        "candidates": [{"id": "verified-" + sha[:20], "file": "images/candidate.png",
+                        "title": "synthetic accepted candidate",
+                        "source": {"page_url": "https://example.org/post", "image_url": "https://example.org/image.png"},
+                        "preflight": {"content_type": "real_person_cosplay",
+                                      "identity_prediction": "match", "confidence": "high",
+                                      "visual_evidence": ["synthetic fixture"],
+                                      "reason": "synthetic import regression"}}],
+        "execution_report": {"producer": "synthetic-review", "status": "completed",
+                             "summary": "synthetic", "source_checks": [], "query_log": [], "gaps": []},
+    }
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, "w") as archive:
+        archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False))
+        archive.writestr("images/candidate.png", raw)
+    report = import_candidates(library, project["id"], stream.getvalue(), job["id"], record_report=False)
+    assert report["errors"] == [] and report["reference_ids"] == [ref["id"]]
+    current = library.reference(ref["id"])
+    assert current["asset_sha"] == sha
+    assert current["preflight"]["identity_prediction"] == "match"
+    assert current["preflight_status"] == "passed"
+    # AI preflight is not a human K/I/M choice.
+    assert current["decision"] == "pending"
 
 
 def test_decision_survives_a_new_library_process(tmp_path, monkeypatch, library, client, project):

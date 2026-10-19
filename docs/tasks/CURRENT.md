@@ -1,8 +1,8 @@
 # 当前任务
 
 - 当前任务：[真姬15张真实搜图、人工同步修复与独立AI审核闭环](2026-10-20-search-15-real-review.md)，独立分支 `codex/search-15-review-20261020`，基线 `0731cf5`。先修 B（继续加搜/边搜边人工同步），再做一次 15 张真实搜索 A，最后有界真实 AI 审核 C；不改main/正式库/人工判断、不合并、不写Notion、不切换日用。
-- 检查点：已创建隔离工作树并完成代码/状态流初读；B1 根因已定位两处：`submit` 时 `state['searches']` 被重绑但局部 `searches/pages/queries` 继续指向旧对象，且 `--search-only` CLI 遇旧 terminal `search-summary.json` 直接退出、任务包 `job.json` 冻结旧 `target_count` 无 `search_extra_target`。B2 根因：ref 不存在时 `decide_candidate_human` 只写 `human-decisions.json`，导入器 `add_candidate(decision="pending")` 不回放人工决定。
-- 下一步：先写 B1/B2 失败回归并确认失败，再最小修复；B 退出前不启动真实 15 张搜图。
+- 检查点：B 修复与回归通过（修复前10失败/1通过，修复后11通过；广泛196通过）。唯一真实15张Job `bedd28c4...`：18下载/15名称命中/3探索，0模型调用，首张101.1秒、第15张431.5秒，小红书12名称命中、Pinterest3；4/15为拼图，可用单张11。真实Review：5次视觉判断（2采用/2拒绝/1受阻）、4张可信参照、13待审、重启保持、schema3导入2张；发现并修复“本Job自身SHA被历史排重误判为重复”和“schema3 preflight未升级已存在pending ref”两个真实缺陷，失败回执与证据保留。A=PASS数量/PARTIAL可用性，B=PASS工程回归，C=PARTIAL。
+- 下一步：本轮停止，不自动开新Loop、不重跑15张、不补审剩余13张；把A/B/C实测结果、疑似误收#3与受阻#5交用户决定。Git推送后核对远端SHA；未写Notion、未合并main、未切日用。
 
 - 前轮任务：[搜图相关性失败复盘与定向修复](2026-10-20-search-relevance-fix.md)，独立分支 `codex/search-relevance-fix-20261020`，审查基线 `5aec401`。只做定向修复，不跑20张、不跑真实AI审核、不改main/正式库、不合并、不写Notion。
 - 检查点：549b 保存的 name-plan/两页快照/collector-state/search-summary/数据库记录已读完；根因是仅中文猜测名称、无条件切“最新”、`discovery_rank`只排序、`assess_search`无命中未拦阻、目标4只按下载数计数，以及候选人工决定未同步项目ref。当前已实现名称来源/多语言查询、五级文字相关性、探索预算、小红书综合优先+有界最新、默认30/上限100、继续加搜、人工同步；定向190项通过。四张原始基线SHA/accepted未改，快速Search仍0模型调用。

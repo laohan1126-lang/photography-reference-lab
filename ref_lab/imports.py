@@ -97,7 +97,13 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
             result = library.add_candidate(project_id, candidate, attempt_id=attempt_id)
             report["created" if result["created"] else "existing"] += 1
             ref = result["reference"]
-            if item.get("preflight") and (result["created"] or not ref.get("preflight")):
+            # A pending Search candidate can already exist before Review finishes.
+            # Its in-process preflight is only a cheap gate, so the later schema3
+            # review preflight must replace an unreviewed/uncertain result (never a
+            # human override, and never a newer formal human decision).
+            upgrade = (not ref.get("preflight")
+                       or ref.get("preflight_status") in {"unreviewed", "uncertain"})
+            if item.get("preflight") and (result["created"] or upgrade) and not ref.get("preflight_override"):
                 validated = PackCandidate.model_validate(item).preflight
                 ref = library.apply_candidate_preflight(
                     ref["id"], validated, ref["revision"],

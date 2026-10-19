@@ -1033,7 +1033,7 @@ def _review_state(folder,**values):
 
 
 def _review_package(job,project,folder,state,received,items,human,*,status,stop_reason,
-                    started,agent,prepare_error=''):
+                    started,agent,prepare_error='',sample_limit=0):
     target=min(int(job.get('target_count') or 12),100)
     candidates=[];images={};errors=[]
     for row in received:
@@ -1073,12 +1073,14 @@ def _review_package(job,project,folder,state,received,items,human,*,status,stop_
              'elapsed_seconds':round(time.monotonic()-started,3),'finished_at':time.time(),
              'model_calls':calls,'tokens':tokens,'attempts_with_usage':with_usage,
              'prepare_error':prepare_error[:600],
+             'sample_limit':int(sample_limit or 0),
              'search_status':read_json(folder/'search-summary.json',{}).get('status',''),
              'human_decisions_are_separate':True,
              'errors':errors[:20]}
     gaps=[f'审核受阻/未通过：{n}张。' for n in [counts['blocked']] if n]
     gaps.extend(errors)
     if counts['accepted']<target:gaps.append(f'独立审核通过{counts["accepted"]}/{target}；不以未审核图片凑数。')
+    if sample_limit:gaps.append(f'本轮有界审核样本上限 {int(sample_limit)} 张；其余 {counts["pending"]} 张保持待审，未自动判拒绝。')
     if prepare_error:gaps.append('参照阶段：'+prepare_error[:300])
     report={'producer':agent.producer,'status':'completed' if complete else 'blocked',
              'summary':(f'独立审核：通过{counts["accepted"]}/{target}，拒绝{counts["rejected"]}，'
@@ -1097,9 +1099,17 @@ def _review_package(job,project,folder,state,received,items,human,*,status,stop_
 
 
 def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False,deadline=None):
-    """Independent Review consumer. Reads originals already persisted by Search."""
+    """Independent Review consumer. Reads originals already persisted by Search.
+
+    ``LAB_REVIEW_MAX_IMAGES`` (0 = unlimited) is a minimal bounded-batch control:
+    after that many new per-image judgments the run finishes normally, writes a
+    partial schema3 package for what it actually reviewed, and leaves the remaining
+    candidates pending. It never marks un-reviewed images as rejected.
+    """
     project={**job['project_snapshot'],'notes':job.get('notes','')};context=scope_sha(project)
     target=min(int(job.get('target_count') or 12),100)
+    try:sample_limit=max(0,min(100,int(os.environ.get('LAB_REVIEW_MAX_IMAGES','0') or 0)))
+    except (TypeError,ValueError):sample_limit=0
     started=time.monotonic()
     state=load_checkpoint(folder,job,getattr(agent,'model',agent.producer))
     received=state['received']
@@ -1118,6 +1128,10 @@ def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False
                                                 status='blocked',stop_reason='no_candidates',
                                                 started=started,agent=agent)
         return manifest,images,summary
+    if history is not None:
+        # Search already imported these originals into the project asset store;
+        # they are this Job's own candidates, not historical repeats of themselves.
+        history.exclude([row['asset_sha'] for row in received])
     existing_audit=_load_review_audit(folder,project)
     terminal,_= _search_terminal(folder)
     human_preview={row['asset_sha']:collection_queue.human_decision(folder,row['asset_sha']) for row in received}
@@ -1161,10 +1175,12 @@ def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False
                                                 started=started,agent=agent,prepare_error=prepare_error)
         return manifest,images,summary
     audit=_load_review_audit(folder,project);items=audit['items'];human_cache={}
-    blocked_this_run=set();fatal=False;stop_reason='';search_status='running'
+    blocked_this_run=set();fatal=False;stop_reason='';search_status='running';reviewed_new=0
     while True:
         state=load_checkpoint(folder,job,getattr(agent,'model',agent.producer))
         received=state['received']
+        if history is not None:
+            history.exclude([row['asset_sha'] for row in received])
         terminal,search_status=_search_terminal(folder)
         human_cache={row['asset_sha']:collection_queue.human_decision(folder,row['asset_sha']) for row in received}
         for row in received:
@@ -1175,6 +1191,8 @@ def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False
             if current.get('status') in ('accepted','rejected','duplicate'):continue
             if deadline is not None and time.monotonic()>=deadline:
                 stop_reason='review_timeout';break
+            if sample_limit and reviewed_new>=sample_limit:
+                stop_reason='review_sample_limit';break
             attempts=int(current.get('attempts',0))+1
             items[sha]={'asset_sha':sha,'status':'reviewing','attempts':attempts,
                         'started_at':time.time(),'source_page':row.get('page_url','')}
@@ -1189,6 +1207,7 @@ def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False
                                     'attempts':attempts,'completed_at':time.time()}
                         save(folder/'review-audit.json',{'version':1,'context_sha':context,'items':items,'updated_at':time.time()})
                         continue
+                reviewed_new+=1
                 value=agent.review(Path(row['original_path']),project)
                 if value.asset_sha!=sha or value.context_sha!=context:
                     raise AgentUnavailable('审核结论绑定了其他原图或项目要求。')
@@ -1242,7 +1261,8 @@ def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False
         stop_reason='review_complete' if terminal else 'review_budget_reached'
     manifest,images,summary=_review_package(job,project,folder,state,received,items,human_cache,
                                             status='completed',stop_reason=stop_reason,
-                                            started=started,agent=agent,prepare_error=prepare_error)
+                                            started=started,agent=agent,prepare_error=prepare_error,
+                                            sample_limit=sample_limit)
     return manifest,images,summary
 
 
