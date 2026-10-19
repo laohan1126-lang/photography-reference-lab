@@ -152,7 +152,7 @@ def test_global_remove_restore_conflict_and_other_project_survives(client, proje
     assert restored.status_code == 200
 
 
-def test_collection_intent_frozen_context_and_real_report(client, project, library):
+def test_collection_intent_stays_frozen_and_refuses_stale_preflight(client, project, library):
     job = library.create_job(project["id"], JobInput(kind="collection", notes="完整自由要求\n只要自然手势", target_count=90))
     revised = {k: project[k] for k in ("character", "work", "costume", "brief", "gear")}
     revised["character"] = "另一角色"
@@ -160,8 +160,9 @@ def test_collection_intent_frozen_context_and_real_report(client, project, libra
     bundle = library.job_bundle(job["id"])
     assert bundle["project"]["character"] == "王昭君" and bundle["job"]["notes"].endswith("只要自然手势")
     report = import_candidates(library, project["id"], candidate_zip(job), job["id"])
-    assert report["created"] == 1 and report["errors"] == [] and report["job"]["status"] == "succeeded"
-    ref = library.reference(report["reference_ids"][0])
+    assert report["created"] == 1 and report["errors"] and report["job"]["status"] == "blocked"
+    ref = library.reference(library.job(job["id"])["imported_ids"][0])
+    assert ref["preflight"] is None
     assert ref["decision"] == "pending" and ref["review"] is None and ref["card"] is None
     assert not ref["source"]["source_confirmed"]
     context = library.asset_context(ref["asset_sha"])
@@ -333,7 +334,9 @@ def test_cli_exports_and_imports_without_provider(client, project, library, tmp_
     assert main(["export-job", "--job", job["id"], "--output", str(path)]) == 0
     result = tmp_path / "result.zip"; result.write_bytes(candidate_zip(job))
     assert main(["import-job", "--job", job["id"], "--input", str(result)]) == 0
-    assert library.job(job["id"])["status"] == "succeeded"
+    saved=library.job(job["id"])
+    assert saved["status"] == "blocked" and saved["collection_outcome"] == "partial"
+    assert len(saved["last_receipt_reference_ids"]) == 1
 
 
 def test_archive_reference_to_inspiration_detaches_from_project_and_saves_aesthetic_library(client, project, library):

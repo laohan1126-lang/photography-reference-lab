@@ -18,8 +18,10 @@ from conftest import image_bytes
 from test_personal_library import candidate_zip
 
 
-def new_job(library, project):
-    return library.create_job(project['id'], JobInput(kind='collection', notes='合成回归，不是真实搜图'))
+def new_job(library, project, target_count=80, preferred_sources=None):
+    return library.create_job(project['id'], JobInput(
+        kind='collection', notes='合成回归，不是真实搜图', target_count=target_count,
+        preferred_sources=preferred_sources or ['xiaohongshu', 'pinterest']))
 
 
 def adapter(monkeypatch, tmp_path, code, *extra):
@@ -55,9 +57,12 @@ def test_missing_or_invalid_adapter_never_spawns(library, project, monkeypatch, 
 
 
 def test_real_process_returns_valid_package_not_human_facts(library, project, monkeypatch, tmp_path):
-    job = new_job(library, project)
+    job = new_job(library, project, target_count=1, preferred_sources=['pinterest'])
     package = tmp_path / 'input.zip'
-    package.write_bytes(candidate_zip(job))
+    package.write_bytes(candidate_zip(job, execution_report={
+        'producer':'synthetic', 'status':'completed', 'summary':'complete fixture',
+        'source_checks':[{'source':'pinterest','status':'usable'}],
+        'query_log':[{'source':'pinterest','query':'synthetic','kept':1}], 'gaps':[]}))
     adapter(monkeypatch, tmp_path, '''import os, sys, pathlib, shutil
 assert 'LAB_ACCESS_TOKEN' not in os.environ
 assert 'LAB_COLLECTION_COMMAND' not in os.environ
@@ -69,15 +74,18 @@ shutil.copyfile(sys.argv[3], sys.argv[2])
 ''', package)
     monkeypatch.setenv('LAB_ACCESS_TOKEN', 'synthetic-secret-not-forwarded')
     result = run_collection_attempt(library, job['id'])
-    assert result['status'] == 'succeeded'
+    assert result['status'] == 'blocked' and result['collection_outcome'] == 'partial'
     assert len(result['last_receipt_reference_ids']) == 1
+    assert any('冻结计划语言覆盖' in gap for gap in result['execution_report']['gaps'])
     ref = library.reference(result['imported_ids'][0])
     assert ref['decision'] == 'pending' and ref['review'] is None and not ref['field_ready']
     assert not ref['source']['source_confirmed']
     evidence = receipt(library, job)
     assert evidence['code'] == 'result_imported' and evidence['returncode'] == 0
     assert evidence['created'] == 1
-    assert not list((library.settings.data_dir / 'agent-runs').iterdir())
+    run_dir = library.settings.data_dir / 'agent-runs' / job['id']
+    assert (run_dir / 'task' / 'job.json').is_file()
+    assert (run_dir / 'result.zip').is_file()
     assert not list((library.settings.data_dir / 'exports').iterdir())
 
 
@@ -97,7 +105,7 @@ def test_real_process_errors_are_not_success(library, project, monkeypatch, tmp_
     with library.db.read() as con:
         all_events = str(con.execute('SELECT data FROM events').fetchall())
     assert 'DO_NOT_LEAK_SECRET' not in result['detail'] + all_events
-    assert not list((library.settings.data_dir / 'agent-runs').iterdir())
+    assert (library.settings.data_dir / 'agent-runs' / job['id'] / 'task' / 'job.json').is_file()
 
 
 def test_blocked_result_preserves_usable_partial_assets(library, project, monkeypatch, tmp_path):
@@ -106,7 +114,8 @@ def test_blocked_result_preserves_usable_partial_assets(library, project, monkey
     package.write_bytes(candidate_zip(job, execution_report={'producer':'synthetic', 'status':'blocked', 'summary':'登录受阻', 'source_checks':[], 'query_log':[], 'gaps':['login']}))
     adapter(monkeypatch, tmp_path, 'import shutil,sys; shutil.copyfile(sys.argv[3],sys.argv[2])', package)
     result = run_collection_attempt(library, job['id'])
-    assert result['status'] == 'blocked' and len(result['imported_ids']) == 1
+    assert result['status'] == 'blocked' and result['collection_outcome'] == 'partial'
+    assert len(result['imported_ids']) == 1
     assert '登录受阻' in result['detail']
     assert library.reference(result['imported_ids'][0])['decision'] == 'pending'
 
@@ -131,6 +140,7 @@ def test_standalone_report_is_not_current_import_evidence(library, project):
     library.add_candidate(project['id'], CandidateInput(asset_sha=asset['id'], job_id=job['id']))
     result = library.record_collection_report(job['id'], CollectionReport(producer='synthetic', status='completed', summary='no receipt'))
     assert result['status'] == 'blocked' and result['last_receipt_reference_ids'] == []
+    assert result['collection_outcome'] == 'blocked' and result['execution_report']['status'] == 'blocked'
 
 
 def test_valid_package_reimport_remains_idempotent(library, project):
@@ -375,3 +385,155 @@ def test_windows_adapter_has_no_taskkill_path_dependency(monkeypatch):
     monkeypatch.setenv('LAB_COLLECTION_COMMAND', json.dumps(command))
     monkeypatch.setattr('ref_lab.agent_collection.shutil.which', lambda value: executable if value == executable else None)
     assert configured_command() == command
+
+
+
+def test_completed_collection_report_requires_target_and_matching_query_coverage(library, project):
+    job = library.create_job(project['id'], JobInput(kind='collection', target_count=2))
+    job = library.start_collection_attempt(job['id'], job['revision'], 'coverage-attempt')
+    asset = library.ingest_asset(image_bytes())
+    inserted = library.add_candidate(project['id'], CandidateInput(asset_sha=asset['id'], job_id=job['id']), attempt_id='coverage-attempt')
+    report = CollectionReport(
+        producer='synthetic', status='completed', summary='adapter said complete',
+        source_checks=[{'source':'pinterest','status':'usable'}],
+        query_log=[], gaps=[])
+
+    saved = library.record_collection_report(job['id'], report, current_reference_ids=[inserted['reference']['id']], attempt_id='coverage-attempt')
+
+    assert saved['status'] == 'blocked'
+    assert saved['collection_outcome'] == 'partial'
+    assert saved['execution_report']['status'] == 'blocked'
+    assert any('1/2' in gap for gap in saved['execution_report']['gaps'])
+    assert any('查询' in gap for gap in saved['execution_report']['gaps'])
+
+
+def test_collection_cannot_bypass_report_gate_with_manual_succeeded_transition(library, project):
+    job = new_job(library, project)
+    job = library.transition_job(job['id'], 'running', job['revision'], 'manual collection')
+    asset = library.ingest_asset(image_bytes())
+    library.add_candidate(project['id'], CandidateInput(asset_sha=asset['id'], job_id=job['id']))
+    latest = library.job(job['id'])
+
+    with pytest.raises(Problem):
+        library.transition_job(job['id'], 'succeeded', latest['revision'], 'one candidate is not completion')
+
+
+def _coverage_snapshot(job, *, languages=('zh', 'en', 'ja'), usable_sources=None,
+                       usable_languages=None, reported_languages=None, outcome='complete'):
+    sources = sorted(job.get('preferred_sources', []))
+    usable_sources = sorted(usable_sources if usable_sources is not None else sources)
+    languages = sorted(languages)
+    usable_languages = sorted(usable_languages if usable_languages is not None else languages)
+    reported_languages = sorted(reported_languages if reported_languages is not None else usable_languages)
+    return {
+        'job_id': job['id'], 'binding_sha256': 'a' * 64, 'plan_sha256': 'b' * 64,
+        'manifest_sha256': 'c' * 64, 'planned_sources': sources,
+        'collector_outcome': outcome,
+        'required_languages': languages, 'observed_languages': usable_languages,
+        'usable_languages': usable_languages, 'reported_languages': reported_languages,
+        'usable_sources': usable_sources, 'reported_sources': usable_sources,
+    }
+
+
+def _report_job_with_candidate(library, project, *, sources, target=1):
+    job = library.create_job(project['id'], JobInput(
+        kind='collection', target_count=target, preferred_sources=sources))
+    job = library.start_collection_attempt(job['id'], job['revision'], 'coverage-attempt')
+    asset = library.ingest_asset(image_bytes(88))
+    inserted = library.add_candidate(project['id'], CandidateInput(
+        asset_sha=asset['id'], job_id=job['id']), attempt_id='coverage-attempt')
+    return job, inserted['reference']['id']
+
+
+@pytest.mark.parametrize(('gaps', 'expected_status', 'expected_outcome'), [
+    (['自动停止原因：soft_target_reached'], 'succeeded', 'complete'),
+    (['实际候选核验缺口'], 'blocked', 'partial'),
+])
+def test_soft_target_stop_notice_is_not_a_missing_collection_requirement(
+        library, project, gaps, expected_status, expected_outcome):
+    job, ident = _report_job_with_candidate(library, project, sources=['pinterest'])
+    report = CollectionReport(
+        producer='synthetic', status='completed', summary='frozen plan covered',
+        source_checks=[{'source': 'pinterest', 'status': 'usable'}],
+        query_log=[{'source': 'pinterest', 'query': 'plan-step-zh-en-ja', 'kept': 1}],
+        gaps=gaps)
+
+    saved = library.record_collection_report(
+        job['id'], report, current_reference_ids=[ident], attempt_id='coverage-attempt',
+        collector_coverage=_coverage_snapshot(job))
+
+    assert saved['status'] == expected_status
+    assert saved['collection_outcome'] == expected_outcome
+    assert saved['execution_report']['gaps'] == gaps
+
+
+def test_collection_report_must_cover_each_job_source_and_frozen_plan_language(library, project):
+    job, ident = _report_job_with_candidate(
+        library, project, sources=['xiaohongshu', 'pinterest'])
+    report = CollectionReport(
+        producer='synthetic', status='completed', summary='Pinterest-only report',
+        source_checks=[{'source': 'pinterest', 'status': 'usable'}],
+        query_log=[{'source': 'pinterest', 'query': 'plan-step-en', 'kept': 1}],
+        gaps=['自动停止原因：soft_target_reached'])
+
+    saved = library.record_collection_report(
+        job['id'], report, current_reference_ids=[ident], attempt_id='coverage-attempt',
+        collector_coverage=_coverage_snapshot(
+            job, languages=('zh', 'en', 'ja'), usable_sources=['pinterest']))
+
+    assert saved['status'] == 'blocked'
+    assert saved['collection_outcome'] == 'partial'
+    assert any('preferred_sources' in gap or '来源' in gap for gap in saved['execution_report']['gaps'])
+
+
+def test_report_without_bound_collector_plan_cannot_claim_language_complete(library, project):
+    job, ident = _report_job_with_candidate(library, project, sources=['pinterest'])
+    report = CollectionReport(
+        producer='manual-package', status='completed', summary='language plan unavailable',
+        source_checks=[{'source': 'pinterest', 'status': 'usable'}],
+        query_log=[{'source': 'pinterest', 'query': 'self-consistent query', 'kept': 1}], gaps=[])
+
+    saved = library.record_collection_report(
+        job['id'], report, current_reference_ids=[ident], attempt_id='coverage-attempt')
+
+    assert saved['status'] == 'blocked'
+    assert saved['collection_outcome'] == 'partial'
+    assert any('语言' in gap or '计划' in gap for gap in saved['execution_report']['gaps'])
+
+
+def test_each_language_in_frozen_collector_plan_must_be_usable_and_reported(library, project):
+    job, ident = _report_job_with_candidate(library, project, sources=['pinterest'])
+    report = CollectionReport(
+        producer='synthetic', status='completed', summary='two of three languages',
+        source_checks=[{'source': 'pinterest', 'status': 'usable'}],
+        query_log=[{'source': 'pinterest', 'query': 'plan-step-en', 'kept': 1},
+                   {'source': 'pinterest', 'query': 'plan-step-zh', 'kept': 0}],
+        gaps=['自动停止原因：soft_target_reached'])
+
+    saved = library.record_collection_report(
+        job['id'], report, current_reference_ids=[ident], attempt_id='coverage-attempt',
+        collector_coverage=_coverage_snapshot(
+            job, languages=('zh', 'en', 'ja'), usable_languages=('zh', 'en'),
+            reported_languages=('zh', 'en'), outcome='partial'))
+
+    assert saved['status'] == 'blocked'
+    assert saved['collection_outcome'] == 'partial'
+    assert any('语言' in gap for gap in saved['execution_report']['gaps'])
+
+
+def test_bound_controller_blocked_outcome_is_not_relabelled_partial(library, project):
+    job, ident = _report_job_with_candidate(library, project, sources=['pinterest'])
+    report = CollectionReport(
+        producer='verified-collection:synthetic', status='blocked', summary='执行受阻',
+        source_checks=[{'source': 'pinterest', 'status': 'usable'}],
+        query_log=[{'source': 'pinterest', 'query': 'plan-step-zh', 'kept': 1}],
+        gaps=['视觉Agent发生不可恢复错误'])
+
+    saved = library.record_collection_report(
+        job['id'], report, current_reference_ids=[ident], attempt_id='coverage-attempt',
+        collector_coverage=_coverage_snapshot(
+            job, languages=('zh', 'en'), usable_languages=('zh',),
+            reported_languages=('zh',), outcome='blocked'))
+
+    assert saved['status'] == 'blocked'
+    assert saved['collection_outcome'] == 'blocked'

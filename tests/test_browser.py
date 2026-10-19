@@ -275,8 +275,8 @@ def test_photography_workspace_entrance(live_site, browser_page, width):
     page.reload()
     expect(link).to_be_visible()
     link.click()
-    expect(page).to_have_url(url + '/learning#map')
-    expect(page.locator('#topic-grid a[data-topic]')).to_have_count(10)
+    expect(page).to_have_url(url + '/learning')
+    expect(page.locator('#domain-grid a[data-domain]')).to_have_count(14)
     page.locator('#reference-link').click()
     expect(page.locator('#application')).to_be_visible()
     assert len(page.context.pages) == 1

@@ -117,7 +117,7 @@ class ReferenceCache:
             matches=[p for p in page_files if json.loads(p.read_text('utf8')).get('url')==page_record['url']]
             if len(matches)!=1:raise ValueError('Ambiguous source page evidence')
             page=load(matches[0]);raw=read(matches[0].with_suffix('.html'))
-            if parse_reference_page(page['url'],raw.decode('utf8',errors='replace'))!=page:raise ValueError('Source page evidence changed')
+            if parse_reference_page(page['url'],raw,content_type=page_record.get('content_type',''))!=page:raise ValueError('Source page evidence changed')
             assessment=SourceAssessment.model_validate(page_record['assessment'])
             inputs=receipt(SourceAssessment,assessment.model_dump(),evidence=page_record.get('evidence'))
             supplied=[]

@@ -26,6 +26,70 @@ def assessment(sha):
         'visible_evidence':['Visible clothing design fixture']}])
 
 
+def test_supplement_authentication_failure_can_resume_its_saved_source(tmp_path):
+    import io
+    from PIL import Image
+    from ref_lab.verified_collection import AgentCallFailed
+    stream=io.BytesIO();Image.new('RGB',(320,480),'blue').save(stream,'PNG');raw=stream.getvalue()
+    calls=[]
+    class Agent:
+        model='synthetic-only';blocked=True;last_tool_calls=[]
+        def run(self,prompt,result_type,image_path=None,**kwargs):
+            calls.append(result_type.__name__)
+            if result_type.__name__=='ReferenceDiscovery':
+                return result_type(urls=['https://example.org/role'],reason='Synthetic search')
+            if self.blocked:raise AgentCallFailed('authentication_required',fatal=True)
+            return assessment(hashlib.sha256(raw).hexdigest())
+    def fetch(url,limit):return (raw,'image/png',url) if url.endswith('.png') else (HTML.encode(),'text/html',url)
+    agent=Agent();research=ReferenceResearch(agent,tmp_path,PROJECT,PLAN,fetch=fetch)
+    with pytest.raises(AgentUnavailable):research.supplement('Uncovered costume')
+    charged=research.image_attempts
+    agent.blocked=False
+    recovered=ReferenceResearch(agent,tmp_path,PROJECT,PLAN,fetch=fetch)
+    assert recovered.supplement('Uncovered costume')
+    assert calls==['ReferenceDiscovery','SourceAssessment','SourceAssessment']
+    assert recovered.image_attempts==charged and len(recovered.references)==1
+    assert recovered.supplements[0]['status']=='added_evidence'
+
+
+@pytest.mark.parametrize('meta,header',[
+    ('<meta charset="GBK">','text/html'),
+    ('<meta http-equiv="Content-Type" content="text/html; charset=gb2312">','text/html'),
+    ('','text/html; charset=gb18030'),
+])
+def test_declared_html_encoding_preserves_primary_source_quotes(meta,header):
+    markup=('<html><head>'+meta+'<title>西施 - 王者荣耀官方网站 - 腾讯游戏</title></head>'
+            '<body><header>腾讯游戏</header><p>官方角色设定：西施</p>'
+            '<img src="/design.png" alt="西施角色设定"><p>版权所有 腾讯游戏</p></body></html>')
+    raw=markup.encode('gb18030');before=hashlib.sha256(raw).hexdigest()
+    page=parse_reference_page('https://example.org/hero',raw,content_type=header)
+    assert '西施' in page['title'] and '腾讯游戏' in page['identity_text']
+    assert page['images'][0]['alt']=='西施角色设定'
+    assert '\ufffd' not in page['text'] and hashlib.sha256(raw).hexdigest()==before
+
+
+def test_html_bom_precedes_conflicting_charset_and_bad_bytes_fail_closed():
+    raw=b'\xef\xbb\xbf'+ '<meta charset="gbk"><title>可信原文</title>'.encode('utf8')
+    assert parse_reference_page('https://example.org/hero',raw)['title']=='可信原文'
+    with pytest.raises(ValueError):parse_reference_page('https://example.org/hero',b'<title>\xff</title>')
+    with pytest.raises(ValueError):parse_reference_page('https://example.org/hero',b'<meta charset="unknown-codec">')
+
+
+def test_changed_html_interpretation_blocks_old_research_without_rewriting_evidence(tmp_path):
+    class Agent:
+        model='synthetic-only'
+        def run(self,*args,**kwargs):pytest.fail('Old corrupted source must not be silently regraded')
+    agent=Agent();research=ReferenceResearch(agent,tmp_path,PROJECT,PLAN)
+    raw='<meta charset="gbk"><title>西施 王者荣耀官方网站 腾讯游戏</title>'.encode('gb18030')
+    prefix=research.folder/'source-1';prefix.with_suffix('.html').write_bytes(raw)
+    corrupted=parse_reference_page('https://example.org/hero',raw.decode('utf8',errors='replace'))
+    prefix.with_suffix('.json').write_text(json.dumps(corrupted),encoding='utf8')
+    research.pages=[{'url':'https://example.org/hero','discovery_url':'https://example.org/hero','status':'untrusted'}]
+    research.save();before=prefix.with_suffix('.json').read_bytes()
+    with pytest.raises(AgentUnavailable):ReferenceResearch(agent,tmp_path,PROJECT,PLAN)
+    assert prefix.with_suffix('.json').read_bytes()==before
+
+
 @pytest.mark.parametrize('url',['http://example.org/x','https://127.0.0.1/x','https://localhost/x',
     'https://10.0.0.1/x','https://user:pass@example.org/x','https://example.org:9000/x',
     'file:///private','https://thing.local/x'])

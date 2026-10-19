@@ -31,6 +31,7 @@ class TimedAgent(AntigravityCollectionAgent):
             self.candidate_calls+=1;self.vision_cli_calls+=1;self.active+=1
             self.peak=max(self.peak,self.active)
         try:
+            if hasattr(self,'before_result'):self.before_result(path)
             if self.cancelled.wait(self.delays.get(path.name,.005)):
                 raise AgentCallFailed('cancelled',fatal=True)
             state=self.states.get(path.name,'match')
@@ -67,7 +68,20 @@ def test_soft_target_never_records_an_unsubmitted_extra_candidate(tmp_path):
 
 
 def test_out_of_order_workers_commit_in_original_order(tmp_path):
-    agent,_,manifest,_,counts=run_fixed(tmp_path,target=3,delays={'0.png':.07,'1.png':.001})
+    second=threading.Event()
+    agent=TimedAgent(tmp_path)
+    def before_result(path):
+        if path.name=='0.png':assert second.wait(10),'Second worker did not finish while first was held'
+    agent.before_result=before_result
+    complete=agent._review_once
+    def review(path,*args,**kwargs):
+        value=complete(path,*args,**kwargs)
+        if path.name=='1.png':second.set()
+        return value
+    agent._review_once=review
+    browser=FakeBrowser([row(tmp_path,f'{i}.png',str(i).encode()) for i in range(3)])
+    manifest,_=worker.collect({**job(),'target_count':3},agent,browser,tmp_path,workers=2)
+    counts=json.loads((tmp_path/'counts.json').read_text('utf8'))
     assert agent.peak==2 and agent.finished.index('1.png')<agent.finished.index('0.png')
     assert agent.committed==['0.png','1.png','2.png']
     assert [Path(c['file']).name for c in manifest['candidates']]==agent.committed
@@ -85,6 +99,12 @@ def test_window_rejections_do_not_prematurely_stop_pending_valid_results(tmp_pat
 def test_browser_has_one_controller_and_overlaps_vision(tmp_path):
     records=[row(tmp_path,f'{i}.png',str(i).encode()) for i in range(3)]
     agent=TimedAgent(tmp_path,delays={f'{i}.png':.05 for i in range(3)})
+    first_started=threading.Event();second_received=threading.Event()
+    def before_result(path):
+        if path.name=='0.png':
+            first_started.set()
+            assert second_received.wait(10),'Browser did not receive next candidate during review'
+    agent.before_result=before_result
     owner=threading.get_ident();overlaps=[]
     class Browser(FakeBrowser):
         def search(self,step):
@@ -94,6 +114,9 @@ def test_browser_has_one_controller_and_overlaps_vision(tmp_path):
             return value
         def receive(self,card,step):
             assert threading.get_ident()==owner
+            if card['page'].endswith('/1'):
+                assert first_started.wait(10)
+                second_received.set()
             overlaps.append(agent.active>0)
             time.sleep(.005)
             return [records[int(card['page'].rsplit('/',1)[1])]]

@@ -2,6 +2,10 @@
 
 ## 默认路径：网站保存任务，Agent 执行
 
+同一Job的正式控制器状态保存在`.local/collection-runs/<job_id>/current/collector-state.json`，绑定完整项目快照、notes、目标、来源、模型和规则。持久计划每步明确`source/query/language`，实际观察按步骤ID记录`observed/usable/window`；计划不等于已执行。完成必须同时满足准入数量与实际覆盖，来源受阻或语言缺口均保留部分结果。
+
+网页重启后由用户点击“继续本次采集”；启动时不自动调用模型。持久任务包与`result.zip`保留在该库`agent-runs/<job_id>/`。未入库包先补导；已经入库的partial才携带`LAB_COLLECTION_RECOVERY_MODE=continue_imported_partial`及`LAB_COLLECTION_IMPORTED_RESULT_SHA256`继续同一任务，控制器核对旧包SHA与状态，旧ZIP按SHA归档后原子替换。完整结果及耗尽预算复用，取消/新attempt/条件变化拒绝迟到写入；已完成拒绝与通过不重核，人工选择和override不重置。schema3字段不变。
+
 正式Windows“找并核验参考”使用 `tools/collect_verified.py`，由现有任务/进程树/候选包链路执行。它先让现有Antigravity生成发现用多语言名字，再交替尝试授权来源；检查可见纠词与无结果，并逐图核验类型、角色和指定服装。只有通过图进入schema3包和主筛图，错误/未知原字节与核验记录只留本机`.local/collection-runs/`，不再要求主人给错误图打分。未登录或看图失败时明确blocked，无schema2未核验回退。
 
 发现/保存与视觉准入分开：自动参照失败时仍按名称计划搜索和保存摄影候选，参照空时模型只能给身份uncertain、固定准入不放行。摄影原字节/来源收到即保存；补证失败保留初次预测与错误，不能把执行异常改成角色错误。CLI临时网络/服务故障同一prompt最多3次总尝试，间隔2/5秒，预算启动前落盘；耗尽后只把该项留为未完成，继续下一项。登录、权限、长期额度或总预算等阻塞才暂停后续视觉调用，收到的候选仍保留，不交给主人替筛。身份uncertain/mismatch不是执行重试理由。资料选择只用页面实际出现的URL，优先非缩略图；无效图片不占“最多两张有效参照”的名额，失败后继续尝试其他已观察到的图片，仍受资料总请求上限约束，不猜高清地址、不放宽清晰度或来源授权门槛。

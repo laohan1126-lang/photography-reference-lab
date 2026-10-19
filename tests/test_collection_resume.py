@@ -108,7 +108,7 @@ def resume_fixture(tmp_path,monkeypatch):
     audit=[complete,*[{'asset_sha':r['asset_sha'],'source_page':r['page_url'],'review':None,'accepted':False,'decision':'NEEDS_EVIDENCE','execution_error':'Previous interruption'} for r in rows[1:]]]
     def save(name,v):(source/name).write_text(json.dumps(v),encoding='utf8')
     job={'id':'synthetic','project_snapshot':PROJECT,'notes':'','target_count':1}
-    save('run-info.json',{'job_id':job['id'],'model':'synthetic','visual_call_budget':20})
+    save('run-info.json',{'job_id':job['id'],'model':'synthetic','visual_call_budget':20,'binding':worker.job_binding(job,'synthetic')})
     save('counts.json',{'attempted_visual_calls':2})
     save('received.json',rows);save('visual-audit.json',audit)
     save('manifest.json',{'schema_version':3,'job_id':'synthetic','batch_id':'original','candidates':[], 'execution_report':{'producer':'synthetic','status':'blocked','summary':'Fixture','source_checks':[],'query_log':[],'gaps':[]}})

@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 from ref_lab.imports import import_candidates, import_notion, migrate_legacy, read_archive
-from ref_lab.models import AnalysisResult, CandidateInput, JobInput
+from ref_lab.models import AnalysisResult, CandidateInput, CandidatePreflight, JobInput, ProjectInput
 from ref_lab.service import Problem
 from ref_lab.cli import backup, doctor
 from conftest import add_reference, card_data, image_bytes, ready_reference, review_data
@@ -104,18 +104,85 @@ def test_legacy_repo_relative_image_path_resolves_without_guessing(library, clie
 
 
 def test_job_cannot_fake_success_and_rejects_wrong_project(client, project, library):
-    job = library.create_job(project["id"], JobInput(kind="collection"))
+    job = library.create_job(project["id"], JobInput(
+        kind="collection", target_count=1, preferred_sources=["pinterest"]))
     assert job["status"] == "blocked"
     job = library.transition_job(job["id"], "running", job["revision"], "manual")
     with pytest.raises(Problem): library.transition_job(job["id"], "succeeded", job["revision"], "fake")
     other = client.post("/api/projects", json={"character": "另一角色"}).json()
     with pytest.raises(Problem): library.add_candidate(other["id"], CandidateInput(job_id=job["id"]))
     asset = library.ingest_asset(image_bytes())
-    library.add_candidate(project["id"], CandidateInput(asset_sha=asset["id"], job_id=job["id"]))
+    inserted = library.add_candidate(project["id"], CandidateInput(asset_sha=asset["id"], job_id=job["id"]))
     latest = library.job(job["id"])
-    done = library.transition_job(job["id"], "succeeded", latest["revision"], "实际导入")
+    with pytest.raises(Problem): library.transition_job(job["id"], "succeeded", latest["revision"], "one import is not a report")
+    from ref_lab.models import CollectionReport
+    done = library.record_collection_report(job["id"], CollectionReport(
+        producer="synthetic", status="completed", summary="complete fixture",
+        source_checks=[{"source":"pinterest", "status":"usable"}],
+        query_log=[{"source":"pinterest", "query":"synthetic", "kept":1}], gaps=[]),
+        current_reference_ids=[inserted["reference"]["id"]],
+        collector_coverage={
+            "job_id": job["id"], "binding_sha256": "a" * 64, "plan_sha256": "b" * 64,
+            "manifest_sha256": "c" * 64, "planned_sources": ["pinterest"],
+            "required_languages": ["en"], "observed_languages": ["en"],
+            "usable_languages": ["en"], "reported_languages": ["en"],
+            "usable_sources": ["pinterest"], "reported_sources": ["pinterest"],
+        })
     assert done["status"] == "succeeded" and len(done["imported_ids"]) == 1
     with pytest.raises(Problem): library.transition_job(job["id"], "running", done["revision"], "replay")
+
+
+def _synthetic_preflight():
+    return CandidatePreflight(
+        content_type="real_person_cosplay", identity_prediction="match", confidence="high",
+        visual_evidence=["Synthetic ownership regression; no image claim."], reason="test-only")
+
+
+def test_job_bound_preflight_rejects_cancelled_job_without_attempt_id(library, project):
+    job = library.create_job(project["id"], JobInput(kind="collection"))
+    asset = library.ingest_asset(image_bytes(31))
+    inserted = library.add_candidate(project["id"], CandidateInput(
+        asset_sha=asset["id"], job_id=job["id"]))
+    ref = inserted["reference"]
+    latest = library.job(job["id"])
+    library.transition_job(job["id"], "cancelled", latest["revision"], "synthetic cancellation")
+
+    with pytest.raises(Problem):
+        library.apply_candidate_preflight(
+            ref["id"], _synthetic_preflight(), ref["revision"], "synthetic",
+            job_id=job["id"])
+
+    assert library.reference(ref["id"])["preflight"] is None
+
+
+def test_job_bound_preflight_rejects_changed_frozen_project_context(library, project):
+    job = library.create_job(project["id"], JobInput(kind="collection"))
+    asset = library.ingest_asset(image_bytes(32))
+    inserted = library.add_candidate(project["id"], CandidateInput(
+        asset_sha=asset["id"], job_id=job["id"]))
+    ref = inserted["reference"]
+    library.edit_project(project["id"], ProjectInput(
+        character="新角色B", work=project["work"], costume=project["costume"],
+        brief=project["brief"], gear=project["gear"]), project["revision"])
+    ref = library.reference(ref["id"])
+
+    with pytest.raises(Problem):
+        library.apply_candidate_preflight(
+            ref["id"], _synthetic_preflight(), ref["revision"], "synthetic",
+            job_id=job["id"])
+
+    assert library.reference(ref["id"])["preflight"] is None
+
+
+def test_preflight_without_job_id_keeps_manual_api_compatibility(library, project):
+    asset = library.ingest_asset(image_bytes(33))
+    inserted = library.add_candidate(project["id"], CandidateInput(asset_sha=asset["id"]))
+    ref = inserted["reference"]
+
+    saved = library.apply_candidate_preflight(
+        ref["id"], _synthetic_preflight(), ref["revision"], "manual")
+
+    assert saved["preflight"]["identity_prediction"] == "match"
 
 
 def test_analysis_snapshot_blocks_stale_agent_result(client, project, library):

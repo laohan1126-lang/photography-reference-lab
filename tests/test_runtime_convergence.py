@@ -213,13 +213,13 @@ def test_windows_launcher_checks_actual_runtime_and_stops_its_instance(tmp_path,
     shutil.copytree(ROOT / "ref_lab", repo / "ref_lab", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copytree(ROOT / "web", repo / "web")
     (repo / "tools").mkdir()
-    shutil.copyfile(ROOT / "tools/collect_adapter.py", repo / "tools/collect_adapter.py")
+    shutil.copyfile(ROOT / "tools/collect_verified.py", repo / "tools/collect_verified.py")
     git = ["git", "-C", str(repo)]
     subprocess.run(git + ["init", "-q"], check=True, capture_output=True)
     subprocess.run(git + ["add", "scripts", "ref_lab", "web", "tools"], check=True, capture_output=True)
     commit = git + ["-c", "user.name=Runtime Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-q", "--no-verify"]
     subprocess.run(commit + ["-m", "Synthetic runtime fixture"], check=True, capture_output=True)
-    venv.EnvBuilder(with_pip=False).create(repo / ".venv")
+    venv.EnvBuilder(with_pip=False, system_site_packages=True).create(repo / ".venv")
     from ref_lab.service import Library
     data = tmp_path / "library"
     Library(config.Settings(data, TOKEN))

@@ -32,7 +32,7 @@ def test_http200_blocked_stays_visible_with_recovery(component_factory, library,
 def test_nonterminal_or_failure_response_never_announces_completion(component_factory, library, project, monkeypatch, status, expected, disabled):
     job = library.create_job(project['id'], JobInput(kind='collection'))
     # Only the returned status is synthetic; real HTTP handler and DOM are used.
-    monkeypatch.setattr('ref_lab.collector.run_browser_collection_job', lambda lib, ident: {**lib.job(ident), 'status':status, 'detail':'synthetic transport status'})
+    monkeypatch.setattr('ref_lab.agent_collection.run_collection_attempt', lambda lib, ident: {**lib.job(ident), 'status':status, 'detail':'synthetic transport status'})
     page = component_factory()
     page.evaluate('id => jobHandoff(id)', job['id'])
     page.locator('#run-antigravity').click()
@@ -58,3 +58,15 @@ def test_late_result_does_not_close_or_rewrite_another_dialog(component_factory,
     expect(page.locator('#editor')).to_be_visible()
     expect(page.locator('#editor-title')).to_have_text('其他正在编辑的对话框')
     expect(page.locator('#other-dialog')).to_have_text('保留这个内容')
+
+
+def test_orphaned_running_job_offers_same_job_resume(component_factory, library, project, client):
+    job = library.create_job(project['id'], JobInput(kind='collection', target_count=1))
+    library.start_collection_attempt(job['id'], job['revision'], 'orphaned-attempt')
+
+    response = client.get(f"/api/jobs/{job['id']}")
+    assert response.status_code == 200 and response.json()['can_resume'] is True
+    page = component_factory()
+    page.evaluate('id => jobHandoff(id)', job['id'])
+    expect(page.locator('#run-antigravity')).to_have_text('继续本次采集')
+    expect(page.locator('#run-antigravity')).to_be_enabled()

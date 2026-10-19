@@ -128,11 +128,14 @@ def test_photo_query_plan_changes_intent_instead_of_only_reversing_name():
     assert any('テスト甲' in q or PROJECT['character'] in q for q in pins)
 
 
-def test_primary_source_tries_distinct_native_photo_intents_before_fallback():
+def test_sources_get_early_coverage_and_keep_distinct_native_photo_intents():
     steps=query_steps(PROJECT,NamePlan(names=[PROJECT['character'],'Example Person','テスト甲']),['xiaohongshu','pinterest'])
-    assert [s['source'] for s in steps]==['xiaohongshu']*4+['pinterest']*4
-    assert all(PROJECT['character'] in s['query'] for s in steps[:4])
-    assert len({s['query'] for s in steps[:4]})==4
+    assert [s['source'] for s in steps[:2]]==['xiaohongshu','pinterest']
+    assert {s['language'] for s in steps[:3]}=={'zh','en','ja'}
+    native=[s for s in steps if s['source']=='xiaohongshu']
+    assert len(native)==sum(s['source']=='pinterest' for s in steps)==4
+    assert all(PROJECT['character'] in s['query'] for s in native)
+    assert len({s['query'] for s in native})==4
     assert steps[0]['query'].endswith('cos 摄影')
 
 

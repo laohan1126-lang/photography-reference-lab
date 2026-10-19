@@ -473,8 +473,14 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     @app.post("/api/notes", status_code=201)
     def create_global_note(data: NoteInput): return library.add_note(None, data)
 
+    def job_view(job: dict) -> dict:
+        if job.get("kind") != "collection":
+            return job
+        from .agent_collection import collection_can_resume
+        return {**job, "can_resume": collection_can_resume(library, job)}
+
     @app.get("/api/jobs")
-    def all_jobs(): return library.jobs()
+    def all_jobs(): return [job_view(job) for job in library.jobs()]
 
     @app.post("/api/jobs/{job_id}/report")
     def collection_report(job_id: str, data: CollectionReport): return library.record_collection_report(job_id, data)
@@ -516,10 +522,10 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     def create_job(project_id: str, data: JobInput): return library.create_job(project_id, data)
 
     @app.get("/api/projects/{project_id}/jobs")
-    def jobs(project_id: str): return library.jobs(project_id)
+    def jobs(project_id: str): return [job_view(job) for job in library.jobs(project_id)]
 
     @app.get("/api/jobs/{job_id}")
-    def job(job_id: str): return library.job(job_id)
+    def job(job_id: str): return job_view(library.job(job_id))
 
     @app.get("/api/jobs/{job_id}/bundle")
     def bundle(job_id: str): return library.job_bundle(job_id)
@@ -537,8 +543,8 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
             analyzer = AntigravityAnalyzer()
             return run_analysis_job(library, job_id, analyzer)
         elif job["kind"] == "collection":
-            from .collector import run_browser_collection_job
-            return run_browser_collection_job(library, job_id)
+            from .agent_collection import run_collection_attempt
+            return run_collection_attempt(library, job_id)
         raise Problem(400, f"未知任务类型: {job['kind']}")
 
     @app.post("/api/jobs/{job_id}/status")

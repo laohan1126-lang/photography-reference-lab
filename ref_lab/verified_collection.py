@@ -223,7 +223,7 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]
     english=[x for x in names if x.isascii()]
     local=[x for x in names if not x.isascii()]
     sources=list(dict.fromkeys(s for s in sources if s in ('xiaohongshu','pinterest')))
-    steps=[];seen=set()
+    steps=[];seen=set();pools={source:[] for source in sources}
     for source in sources:
         for i in range(4):
             ordered=(english+local) if source=='pinterest' else (local+english)
@@ -237,16 +237,28 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]
                 # Different photo intent finds different pools; reversed names often repeat Pins.
                 if i==1 and local:name=next((n for n in local if re.search(r'[\u3040-\u30ff]',n)),local[-1])
                 if i==2:name=ordered[0]
+                if i==3 and len(sources)==1:name=project['character']
                 intent=('cosplay photography','cosplay photoshoot','cosplay convention','cosplay portrait')[i]
             else:
-                name=project['character']
+                name=project['character'] if i==0 or len(sources)>1 else ordered[i%len(ordered)]
                 intent=('cos 摄影','cos 场照','cos 棚拍','cos 正片')[i]
             query=' '.join(x for x in (name,costume,intent) if x)
             key=(source,query.casefold())
             if key not in seen:
-                seen.add(key);steps.append({'source':source,'query':query,'alias_origin':'agent_discovery_hypothesis'})
-            if len(steps)==8:return steps
-    return steps
+                language='ja' if re.search(r'[\u3040-\u30ff]',name) else ('en' if name.isascii() else 'zh')
+                seen.add(key);pools[source].append({'source':source,'query':query,'language':language,'alias_origin':'agent_discovery_hypothesis'})
+    # Give each selected platform and available name language an early bounded opportunity.
+    for source in sources:
+        if pools[source]:steps.append(pools[source].pop(0))
+    languages={step['language'] for step in steps}
+    for source in sources:
+        for step in list(pools[source]):
+            if step['language'] not in languages:
+                steps.append(step);languages.add(step['language']);pools[source].remove(step)
+    for i in range(4):
+        for source in sources:
+            if pools[source]:steps.append(pools[source].pop(0))
+    return steps[:8]
 
 
 def parse_agent_stream(text: str, result_type, image_path: Path | None = None, *, reference_paths=()):
@@ -285,9 +297,18 @@ class AntigravityCollectionAgent:
         self.references=None;self.research=None;self.candidate_calls=0;self.completed_candidate_calls=0;self.last_tool_calls=[]
         self.candidate_limit=20
         self.vision_cli_limit=min(200,max(20,target_count*2));self.cache_hits=0
-        self.vision_cli_calls=sum(json.loads(f.read_text('utf8')).get('result_type')=='CollectionVision' for f in folder.glob('attempt-*.json'))
+        attempts=[json.loads(f.read_text('utf8')) for f in folder.glob('attempt-*.json')]
+        self.vision_cli_calls=sum(a.get('result_type')=='CollectionVision' for a in attempts)
+        self.candidate_calls=len({a.get('binding',{}).get('prompt_sha256',str(i)) for i,a in enumerate(attempts) if a.get('result_type')=='CollectionVision'})
         from .agent_collection import timeout_seconds
-        self.deadline=time.monotonic()+min(3300,max(30,timeout_seconds(target_count)-60))
+        budget=folder/'runtime-budget.json'
+        if not budget.exists():
+            started=time.time();seconds=min(3300,max(30,timeout_seconds(target_count)-60))
+            save_evidence(budget,{'model':self.model,'started_at':started,'seconds':seconds,'expires_at':started+seconds})
+        saved=json.loads(budget.read_text('utf8'))
+        if saved['model']!=self.model:raise AgentCallFailed('resume_model_changed',fatal=True)
+        self.deadline=time.monotonic()+max(0,saved['expires_at']-time.time())
+        self.timing.started=time.monotonic()-max(0,time.time()-saved['started_at'])
 
     @property
     def last_tool_calls(self):return getattr(self._thread,'reads',[])
@@ -308,24 +329,48 @@ class AntigravityCollectionAgent:
                  'schema_sha256':digest(result_type.model_json_schema()),
                  'inputs':{str(p.resolve()):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}}
         receipt_path=self.folder/('agent-'+key+'.json')
-        if image_path and receipt_path.exists():
+        charged=list(self.folder.glob('attempt-'+key+'*.json'))
+        if receipt_path.exists():
             cached=json.loads(receipt_path.read_text('utf8'))
             if cached.get('binding')!=binding:raise AgentCallFailed('cached_input_changed',fatal=True)
             reads=cached['reads'];expected={os.path.normcase(p) for p in binding['inputs']}
             actual={os.path.normcase(str(Path(r['path']).resolve())) for r in reads if r['tool']=='view_file' and r['state']=='DONE'}
-            if actual!=expected or any(r['tool'] not in ('view_file','finish') for r in reads):raise AgentCallFailed('cached_evidence_invalid',fatal=True)
+            allowed=('search_web','finish') if search_query else ('view_file','finish') if image_path else ('finish',)
+            if actual!=expected or any(r['tool'] not in allowed for r in reads):raise AgentCallFailed('cached_evidence_invalid',fatal=True)
+            if search_query:
+                searches=[r for r in reads if r['tool']=='search_web' and r['state']=='DONE']
+                started=[r for r in reads if r['tool']=='search_web' and r['state']=='ACTIVE']
+                if len(started)!=1 or len(searches)!=1 or ' '.join(searches[0]['query'].split())!=' '.join(search_query.split()):
+                    raise AgentCallFailed('cached_evidence_invalid',fatal=True)
+            value=result_type.model_validate(cached['result'])
+            successful=False
+            for path in charged:
+                attempt=json.loads(path.read_text('utf8'));terminal=attempt.get('result') or {}
+                attempt_binding=attempt.get('binding')
+                legacy_binding=(attempt_binding is None and attempt.get('producer')==self.producer
+                                and attempt.get('result_type')==result_type.__name__)
+                if ((attempt_binding!=binding and not legacy_binding) or attempt.get('state')!='finished'
+                    or attempt.get('termination')!='returned' or attempt.get('exit_code')!=0
+                    or attempt.get('validation_failure') or attempt.get('tools')!=reads
+                    or terminal.get('status')!='SUCCESS' or terminal.get('denied_actions')):continue
+                if parse_agent_stream(json.dumps({'event':'result','result':terminal}),result_type)==value:
+                    successful=True;break
+            if not successful:raise AgentCallFailed('cached_evidence_invalid',fatal=True)
             self.last_tool_calls=reads;self.cache_hits+=1
-            return result_type.model_validate(cached['result'])
-        charged=list(self.folder.glob('attempt-'+key+'*.json'))
+            return value
         if len(charged)>=3:raise AgentCallFailed('retry_exhausted')
         for number in range(len(charged)+1,4):
             with self._budget_lock:
                 if self.cancelled.is_set():raise AgentCallFailed('cancelled',fatal=True)
                 if result_type is CollectionVision and self.vision_cli_calls>=self.vision_cli_limit:raise AgentCallFailed('call_budget_exhausted',fatal=True)
+                if result_type is CollectionVision and number==1 and self.candidate_calls>=self.candidate_limit:
+                    raise AgentUnavailable('摄影核验调用预算已用尽；不继续重试。')
                 if self.deadline-time.monotonic()<30:raise AgentCallFailed('time_budget_exhausted',fatal=True)
                 attempt=self.folder/f'attempt-{key}-{number}.json'
                 save_evidence(attempt,{'producer':self.producer,'result_type':result_type.__name__,'attempt':number,'state':'started','started_at':time.time(),'binding':binding})
-                if result_type is CollectionVision:self.vision_cli_calls+=1
+                if result_type is CollectionVision:
+                    self.vision_cli_calls+=1
+                    if number==1:self.candidate_calls+=1
             try:
                 return self._run_attempt(prompt,result_type,image_path,reference_paths=reference_paths,
                                          search_query=search_query,attempt_path=attempt,binding=binding)
@@ -500,7 +545,9 @@ reference_queries给两条不同来源策略的简短检索式：第一条用原
         self.research=ReferenceResearch(self,self.folder,project,plan)
         try:
             if getattr(self,'cached_references',None):
-                try:self.reference_cache.restore(self.cached_references,self.research)
+                try:
+                    self.reference_cache.restore(self.cached_references,self.research)
+                    self.research.prepared=True;self.research.save()
                 except (OSError,ValueError,KeyError,TypeError) as exc:
                     raise AgentCallFailed('cached_reference_changed',fatal=True) from exc
             else:self.research.prepare()
@@ -539,9 +586,6 @@ reference_queries给两条不同来源策略的简短检索式：第一条用原
                 {'model_predictions':trace,'reference_count':len(self.references or []),'candidate_calls_total':self.candidate_calls,'supplement_error':supplement_error})
 
     def _review_once(self, path: Path, project: dict, *, references=None) -> CollectionVision:
-        with self._budget_lock:
-            if self.candidate_calls>=self.candidate_limit:raise AgentUnavailable('摄影核验调用预算已用尽；不继续重试。')
-            self.candidate_calls+=1
         sha=hashlib.sha256(path.read_bytes()).hexdigest();context=scope_sha(project)
         if references is None:
             references=self.references if self.references is not None else load_visual_references(project,self.folder)

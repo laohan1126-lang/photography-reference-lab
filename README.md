@@ -4,6 +4,12 @@
 
 ## 统一摄影入口
 
+本收尾分支在任务页区分达标、部分结果和执行受阻；同时要求数量与本轮实际来源/语言覆盖成立。服务重启后可在原任务点击“继续本次采集”，保留已完成的通过和拒绝判断、搜索进度及累计预算。已完成ZIP优先补导；已入库的部分结果继续时绑定原包SHA，保留旧包后原子更新，不覆盖人工K/I/M/X或视觉预检override。详细验收见[收尾任务记录](docs/tasks/2026-10-19-collection-finalization.md)。
+
+该分支的唯一冷启动20图实跑为0/20、BLOCKED_WITH_EVIDENCE；实跑发现的隔离历史遗漏和GBK参照解码缺陷已修，编码修复后的完整真实闭环未再次执行。工程回归与新角色搜图验收分别报告，尚不支持据此切换日用版本。
+
+正常采集目录稳定为`.local/collection-runs/<Job>/current`。历史指纹缓存按原字节SHA与算法版本索引，每轮仍读取原图校验完整性；额外历史工作树可由进程内`LAB_COLLECTION_HISTORY_ROOTS` JSON路径数组明确指定，缓存及私有原图不进入Git。该分支仍须完成独立验收后由主人决定日用切换。
+
 本性能任务分支的采集CLI默认使用两个有界摄影核验worker，浏览器仍由一个控制者操作，结果按原接收顺序提交；`--vision-workers 1`可做串行对照。已经通过正式准入的原图会立即出现在本轮`public/index.html`，运行中明确提示并自动刷新，结束后显示真实停止原因。完整schema3包仍由最终交付协议生成；模型、摄影提示词、角色/版本与实际读图门槛不变。
 
 同模型、完整要求和代码契约一致时，可复用24小时内已封存的一手参照研究；每次核对原图、来源页面与成功回执，变化即失效。计时与固定回放/真实小样本对照见[性能任务记录](docs/tasks/2026-10-19-collection-performance.md)及`tools/benchmark_collection.py --help`。本轮在独立工作树交付，未切换或重启日用服务；完整20–30分钟目标仍须真实完整委托复验，不能从4图核验倍数直接宣称完成。
@@ -56,7 +62,7 @@ powershell -ExecutionPolicy Bypass -File scripts\doctor-windows-runtime.ps1
 .\start.bat
 ```
 
-启动器会使用当前仓库自己的 `.venv\Scripts\python.exe` 和同一 checkout 下的 `tools\collect_adapter.py`，并拒绝连接一个不受本启动器管理的旧 WSL 服务。若没有配置数据目录，也没有已存在的本地数据库，会直接报错，**不会偷偷新建一个空库**。
+启动器会使用当前仓库自己的 `.venv\Scripts\python.exe` 和同一 checkout 下的 `tools\collect_verified.py`，并拒绝连接一个不受本启动器管理的旧 WSL 服务。若没有配置数据目录，也没有已存在的本地数据库，会直接报错，**不会偷偷新建一个空库**。
 
 只有明确要建立全新空库时才执行：
 
