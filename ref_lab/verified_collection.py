@@ -45,13 +45,17 @@ def save_evidence(path,value):
 def diagnose_cli(stdout='',stderr='',log=''):
     # Persist only categories/flags, never raw stderr or global CLI log contents.
     evidence=_attempt_evidence(stdout);result=evidence.get('result') or {}
-    text=stderr+'\n'+log+'\n'+str(result.get('response',''))
+    reported_errors=[str((event.get('result') or {}).get('error','')) for event in _stream_events(stdout) if event.get('event')=='result']
+    reported_error='\n'.join(reported_errors)
+    text=stderr+'\n'+log+'\n'+str(result.get('response',''))+'\n'+reported_error
     auth_applied='applyAuthResult:' in log
-    if re.search(r'HTTP\s*[:= ]*40[13]\b|status(?: code)?\s*[:= ]*40[13]\b|unauthenticated|authentication required|please log in',text,re.I):
+    if re.search(r'empty prompt|stream input|input-format.*(?:requires|invalid|ignored)',reported_error,re.I):
+        category='cli_input_error';retryable=False;fatal=True
+    elif re.search(r'HTTP\s*[:= ]*40[13]\b|status(?: code)?\s*[:= ]*40[13]\b|unauthenticated|authentication required|please log in',text,re.I):
         category='authentication';retryable=False;fatal=True
     elif re.search(r'\bEOF\b|connection (?:reset|refused|aborted)|broken pipe|TLS handshake|dial tcp|network is unreachable',text,re.I):
         category='transient_network';retryable=True;fatal=False
-    elif re.search(r'quota exceeded|daily.*(?:limit|quota)|insufficient.*credit',text,re.I):
+    elif re.search(r'quota (?:exceeded|exhausted)|daily (?:limit|quota)(?:[^\n]{0,40})(?:exceeded|exhausted|reached)|insufficient.*credit',text,re.I):
         category='quota_exhausted';retryable=False;fatal=True
     elif re.search(r'\b429\b|rate.?limit|resource_exhausted|\b50[0234]\b|service unavailable|deadline exceeded|timed? out',text,re.I):
         category='transient_service';retryable=True;fatal=False
@@ -220,15 +224,24 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]
     local=[x for x in names if not x.isascii()]
     sources=list(dict.fromkeys(s for s in sources if s in ('xiaohongshu','pinterest')))
     steps=[];seen=set()
-    for i in range(8):
-        for source in sources:
+    for source in sources:
+        for i in range(4):
             ordered=(english+local) if source=='pinterest' else (local+english)
-            if i>=len(ordered): continue
+            if not ordered:continue
             costume=project.get('costume','').strip()
             # The requested costume is retained; an alias is only an alternate discovery query.
             if costume and i>0 and plan.costume_names:
                 costume=plan.costume_names[(i-1)%len(plan.costume_names)]
-            query=' '.join(x for x in (ordered[i],costume,'cosplay' if source=='pinterest' else 'cos') if x)
+            name=ordered[i%len(ordered)]
+            if source=='pinterest':
+                # Different photo intent finds different pools; reversed names often repeat Pins.
+                if i==1 and local:name=next((n for n in local if re.search(r'[\u3040-\u30ff]',n)),local[-1])
+                if i==2:name=ordered[0]
+                intent=('cosplay photography','cosplay photoshoot','cosplay convention','cosplay portrait')[i]
+            else:
+                name=project['character']
+                intent=('cos 摄影','cos 场照','cos 棚拍','cos 正片')[i]
+            query=' '.join(x for x in (name,costume,intent) if x)
             key=(source,query.casefold())
             if key not in seen:
                 seen.add(key);steps.append({'source':source,'query':query,'alias_origin':'agent_discovery_hypothesis'})
@@ -347,7 +360,17 @@ class AntigravityCollectionAgent:
             command.extend(['--add-dir',str(directory)])
         options={}
         if os.name=='nt':
-            command=[sys._base_executable,str(Path(__file__).with_name('windows_adapter_runner.py')),*command]
+            supervisor=[sys._base_executable,str(Path(__file__).with_name('windows_adapter_runner.py'))]
+            if len(subprocess.list2cmdline(supervisor+command).encode('utf-16-le'))//2>30000:
+                # Preserve the exact prompt past CreateProcess's 32767 UTF-16-unit limit.
+                input_path=call_folder/'stdin.jsonl'
+                message={'event':'user','message':{'role':'user','content':prompt}}
+                atomic_write(input_path,(json.dumps(message,ensure_ascii=False)+'\n').encode('utf8'))
+                command=[command[0],'-p=','--input-format','stream-json',*command[3:]]
+                supervisor.extend(['--stdin-file',str(input_path.resolve())])
+                entry=json.loads(attempt_path.read_text('utf8'))
+                save_evidence(attempt_path,{**entry,'input_transport':'stdin_stream_json'})
+            command=[*supervisor,*command]
             options['creationflags']=subprocess.CREATE_NO_WINDOW
         else:options['start_new_session']=True
         started=time.time()
@@ -359,7 +382,8 @@ class AntigravityCollectionAgent:
         except OSError as exc:
             entry=json.loads(attempt_path.read_text('utf8'))
             save_evidence(attempt_path,{**entry,'state':'finished','termination':'spawn_failed',
-                          'diagnostic':{'category':'cli_spawn_failed','retryable':False,'fatal':True,'error_type':type(exc).__name__}})
+                          'diagnostic':{'category':'cli_spawn_failed','retryable':False,'fatal':True,'error_type':type(exc).__name__,
+                                        'winerror':getattr(exc,'winerror',None),'errno':exc.errno}})
             self.timing.event('cli_spawn_failed',attempt=attempt_path.name,wall_seconds=time.monotonic()-clock)
             raise AgentCallFailed('cli_spawn_failed',fatal=True) from exc
         output_parts=[];error_parts=[];read_errors=[]

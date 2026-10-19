@@ -9,6 +9,7 @@ from __future__ import annotations
 import ctypes
 from ctypes import wintypes
 import os
+from pathlib import Path
 import subprocess
 import sys
 
@@ -60,7 +61,14 @@ if __name__ == "__main__":
         raise SystemExit(126)
     try:
         owned_job = own_process_tree()  # Before starting ANY adapter code.
-        exit_code = subprocess.call(sys.argv[1:], stdin=subprocess.DEVNULL)
+        arguments=sys.argv[1:]
+        if arguments[0]=='--stdin-file':
+            if len(arguments)<3:raise OSError('Missing owned stdin input or child command')
+            path=Path(arguments[1])
+            if path.is_symlink() or path.resolve().parent!=Path.cwd().resolve() or path.name!='stdin.jsonl':
+                raise OSError('Input must be the owned call-directory stdin.jsonl')
+            with path.open('rb') as stream:exit_code=subprocess.call(arguments[2:],stdin=stream)
+        else:exit_code = subprocess.call(arguments, stdin=subprocess.DEVNULL)
     except OSError:
         exit_code = 126  # Fail closed; caller cannot accept a successful artifact.
     # Do not CloseHandle while alive: this supervisor is itself in the job.

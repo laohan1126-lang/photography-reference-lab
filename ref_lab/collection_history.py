@@ -59,6 +59,16 @@ class ImageHistory:
 
     def consider(self,path):
         value=fingerprint(path);sha=value['asset_sha']
+        found=self._match(value)
+        if not found:self.records[sha]=value
+        return found
+
+    def match(self,path):
+        """A discovery preview can match history but must never become an original."""
+        return self._match(fingerprint(path))
+
+    def _match(self,value):
+        sha=value['asset_sha']
         if sha in self.records:return {'duplicate_of':sha,'reason':'same_bytes'}
         sample=bytes.fromhex(value['sample'])
         for other in self.records.values():
@@ -66,5 +76,4 @@ class ImageHistory:
             # Preserve originals; quarantine only close composition AND colour matches.
             difference=sum(abs(a-b) for a,b in zip(sample,bytes.fromhex(other['sample'])))/len(sample)
             if difference<=8:return {'duplicate_of':other['asset_sha'],'reason':'near_duplicate'}
-        self.records[sha]=value
         return None

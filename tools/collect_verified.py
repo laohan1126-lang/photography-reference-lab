@@ -29,7 +29,7 @@ from ref_lab.storage import atomic_write
 from ref_lab.collection_history import ImageHistory,historical_paths
 from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
-from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata
+from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
 from tools.exact_recall import assess_search,capture_note,save
 
 MAX_QUERIES=8
@@ -41,6 +41,19 @@ MAX_DETAIL_PAGES=96
 
 class SourceBlocked(ValueError):
     pass
+
+
+def discovery_rank(card,aliases=()):
+    """Order discovery only; absent/negative metadata never becomes a visual verdict."""
+    text=str(card.get('text') or '').casefold()
+    positive=bool(re.search(r'cosplay|coser|コスプレ|摄影|写真|正片|场照|返图|photoshoot|photograph',text))
+    negative=any(term in text for term in (*NEGATIVE_TYPE_MARKERS,'イラスト'))
+    if aliases:
+        target=any(name.strip().casefold() in text for name in aliases if name.strip())
+        if negative:return 4
+        if target:return 0 if positive else 1
+        return 2 if positive else 3
+    return 0 if positive and not negative else (2 if negative and not positive else 1)
 
 
 def fatal_visual_error(exc):
@@ -182,12 +195,27 @@ def _resume_collection(job,source,folder):
     CandidatePackage.model_validate(output);save(folder/'manifest.json',output)
     return output,images
 
+XHS_SORT_JS=r"""(() => {
+ const real=x=>!x.closest('[aria-hidden="true"]');
+ const visible=x=>real(x)&&x.getBoundingClientRect().width>0&&x.getBoundingClientRect().height>0
+   &&Number(getComputedStyle(x).opacity)>=.1&&(!x.checkVisibility||x.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}));
+ const selector=x=>{if(!x)return null;const chain=[];while(x&&x!==document.body){
+   chain.unshift(x.tagName.toLowerCase()+':nth-child('+(Array.from(x.parentElement.children).indexOf(x)+1)+')');x=x.parentElement;}
+   return 'body>'+chain.join('>');};
+ const tags=Array.from(document.querySelectorAll('.tags')).filter(real);
+ return {trigger:selector(Array.from(document.querySelectorAll('span')).find(x=>['筛选','已筛选'].includes(x.textContent.trim())&&visible(x))),
+   dismiss:selector(Array.from(document.querySelectorAll('input[placeholder]')).find(visible)),
+   latest:selector(tags.find(x=>x.textContent.trim()==='最新'&&visible(x))),
+   selected:tags.some(x=>x.textContent.trim()==='最新'&&x.classList.contains('active'))};
+})()"""
+
 SEARCH_JS=r"""(() => {
- const visible=x=>{const r=x.getBoundingClientRect();return r.width>0&&r.height>0};
+ const visible=x=>{const r=x.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth
+   &&(!x.checkVisibility||x.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))};
  const text=document.body.innerText;
  const login=Array.from(document.querySelectorAll('[role="dialog"],.login-container,.login-box'))
    .some(x=>visible(x)&&/登录|登入|扫码|Log in|Sign up/.test(x.innerText));
- const challenge=!!document.querySelector('iframe[src*="captcha"]')||/访问过于频繁|验证后继续|Verify you are human/.test(text);
+ const challenge=Array.from(document.querySelectorAll('iframe[src*="captcha"]')).some(visible)||/访问过于频繁|验证后继续|Verify you are human/.test(text);
  const source=location.hostname.includes('xiaohongshu')?'xiaohongshu':'pinterest';
  let cards=[];
  if(source==='xiaohongshu'){
@@ -195,11 +223,15 @@ SEARCH_JS=r"""(() => {
    .map(x=>({text:x.innerText,page:x.querySelector('a[href*="/explore/"],a[href*="/search_result/"]')?.href}));
  }else{
   cards=Array.from(document.images).filter(x=>x.naturalWidth>=200&&x.naturalHeight>=200)
-   .map(x=>({text:x.alt,page:x.closest('a')?.href})).filter(x=>x.page&&/\/pin\/\d+\//.test(x.page));
+   .map(x=>({text:[x.alt,x.getAttribute('aria-label'),x.closest('[data-test-id="pin"], [data-grid-item], [role="listitem"]')?.innerText].filter(Boolean).join('\n'),
+             page:x.closest('a')?.href,cover_url:x.currentSrc||x.src,cover_width:x.naturalWidth,cover_height:x.naturalHeight}))
+   .filter(x=>x.page&&/\/pin\/\d+\//.test(x.page));
  }
  const seen=new Set();cards=cards.filter(x=>x.page&&!seen.has(x.page)&&seen.add(x.page)).slice(0,60);
  return {url:location.href,search:document.querySelector('input[placeholder],textarea[placeholder]')?.value,
-         visibleMain:text.slice(0,8000),cards,login_required:login,challenge};
+         visibleMain:text.slice(0,8000),cards,login_required:login,challenge,
+         sort_latest:source==='xiaohongshu'&&Array.from(document.querySelectorAll('.tags.active'))
+           .some(x=>!x.closest('[aria-hidden="true"]')&&x.textContent.trim()==='最新')};
 })()"""
 
 
@@ -243,6 +275,25 @@ class Browser:
             if snapshot.get('cards') or snapshot.get('login_required') or snapshot.get('challenge'):break
             if '找不到與這個搜尋條件相符的 Pin' in snapshot.get('visibleMain',''):break
             if attempt<2:time.sleep(1)
+        if step['source']=='xiaohongshu' and snapshot.get('cards') and not snapshot.get('login_required') and not snapshot.get('challenge'):
+            controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
+            if controls.get('ok') is True and controls['value'].get('trigger'):
+                self.command('hover','--selector',controls['value']['trigger'],'--session',self.session)
+                controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
+                if controls.get('ok') is True and controls['value'].get('latest') and not controls['value'].get('selected'):
+                    self.command('click','--selector',controls['value']['latest'],'--session',self.session)
+                    time.sleep(1)
+                    # The native menu unmounts after selection; reopen it to verify the active label.
+                    controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
+                    if controls.get('ok') is True and controls['value'].get('trigger'):
+                        self.command('hover','--selector',controls['value']['trigger'],'--session',self.session)
+            snapshot=self.snapshot()
+            confirmed=snapshot.get('sort_latest',False)
+            if controls.get('ok') is True and controls['value'].get('dismiss'):
+                self.command('hover','--selector',controls['value']['dismiss'],'--session',self.session)
+                snapshot=self.snapshot()
+                snapshot['sort_latest']=confirmed
+        if step['source']=='xiaohongshu':snapshot['sort_state']='latest' if snapshot.get('sort_latest') else 'default_control_unavailable'
         return snapshot
 
     def more(self,step):
@@ -251,9 +302,46 @@ class Browser:
         time.sleep(1)
         return self.snapshot()
 
+    def check_duplicate(self,card,history):
+        # shortcut: single primary-image Pins only; revisit when Pin galleries are collected.
+        page=urlsplit(card.get('page',''));url=card.get('cover_url','');parsed=urlsplit(url)
+        if (page.scheme!='https' or page.username or page.password or page.hostname not in ('pinterest.com','www.pinterest.com')
+                or not re.fullmatch(r'/pin/\d+/?',page.path) or parsed.scheme!='https' or parsed.username or parsed.password
+                or not (parsed.hostname=='pinimg.com' or (parsed.hostname or '').endswith('.pinimg.com'))
+                or min(card.get('cover_width',0),card.get('cover_height',0))<200):return None
+        try:
+            with httpx.stream('GET',url,timeout=5,follow_redirects=False) as response:
+                response.raise_for_status();content=bytearray()
+                for chunk in response.iter_bytes():
+                    content.extend(chunk)
+                    if len(content)>2*1024*1024:raise ValueError('Discovery preview exceeds limit')
+            raw=bytes(content);sha=hashlib.sha256(raw).hexdigest()
+            with Image.open(io.BytesIO(raw)) as image:
+                # naturalWidth/Height are density-corrected CSS pixels, not received pixel counts.
+                if (abs((image.width/image.height)/(card['cover_width']/card['cover_height'])-1)>.01 or image.width*image.height>40_000_000
+                        or getattr(image,'n_frames',1)!=1):return None
+                pixels=image.size
+                ext={'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(image.format)
+                if ext is None:return None
+                image.verify()
+            previews=self.folder/'discovery-previews';previews.mkdir(exist_ok=True)
+            if previews.is_symlink() or not previews.resolve().is_relative_to(self.folder.resolve()):return None
+            path=previews/(sha+'.'+ext)
+            if path.is_symlink():return None
+            if not path.exists():atomic_write(path,raw)
+            elif path.read_bytes()!=raw:return None
+            match=history.match(path)
+            if match:return {**match,'reason':'visible_cover_matches_history','preview_match':match['reason'],
+                             'asset_role':'discovery_preview','preview_sha256':sha,'preview_path':str(path.resolve()),
+                             'observed_cover_url':url,'preview_pixel_size':list(pixels),
+                             'observed_intrinsic_size':[card['cover_width'],card['cover_height']]}
+        except (OSError,ValueError,httpx.HTTPError,Image.DecompressionBombError):return None
+        return None
+
     def receive(self,card,step):
         page=card['page'];source=step['source']
         self.return_failed=False
+        entered_detail=source!='xiaohongshu'
         try:
             if source=='xiaohongshu':
                 match=re.search(r'/(?:explore|search_result)/([a-f0-9]{24})',urlsplit(page).path)
@@ -261,10 +349,14 @@ class Browser:
                 note=match.group(1)
                 self.command('click','--selector',f'a.cover[href*="{note}"]','--session',self.session)
                 visible=self.snapshot()
+                path=urlsplit(visible.get('url','')).path
+                entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',path))
                 if visible.get('login_required') or visible.get('challenge'):
                     raise SourceBlocked('登录或验证门槛')
-                if '/404' in urlsplit(visible.get('url','')).path:
+                if '/404' in path:
+                    self.return_failed=True
                     return []
+                if not entered_detail:raise ValueError('Note did not open; search page preserved')
                 canonical='https://www.xiaohongshu.com/explore/'+note
                 return capture_note(self.bsk,self.session,self.folder,canonical,limit=3)
             detail=fetch_pinterest_detail_metadata(self.bsk,self.session,page,self.env)
@@ -289,7 +381,8 @@ class Browser:
                      'source_text':detail.get('title','')+'\n'+detail.get('desc',''),'width':width,'height':height}]
         finally:
             # Restore the same search page; do not start another query or inspect a related feed.
-            try:self.command('navigate-back','--session',self.session,'--timeout','5s',timeout=15)
+            try:
+                if entered_detail:self.command('navigate-back','--session',self.session,'--timeout','5s',timeout=15)
             except (ValueError,OSError,subprocess.SubprocessError):self.return_failed=True
 
     def close(self):
@@ -398,8 +491,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1)->tuple[
                     if assessment['action'] in ('STOP_STALE_QUERY','REVIEW_QUERY_REWRITE','CHANGE_QUERY_OR_SOURCE'):
                         reason=assessment['action'];break
                     checks[source]={'source':source,'status':'usable','detail':'实际查询正常页面；交付数量只计视觉通过。'}
-                    inspected=0;window_before=len(received);kept_before=len(candidates)
-                    for card in snapshot.get('cards',[]):
+                    inspected=0;new_cards=0;window_before=len(received);kept_before=len(candidates)
+                    for card in sorted(snapshot.get('cards',[]),key=lambda c:discovery_rank(c,[project['character'],*plan.names])):
                         while pending and pending.pending[0][1] is not None and pending.pending[0][1].done():finish_one()
                         while pending and len(candidates)+len(pending)>=target:finish_one()
                         stop_reason=limit_reason()
@@ -409,6 +502,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1)->tuple[
                         page_key=parsed.hostname+parsed.path
                         if page_key in pages:continue
                         pages.add(page_key)
+                        new_cards+=1
+                        if history is not None and hasattr(browser,'check_duplicate'):
+                            with timing.span('discovery_preview'):duplicate=browser.check_duplicate(card,history)
+                            if duplicate:
+                                duplicates.append({'page_url':card['page'],**duplicate})
+                                save(folder/'duplicates.json',duplicates);checkpoint();continue
                         inspected+=1;details+=1;per_note=0
                         try:
                             with timing.span('browser_receive'):rows=browser.receive(card,step)
@@ -438,12 +537,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1)->tuple[
                             received.append(row);attempted+=1;per_note+=1
                             save(folder/'received.json',received)
                             pending.submit(row)
+                            checkpoint()
                             if workers==1:finish_one()
                         if getattr(browser,'return_failed',False):
                             reason='search_return_unconfirmed_change_query';break
                     drain();checkpoint()
                     if reason=='login_or_challenge' or getattr(browser,'return_failed',False):break
-                    if not inspected:
+                    if not new_cards:
                         reason='no_new_visible_posts_change_query';break
                     if len(received)>window_before and len(candidates)==kept_before:
                         reason='no_verified_match_change_name_or_source';break
@@ -468,6 +568,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1)->tuple[
     finally:
         pending.close(cancel=True)
         if hasattr(agent,'cache_references'):agent.cache_references(project)
+        if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
+            stop_reason='sources_blocked';blocked=True
         stop_reason=stop_reason or limit_reason() or 'search_plan_exhausted'
         completed={r['asset_sha'] for r in audit}
         for row in received:
@@ -486,6 +588,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1)->tuple[
                                   'execution_unreviewed':sum(r.get('review') is None for r in audit),
                                   'vision_cli_calls':getattr(agent,'vision_cli_calls',calls()),
                                   'historical_images':getattr(history,'initial_count',0),'duplicates':len(duplicates),
+                                   'preview_duplicates':sum(r.get('asset_role')=='discovery_preview' for r in duplicates),
                                   'detail_pages':details,'visible_windows':windows,'stop_reason':stop_reason,
                                   'first_usable_seconds':first_usable,'vision_workers':workers})
         timing.event('collection_finished',accepted=len(candidates),reviewed=reviewed,stop_reason=stop_reason)

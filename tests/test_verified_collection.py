@@ -20,11 +20,11 @@ def result(path,project=PROJECT,**changes):
     return CollectionVision(**{**values,**changes})
 
 
-def test_planner_alternates_names_and_sources_without_default_costume():
+def test_planner_respects_source_priority_and_varies_photo_intent_without_default_costume():
     plan=NamePlan(names=['测试角色甲','Example Person','テスト甲'])
     steps=query_steps(PROJECT,plan,['xiaohongshu','pinterest'])
-    assert steps[0]['source']=='xiaohongshu' and steps[1]['source']=='pinterest'
-    assert steps[1]['query']=='Example Person cosplay'
+    assert [s['source'] for s in steps[:4]]==['xiaohongshu']*4
+    assert steps[4]['query']=='Example Person cosplay photography'
     assert any('テスト甲' in s['query'] for s in steps)
     assert len(steps)<=8 and all('制服' not in s['query'] for s in steps)
     assert {s['alias_origin'] for s in steps}=={'agent_discovery_hypothesis'}
@@ -137,7 +137,7 @@ def test_wrong_images_not_counted_and_next_source_is_attempted(tmp_path):
     browser=FakeBrowser([a]);browser.receive=lambda card,step:[a] if step['source']=='xiaohongshu' else [b]
     agent=FakeAgent(states=['mismatch','match'])
     manifest,images=worker.collect(job(),agent,browser,tmp_path)
-    assert browser.sources[:2]==['xiaohongshu','pinterest']
+    assert browser.sources[:4]==['xiaohongshu']*4 and browser.sources[4]=='pinterest'
     assert len(manifest['candidates'])==len(images)==1
     assert manifest['candidates'][0]['id']=='verified-'+b['asset_sha'][:20]
     assert manifest['candidates'][0]['preflight']['identity_prediction']=='match'
@@ -226,7 +226,7 @@ def test_visual_execution_failure_does_not_abort_other_photo_discovery(tmp_path)
     agent.review=fail
     manifest,images=worker.collect(job(),agent,browser,tmp_path)
     assert len(json.loads((tmp_path/'received.json').read_text('utf8')))==2
-    assert browser.sources[:2]==['xiaohongshu','pinterest'] and agent.calls==2
+    assert browser.sources[:4]==['xiaohongshu']*4 and browser.sources[4]=='pinterest' and agent.calls==2
     audit=json.loads((tmp_path/'visual-audit.json').read_text('utf8'))
     assert len(audit)==2 and not audit[0]['accepted'] and audit[0]['decision']=='NEEDS_EVIDENCE' and audit[1]['accepted']
     assert len(images)==len(manifest['candidates'])==1 and manifest['execution_report']['status']=='blocked'
