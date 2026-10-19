@@ -132,3 +132,11 @@
 - 没有运行真实 AI Review，因此审核通过率、真实身份判断和模型耗时仍 UNVERIFIED。
 - 人工同步使用现有 SQLite ref + 原子 JSON；未做法务/多用户并发压力测试。
 - 没有改 main、正式库、Notion；没有合并或部署。
+
+## Git 发布
+
+- 任务分支：`codex/search-relevance-fix-20261020`。
+- 代码/测试/文档提交：`718a553965f6c9421bf3e1d73af12e6d05e0bd02`；已推送，远端
+  `origin/codex/search-relevance-fix-20261020` 与本地一致。
+- 未合并 main、未写 Notion、未切换日用服务/正式库；本工作树私有证据仍在
+  `.local/`，不随 Git 发布。
