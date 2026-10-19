@@ -1058,8 +1058,8 @@ async function jobHandoff(jobId) {
     const job=await api(`/api/jobs/${jobId}`), bundle=await api(`/api/jobs/${jobId}/bundle`);
     const prompt=`请在 Photography Reference Lab 项目中处理任务 ${job.id}。先执行 python -m ref_lab export-job --job ${job.id} --output job-${job.id.slice(0,8)}.zip（已有包则直接读取，不覆盖）。解压后读取 AGENT_TASK.md 与完整 job.json，按协议使用 ${job.kind==='collection'?'BrowserSkill 搜图':'独立图片逐张分析制卡'}，交回结果并用 import-job 导入。不要改用户的选择或代替确认；没有独立 API 费用。受阻如实报告。若本机不是同一 LAB_DATA_DIR，改用我交给你的任务 ZIP。`;
     const isAnalysis = job.kind === 'analysis';
-    const actionBtnText = isAnalysis ? '✨ 本地 Antigravity 一键分析' : '启动已配置的本地采集 Agent';
-    const actionHelp = isAnalysis ? '直接调用本机已登录的 Antigravity，自动解析图片并生成现场卡草稿；无需下载和手动导入。' : '需预先配置 LAB_COLLECTION_COMMAND 本地适配器。Agent 自主选择来源；未配置或受阻时不会改用备用抓图。也可使用下面的任务包交接。';
+    const actionBtnText = isAnalysis ? '✨ 本地 Antigravity 一键分析' : '让 Agent 找并核验参考';
+    const actionHelp = isAnalysis ? '直接调用本机已登录的 Antigravity，自动解析图片并生成现场卡草稿；无需下载和手动导入。' : '先自动寻找并核查角色与服装参照，再尝试不同名字和摄影来源；存疑造型会主动补证。参照资料与摄影图分开，只交付通过核验的照片。遇登录或可靠证据不足会明确暂停；也可交给当前 Codex 处理任务包。';
     const root=modal(isAnalysis?'制作现场卡 · 本地 Agent':'让 Agent 搜一批好参考',`<p id="agent-run-status" class="notice" role="status">${esc(statuses[job.status])} · ${esc(job.detail)}</p><div class="action-banner"><button id="run-antigravity" class="primary" style="width:100%;font-size:14px;padding:10px 16px;margin-bottom:6px">${esc(actionBtnText)}</button><p class="form-help" style="margin-bottom:14px">${esc(actionHelp)}</p></div><h3>1 · 取得完整任务</h3><p>包含角色、完整自由要求、器材、任务快照${isAnalysis?'和独立原图':'及三层检索策略'}。</p><button id="download-task" class="primary">下载任务 ZIP</button><h3>2 · 交给 Codex / Antigravity</h3><button id="copy-agent-task">复制执行提示词</button><details><summary>查看本轮协议</summary><pre>${esc(bundle.agent_instructions)}</pre></details><h3>3 · 导回结果，由你检查</h3><button id="import-task-result">${isAnalysis?'导入分析结果':'导入候选包'}</button><p class="form-help">也可让 Agent 在同一数据目录运行 import-job；导入的图片仍待你挑选，资料卡仍是草稿。</p>`);
     if ($('run-antigravity')) {
         $('run-antigravity').disabled = ['running','succeeded','cancelled'].includes(job.status);

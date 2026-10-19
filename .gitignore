@@ -46,5 +46,9 @@ build/
 /dist/
 test-results/
 playwright-report/
+# Literal Windows expansion failures and isolated test output; tracked history stays untouched.
+/%SystemDrive%/
+/.pytest-tmp*/
+/tmp*/
 *.log
 .serena/

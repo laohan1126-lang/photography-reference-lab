@@ -16,7 +16,8 @@ def test_windows_launcher_is_repo_local_and_not_wsl_bound():
     assert "run_server.sh" not in launch
     assert "Get-ReferenceLabPython" in launch
     assert "Assert-ReferenceLabPythonMatchesRepo" in launch
-    assert "tools\\collect_adapter.py" in launch
+    assert "tools\\collect_verified.py" in launch
+    assert "env=antigravity_environment()" in launch
     assert "LAB_COLLECTION_COMMAND" in launch
     assert "Split-brain" in read("scripts/runtime-common.ps1")
 

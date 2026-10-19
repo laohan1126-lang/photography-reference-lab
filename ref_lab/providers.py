@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 import json
 import os
+import urllib.request
 from pathlib import Path
 import httpx
 from .db import encode, now
@@ -68,6 +69,20 @@ class OpenAIAnalyzer:
             return AnalysisResult.model_validate_json("".join(texts))
         except ValueError as exc:
             raise ProviderError("分析输出未通过本地结构与完整性校验") from exc
+
+
+def antigravity_environment(env: dict | None = None) -> dict:
+    env = dict(os.environ if env is None else env)
+    keys = ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy')
+    if not any(env.get(key) for key in keys):
+        # Go CLI needs explicit proxy variables; use the enabled Windows route, never a guessed port.
+        proxies = getattr(urllib.request, 'getproxies_registry', lambda: {})()
+        for scheme in ('http', 'https'):
+            if proxies.get(scheme):
+                env[scheme.upper() + '_PROXY'] = proxies[scheme]
+        if proxies.get('no') and not (env.get('NO_PROXY') or env.get('no_proxy')):
+            env['NO_PROXY'] = proxies['no']
+    return env
 
 
 def find_antigravity_cli() -> str | None:
@@ -152,12 +167,7 @@ Step 2: Output ONLY a JSON object that satisfies this schema (no markdown format
                 "--dangerously-skip-permissions"
             ]
 
-            env = dict(os.environ)
-            proxy = env.get("HTTPS_PROXY") or env.get("https_proxy") or env.get("HTTP_PROXY") or env.get("http_proxy")
-            if not proxy:
-                env["HTTP_PROXY"] = "http://127.0.0.1:12000"
-                env["HTTPS_PROXY"] = "http://127.0.0.1:12000"
-                env["ALL_PROXY"] = "http://127.0.0.1:12000"
+            env = antigravity_environment()
 
             try:
                 res = subprocess.run(

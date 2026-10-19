@@ -21,7 +21,7 @@ from .db import encode, now
 from .library_browser import PhotographyFacets, FACETS, ANNOTATION_KEYS, KIND_OBSERVATION_JOIN, BROWSABLE_ASSET
 from .models import Kind
 from .catalog_data import record_asset_observation
-from .providers import ProviderError, find_antigravity_cli
+from .providers import ProviderError, find_antigravity_cli, antigravity_environment
 
 # The owner authorized enrichment of the entire browsable library.
 SCHEMA = """
@@ -110,12 +110,10 @@ asset_sha 必须原样返回 {sha}。
 """
             command = [str(cli), "-p", prompt, "--model", self.model, "--mode", "plan",
                        "--sandbox", "--disable-slash-commands", "--output-format", "stream-json"]
-            env = dict(os.environ)
+            env = antigravity_environment()
             for key in ("LAB_ACCESS_TOKEN", "LAB_COLLECTION_COMMAND", "OPENAI_API_KEY", "NOTION_API_TOKEN", "NOTION_TOKEN"):
                 env.pop(key, None)
             env["LAB_DATA_DIR"] = str(folder / "scratch")
-            if not any(env.get(key) for key in ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy")):
-                env.update(HTTP_PROXY="http://127.0.0.1:12000", HTTPS_PROXY="http://127.0.0.1:12000")
             options = {"start_new_session": True} if os.name != "nt" else {"creationflags": subprocess.CREATE_NO_WINDOW}
             if os.name == "nt":
                 command = [sys._base_executable, str(Path(__file__).with_name("windows_adapter_runner.py")), *command]

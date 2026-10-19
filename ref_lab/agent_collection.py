@@ -52,12 +52,13 @@ def configured_command() -> list[str]:
     return [executable, *command[1:]]
 
 
-def timeout_seconds() -> float:
+def timeout_seconds(target_count: int = 12) -> float:
     try:
         # A real BrowserSkill pass drives a live browser: 8+ queries, lazy page
         # loads and per-card detail pages routinely run past ten minutes, and a
         # 600s default killed the adapter mid-run every time.
-        seconds = float(os.environ.get("LAB_COLLECTION_TIMEOUT_SECONDS", "1800"))
+        default=min(3600,max(1800,int(target_count)*90+300))
+        seconds = float(os.environ.get("LAB_COLLECTION_TIMEOUT_SECONDS",str(default)))
         if not math.isfinite(seconds) or not 0.1 <= seconds <= 3600:
             raise ValueError
         return seconds
@@ -88,6 +89,8 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
     env.pop("LAB_COLLECTION_COMMAND", None)
     # A wrapper must return an artifact, not import into the real personal DB.
     env["LAB_DATA_DIR"] = str(directory / "adapter-scratch")
+    # The local adapter can hash old originals; its model never receives this path.
+    env["LAB_COLLECTION_HISTORY_DIR"] = str((library.settings.data_dir / "assets").resolve())
     options = {} if os.name == "nt" else {"start_new_session": True}
     if os.name == "nt":
         # Use the base interpreter: a venv redirector can exit before its child.
@@ -115,7 +118,7 @@ def run_collection_attempt(library: Library, job_id: str) -> dict:
     evidence: dict = {"code": "not_started", "created": 0, "existing": 0}
     status, detail = "blocked", "本轮尚未得到有效回执；历史候选保留。"
     try:
-        command, seconds = configured_command(), timeout_seconds()
+        command, seconds = configured_command(), timeout_seconds(job.get('target_count') or 12)
         # Temporary task artifacts can contain private project context. They are
         # removed on exit; only safe metadata and imported originals persist.
         root = library.settings.data_dir / "agent-runs"
