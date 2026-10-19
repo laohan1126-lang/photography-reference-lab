@@ -1055,7 +1055,9 @@ async function newAnalysis(ids) {
     finally{state.busy=false;}
 }
 async function jobHandoff(jobId) {
-    const job=await api(`/api/jobs/${jobId}`), bundle=await api(`/api/jobs/${jobId}/bundle`);
+    const job=await api(`/api/jobs/${jobId}`);
+    if(job.is_split_mode){return openCandidateQueue(jobId,{autoStart:false});}
+    const bundle=await api(`/api/jobs/${jobId}/bundle`);
     const prompt=`请在 Photography Reference Lab 项目中处理任务 ${job.id}。先执行 python -m ref_lab export-job --job ${job.id} --output job-${job.id.slice(0,8)}.zip（已有包则直接读取，不覆盖）。解压后读取 AGENT_TASK.md 与完整 job.json，按协议使用 ${job.kind==='collection'?'BrowserSkill 搜图':'独立图片逐张分析制卡'}，交回结果并用 import-job 导入。不要改用户的选择或代替确认；没有独立 API 费用。受阻如实报告。若本机不是同一 LAB_DATA_DIR，改用我交给你的任务 ZIP。`;
     const isAnalysis = job.kind === 'analysis';
     const actionBtnText = isAnalysis ? '✨ 本地 Antigravity 一键分析' : (job.collection_attempt_count ? '继续本次采集' : '让 Agent 找并核验参考');
@@ -1099,19 +1101,126 @@ async function jobHandoff(jobId) {
     $('import-task-result').onclick=()=>importDialog(job.kind==='collection'?'candidates':'analyses',job.id,job.project_id);
     return root;
 }
+const candidateStatusLabels = {pending:'待审核',reviewing:'审核中',accepted:'AI 通过',rejected:'AI 拒绝',blocked:'审核受阻',human_keep:'人工保留',human_reject:'人工淘汰'};
+const searchStageLabels = {idle:'未开始',queued:'排队中',running:'搜索中',completed:'搜索完成',blocked:'搜索受阻',failed:'搜索失败',cancelled:'已取消'};
+const reviewStageLabels = {idle:'未开始',running:'审核中',completed:'审核完成',partial:'部分完成',blocked:'审核受阻',cancelled:'已取消'};
+let candidateQueueTimer = null;
+function stopCandidateQueuePolling(){if(candidateQueueTimer){clearInterval(candidateQueueTimer);candidateQueueTimer=null;}}
+function stageWords(state,labels){return labels[state]||state||'未知';}
+function candidateCountsMarkup(counts){
+    const c=counts||{};
+    return `<div class="candidate-counts" id="cq-counts"><span><strong>${c.found||0}</strong> 已找到候选</span><span><strong>${c.passed||0}</strong> 已通过</span><span><strong>${c.rejected_total||c.rejected||0}</strong> 审核拒绝</span><span><strong>${c.pending||0}</strong> 尚待审核</span><span><strong>${c.blocked||0}</strong> 审核受阻</span></div>`;
+}
+function renderCandidateQueue(jobId,data,projectId){
+    const counts=data.counts||{},search=data.search||{},review=data.review||{};
+    const searchState=search.status||data.job?.search_state||'idle';
+    const reviewState=review.status||data.job?.review_state||'idle';
+    const status=$('cq-status'),countsNode=$('cq-counts'),grid=$('cq-grid');
+    if(!status||!grid)return;
+    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">已下载原图会立即出现在这里；“已找到”不等于通过摄影审核，未审核图片不会进入已验证集合。</p>`;
+    if(countsNode)countsNode.outerHTML=candidateCountsMarkup(counts);
+    const start=$('cq-start-review');
+    if(start){
+        const running=reviewState==='running';
+        const canStart=!running&&['completed','blocked'].includes(searchState)&&(counts.pending||counts.blocked||reviewState==='idle');
+        start.disabled=!canStart;
+        start.textContent=running?'AI 审核进行中…':(canStart?(counts.blocked&&!counts.pending?'重试受阻审核':'启动 AI 审核（独立于搜索）'):'搜索完成后可启动 AI 审核');
+    }
+    const openProject=$('cq-open-project');
+    if(openProject)openProject.disabled=!(counts.found>0&&['completed','blocked'].includes(searchState));
+    const cancelReview=$('cq-cancel-review');
+    if(cancelReview)cancelReview.hidden=reviewState!=='running';
+    const items=data.items||[];
+    grid.innerHTML=items.map((item,index)=>{
+        const label=candidateStatusLabels[item.status]||item.status;
+        const review=item.review?`<p class="form-help">${esc(item.review.identity?('角色 '+item.review.identity):'')}${item.review.costume?' · 服装 '+esc(item.review.costume):''}${item.review.confidence?' · '+esc(item.review.confidence):''}</p>${item.review.reason?`<p>${esc(item.review.reason)}</p>`:''}`:'';
+        const error=item.review_error?`<p class="error-text">${esc(item.review_error)}</p>`:'';
+        return `<article class="candidate-card" data-sha="${esc(item.asset_sha)}">
+          <a class="candidate-image" href="${esc(item.original_url)}" target="_blank" rel="noreferrer"><img loading="lazy" src="${esc(item.original_url)}" alt="候选原图 ${index+1}"></a>
+          <div class="candidate-body"><div class="compact-row"><span class="badge">${esc(label)}</span>${item.human_decision?`<span class="badge">人工决定优先</span>`:''}</div>
+          <p>${esc(item.source.search_query||'来源搜索词未记录')}</p>
+          <p class="form-help">${esc(item.source.author||'作者未记录')} · ${item.width&&item.height?esc(item.width+'×'+item.height):'尺寸未记录'}</p>${review}${error}
+          <div class="compact-row"><a href="${esc(item.original_url)}" target="_blank" rel="noreferrer">打开原图</a><a href="${esc(item.source.page_url)}" target="_blank" rel="noreferrer">原帖</a><button data-decision="keep" class="quiet">人工保留</button><button data-decision="reject" class="quiet">人工淘汰</button>${item.human_decision?'<button data-decision="clear" class="quiet">撤销人工决定</button>':''}</div></div>
+        </article>`;
+    }).join('')||empty('还没有下载到候选','搜索正在尝试；这里只显示已经成功保存的真实原图。登录、验证或来源受阻时会保留已下载部分。');
+    grid.onclick=async event=>{
+        const button=event.target.closest('[data-decision]');
+        if(!button)return;
+        const sha=button.closest('[data-sha]')?.dataset.sha;
+        if(!sha)return;
+        button.disabled=true;
+        try{
+            await api(`/api/jobs/${jobId}/candidates/${sha}/decision`,{method:'POST',body:{decision:button.dataset.decision}});
+            toast(button.dataset.decision==='keep'?'已记录人工保留；AI 不会覆盖这个人选':button.dataset.decision==='reject'?'已记录人工淘汰；原图仍保留在候选队列':'已撤销人工决定');
+            await refreshCandidateQueue(jobId,projectId);
+        }catch(error){showError(error);button.disabled=false;}
+    };
+    if($('cq-open-project'))$('cq-open-project').onclick=async()=>{
+        closeModal();
+        state.project=state.projects.find(p=>p.id===projectId)||state.project;
+        resetFilters();state.jobId=jobId;state.view='references';
+        await refreshView();
+    };
+    if($('cq-start-review'))$('cq-start-review').onclick=async()=>{
+        const btn=$('cq-start-review');btn.disabled=true;
+        try{
+            await api(`/api/jobs/${jobId}/review`,{method:'POST'});
+            toast('独立 AI 审核已启动；搜索与候选浏览不受影响');
+            await refreshCandidateQueue(jobId,projectId);
+        }catch(error){showError(error);btn.disabled=false;}
+    };
+}
+async function refreshCandidateQueue(jobId,projectId){
+    if(!$('cq-grid'))return;
+    try{
+        const data=await api(`/api/jobs/${jobId}/candidates`);
+        renderCandidateQueue(jobId,data,projectId);
+    }catch(error){
+        if($('cq-grid'))showError(error);
+        stopCandidateQueuePolling();
+    }
+}
+async function openCandidateQueue(jobId,{autoStart=true}={}){
+    stopCandidateQueuePolling();
+    let job=null;
+    try{job=await api(`/api/jobs/${jobId}`);}catch(error){showError(error);return;}
+    if(autoStart){
+        try{await api(`/api/jobs/${jobId}/start`,{method:'POST'});}catch(error){showError(error);}
+        try{job=await api(`/api/jobs/${jobId}`);}catch(error){}
+    }
+    const projectId=job?.project_id||'';
+    modal('候选图库 · 先看原图，再审核',`<p id="cq-status" class="notice" role="status">正在读取候选队列…</p>${candidateCountsMarkup({})}<div class="compact-row"><button id="cq-start-review" class="primary">启动 AI 审核（独立于搜索）</button><button id="cq-cancel-review" class="quiet" hidden>取消 AI 审核（不影响搜索）</button><button id="cq-open-project" class="quiet">在项目中查看候选</button><button id="cq-refresh" class="quiet">刷新</button></div><div id="cq-grid" class="candidate-grid"></div>`);
+    $('cq-refresh').onclick=()=>refreshCandidateQueue(jobId,projectId).catch(showError);
+    $('cq-cancel-review').onclick=async()=>{
+        try{await api(`/api/jobs/${jobId}/review/cancel`,{method:'POST'});toast('已取消 AI 审核；搜索和已下载候选不受影响');await refreshCandidateQueue(jobId,projectId);}catch(error){showError(error);}
+    };
+    await refreshCandidateQueue(jobId,projectId);
+    candidateQueueTimer=setInterval(()=>refreshCandidateQueue(jobId,projectId),1000);
+}
 function collectionEditor(projectId=state.project?.id) {
     if(!state.projects.length){projectEditor();return;}
-    const root=modal('这次想找什么参考？',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('期望候选数量（质量优先，不凑数）','target_count',80,'number','min="1" max="500" required')}<p class="form-help">角色、作品、版本、器材和项目完整要求一并保存。来源由 Agent 根据角色、任务质量与实际可用性选择；不限定站点顺序，登录或访问受阻应停止并报告。</p><div class="form-actions"><button type="submit" class="primary">建立采集任务</button></div></form>`);
-    formSubmit(root,async data=>{const job=await api(`/api/projects/${data.project_id}/jobs`,{method:'POST',body:{kind:'collection',notes:data.notes,target_count:Number(data.target_count)}});closeModal();await jobHandoff(job.id);});
+    const root=modal('快速搜图，还是同时 AI 审核？',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${select('运行方式','collection_mode',{search:'快速搜图：先拿原图，稍后人工或 AI 审核',search_review:'搜图 + AI 审核：搜索不等待审核'},'search')}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('期望候选数量（质量优先，不凑数）','target_count',4,'number','min="1" max="500" required')}<p class="form-help">快速搜图不调用名称/参照/视觉模型，不做官方资料考证；原图下载成功后立即出现在候选图库。AI 审核独立运行，参照调查、身份核验和完整补证仍按原严格门槛执行。搜索成功后审核失败不会删除候选。</p><div class="form-actions"><button type="submit" class="primary">开始搜图</button></div></form>`);
+    formSubmit(root,async data=>{
+        const job=await api(`/api/projects/${data.project_id}/jobs`,{method:'POST',body:{kind:'collection',notes:data.notes,target_count:Number(data.target_count),collection_mode:data.collection_mode}});
+        closeModal();
+        await openCandidateQueue(job.id,{autoStart:true});
+    });
 }
 async function renderJobs() {
     const epoch=++state.epoch,jobs=await api('/api/jobs');if(epoch!==state.epoch)return;
     $('view').dataset.shell='';
-    $('view').innerHTML=`<div class="notice">默认使用 BrowserSkill + Codex / Antigravity。先建立任务，再交给 Agent；网页不会把“待执行”显示成已搜完。</div><div class="toolbar"><button id="create-collection" class="primary">＋ 建立采集任务</button><button id="refresh-jobs">刷新结果</button></div><div class="job-grid">${jobs.map(j=>`<article class="job-card" data-job="${j.id}"><div class="compact-row">${badge(j.kind==='collection'?'搜图':'制卡')}${badge(statuses[j.status],j.status)}${j.kind==='collection'&&j.collection_outcome?badge({complete:'目标已达',partial:'部分完成',blocked:'待恢复'}[j.collection_outcome]):''}</div><h3>${esc(j.project_snapshot?.character||state.projects.find(p=>p.id===j.project_id)?.character||'历史项目')}</h3><p>${esc(j.detail)}</p><p>${j.kind==='collection'?`本轮 ${j.last_receipt_reference_ids?.length||0} / ${j.target_count} · 累计导入 ${j.imported_ids.length}`:`完成 ${j.completed_ids.length} / ${j.reference_ids.length} 张分析 · 尚需你确认现场卡`}</p><small>${esc(j.created_at.slice(0,16).replace('T',' '))}</small><div class="compact-row"><button data-action="handoff">${j.kind==='collection'&&j.can_resume&&j.collection_attempt_count?'继续本次采集':'任务与结果'}</button>${j.kind==='collection'&&j.imported_ids.length?'<button data-action="candidates">挑这批图片</button>':''}${j.kind==='analysis'&&j.reference_ids.length?'<button data-action="reference">查看这张参考</button>':''}${!['succeeded','cancelled'].includes(j.status)?'<button data-action="cancel" class="quiet">取消</button>':''}</div><details><summary>要求、来源检查与缺口</summary><pre>${esc(JSON.stringify({project:j.project_snapshot,notes:j.notes,report:j.execution_report},null,2))}</pre></details></article>`).join('')||empty('从一轮具体需求开始','任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。')}</div>`;
+    $('view').innerHTML=`<div class="notice">快速搜图先下载并展示候选，不等待官方参照调查或视觉模型；AI 审核独立运行。搜索状态与审核状态分别记录，审核失败不会删除已下载候选。</div><div class="toolbar"><button id="create-collection" class="primary">＋ 建立搜图任务</button><button id="refresh-jobs">刷新结果</button></div><div class="job-grid">${jobs.map(j=>{
+        const split=Boolean(j.is_split_mode),sc=j.search_counts||{},rc=j.review_counts||{};
+        const stageLine=split?`已找到 ${sc.found||0} · AI通过 ${rc.accepted||0} / 目标 ${j.target_count} · 搜索 ${stageWords(j.search_state,searchStageLabels)} · 审核 ${stageWords(j.review_state,reviewStageLabels)}`:`本轮 ${j.last_receipt_reference_ids?.length||0} / ${j.target_count} · 累计导入 ${j.imported_ids.length}`;
+        const queueButtons=split?`<button data-action="queue">候选图库</button>${j.can_start_review?'<button data-action="start-review" class="quiet">启动AI审核</button>':''}`:'';
+        return `<article class="job-card" data-job="${j.id}"><div class="compact-row">${badge(j.kind==='collection'?'搜图':'制卡')}${split?badge('搜索 '+stageWords(j.search_state,searchStageLabels)):badge(statuses[j.status],j.status)}${split?badge('审核 '+stageWords(j.review_state,reviewStageLabels)):(j.kind==='collection'&&j.collection_outcome?badge({complete:'目标已达',partial:'部分完成',blocked:'待恢复'}[j.collection_outcome]):'')}</div><h3>${esc(j.project_snapshot?.character||state.projects.find(p=>p.id===j.project_id)?.character||'历史项目')}</h3><p>${esc(split?stageLine:j.detail)}</p>${split?'':`<p>${stageLine}</p>`}<small>${esc(j.created_at.slice(0,16).replace('T',' '))}</small><div class="compact-row">${queueButtons}${split?'<button data-action="handoff" class="quiet">任务与结果</button>':`<button data-action="handoff">${j.kind==='collection'&&j.can_resume&&j.collection_attempt_count?'继续本次采集':'任务与结果'}</button>`}${j.kind==='collection'&&j.imported_ids.length?'<button data-action="candidates">挑这批图片</button>':''}${j.kind==='analysis'&&j.reference_ids.length?'<button data-action="reference">查看这张参考</button>':''}${!['succeeded','cancelled'].includes(j.status)?'<button data-action="cancel" class="quiet">取消</button>':''}</div><details><summary>要求、来源检查与缺口</summary><pre>${esc(JSON.stringify({project:j.project_snapshot,notes:j.notes,report:j.execution_report,search:j.search_summary,review:j.review_summary},null,2))}</pre></details></article>`;
+    }).join('')||empty('从一轮具体需求开始','任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。')}</div>`;
     $('create-collection').onclick=()=>collectionEditor();$('refresh-jobs').onclick=()=>renderJobs().catch(showError);
     listen('view','[data-action]','click',async(e,n)=>{
         const job=jobs.find(j=>j.id===n.closest('[data-job]').dataset.job);
-        if(n.dataset.action==='handoff')return jobHandoff(job.id);
+        if(n.dataset.action==='handoff')return job.is_split_mode?openCandidateQueue(job.id,{autoStart:false}):jobHandoff(job.id);
+        if(n.dataset.action==='queue')return openCandidateQueue(job.id,{autoStart:false});
+        if(n.dataset.action==='start-review'){await api(`/api/jobs/${job.id}/review`,{method:'POST'});toast('独立 AI 审核已启动');return openCandidateQueue(job.id,{autoStart:false});}
         if(n.dataset.action==='reference')return openProjectReference(job.project_id,job.reference_ids[0]);
         if(n.dataset.action==='candidates'){if(!safeDiscard())return;state.project=state.projects.find(p=>p.id===job.project_id);resetFilters();state.jobId=job.id;state.view='references';return refreshView();}
         if(n.dataset.action==='cancel'){await api(`/api/jobs/${job.id}/status`,{method:'POST',body:{expected_revision:job.revision,status:'cancelled',detail:'用户取消，已有结果保留'}});await renderJobs();}
@@ -1349,6 +1458,7 @@ $('lock-library').onclick=async()=>{
 };
 listen(document,'[data-view]','click',(e,n)=>navigate(n.dataset.view));
 $('editor-close').onclick=manualCloseModal;
+$('editor').addEventListener('close',()=>stopCandidateQueuePolling());
 $('editor').addEventListener('input',()=>modalDirty=true);
 $('editor').addEventListener('cancel',event=>{event.preventDefault();manualCloseModal();});
 $('lightbox-close').onclick=()=>$('lightbox').close();

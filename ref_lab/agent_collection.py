@@ -72,6 +72,23 @@ def timeout_seconds(target_count: int = 12) -> float:
         raise AttemptStop("invalid_timeout", "采集超时设置须为 0.1 到 3600 之间的有限秒数。") from None
 
 
+def stage_timeout_seconds(stage: str, target_count: int = 12) -> float:
+    """Independent wall budgets: Review cannot extend or consume Search time."""
+    if stage == "review":
+        default = min(3600, max(900, int(target_count) * 120 + 600))
+        name = "LAB_REVIEW_TIMEOUT_SECONDS"
+    else:
+        default = min(1800, max(300, int(target_count) * 90 + 180))
+        name = "LAB_SEARCH_TIMEOUT_SECONDS"
+    try:
+        seconds = float(os.environ.get(name, str(default)))
+        if not math.isfinite(seconds) or not 0.1 <= seconds <= 3600:
+            raise ValueError
+        return seconds
+    except ValueError:
+        raise AttemptStop("invalid_timeout", "阶段超时设置须为 0.1 到 3600 之间的有限秒数。") from None
+
+
 def stop_process_tree(process: subprocess.Popen) -> None:
     """Terminate only this attempt's process group, never the owner's browser."""
     if os.name == "nt":
@@ -244,7 +261,15 @@ def _prepare_task(library: Library, job_id: str, task_dir: Path, task_file: Path
                            "\n## 本次自动适配器交付约束（替代上文 import-job 指示）\n"
                            "只生成 result.zip 到适配器指定位置。不要自行导入、操作网页 API 或修改个人数据库。"
                            "网页负责校验并导入；stdout/stderr 不作为结果也不会记录。\n", encoding="utf-8")
-    stage.replace(task_dir)
+    try:
+        stage.replace(task_dir)
+    except OSError:
+        # Another stage may have completed the same package concurrently. Reuse it
+        # only when it is complete; otherwise keep the original failure visible.
+        if task_dir.is_dir() and task_file.is_file():
+            shutil.rmtree(stage, ignore_errors=True)
+            return
+        raise
 
 
 def _read_result(result_file: Path, job_id: str) -> tuple[bytes, CandidatePackage]:
@@ -402,6 +427,8 @@ def _owner_record(pid: int, *, phase: str, pgid: int | None = None) -> dict:
 def collection_can_resume(library: Library, job: dict) -> bool:
     if job.get("kind") != "collection" or job.get("status") in {"succeeded", "cancelled"}:
         return False
+    if job.get("review_attempt_id") and _process_owner_active(job.get("review_process_owner")):
+        return False
     if job.get("active_attempt_id") and _process_owner_active(job.get("collection_process_owner")):
         return False
     run_dir = library.settings.data_dir / "agent-runs" / str(job["id"])
@@ -412,13 +439,23 @@ def collection_can_resume(library: Library, job: dict) -> bool:
         return False
     lock.release()
     if job.get("status") == "running":
-        return bool(job.get("active_attempt_id"))
+        return bool(job.get("active_attempt_id") or job.get("review_attempt_id"))
     return job.get("status") in {"blocked", "queued", "failed"}
+
+
+def review_can_resume(library: Library, job: dict) -> bool:
+    if job.get("kind") != "collection" or job.get("status") == "cancelled":
+        return False
+    if job.get("review_state") not in {"running", "blocked", "partial"}:
+        return False
+    if job.get("review_attempt_id") and _process_owner_active(job.get("review_process_owner")):
+        return False
+    return True
 
 
 def run_process(library: Library, job_id: str, attempt_id: str, command: list[str],
                 directory: Path, seconds: float, lock_file=None, *,
-                imported_result_sha256: str = "") -> int:
+                imported_result_sha256: str = "", stage: str = "collection") -> int:
     env = dict(os.environ)
     env.pop("LAB_ACCESS_TOKEN", None)
     env.pop("LAB_COLLECTION_COMMAND", None)
@@ -440,7 +477,7 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
         options = {"start_new_session": True}
         if lock_file is not None:
             options["pass_fds"] = (lock_file.fileno(),)
-    library.set_collection_process_owner(job_id, attempt_id, _owner_record(os.getpid(), phase="launching"))
+    library.set_stage_process_owner(job_id, stage, attempt_id, _owner_record(os.getpid(), phase="launching"))
     try:
         process = subprocess.Popen(command, cwd=directory, env=env, stdin=subprocess.DEVNULL,
                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False, **options)
@@ -449,11 +486,19 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
             os.set_inheritable(lock_file.fileno(), False)
     try:
         pgid = os.getpgid(process.pid) if os.name != "nt" else None
-        library.set_collection_process_owner(job_id, attempt_id, _owner_record(process.pid, phase="running", pgid=pgid))
+        library.set_stage_process_owner(job_id, stage, attempt_id,
+                                        _owner_record(process.pid, phase="running", pgid=pgid))
         deadline = time.monotonic() + seconds
         while process.poll() is None:
             job = library.job(job_id)
-            if job["status"] != "running" or job.get("active_attempt_id") != attempt_id:
+            if stage == "review":
+                authorized = (job.get("review_attempt_id") == attempt_id
+                              and job.get("review_state") == "running"
+                              and job.get("status") != "cancelled")
+            else:
+                authorized = (job["status"] == "running"
+                              and job.get("active_attempt_id") == attempt_id)
+            if not authorized:
                 raise AttemptStop("attempt_superseded", "任务已取消或状态已改变，停止本轮子进程。")
             if time.monotonic() >= deadline:
                 raise AttemptStop("process_timeout", "本地 Agent 执行超时，已停止本轮进程；历史候选保留，可重试或手动交接。")

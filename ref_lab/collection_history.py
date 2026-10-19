@@ -1,4 +1,11 @@
-"""Local-only duplicate exclusion. Never changes source images or human choices."""
+"""Local-only duplicate exclusion. Never changes source images or human choices.
+
+Search must not wait for a full perceptual rebuild. A path/size/mtime keyed cache
+lets a warm run load fingerprints by ``stat`` only; a cold run can fill expensive
+fingerprints in the background while download/display proceeds. The Review stage
+uses the same cache synchronously before admitting an image, so a duplicate that
+was not yet visible during Search cannot reach the formal schema3 package.
+"""
 from __future__ import annotations
 
 import hashlib
@@ -7,6 +14,7 @@ import math
 import os
 import re
 import tempfile
+import threading
 from pathlib import Path
 
 from PIL import Image, ImageOps
@@ -14,12 +22,12 @@ from PIL import Image, ImageOps
 from .preflight import compute_dhash, hamming_distance
 
 
-# Bump when the decoded representation, dHash, or colour sample changes.
+# Bump when the decoded representation, dHash, colour sample, or cache key changes.
 FINGERPRINT_ALGORITHM_VERSION=1
-CACHE_SCHEMA_VERSION=1
-_CACHE_KEY=re.compile(r"([1-9][0-9]*):([0-9a-f]{64})\Z")
+CACHE_SCHEMA_VERSION=2
 _DHASH=re.compile(r"[0-9a-f]{16}\Z")
 _SAMPLE=re.compile(r"[0-9a-f]{384}\Z")
+_SHA=re.compile(r"[0-9a-f]{64}\Z")
 
 
 def _is_link_or_junction(path):
@@ -92,15 +100,6 @@ def fingerprint(path: Path):
     return _fingerprint_from_raw(path,raw,hashlib.sha256(raw).hexdigest())
 
 
-def _cache_key(sha):
-    return f'{FINGERPRINT_ALGORITHM_VERSION}:{sha}'
-
-
-def _cache_checksum(entries):
-    payload=json.dumps(entries,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf8')
-    return hashlib.sha256(payload).hexdigest()
-
-
 def _valid_cache_value(value):
     return (isinstance(value,dict)
             and type(value.get('ratio')) in (int,float)
@@ -109,29 +108,39 @@ def _valid_cache_value(value):
             and isinstance(value.get('sample'),str) and _SAMPLE.fullmatch(value['sample']))
 
 
+def _valid_file_entry(value):
+    return (_valid_cache_value(value)
+            and isinstance(value.get('sha'),str) and _SHA.fullmatch(value['sha'])
+            and type(value.get('size')) is int and value['size']>=0
+            and type(value.get('mtime_ns')) is int and value['mtime_ns']>=0)
+
+
+def _cache_checksum(files):
+    payload=json.dumps(files,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf8')
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _read_cache(path):
     try:
         payload=json.loads(path.read_text(encoding='utf8'))
-        if not isinstance(payload,dict):return {}
-        entries=payload.get('entries')
-        if (payload.get('schema_version')!=CACHE_SCHEMA_VERSION or not isinstance(entries,dict)
-                or payload.get('checksum')!=_cache_checksum(entries)):
+        if not isinstance(payload,dict) or payload.get('schema_version')!=CACHE_SCHEMA_VERSION:
+            return {}
+        files=payload.get('files')
+        if not isinstance(files,dict) or payload.get('checksum')!=_cache_checksum(files):
             return {}
         result={}
-        for key,value in entries.items():
-            match=_CACHE_KEY.fullmatch(key) if isinstance(key,str) else None
-            if not match:return {}
-            if match.group(1)==str(FINGERPRINT_ALGORITHM_VERSION):
-                if not _valid_cache_value(value):return {}
-                result[key]=value
+        for key,value in files.items():
+            if not isinstance(key,str) or not Path(key).is_absolute() or not _valid_file_entry(value):
+                return {}
+            result[key]=value
         return result
     except (OSError,UnicodeError,ValueError,TypeError):
         return {}
 
 
-def _write_cache(path,entries):
-    payload={'schema_version':CACHE_SCHEMA_VERSION,'entries':dict(sorted(entries.items()))}
-    payload['checksum']=_cache_checksum(payload['entries'])
+def _write_cache(path,files):
+    payload={'schema_version':CACHE_SCHEMA_VERSION,'files':dict(sorted(files.items()))}
+    payload['checksum']=_cache_checksum(payload['files'])
     temporary=None
     try:
         path.parent.mkdir(parents=True,exist_ok=True)
@@ -151,51 +160,138 @@ def _write_cache(path,entries):
 
 
 class ImageHistory:
-    def __init__(self,paths,cache_path=None):
+    def __init__(self,paths,cache_path=None,*,lazy=False):
         self.cache_path=Path(cache_path) if cache_path is not None else None
-        self._cache=_read_cache(self.cache_path) if self.cache_path is not None else {}
+        self._cache_files=_read_cache(self.cache_path) if self.cache_path is not None else {}
         self._cache_dirty=False
+        self._lock=threading.RLock()
+        self._stop=threading.Event()
+        self._thread=None
+        self._pending=[]
+        self.errors=[]
+        self.ready=not lazy
         self.records={}
+        self.known_shas=set()
+        ordered=[]
+        seen=set()
         for path in paths:
-            value=self._fingerprint(path);self.records[value['asset_sha']]=value
-        self.initial_count=len(self.records)
+            try:resolved=Path(path).resolve()
+            except (OSError,RuntimeError):continue
+            if resolved in seen:continue
+            seen.add(resolved);ordered.append(resolved)
+            # Asset stores and collection runs embed the exact SHA in a path
+            # component. This catches same-byte history immediately, before the
+            # expensive perceptual index has finished in the background.
+            for value in (resolved.name.split('.')[0],resolved.parent.name,resolved.parent.parent.name):
+                if isinstance(value,str) and _SHA.fullmatch(value):
+                    self.known_shas.add(value);break
+        self.known_count=len(self.known_shas)
+        if lazy:
+            # Only stat()/remembered fingerprints here; a cold decode cannot delay first download.
+            for path in ordered:
+                record=self._cached_record(path)
+                if record is None:self._pending.append(path)
+                else:self.records[record['asset_sha']]=record
+            self.initial_count=len(self.records)
+            self._thread=threading.Thread(target=self._fill,args=(self._pending,),daemon=True,
+                                          name='history-fingerprints')
+            self._thread.start()
+        else:
+            for path in ordered:self._remember(path)
+            self.initial_count=len(self.records)
+            self.ready=True
+            self._save_cache()
+
+    def _stat_key(self,path):
+        try:
+            stat=path.stat()
+            if not path.is_file() or path.is_symlink():return None
+        except OSError:
+            return None
+        return {'size':int(stat.st_size),'mtime_ns':int(stat.st_mtime_ns)}
+
+    def _cached_record(self,path):
+        key=str(path)
+        cached=self._cache_files.get(key)
+        stat=self._stat_key(path)
+        if not cached or not stat:return None
+        if cached.get('size')!=stat['size'] or cached.get('mtime_ns')!=stat['mtime_ns']:
+            return None
+        return {'asset_sha':cached['sha'],'path':key,'ratio':cached['ratio'],
+                'dhash':cached['dhash'],'sample':cached['sample']}
+
+    def _remember(self,path):
+        value=self._fingerprint(path)
+        with self._lock:self.records[value['asset_sha']]=value
+        return value
+
+    def _fill(self,paths):
+        for path in paths:
+            if self._stop.is_set():break
+            try:self._remember(path)
+            except (OSError,ValueError) as exc:
+                self.errors.append({'path':str(path),'error':type(exc).__name__})
+        self.ready=True
         self._save_cache()
 
     def _fingerprint(self,path):
+        path=Path(path).resolve()
+        key=str(path)
+        stat=self._stat_key(path)
+        if stat is None:raise ValueError('Duplicate input is unavailable')
+        cached=self._cache_files.get(key)
+        if (cached is not None and cached.get('size')==stat['size']
+                and cached.get('mtime_ns')==stat['mtime_ns']
+                and _valid_file_entry(cached)):
+            return {'asset_sha':cached['sha'],'path':key,'ratio':cached['ratio'],
+                    'dhash':cached['dhash'],'sample':cached['sample']}
         raw=path.read_bytes()
         if len(raw)>20*1024*1024:raise ValueError('Duplicate input exceeds image size limit')
-        sha=hashlib.sha256(raw).hexdigest();key=_cache_key(sha)
-        cached=self._cache.get(key)
-        if cached is not None:
-            return {'asset_sha':sha,'path':str(path.resolve()),**cached}
+        sha=hashlib.sha256(raw).hexdigest()
         value=_fingerprint_from_raw(path,raw,sha)
-        if self.cache_path is not None:
-            self._cache[key]={key:value[key] for key in ('ratio','dhash','sample')}
-            self._cache_dirty=True
+        self._cache_files[key]={'size':stat['size'],'mtime_ns':stat['mtime_ns'],'sha':sha,
+                                'ratio':value['ratio'],'dhash':value['dhash'],'sample':value['sample']}
+        self._cache_dirty=True
         return value
 
     def _save_cache(self):
-        if self.cache_path is not None and self._cache_dirty:
-            self._cache_dirty=not _write_cache(self.cache_path,self._cache)
+        if self.cache_path is None:return
+        with self._lock:
+            if not self._cache_dirty:return
+            self._cache_dirty=not _write_cache(self.cache_path,self._cache_files)
 
-    def consider(self,path):
-        value=self._fingerprint(path);sha=value['asset_sha']
-        found=self._match(value)
-        if not found:
-            self.records[sha]=value
-        return found
+    def wait(self,timeout=None):
+        if self._thread is not None:self._thread.join(timeout)
+        return not self._thread.is_alive() if self._thread is not None else True
 
-    def match(self,path):
-        """A discovery preview can match history but must never become an original."""
-        return self._match(self._fingerprint(path))
+    def close(self,*,wait=True,timeout=10):
+        self._stop.set()
+        if self._thread is not None and wait:self._thread.join(timeout)
+        self._save_cache()
 
     def _match(self,value):
         sha=value['asset_sha']
-        if sha in self.records:return {'duplicate_of':sha,'reason':'same_bytes'}
+        with self._lock:
+            if sha in self.known_shas:return {'duplicate_of':sha,'reason':'same_bytes'}
+            records=list(self.records.values())
+        if sha in {other['asset_sha'] for other in records}:return {'duplicate_of':sha,'reason':'same_bytes'}
         sample=bytes.fromhex(value['sample'])
-        for other in self.records.values():
+        for other in records:
             if abs(value['ratio']/other['ratio']-1)>.03 or hamming_distance(value['dhash'],other['dhash'])>6:continue
             # Preserve originals; quarantine only close composition AND colour matches.
             difference=sum(abs(a-b) for a,b in zip(sample,bytes.fromhex(other['sample'])))/len(sample)
             if difference<=8:return {'duplicate_of':other['asset_sha'],'reason':'near_duplicate'}
         return None
+
+    def consider(self,path):
+        value=self._fingerprint(path);sha=value['asset_sha']
+        found=self._match(value)
+        if not found:
+            with self._lock:
+                self.records[sha]=value;self.known_shas.add(sha)
+            self._cache_dirty=True
+        return found
+
+    def match(self,path):
+        """A discovery preview can match history but must never become an original."""
+        return self._match(self._fingerprint(path))

@@ -20,6 +20,40 @@
 - `recycle.py`：显式、延迟、带活跃引用检查的本地清理。
 - `web/`：稳定单图工作台、全局导航、单步制卡入口和持久化浏览定位。
 
+## Search / Review 解耦（2026-10-20）
+
+采集任务可显式选择 `collection_mode=search`（快速搜图）或 `search_review`（搜图 + 独立 AI 审核）。历史 `verified` 一体式模式保留给旧任务和回归，不作为新网页入口。
+
+### 数据流
+
+修改前：一个 HTTP 请求同步执行名称计划 → 官方参照研究（SourceAssessment）→ 浏览/下载 → 每张图立刻视觉核验/补证 → 只把 accepted 写入 result.zip → 才导入网页。参照研究或视觉模型变慢会直接推迟首张图片可见；审核失败时已下载原图没有正常网页入口。
+
+修改后：
+
+1. **Search** 以 `tools/collect_verified.py --search-only` 运行。它只用项目已有角色/作品/服装字段生成搜索词（`deterministic_plan`），不调用 NamePlan/ReferenceDiscovery/SourceAssessment/CollectionVision；下载成功后立即原子写入 `received.json` 和原图，网页候选队列按文件状态实时展示。
+2. 搜索达到候选目标、时间/详情预算或来源阻断时结束；`search-summary.json` 记录 `status/stop_reason/counts/model_calls/tokens`。服务端把已下载原图导入项目为 **pending** 候选（不是已验证），因此用户可先挑图；没有 AI 审核也不丢失图片。
+3. **Review** 以 `--review-only` 独立运行。它读取同一批原图 SHA，使用原有 NamePlan、官方参照研究、SourceAssessment、CollectionVision、needs_supplement 和严格 `accepted` 规则；每张图独立写入 `review-audit.json`。只有 accepted 才生成 schema3 `review-result.zip` 并导入；拒绝/受阻/超时只更新候选状态，不删除原图。
+4. Search 与 Review 各有独立 attempt id、锁、进程所有者、累计预算和终止状态。`search_review` 模式同时启动两者；Review 在搜索运行期间消费新候选，但不阻塞搜索。取消 Review 不停止 Search；取消 Search 不删除已下载候选或已完成审核。
+5. 人工保留/淘汰写入 `human-decisions.json`，优先级高于 AI；审核工作器和导入器都不会覆盖人工淘汰。人工/未审核图片只出现在候选视图，不进入“已验证”集合。
+
+### 持久文件与阶段契约
+
+私有运行目录仍为 `.local/collection-runs/<job_id>/current/`：
+
+- `received.json`：已下载原图、来源 URL、搜索词、页面、尺寸、SHA、获得时间。原图只保存一次，Review 读取同一路径/SHA。
+- `search-summary.json`：`status=completed|blocked|failed|cancelled`、`stop_reason`、`counts.found/duplicates/errors`、首图秒数、耗时、模型调用与 Token。
+- `review-audit.json`：按 SHA 保存 `accepted|rejected|blocked|duplicate|reviewing`、模型判断、参照 SHA、错误和 attempt 次数；重启不重复调用已完成项，受阻项可在剩余额度内重试。
+- `review-summary.json`：AI 通过与拒绝/受阻/待审数量、停止原因、模型调用与 Token。
+- `human-decisions.json`：人工 `keep|reject`，独立于 AI 判断。
+- `search-summary` 与 `review-summary` 分开记录；Job 上的 `search_state/search_counts` 与 `review_state/review_counts` 也分开，搜索成功而审核失败/未开始显示为“搜索完成 + 审核未开始/受阻”，不会把整个任务说成一无所获。
+
+### 模块
+
+- `ref_lab/collection_stages.py`：Search/Review 启动、独立进程/累计预算、搜索候选导入、审核 ZIP 导入与阶段状态。
+- `ref_lab/collection_queue.py`：只读候选队列投影、人工决定和原图读取；不调用模型、不写个人库。
+- `ref_lab/collection_history.py`：路径/SHA 快速精确排重 + 后台感知指纹缓存；Search 不等待全量重建，Review 在正式准入前使用同一历史集合复核。
+- `tools/collect_verified.py` 的 `--search-only` / `--review-only` 复用原采集、参照和视觉代码；`accepted`、schema3、身份/服装门槛和摄影提示词不变。
+
 ## 四类概念不能混在一起
 
 **Asset** 是独立的文件资产，表 `assets` 不属于角色。收到的字节不代表作者相机原片或平台最高分辨率。精确重复合并；近似重复仅提示，不自动删除。

@@ -96,7 +96,7 @@ def component_factory(client, library):
                 const pending=new WeakMap();
                 const replace=()=>document.querySelectorAll('img').forEach(async img=>{
                     const src=img.getAttribute('src');
-                    if(!src?.startsWith('/api/assets/')||pending.get(img)===src)return;
+                    if((!src?.startsWith('/api/assets/')&&!src?.startsWith('/api/jobs/'))||pending.get(img)===src)return;
                     pending.set(img,src);
                     const r=await __testRequest(src);
                     if(img.getAttribute('src')===src&&r.status===200)img.src=`data:${r.type};base64,${r.bytes}`;
@@ -202,11 +202,13 @@ def test_ui_new_character_editable_note_and_blocked_job(ui):
     page.locator('#editor').wait_for(state='hidden')
     expect(page.locator('[data-note]')).to_contain_text('保留有效的引导')
     page.get_by_role('button',name='采集任务',exact=True).click()
-    page.get_by_role('button',name='＋ 建立采集任务',exact=True).click()
-    page.get_by_label('本轮自由要求').fill('中文、日文检索；优先手势清楚的独立图片')
-    page.get_by_role('button',name='建立采集任务',exact=True).click()
+    # Keep the historical task-package handoff covered directly; the primary
+    # collection editor now creates split Search/Review jobs.
+    new_project=next(p for p in library.projects() if p['character']=='有马加奈')
+    job=library.create_job(new_project['id'],JobInput(kind='collection',notes='中文、日文检索；优先手势清楚的独立图片'))
+    page.evaluate('id => jobHandoff(id)',job['id'])
     page.locator('#download-task').wait_for()
-    assert library.jobs()[0]['status']=='blocked'
+    assert library.job(job['id'])['status']=='blocked'
     expect(page.locator('#editor')).to_contain_text('Codex / Antigravity')
 
 

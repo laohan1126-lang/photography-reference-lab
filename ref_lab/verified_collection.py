@@ -261,6 +261,33 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]
     return steps[:8]
 
 
+def deterministic_plan(project: dict, aliases=()) -> NamePlan:
+    """Build searchable queries from fields the user already entered.
+
+    This is deliberately not a model call and not an official-name claim. Search
+    may start before any alias/reference research exists; Review can later build
+    a fuller NamePlan without changing what was already downloaded.
+    """
+    character = str(project.get('character') or '').strip()
+    if not character:
+        raise AgentUnavailable('角色名为空，无法生成搜索词。')
+    work = str(project.get('work') or '').strip()
+    costume = str(project.get('costume') or '').strip()
+    names = [character]
+    if work:
+        # A combined query keeps the role in every search, unlike cycling a bare work name.
+        combined = f'{character} {work}'.strip()
+        if len(combined) <= 120 and combined.casefold() != character.casefold():
+            names.append(combined)
+    for alias in aliases:
+        alias = str(alias or '').strip()
+        if alias and alias.casefold() not in {name.casefold() for name in names} and len(alias) <= 120:
+            names.append(alias)
+    return NamePlan(names=names[:8], costume_names=[costume] if costume else [],
+                    uncertainty='快速搜图仅使用项目已有字段；角色别名与官方参照留给独立审核阶段。',
+                    work_aliases=[work] if work else [])
+
+
 def parse_agent_stream(text: str, result_type, image_path: Path | None = None, *, reference_paths=()):
     opened=set();result=None
     expected={os.path.normcase(str(path.resolve())) for path in reference_paths}
@@ -288,7 +315,8 @@ def parse_agent_stream(text: str, result_type, image_path: Path | None = None, *
 
 
 class AntigravityCollectionAgent:
-    def __init__(self, folder: Path, model: str | None = None, *, target_count: int = 12):
+    def __init__(self, folder: Path, model: str | None = None, *, target_count: int = 12,
+                 runtime_budget: bool = True):
         self.folder=folder
         self._thread=threading.local();self._budget_lock=threading.RLock();self._prompt_locks={}
         self.cancelled=threading.Event();self.timing=CollectionTiming(folder)
@@ -301,14 +329,18 @@ class AntigravityCollectionAgent:
         self.vision_cli_calls=sum(a.get('result_type')=='CollectionVision' for a in attempts)
         self.candidate_calls=len({a.get('binding',{}).get('prompt_sha256',str(i)) for i,a in enumerate(attempts) if a.get('result_type')=='CollectionVision'})
         from .agent_collection import timeout_seconds
-        budget=folder/'runtime-budget.json'
-        if not budget.exists():
-            started=time.time();seconds=min(3300,max(30,timeout_seconds(target_count)-60))
-            save_evidence(budget,{'model':self.model,'started_at':started,'seconds':seconds,'expires_at':started+seconds})
-        saved=json.loads(budget.read_text('utf8'))
-        if saved['model']!=self.model:raise AgentCallFailed('resume_model_changed',fatal=True)
-        self.deadline=time.monotonic()+max(0,saved['expires_at']-time.time())
-        self.timing.started=time.monotonic()-max(0,time.time()-saved['started_at'])
+        if runtime_budget:
+            budget=folder/'runtime-budget.json'
+            if not budget.exists():
+                started=time.time();seconds=min(3300,max(30,timeout_seconds(target_count)-60))
+                save_evidence(budget,{'model':self.model,'started_at':started,'seconds':seconds,'expires_at':started+seconds})
+            saved=json.loads(budget.read_text('utf8'))
+            if saved['model']!=self.model:raise AgentCallFailed('resume_model_changed',fatal=True)
+            self.deadline=time.monotonic()+max(0,saved['expires_at']-time.time())
+            self.timing.started=time.monotonic()-max(0,time.time()-saved['started_at'])
+        else:
+            # Search/Acquire must not consume or create the Review model budget.
+            self.deadline=float('inf')
 
     @property
     def last_tool_calls(self):return getattr(self._thread,'reads',[])

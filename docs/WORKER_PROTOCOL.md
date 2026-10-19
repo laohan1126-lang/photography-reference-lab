@@ -1,5 +1,15 @@
 # BrowserSkill + Codex / Antigravity 执行协议
 
+## 快速 Search / 独立 Review（2026-10-20）
+
+新网页入口默认把采集拆成两个独立阶段；下方旧的一体式说明仍保留为历史兼容路径。
+
+- `python tools/collect_verified.py <task_file> <result_file> --search-only`：只用项目已有角色/作品/服装字段生成搜索词，正常浏览授权来源，下载原图后立即写入 `.local/collection-runs/<job_id>/current/received.json`。不得在 Search 阶段调用 NamePlan、ReferenceDiscovery、SourceAssessment、CollectionVision 或 needs_supplement；不得等待官方参照。达到候选目标、时间/详情预算或来源阻断即结束，写 `search-summary.json`。`received.json` 的原图只保存一次。
+- `python tools/collect_verified.py <task_file> <result_file> --review-only [--wait-search]`：只消费已下载原图，使用原 NamePlan、参照研究、严格 accepted、schema3 和完整补证规则；逐图写 `review-audit.json`，只有 accepted 生成 `review-result.zip`。`--wait-search` 仅在“搜图 + AI 审核”模式使用，让 Review 在 Search 运行期间继续消费新候选，但 Search 进程不读取 Review 状态、不等待 Review。
+- 人工决定写入 `human-decisions.json`，优先级高于 AI；审核导入器不会把人工淘汰项写进正式包。阶段状态分别保存在 Job 的 `search_state/search_counts` 与 `review_state/review_counts`；Review 受阻/超时只标记候选，不删除原图。
+- 服务重启后，Search 和 Review 各自按 attempt id、锁、累计预算恢复；已完成审核不重复调用，待核/受阻项可在剩余额度内重试。取消审核不停止搜索；取消搜索不删除候选或已完成审核。
+- 原图路径/SHA、来源页面、搜索词和获得时间随候选保存；历史排重先做路径/SHA 精确匹配，再后台补充感知指纹，Review 在正式准入前用同一历史集合复核。搜索词/标题仍只是发现元数据，不是视觉事实；“候选”不等于“已验证”。
+
 ## 默认路径：网站保存任务，Agent 执行
 
 同一Job的正式控制器状态保存在`.local/collection-runs/<job_id>/current/collector-state.json`，绑定完整项目快照、notes、目标、来源、模型和规则。持久计划每步明确`source/query/language`，实际观察按步骤ID记录`observed/usable/window`；计划不等于已执行。完成必须同时满足准入数量与实际覆盖，来源受阻或语言缺口均保留部分结果。

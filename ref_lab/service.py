@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 import time
 from pathlib import Path
@@ -820,7 +821,11 @@ class Library:
                    "reference_ids": ids, "snapshots": snapshots, "context": context_digest(project),
                    "imported_ids": [], "completed_ids": [], "created_at": now(), "updated_at": now()}
             if request.kind == "collection":
-                job.update(collection_outcome="blocked", collection_attempt_count=0, collection_elapsed_seconds=0.0)
+                job.update(collection_outcome="blocked", collection_attempt_count=0, collection_elapsed_seconds=0.0,
+                           collection_mode=request.collection_mode,
+                           search_state="idle", search_counts={"found": 0, "accepted": 0},
+                           review_state="idle", review_counts={"found": 0, "accepted": 0, "rejected": 0,
+                                                                 "blocked": 0, "pending": 0})
             con.execute("INSERT INTO jobs VALUES(?,?,?,?,?)", (job["id"], project_id, request.kind, job["status"], encode(job)))
             self.db.event(con, project_id, job["id"], "job.created", job)
             return job
@@ -1238,7 +1243,8 @@ class Library:
                     "observations": [json.loads(r[0]) for r in con.execute("SELECT data FROM asset_observations WHERE asset_sha=? ORDER BY rowid DESC", (sha,))],
                     "project_uses": [dict(r) for r in con.execute("SELECT id,project_id,decision,json_extract(data,'$.lane') AS lane,json_extract(data,'$.detached_at') AS detached_at FROM refs WHERE asset_sha=?", (sha,))]}
 
-    def start_collection_attempt(self, ident: str, revision: int, attempt_id: str, *, owner: dict | None = None) -> dict:
+    def start_collection_attempt(self, ident: str, revision: int, attempt_id: str, *, owner: dict | None = None,
+                                 timeout: float | None = None) -> dict:
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
             ensure_active_project(row_data(con, "projects", job["project_id"]))
@@ -1249,7 +1255,11 @@ class Library:
                        detail="检查本地 Agent 适配器；本轮尚未收到候选",
                        collection_attempt_count=int(job.get("collection_attempt_count", 0)) + 1,
                        collection_attempt_started_at=time.time(),
+                       search_state="running", search_attempt_id=attempt_id,
+                       search_attempt_started_at=time.time(), search_stop_reason="",
                        collection_outcome=job.get("collection_outcome", "blocked"))
+            if timeout is not None and job.get("search_timeout_seconds") is None:
+                job["search_timeout_seconds"] = float(timeout)
             if owner:
                 job["collection_process_owner"] = dict(owner)
             else:
@@ -1264,7 +1274,8 @@ class Library:
             if (job["kind"] != "collection" or job["status"] not in {"running", "blocked"}
                     or job.get("active_attempt_id") != attempt_id):
                 raise Problem(409, "原采集轮次已结束或被替代，不能恢复")
-            job.update(status="running", detail="继续同一采集轮次；保留已完成的搜索与候选检查点")
+            job.update(status="running", detail="继续同一采集轮次；保留已完成的搜索与候选检查点",
+                       search_state="running", search_attempt_id=attempt_id, search_stop_reason="")
             if owner:
                 job["collection_process_owner"] = dict(owner)
             else:
@@ -1314,6 +1325,178 @@ class Library:
                 return self._save_job(con, job, "collection.attempt_finished", payload, "worker")
             self.db.event(con, job["project_id"], ident, "collection.attempt_finished", payload, "worker")
             return job
+
+    def set_stage_process_owner(self, ident: str, stage: str, attempt_id: str, owner: dict) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if stage == "review":
+                if job.get("review_attempt_id") != attempt_id or job.get("review_state") != "running":
+                    raise Problem(409, "审核轮次已过期；拒绝登记执行进程")
+                job["review_process_owner"] = dict(owner)
+                return self._save_job(con, job, "collection.review_process_owner", dict(owner), "worker")
+            if job.get("active_attempt_id") != attempt_id or job["status"] != "running":
+                raise Problem(409, "采集轮次已过期；拒绝登记执行进程")
+            job["collection_process_owner"] = dict(owner)
+            return self._save_job(con, job, "collection.process_owner", dict(owner), "worker")
+
+    def update_search_stage(self, ident: str, attempt_id: str, state: str,
+                            summary: dict, detail: str) -> dict:
+        """Record Search independently of Review; never claims visual admission."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            owns = (job.get("search_attempt_id") == attempt_id
+                    and job.get("active_attempt_id") == attempt_id)
+            if not owns and job.get("search_attempt_id") != attempt_id:
+                raise Problem(409, "搜索轮次已过期；拒绝覆盖阶段状态")
+            terminal = state in {"completed", "blocked", "failed", "cancelled"}
+            job.update(search_state=state, search_summary=dict(summary),
+                       search_stop_reason=str(summary.get("stop_reason", "")),
+                       search_counts=dict(summary.get("counts", {})),
+                       search_detail=detail)
+            if terminal:
+                job["search_finished_at"] = time.time()
+                elapsed = summary.get("elapsed_seconds")
+                if isinstance(elapsed, (int, float)) and math.isfinite(float(elapsed)):
+                    job["search_elapsed_seconds"] = max(0.0, float(elapsed))
+                elif job.get("search_attempt_started_at"):
+                    job["search_elapsed_seconds"] = float(job.get("search_elapsed_seconds", 0.0)) + max(
+                        0.0, time.time() - float(job["search_attempt_started_at"]))
+                job.pop("search_attempt_started_at", None)
+                if job.get("active_attempt_id") == attempt_id:
+                    job.pop("active_attempt_id", None)
+                    job.pop("collection_process_owner", None)
+                if job["status"] == "running" and job.get("review_state") != "running":
+                    job["status"] = "blocked"
+                if job.get("review_state") == "running":
+                    job["search_detail"] = detail
+                else:
+                    job["detail"] = detail
+            else:
+                job["detail"] = detail
+            return self._save_job(con, job, "collection.search_stage", {"state": state, "detail": detail}, "worker")
+
+    def start_review_stage(self, ident: str, attempt_id: str, *, owner: dict | None = None,
+                           timeout: float | None = None) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            ensure_active_project(row_data(con, "projects", job["project_id"]))
+            if job["kind"] != "collection":
+                raise Problem(400, "不是采集任务")
+            if job["status"] == "cancelled":
+                raise Problem(409, "已取消的采集任务不能启动审核")
+            if job.get("review_state") == "running":
+                raise Problem(409, "本 Job 的审核阶段仍在运行")
+            if not job.get("search_state"):
+                job["search_state"] = "idle"
+            job.update(review_state="running", review_attempt_id=attempt_id,
+                       review_attempt_started_at=time.time(), review_stop_reason="",
+                       review_detail="正在准备独立审核；候选原图保持可查看。")
+            if timeout is not None and job.get("review_timeout_seconds") is None:
+                job["review_timeout_seconds"] = float(timeout)
+            if owner:
+                job["review_process_owner"] = dict(owner)
+            else:
+                job.pop("review_process_owner", None)
+            if job.get("search_state") != "running" and job["status"] in {"blocked", "failed", "queued"}:
+                job["status"] = "running"
+            return self._save_job(con, job, "collection.review_started", {"attempt_id": attempt_id}, "worker")
+
+    def resume_review_stage(self, ident: str, attempt_id: str, *, owner: dict | None = None) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if (job.get("review_attempt_id") != attempt_id or job.get("review_state") != "running"
+                    or job["status"] == "cancelled"):
+                raise Problem(409, "原审核轮次已结束或被替代，不能恢复")
+            if owner:
+                job["review_process_owner"] = dict(owner)
+            else:
+                job.pop("review_process_owner", None)
+            job["review_detail"] = "继续独立审核；已完成的图片不会重复调用。"
+            return self._save_job(con, job, "collection.review_resumed", {"attempt_id": attempt_id}, "worker")
+
+    def update_review_stage(self, ident: str, attempt_id: str, state: str,
+                            summary: dict, detail: str) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("review_attempt_id") != attempt_id:
+                raise Problem(409, "审核轮次已过期；拒绝覆盖阶段状态")
+            terminal = state in {"completed", "partial", "blocked", "failed", "cancelled"}
+            job.update(review_state=state, review_summary=dict(summary),
+                       review_stop_reason=str(summary.get("stop_reason", "")),
+                       review_counts=dict(summary.get("counts", {})), review_detail=detail)
+            if terminal:
+                job["review_finished_at"] = time.time()
+                elapsed = summary.get("elapsed_seconds")
+                if isinstance(elapsed, (int, float)) and math.isfinite(float(elapsed)):
+                    job["review_elapsed_seconds"] = max(0.0, float(elapsed))
+                elif job.get("review_attempt_started_at"):
+                    job["review_elapsed_seconds"] = float(job.get("review_elapsed_seconds", 0.0)) + max(
+                        0.0, time.time() - float(job["review_attempt_started_at"]))
+                job.pop("review_attempt_started_at", None)
+                job.pop("review_attempt_id", None)
+                job.pop("review_process_owner", None)
+                if job["status"] == "running" and job.get("search_state") != "running":
+                    job["status"] = "blocked"
+                job["detail"] = detail
+            else:
+                job["review_detail"] = detail
+                job["detail"] = detail
+            return self._save_job(con, job, "collection.review_stage", {"state": state, "detail": detail}, "worker")
+
+    def cancel_review_stage(self, ident: str, detail: str = "用户取消审核；已下载候选保留。") -> dict:
+        """Cancel Review only; Search and the candidate queue must keep running."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("review_state") not in {"running", "blocked", "partial", "idle"}:
+                raise Problem(409, "当前审核阶段不可取消")
+            job.update(review_state="cancelled", review_stop_reason="user_cancelled",
+                       review_detail=detail)
+            job.pop("review_attempt_id", None)
+            job.pop("review_process_owner", None)
+            job.pop("review_attempt_started_at", None)
+            if job["status"] == "running" and job.get("search_state") != "running":
+                job["status"] = "blocked"
+            return self._save_job(con, job, "collection.review_cancelled", {"detail": detail}, "human")
+
+    def cancel_search_stage(self, ident: str, detail: str = "用户取消搜索；已下载候选保留。") -> dict:
+        """Cancel Search without deleting originals or completed reviews."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("search_state") not in {"running", "blocked", "failed"}:
+                raise Problem(409, "当前搜索阶段不可取消")
+            job.update(search_state="cancelled", search_stop_reason="user_cancelled",
+                       search_detail=detail)
+            job.pop("active_attempt_id", None)
+            job.pop("collection_process_owner", None)
+            job.pop("search_attempt_started_at", None)
+            if job["status"] == "running" and job.get("review_state") != "running":
+                job["status"] = "blocked"
+            return self._save_job(con, job, "collection.search_cancelled", {"detail": detail}, "human")
+
+    def record_review_import(self, ident: str, reference_ids: list[str], *, accepted: int,
+                             target: int, result_sha256: str, summary: dict) -> dict:
+        """Formal admission happens only after the review package is validated."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job["kind"] != "collection" or job["status"] == "cancelled":
+                raise Problem(409, "不是可接收审核回执的采集任务")
+            current = list(dict.fromkeys(reference_ids))
+            if not set(current).issubset(job.get("imported_ids", [])):
+                raise Problem(409, "审核回执包含未导入本任务的条目")
+            all_ids = list(dict.fromkeys([*job.get("review_imported_ids", []), *current]))
+            job["review_imported_ids"] = all_ids
+            job["last_receipt_reference_ids"] = list(dict.fromkeys([*job.get("last_receipt_reference_ids", []), *current]))
+            if result_sha256:
+                job["last_review_result_sha256"] = result_sha256
+            complete = accepted >= int(target or 1)
+            job["collection_outcome"] = "complete" if complete else ("partial" if accepted else "blocked")
+            if job["status"] != "cancelled":
+                job["status"] = "succeeded" if complete else "blocked"
+            job["detail"] = (f"独立审核回执已导入：通过 {accepted}/{target} 张；"
+                             f"候选与审核阶段分别记录，未通过原图仍保留在候选队列。")
+            return self._save_job(con, job, "collection.review_imported",
+                                  {"reference_ids": current, "accepted": accepted, "target": target,
+                                   "result_sha256": result_sha256}, "agent")
 
     def record_collection_report(self, ident: str, report: CollectionReport, *,
                                  current_reference_ids: list[str] | None = None, attempt_id: str = "",

@@ -22,6 +22,22 @@ def received(run, original):
     }]), encoding='utf8')
 
 
+def test_known_sha_is_an_exact_duplicate_before_lazy_fingerprints_finish(tmp_path):
+    source = photo(tmp_path / 'source.png', (80, 40, 140))
+    raw = source.read_bytes()
+    sha = hashlib.sha256(raw).hexdigest()
+    stored = tmp_path / 'assets' / 'ab' / sha / 'original.png'
+    stored.parent.mkdir(parents=True)
+    stored.write_bytes(raw)
+    history = ImageHistory([stored], cache_path=tmp_path / 'cache.json', lazy=True)
+    try:
+        assert history.known_count == 1
+        duplicate = history.match(source)
+        assert duplicate == {'duplicate_of': sha, 'reason': 'same_bytes'}
+    finally:
+        history.close(wait=True, timeout=5)
+
+
 def test_cached_history_matches_uncached_and_hot_scan_skips_decode(tmp_path, monkeypatch):
     first = photo(tmp_path / 'history' / 'first.png', (60, 100, 140))
     second = photo(tmp_path / 'history' / 'second.png', (170, 100, 35))
@@ -31,7 +47,9 @@ def test_cached_history_matches_uncached_and_hot_scan_skips_decode(tmp_path, mon
     cold = ImageHistory(paths, cache_path=cache)
     assert cold.records == uncached.records
     payload = json.loads(cache.read_text(encoding='utf8'))
-    assert next(iter(payload['entries'])).startswith(f'{collection_history.FINGERPRINT_ALGORITHM_VERSION}:')
+    assert payload['schema_version'] == collection_history.CACHE_SCHEMA_VERSION
+    assert any(str(first.resolve()) == key for key in payload['files'])
+    assert all(len(entry['sha']) == 64 for entry in payload['files'].values())
 
     reencoded = tmp_path / 'reencoded.jpg'
     with Image.open(first) as image:

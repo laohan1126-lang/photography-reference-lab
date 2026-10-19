@@ -224,6 +224,13 @@ class JobInput(Strict):
     notes: Text = ""
     target_count: int = Field(default=80, ge=1, le=500)
     preferred_sources: list[Short] = Field(default_factory=lambda: ["xiaohongshu", "pinterest"], max_length=12)
+    # 'verified' keeps the historical one-pass pipeline for compatibility.
+    # Search modes persist candidates before any visual review.
+    collection_mode: Literal["verified", "search", "search_review"] = "verified"
+
+
+class CandidateDecisionInput(Strict):
+    decision: Literal["keep", "reject", "clear"]
 
 
 class JobResult(Strict):

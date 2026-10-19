@@ -49,7 +49,7 @@ def read_archive(content: bytes) -> dict[str, bytes]:
 
 def import_candidates(library: Library, project_id: str, content: bytes, job_id: str = "", *,
                       attempt_id: str = "", collector_coverage: dict | None = None,
-                      result_sha256: str = "") -> dict:
+                      result_sha256: str = "", record_report: bool = True) -> dict:
     files = read_archive(content)
     if "manifest.json" not in files:
         raise ValueError("Candidate ZIP must have manifest.json at its root")
@@ -107,7 +107,7 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
             report["reference_ids"].append(ref["id"])
         except (ValueError, KeyError, TypeError, Problem) as exc:
             report["errors"].append({"index": index, "id": item.get("id") if isinstance(item, dict) else None, "error": str(exc)})
-    if job_id and execution:
+    if job_id and execution and record_report:
         if report["errors"]:
             execution = execution.model_copy(update={"status": "blocked", "summary": "部分候选导入失败；" + execution.summary})
         report["job"] = library.record_collection_report(
