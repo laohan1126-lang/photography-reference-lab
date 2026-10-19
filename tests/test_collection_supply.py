@@ -134,7 +134,7 @@ def test_sources_get_early_coverage_and_keep_distinct_native_photo_intents():
     assert {s['language'] for s in steps[:3]}=={'zh','en','ja'}
     native=[s for s in steps if s['source']=='xiaohongshu']
     assert len(native)==sum(s['source']=='pinterest' for s in steps)==4
-    assert all(PROJECT['character'] in s['query'] for s in native)
+    assert any(PROJECT['character'] in s['query'] for s in native)
     assert len({s['query'] for s in native})==4
     assert steps[0]['query'].endswith('cos 摄影')
 
@@ -161,21 +161,35 @@ def test_native_latest_control_ignores_hidden_names_and_verifies_selection():
         finally:browser.close()
 
 
-def test_browser_search_selects_native_latest_before_returning_cards(tmp_path):
+def test_browser_search_selects_native_comprehensive_by_default_and_latest_on_request(tmp_path):
     class Native(worker.Browser):
-        def __init__(self):super().__init__(tmp_path);self.session='own';self.actions=[];self.selected=False;self.ready=False
+        def __init__(self):
+            super().__init__(tmp_path)
+            self.session='own';self.actions=[];self.active=[];self.ready=False
         def command(self,*args,**kw):
             self.actions.append(args)
             if args[0]=='evaluate':
                 assert self.ready,'SPA controls are unavailable before the first search snapshot'
-                return json.dumps({'ok':True,'value':{'trigger':'span.filter','latest':'.real-latest','dismiss':'input.search','selected':self.selected}})
-            if args[0]=='click':self.selected=True
+                return json.dumps({'ok':True,'value':{
+                    'trigger':'span.filter','comprehensive':'.real-comprehensive',
+                    'latest':'.real-latest','dismiss':'input.search',
+                    'active':self.active,'selected':'最新' in self.active,
+                    'selected_comprehensive':'综合' in self.active}})
+            if args[0]=='click':
+                selector=args[args.index('--selector')+1]
+                self.active=['综合'] if 'comprehensive' in selector else ['最新']
             return '{}'
-        def snapshot(self):self.ready=True;return {'cards':[{'page':'new'}],'sort_latest':self.selected}
-    browser=Native();snapshot=browser.search({'source':'xiaohongshu','query':'Example cos'})
-    assert snapshot['sort_latest'] is True and snapshot['sort_state']=='latest'
-    assert [a[0] for a in browser.actions]==['navigate','evaluate','hover','evaluate','click','evaluate','hover','hover']
-    assert browser.actions[-1][2]=='input.search'
+        def snapshot(self):
+            self.ready=True
+            return {'cards':[{'page':'new'}],'sort_latest':'最新' in self.active}
+    browser=Native()
+    snapshot=browser.search({'source':'xiaohongshu','query':'Example cos'},sort='relevance')
+    assert snapshot['sort_state']=='comprehensive'
+    assert any('comprehensive' in str(a) for a in browser.actions if a[0]=='click')
+    latest=Native()
+    snapshot2=latest.search({'source':'xiaohongshu','query':'Example cos'},sort='latest')
+    assert snapshot2['sort_state']=='latest'
+    assert any('latest' in str(a) for a in latest.actions if a[0]=='click')
 
 
 def test_failed_note_open_does_not_navigate_back_out_of_valid_search(tmp_path):

@@ -25,13 +25,15 @@ import httpx
 from PIL import Image
 
 from ref_lab.models import CandidatePackage
-from ref_lab.verified_collection import AntigravityCollectionAgent,AgentUnavailable,AgentCallFailed,CollectionVision,accepted,query_steps,reference_supported,scope_sha
+from ref_lab.verified_collection import AntigravityCollectionAgent,AgentUnavailable,AgentCallFailed,CollectionVision,accepted,query_steps,reference_supported,scope_sha,_plan_name_records
 from ref_lab.storage import atomic_write
 from ref_lab.collection_history import ImageHistory,historical_paths
 from ref_lab import collection_queue
 from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
 from ref_lab.collection_checkpoint import load_checkpoint,original_bytes,coverage,read_json,rule_contract,job_binding
+from ref_lab.search_relevance import (classify_card, confirmed_count, exploration_count,
+                                      exploration_limit, relevance_counts)
 from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
 from tools.exact_recall import assess_search,capture_note,save
 
@@ -46,16 +48,23 @@ class SourceBlocked(ValueError):
     pass
 
 
-def discovery_rank(card,aliases=()):
-    """Order discovery only; absent/negative metadata never becomes a visual verdict."""
+def discovery_rank(card,aliases=(),work_terms=(),other_terms=()):
+    """Order discovery only; absent/negative metadata never becomes a visual verdict.
+
+    The classifier in ``search_relevance`` decides whether a card may count as a
+    confirmed target. This rank is retained as a cheap ordering hint and keeps
+    the historical 0..4 scale for callers/tests.
+    """
     text=str(card.get('text') or '').casefold()
     positive=bool(re.search(r'cosplay|coser|コスプレ|摄影|写真|正片|场照|返图|photoshoot|photograph',text))
     negative=any(term in text for term in (*NEGATIVE_TYPE_MARKERS,'イラスト'))
+    target=any(str(name).strip().casefold() in text for name in aliases if str(name).strip())
     if aliases:
-        target=any(name.strip().casefold() in text for name in aliases if name.strip())
-        if negative:return 4
-        if target:return 0 if positive else 1
-        return 2 if positive else 3
+        if target:
+            return 0 if positive else 1
+        if any(str(term).strip().casefold() in text for term in other_terms if str(term).strip()):
+            return 4
+        return 4 if negative else (2 if positive else 3)
     return 0 if positive and not negative else (2 if negative and not positive else 1)
 
 
@@ -249,10 +258,15 @@ XHS_SORT_JS=r"""(() => {
    chain.unshift(x.tagName.toLowerCase()+':nth-child('+(Array.from(x.parentElement.children).indexOf(x)+1)+')');x=x.parentElement;}
    return 'body>'+chain.join('>');};
  const tags=Array.from(document.querySelectorAll('.tags')).filter(real);
+ const active=tags.filter(x=>x.classList.contains('active')).map(x=>x.textContent.trim());
+ const find=t=>tags.find(x=>x.textContent.trim()===t&&visible(x));
  return {trigger:selector(Array.from(document.querySelectorAll('span')).find(x=>['筛选','已筛选'].includes(x.textContent.trim())&&visible(x))),
    dismiss:selector(Array.from(document.querySelectorAll('input[placeholder]')).find(visible)),
-   latest:selector(tags.find(x=>x.textContent.trim()==='最新'&&visible(x))),
-   selected:tags.some(x=>x.textContent.trim()==='最新'&&x.classList.contains('active'))};
+   comprehensive:selector(find('综合')),
+   latest:selector(find('最新')),
+   active:active,
+   selected:active.includes('最新'),
+   selected_comprehensive:active.includes('综合')};
 })()"""
 
 SEARCH_JS=r"""(() => {
@@ -282,6 +296,7 @@ SEARCH_JS=r"""(() => {
 
 
 class Browser:
+    supports_sort=True
     def __init__(self,folder:Path):
         self.folder=folder;self.session=None;self.bsk=None;self.env={**os.environ,'BSK_AUTO_START':'0'}
 
@@ -309,7 +324,7 @@ class Browser:
         if data.get('ok') is not True:raise ValueError('Visible page read failed')
         return data['value']
 
-    def search(self,step):
+    def search(self,step,sort='relevance'):
         self.scroll_windows=0
         q=quote(step['query'])
         url=('https://www.pinterest.com/search/pins/?q='+q if step['source']=='pinterest'
@@ -326,20 +341,31 @@ class Browser:
             if controls.get('ok') is True and controls['value'].get('trigger'):
                 self.command('hover','--selector',controls['value']['trigger'],'--session',self.session)
                 controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
-                if controls.get('ok') is True and controls['value'].get('latest') and not controls['value'].get('selected'):
-                    self.command('click','--selector',controls['value']['latest'],'--session',self.session)
-                    time.sleep(1)
-                    # The native menu unmounts after selection; reopen it to verify the active label.
+            desired=('latest' if sort=='latest' else 'comprehensive')
+            value=controls.get('value') or {}
+            target_selector=value.get(desired)
+            active=value.get('active') or []
+            already='最新' if desired=='latest' else '综合'
+            if target_selector and already not in active:
+                self.command('click','--selector',target_selector,'--session',self.session)
+                time.sleep(1)
+                controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
+                if controls.get('ok') is True and controls['value'].get('trigger'):
+                    self.command('hover','--selector',controls['value']['trigger'],'--session',self.session)
                     controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
-                    if controls.get('ok') is True and controls['value'].get('trigger'):
-                        self.command('hover','--selector',controls['value']['trigger'],'--session',self.session)
             snapshot=self.snapshot()
-            confirmed=snapshot.get('sort_latest',False)
+            active=(controls.get('value') or {}).get('active') or []
+            snapshot['sort_state']=('comprehensive' if '综合' in active else
+                                    ('latest' if '最新' in active else 'default'))
+            snapshot['sort_evidence']={'available': active, 'requested': desired}
             if controls.get('ok') is True and controls['value'].get('dismiss'):
                 self.command('hover','--selector',controls['value']['dismiss'],'--session',self.session)
                 snapshot=self.snapshot()
-                snapshot['sort_latest']=confirmed
-        if step['source']=='xiaohongshu':snapshot['sort_state']='latest' if snapshot.get('sort_latest') else 'default_control_unavailable'
+                snapshot['sort_state']=('comprehensive' if '综合' in active else
+                                        ('latest' if '最新' in active else 'default'))
+                snapshot['sort_evidence']={'available': active, 'requested': desired}
+        if step['source']=='xiaohongshu' and 'sort_state' not in snapshot:
+            snapshot['sort_state']='default_control_unavailable'
         return snapshot
 
     def more(self,step):
@@ -441,7 +467,10 @@ class Browser:
 def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize_only=False,
             search_only=False)->tuple[dict,dict[str,bytes]]:
     project={**job['project_snapshot'],'notes':job.get('notes','')}
-    requested=int(job.get('target_count') or 12);target=min(requested,100)
+    requested=int(job.get('target_count') or 12)
+    extra_target=int(job.get('search_extra_target') or 0)
+    requested_total=requested+max(0,extra_target)
+    target=min(requested_total,100)
     agent.candidate_limit=min(MAX_IMAGES,max(24,target*3) if search_only else max(20,target*2))
     sources=job.get('preferred_sources',['xiaohongshu','pinterest'])
     try:state=load_checkpoint(folder,job,getattr(agent,'model',agent.producer))
@@ -470,8 +499,14 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if state.get('final_manifest'):
             # A historical full-review run is not a quick-search checkpoint; refuse to mix modes.
             raise AgentUnavailable('该 Job 已有正式审核交付；快速搜图不覆盖旧结果，请新建任务。')
-        if state.get('search_complete') and (folder/'search-summary.json').exists():
+        if state.get('search_complete') and (folder/'search-summary.json').exists() and not extra_target:
             return json.loads((folder/'search-summary.json').read_text('utf8')),{}
+        if state.get('search_complete') and extra_target:
+            # Same job, additional target: keep originals and duplicate counts, but
+            # allow the existing queries/pages to be revisited without re-counting.
+            state['search_complete']=False;state['search_summary']={};state['queries']=[]
+            state['searches']={};state['pages']=[];state['page_attempts']={}
+            gaps.append('用户继续加搜：目标累计 %s 张。' % target)
     if state.get('final_manifest') and (finalize_only or state.get('terminal',state.get('outcome')=='complete')):
         manifest=state['final_manifest'];CandidatePackage.model_validate(manifest)
         if manifest['candidates']!=candidates:raise AgentUnavailable('封存交付与原准入记录不一致。')
@@ -493,9 +528,18 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     first_usable=state.get('first_usable');displayed=-1;displayed_received=-1
     received_errors=state.get('search_errors',[]) if search_only else []
     calls=lambda:getattr(agent,'candidate_calls',attempted)
+    name_records=[{"name":str(project.get('character') or '').strip(),
+                   "language":'',"source":"project_character"}]
+    work_terms=[str(project.get('work') or '').strip()]
+    other_terms=[]
+    skipped={'other_character':0,'non_photo':0,'exploration_budget':0}
+    def confirmed():
+        return confirmed_count(received) if search_only else len(candidates)
+    def exploration():
+        return exploration_count(received) if search_only else 0
     def limit_reason():
         if search_only:
-            if len(received)>=target:return 'target_reached'
+            if confirmed()>=target:return 'target_reached'
             if time.monotonic()>=getattr(agent,'deadline',float('inf'))-30:return 'time_budget_exhausted'
             if len(received)>=agent.candidate_limit:return 'candidate_budget_exhausted'
             if details>=MAX_DETAIL_PAGES:return 'detail_budget_exhausted'
@@ -585,14 +629,25 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 plan=NamePlan.model_validate(state['plan'])
                 origin='saved_search_plan'
             else:
-                plan=deterministic_plan(project)
-                origin='deterministic_project_fields'
+                plan=deterministic_plan(project, identity_context=job.get('identity_context'),
+                                        user_aliases=job.get('search_aliases') or ())
+                origin='trusted_project_names'
         else:
             with timing.span('name_plan'):
                 plan=NamePlan.model_validate(state['plan']) if state.get('plan') else agent.plan(project)
             origin='agent_discovery_hypothesis'
         steps=steps or query_steps(project,plan,sources)
         state['plan']=plan.model_dump()
+        if search_only:
+            name_records[:] = _plan_name_records(project, plan)
+            work_terms[:] = [str(project.get('work') or '').strip()]
+            from ref_lab.identity import preset_for_character
+            preset=preset_for_character(str(project.get('character') or ''))
+            other_terms[:] = [str(item.get('name') or '') for item in (preset or {}).get('common_confusions', []) if isinstance(item, dict)]
+            for row in received:
+                if 'relevance' not in row:
+                    row['relevance']=classify_card(row, names=name_records, work_terms=work_terms,
+                                                   other_terms=other_terms)
         for source in sources:
             if source not in {s['source'] for s in steps}:checks[source]={'source':source,'status':'unavailable','detail':'本轮没有该来源的正式适配器；要求保持未满足。'}
         save(folder/'name-plan.json',{'plan':plan.model_dump(),'steps':steps,'origin':origin})
@@ -615,13 +670,18 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 if workers==1:finish_one()
             drain();checkpoint()
         with timing.span('browser_start'):browser.start()
+        latest_fallback_sources=set()
         for pass_index in range(2*min(len(steps),MAX_QUERIES)):
             step_index=pass_index%min(len(steps),MAX_QUERIES);step=steps[step_index]
             source=step['source'];query=step['query']
             search=searches.setdefault(str(step_index),{'source':source,'query':query,'language':step.get('language','unknown'),
-                                                      'observed':False,'usable':False,'window':0,'done':False})
+                                                      'observed':False,'usable':False,'window':0,'done':False,
+                                                      'sort_mode':'relevance'})
             if search.get('done'):continue
             if checks.get(source,{}).get('status') in ('login_required','blocked'):continue
+            if source=='xiaohongshu' and source in latest_fallback_sources and not search.get('latest_fallback_used'):
+                search['sort_mode']='latest';search['latest_fallback_used']=True
+            sort_mode=search.get('sort_mode','relevance')
             stop_reason=limit_reason()
             if stop_reason:break
             kept=0;reason='';before=len(candidates)
@@ -634,7 +694,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     restored=window==restored_window and search.get('snapshot') is not None
                     with timing.span('browser_resume_navigation' if restored else ('browser_search' if window==0 else 'browser_more')):
                         if window==restored_window:
-                            snapshot=browser.search(step)
+                            snapshot=(browser.search(step,sort=sort_mode)
+                                      if getattr(browser,'supports_sort',False) else browser.search(step))
                             for _ in range(window):
                                 if snapshot.get('login_required') or snapshot.get('challenge'):break
                                 snapshot=browser.more(step)
@@ -644,18 +705,26 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     search.update(window=window,snapshot=snapshot,observed=True)
                     save(folder/f'search-{step_index+1}-window-{window+1}.json',snapshot)
                     checkpoint()
-                    assessment=assess_search(snapshot,query,{'character':project['character'],'costume':project.get('costume','')})
+                    assessment=assess_search(snapshot,query,{'character':project['character'],
+                        'costume':project.get('costume',''),
+                        'character_aliases':[record['name'] for record in name_records],
+                        'costume_aliases':[project.get('costume','')] if project.get('costume') else []})
+                    search['assessment']={key:value for key,value in assessment.items() if key!='action'}
+                    search['scope_text_hits']=int(assessment.get('scope_text_hits',0) or 0)
                     if snapshot.get('login_required') or snapshot.get('challenge'):
                         checks[source]={'source':source,'status':'blocked','detail':'正常页面出现登录或验证门槛，已停止此来源。'}
                         reason='login_or_challenge';break
                     if assessment['action'] in ('STOP_STALE_QUERY','REVIEW_QUERY_REWRITE','CHANGE_QUERY_OR_SOURCE'):
                         reason=assessment['action'];break
-                    checks[source]={'source':source,'status':'usable','detail':'实际查询正常页面；交付数量只计视觉通过。'}
+                    checks[source]={'source':source,'status':'usable','detail':'实际查询正常页面；交付数量只计角色文字命中或明确标记的探索候选。'}
                     search['usable']=True;checkpoint()
-                    if (len(received) if search_only else len(candidates))>=target:
+                    if ((confirmed() if search_only else len(candidates)))>=target:
                         reason='target_reached' if search_only else 'coverage_checked_after_target';break
                     inspected=0;new_cards=0;window_before=len(received);kept_before=len(candidates)
-                    for card in sorted(snapshot.get('cards',[]),key=lambda c:discovery_rank(c,[project['character'],*plan.names])):
+                    confirmed_before=confirmed()
+                    ranked=sorted(snapshot.get('cards',[]),key=lambda c:classify_card(
+                        c,names=name_records,work_terms=work_terms,other_terms=other_terms)['rank'])
+                    for card in ranked:
                         if not search_only:
                             while pending and pending.pending[0][1] is not None and pending.pending[0][1].done():finish_one()
                             while pending and len(candidates)+len(pending)>=target:finish_one()
@@ -666,6 +735,15 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         page_key=parsed.hostname+parsed.path
                         if page_key in pages:continue
                         new_cards+=1
+                        relevance=classify_card(card,names=name_records,work_terms=work_terms,
+                                                other_terms=other_terms)
+                        if search_only and relevance['tier']=='other_character':
+                            skipped['other_character']+=1;pages.add(page_key);continue
+                        if search_only and relevance['tier']=='non_photo':
+                            skipped['non_photo']+=1;pages.add(page_key);continue
+                        if (search_only and relevance['tier'] in ('target_context','unconfirmed')
+                                and exploration()>=exploration_limit(target)):
+                            skipped['exploration_budget']+=1;pages.add(page_key);continue
                         if history is not None and hasattr(browser,'check_duplicate'):
                             with timing.span('discovery_preview'):duplicate=browser.check_duplicate(card,history)
                             if duplicate:
@@ -696,7 +774,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             if sha in seen:
                                 duplicates.append({'asset_sha':sha,'page_url':row['page_url'],'duplicate_of':sha,'reason':'same_bytes_this_run'});continue
                             if search_only:
-                                if len(received)>=target or per_note>=3:break
+                                if confirmed()>=target or per_note>=3:break
                             elif len(candidates)>=target or calls()>=agent.candidate_limit or len(received)>=agent.candidate_limit or per_note>=3:
                                 break
                             if (sha in {r['asset_sha'] for r in (agent.references or [])}
@@ -716,7 +794,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 if duplicate:
                                     duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate})
                                     save(folder/'duplicates.json',duplicates);checkpoint();continue
-                            row={**row,'search_query':query,'discovery_url':snapshot['url'],'acquired_at':time.time()}
+                            row={**row,'search_query':query,'discovery_url':snapshot['url'],
+                                 'acquired_at':time.time(),'relevance':relevance}
                             received.append(row);attempted+=1;per_note+=1
                             if search_only and first_usable is None:
                                 first_usable=time.monotonic()-started
@@ -737,9 +816,20 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     if len(received)>window_before and len(candidates)==kept_before and not search_only:
                         reason='no_verified_match_change_name_or_source';break
                     if search_only:
-                        reason=reason or ('candidates_found' if len(received)>window_before else 'no_new_valid_candidates')
+                        if confirmed()>=target:
+                            reason='target_reached';break
+                        if confirmed()>confirmed_before:
+                            reason='target_named_candidates_found'
+                        elif len(received)>window_before:
+                            reason='exploration_candidates_found'
+                        else:
+                            reason='no_new_valid_candidates'
                     else:
                         reason=reason or ('verified_matches' if len(candidates)>before else 'no_verified_match_change_name_or_source')
+                    if search_only and confirmed()==confirmed_before and len(received)==window_before and source=='xiaohongshu' and sort_mode!='latest':
+                        # Bounded fallback: if relevance sort found no usable name hit in this
+                        # window, allow exactly one later XHS query to try 最新. Never loop.
+                        latest_fallback_sources.add(source)
                     search['window']=window+1;search.pop('snapshot',None);checkpoint()
                     if pass_index<len(steps) and not coverage(steps,searches,sources)['explored']:
                         reason='bounded_breadth_next_query';break
@@ -775,15 +865,36 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
             stop_reason='sources_blocked';blocked=True
         stop_reason=stop_reason or limit_reason() or 'search_plan_exhausted'
+        confirmed_total=confirmed() if search_only else len(candidates)
+        if search_only and not interrupted:
+            if stop_reason=='target_reached' and confirmed_total<target:
+                # A target_reached reason must be backed by confirmed names, never downloads alone.
+                stop_reason='relevance_unconfirmed' if not confirmed_total else 'target_partial'
+            elif confirmed_total<target and stop_reason in ('search_plan_exhausted','no_new_valid_candidates'):
+                stop_reason=('relevance_unconfirmed' if received and not confirmed_total
+                             else ('target_partial' if confirmed_total else stop_reason))
         if search_only:
-            status=('cancelled' if interrupted else
-                    ('blocked' if not received and (blocked or stop_reason in ('sources_blocked','unrecoverable_agent_failure','agent_failure','internal_error')) else 'completed'))
+            if interrupted:
+                status='cancelled'
+            elif confirmed_total>=target:
+                status='completed'
+            elif received:
+                status='partial'
+            else:
+                status='blocked'
             summary=write_search_summary(
                 folder,status=status,stop_reason=stop_reason,received=received,queries=queries,checks=checks,
                 searches=searches,started=started,
                 first_received=(started+first_usable if isinstance(first_usable,(int,float)) else None),
                 duplicates=duplicates,
-                errors=received_errors,extra={'target':target,'search_only':True,
+                errors=received_errors,extra={'target':target,'target_reached':confirmed_total>=target,
+                                              'requested_target':requested_total,'effective_target':target,
+                                              'budget_note':('本轮上限 100 张；请求 %s 张，按 %s 张执行。' % (requested_total,target)
+                                                             if requested_total>target else ''),
+                                              'search_only':True,
+                                              'skipped_other_character':skipped['other_character'],
+                                              'skipped_non_photo':skipped['non_photo'],
+                                              'skipped_exploration_budget':skipped['exploration_budget'],
                                               'history_ready':getattr(history,'ready',None),
                                               'history_known':getattr(history,'known_count',getattr(history,'initial_count',0)),
                                               'history_errors':len(getattr(history,'errors',[])),
@@ -795,7 +906,15 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 gaps.append('本轮浏览器会话清理未确认，请检查自有会话。')
             save(folder/'received.json',received);save(folder/'search-errors.json',received_errors)
             save(folder/'duplicates.json',duplicates);save(folder/'reference-collisions.json',collisions)
+            relevance_summary=relevance_counts(received)
             save(folder/'counts.json',{'unique_images_received':len(received),'duplicates':len(duplicates),
+                                       'target_confirmed':relevance_summary['confirmed'],
+                                       'exploration':relevance_summary['exploration'],
+                                       'other_character':relevance_summary['other_character'],
+                                       'non_photo':relevance_summary['non_photo'],
+                                       'skipped_other_character':skipped['other_character'],
+                                       'skipped_non_photo':skipped['non_photo'],
+                                       'skipped_exploration_budget':skipped['exploration_budget'],
                                        'search_errors':len(received_errors),'detail_pages':details,
                                        'visible_windows':windows,'stop_reason':stop_reason,
                                        'first_received_seconds':first_usable,
@@ -1131,9 +1250,15 @@ def _attempt_usage(folder):
 def write_search_summary(folder,*,status,stop_reason,received,queries,checks,searches,
                          started,first_received,duplicates,errors,extra=None):
     calls,tokens,with_usage=_attempt_usage(folder)
+    relevance=relevance_counts(received)
     summary={'version':1,'status':status,'stop_reason':stop_reason,
              'target':int(extra.get('target',0)) if extra else 0,
-             'counts':{'found':len(received),'duplicates':len(duplicates),'errors':len(errors)},
+             'target_reached':bool(extra.get('target_reached')) if extra else False,
+             'counts':{'found':len(received),'duplicates':len(duplicates),'errors':len(errors),
+                       'target_confirmed':relevance['confirmed'],
+                       'exploration':relevance['exploration'],
+                       'other_character':relevance['other_character'],
+                       'non_photo':relevance['non_photo']},
              'first_received_seconds':(round(first_received-started,3)
                                        if isinstance(first_received,(int,float)) else None),
              'elapsed_seconds':round(time.monotonic()-started,3),
@@ -1142,7 +1267,9 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
              'model_calls':calls,'tokens':tokens,'attempts_with_usage':with_usage,
              'model_calls_note':'快速搜图不调用名称/参照/视觉模型；此计数仅兼容历史回执。'}
     if extra:
-        for key in ('target','search_only','history_ready','history_known','history_errors','source_blocked'):
+        for key in ('target','requested_target','effective_target','target_reached','budget_note',
+                    'search_only','history_ready','history_known','history_errors','source_blocked',
+                    'skipped_other_character','skipped_non_photo','skipped_exploration_budget'):
             if key in extra:summary[key]=extra[key]
     save(folder/'search-summary.json',summary)
     return summary

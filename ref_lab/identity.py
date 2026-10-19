@@ -95,6 +95,26 @@ CANONICAL_PRESETS: dict[str, dict[str, Any]] = {
         ],
         "reference_provenance": "集英社官方角色资料、动画人设图、赤坂明×横枪萌果官方原作",
     },
+    "西木野真姬": {
+        "canonical_name": "西木野真姬",
+        "aliases": {
+            "zh": ["西木野真姬", "真姬"],
+            "ja": ["西木野真姫", "西木野 真姫"],
+            "en": ["Maki Nishikino", "Nishikino Maki", "Maki"],
+        },
+        "work": "Love Live!",
+        "costume": "",
+        "visual_identifiers": [],
+        "common_confusions": [],
+        "uncertainties": [
+            "未指定服装版本；这些名称只用于发现检索，不能替代逐图视觉身份核验。",
+        ],
+        "reference_provenance": (
+            "人工维护的可信名称：项目 docs/tasks/2026-10-18-automatic-reference-discovery.md "
+            "记录的真实 Good Smile Company 官方商品页使用 Maki Nishikino；日文写法"
+            "西木野真姫来自同一角色官方/商品资料及此前已保存任务。仅作检索名称，不声称译名等价。"
+        ),
+    },
     "kamen rider durendal": {
         "canonical_name": "假面骑士 Durendal",
         "aliases": {
@@ -150,7 +170,10 @@ def normalize_character_key(character: str) -> str:
         aliases = preset.get("aliases", {})
         for lang_list in aliases.values():
             for a in lang_list:
-                if a.lower() in cleaned or cleaned in a.lower():
+                value = a.lower()
+                # Short aliases such as "Maki" or "真姬" are exact-match only;
+                # otherwise an unrelated "Makiura" would inherit this preset.
+                if value == cleaned or (len(value) >= 5 and (value in cleaned or cleaned in value)):
                     return key
     return cleaned
 
@@ -225,6 +248,50 @@ def get_identity_context(con: sqlite3.Connection, project_id: str | None = None,
         if row:
             return json.loads(row[0])
     return None
+
+
+def preset_for_character(character: str) -> dict[str, Any] | None:
+    """Return a manually curated preset, if the project name matches one."""
+    key = normalize_character_key(character or "")
+    return CANONICAL_PRESETS.get(key)
+
+
+def trusted_alias_records(character: str, identity_context: dict[str, Any] | None = None) -> list[dict[str, str]]:
+    """Bounded trusted name sources: project context first, curated preset second.
+
+    No transliteration, no model output and no ``character + work`` string is
+    treated as another language's name.
+    """
+    records: list[dict[str, str]] = []
+    seen: set[str] = set()
+
+    def add(name: object, language: str, source: str) -> None:
+        text = str(name or "").strip()
+        key = text.casefold()
+        if text and key not in seen:
+            seen.add(key)
+            records.append({"name": text, "language": language, "source": source})
+
+    context_aliases = (identity_context or {}).get("aliases") or {}
+    add(character, _name_language(character), "project_character")
+    for language in ("zh", "ja", "en"):
+        for name in context_aliases.get(language) or ():
+            add(name, language, "identity_context")
+    preset = preset_for_character(character)
+    if preset:
+        for language in ("zh", "ja", "en"):
+            for name in (preset.get("aliases") or {}).get(language) or ():
+                add(name, language, "canonical_preset")
+    return records
+
+
+def _name_language(name: str) -> str:
+    text = str(name or "")
+    if any("\u3040" <= char <= "\u30ff" for char in text):
+        return "ja"
+    if text.isascii():
+        return "en"
+    return "zh"
 
 
 def list_identity_contexts(con: sqlite3.Connection, project_id: str) -> list[dict[str, Any]]:

@@ -76,6 +76,16 @@ python -m ref_lab export-job --job JOB_ID --output job.zip
 
 核实中日英角色/作品/服装别名，组合 cosplay / cos / コスプレ / 正片 / 场照 / 摄影 / pose / photography，加动作、情绪、构图关键词。先看少量产出，低产或重复就换词/来源；同套连拍只留确有不同借鉴价值的画面，不下载前 N 张凑数。
 
+### 快速 Search 的名称与相关性边界（2026-10-20）
+
+- 可信名称顺序：项目角色/作品字段 → Identity Context 人工别名 → 人工维护的角色 preset → 用户在本轮任务直接填写的额外别名。不要从模型旧 name-plan、标题或搜索词反推角色别名；不要把“中文角色名 + 英文作品名”当成英文角色名。
+- 每个查询记录 `used_name`、`name_source`、`language`、`work_term` 与 intent。缺少某语言名称时明确记缺口，不自动翻译或臆造。
+- Search 的相关性只是文字路由：`target_named`（可信名称命中）、`target_context`（作品+摄影意图但无名称）、`unconfirmed`（无文字/标题缺失）、`other_character`、`non_photo`。名称命中不等于视觉身份通过；无文字候选保留为“角色相关性未确认”，但受探索预算限制。
+- 目标只按 `target_named` 计数；探索候选不得凑满目标。明显其他角色/非真人摄影内容不下载、不计数，并记录跳过原因。
+- 小红书默认优先“综合”相关性；只有相关性查询没有名称命中时才允许对后续查询有界尝试“最新”，并用可见 DOM 确认当前 active 标签。不得用隐藏 API 或自动反复切换。
+- 快速搜图的“目标”是候选数量，不是摄影准入数量；未达标时区分 `target_reached`、`target_partial`、`relevance_unconfirmed`、预算耗尽和来源阻断。
+- 候选图库的人工保留/淘汰同步到项目 refs，但不改写既有的正式人工决定；`human_keep` 仍不是 AI `accepted`。
+
 三层 `discovery_intent`：
 
 - `exact_character`：A 角色精准。优先目标角色/版本的真人独立图、动作可读。

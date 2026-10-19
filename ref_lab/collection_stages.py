@@ -243,8 +243,14 @@ def run_search_stage(library: Library, job_id: str, attempt_id: str) -> dict:
             return library.job(job_id)
         status = str(summary.get("status", "blocked"))
         found = int((summary.get("counts") or {}).get("found", 0) or 0)
-        detail = (f"搜索阶段完成：找到 {found} 张候选原图；审核状态另行记录。" if status == "completed"
-                  else f"搜索阶段受阻：{summary.get('stop_reason', '未知原因')}；已下载候选保留。")
+        confirmed = int((summary.get("counts") or {}).get("target_confirmed", 0) or 0)
+        if status == "completed":
+            detail = f"搜索阶段完成：找到 {found} 张候选原图，其中角色名称命中 {confirmed} 张；审核状态另行记录。"
+        elif status == "partial":
+            detail = (f"搜索部分完成：找到 {found} 张候选原图，其中角色名称命中 {confirmed} 张；"
+                      f"未达目标，停止原因 {summary.get('stop_reason', '未知')}。")
+        else:
+            detail = f"搜索阶段受阻：{summary.get('stop_reason', '未知原因')}；已下载候选保留。"
         result = library.update_search_stage(job_id, attempt_id, status, summary, detail)
         _import_search(library, job_id)
         _import_review(library, job_id)
@@ -335,17 +341,22 @@ def _import_search(library: Library, job_id: str) -> dict:
         try:
             path, raw = collection_queue.original_bytes(job_id, item["asset_sha"])
             asset = library.ingest_asset(raw, path.name)
+            relevance = item.get("relevance") or {}
+            tier = str(relevance.get("tier") or "unconfirmed")
+            label = str(relevance.get("label") or "角色相关性未确认")
             data = CandidateInput(
                 asset_sha=asset["id"],
-                title=(str(project.get("character") or "") + " · 快速搜图候选")[:400],
+                title=(str(project.get("character") or "") + " · " +
+                       ("名称命中候选（未视觉核验）" if tier == "target_named"
+                        else "角色相关性未确认候选"))[:400],
                 source=Source(page_url=item["source"].get("page_url", ""),
                               image_url=item["source"].get("image_url", ""),
                               author=item["source"].get("author", ""),
                               search_query=item["source"].get("search_query", ""),
                               obtained_as="platform_variant"),
                 job_id=job_id,
-                discovery_intent="unknown",
-                discovery_reason="快速搜图已下载并保存原图；尚未通过视觉审核。",
+                discovery_intent="exact_character" if tier == "target_named" else "unknown",
+                discovery_reason=(f"快速搜图已下载并保存原图；{label}；尚未通过视觉审核。"),
                 discovery_url=item.get("discovery_url", ""),
             )
             result = library.add_candidate(job["project_id"], data, decision="pending", actor="search")

@@ -222,11 +222,17 @@ class JobInput(Strict):
     kind: Literal["collection", "analysis"]
     reference_ids: list[Short] = Field(default_factory=list, max_length=50)
     notes: Text = ""
-    target_count: int = Field(default=80, ge=1, le=500)
+    target_count: int = Field(default=30, ge=1, le=100)
     preferred_sources: list[Short] = Field(default_factory=lambda: ["xiaohongshu", "pinterest"], max_length=12)
+    # Optional user-provided trusted search names (zh/ja/en comma or list input in UI).
+    search_aliases: list[Short] = Field(default_factory=list, max_length=12)
     # 'verified' keeps the historical one-pass pipeline for compatibility.
     # Search modes persist candidates before any visual review.
     collection_mode: Literal["verified", "search", "search_review"] = "verified"
+
+
+class CollectionContinueInput(Strict):
+    extra_target: int = Field(ge=1, le=100)
 
 
 class CandidateDecisionInput(Strict):

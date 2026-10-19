@@ -62,8 +62,12 @@ def assess_search(snapshot: dict, query: str, scope: dict) -> dict:
                 'requested_query':query, 'effective_query':rewrite.group(1),
                 'note':'Search box and URL match, but the platform visibly rewrote the query.'}
     texts = [c.get('text', '') for c in snapshot.get('cards', [])]
-    hits = sum(any(a.casefold() in text.casefold() for a in scope.get('character_aliases', [scope['character']]))
-               and any(a.casefold() in text.casefold() for a in scope.get('costume_aliases', [scope['costume']]))
+    names = [str(name) for name in (scope.get('character_aliases') or [scope.get('character', '')])
+             if str(name).strip()]
+    costumes = [str(name) for name in (scope.get('costume_aliases') or [scope.get('costume', '')])
+                if str(name).strip()]
+    hits = sum(any(name.casefold() in text.casefold() for name in names)
+               and (not costumes or any(costume.casefold() in text.casefold() for costume in costumes))
                for text in texts)
     return {'action':'INSPECT_TARGET_DETAILS' if hits else 'SAMPLE_THEN_CHANGE_SOURCE',
             'scope_text_hits':hits, 'sample_count':len(texts), 'confirmed_count':0,

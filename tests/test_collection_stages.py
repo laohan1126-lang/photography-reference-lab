@@ -215,7 +215,7 @@ def test_search_only_cli_writes_summary_without_a_model_budget_or_result_zip(tmp
         def search(self, step):
             from urllib.parse import quote
             return {"url": "https://example.org/search?q=" + quote(step["query"]), "search": step["query"],
-                    "visibleMain": "", "cards": [{"page": "https://example.org/post"}]}
+                    "visibleMain": "", "cards": [{"page": "https://example.org/post", "text": "测试角色甲 cosplay"}]}
         def receive(self, card, step):
             return [{"asset_sha": hashlib.sha256(image.read_bytes()).hexdigest(),
                      "original_path": str(image), "page_url": "https://example.org/post",
@@ -266,7 +266,7 @@ def test_search_only_persists_candidates_without_any_model_or_reference_call(tmp
         def search(self, step):
             from urllib.parse import quote
             return {"url": "https://example.org/search?q=" + quote(step["query"]), "search": step["query"],
-                    "visibleMain": "", "cards": [{"page": "https://example.org/post"}]}
+                    "visibleMain": "", "cards": [{"page": "https://example.org/post", "text": "测试角色甲 cosplay"}]}
         def receive(self, card, step):
             return [{"asset_sha": hashlib.sha256(image.read_bytes()).hexdigest(),
                      "original_path": str(image), "page_url": "https://example.org/post",
@@ -290,7 +290,8 @@ def test_search_only_persists_candidates_without_any_model_or_reference_call(tmp
             "target_count": 2, "preferred_sources": ["xiaohongshu"]}
     summary, images = worker.collect(task, agent, Browser(), tmp_path, search_only=True)
     assert agent.plan_calls == agent.prepare_calls == agent.review_calls == 0
-    assert summary["status"] == "completed" and summary["counts"]["found"] == 1
+    assert summary["status"] == "partial" and summary["counts"]["found"] == 1
+    assert summary["counts"]["target_confirmed"] == 1 and summary["target_reached"] is False
     assert summary["model_calls"] == 0 and summary["tokens"] == 0
     assert images == {}
     received = json.loads((tmp_path / "received.json").read_text("utf8"))

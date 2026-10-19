@@ -81,7 +81,9 @@ def test_collection_editor_offers_two_modes_and_opens_live_candidate_queue(
     assert mode.locator('option').count() == 2
     assert '快速搜图' in mode.locator('option').nth(0).inner_text()
     assert '搜图 + AI 审核' in mode.locator('option').nth(1).inner_text()
-    assert page.get_by_label('期望候选数量（质量优先，不凑数）', exact=True).input_value() == '4'
+    target = page.get_by_label('期望候选数量（质量优先，不凑数）', exact=True)
+    assert target.input_value() == '30'
+    assert target.get_attribute('max') == '100'
     mode.select_option('search_review')
     page.get_by_role('button', name='开始搜图', exact=True).click()
     page.locator('#cq-grid').wait_for(state='attached')

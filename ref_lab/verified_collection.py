@@ -21,6 +21,7 @@ from .providers import find_antigravity_cli, antigravity_environment
 from .policy import digest
 from .storage import atomic_write
 from .collection_timing import CollectionTiming
+from .identity import trusted_alias_records
 
 
 class AgentUnavailable(RuntimeError):
@@ -93,6 +94,9 @@ class NamePlan(Strict):
     work_aliases: list[str] = Field(default_factory=list,max_length=8)
     rights_holders: list[str] = Field(default_factory=list,max_length=8)
     reference_queries: list[str] = Field(default_factory=list,max_length=2)
+    # Trusted-name provenance for quick search. Optional so old cached plans and
+    # agent hypotheses remain readable; it is never treated as visual evidence.
+    name_records: list[dict] = Field(default_factory=list, max_length=16)
 
 
 class VisualReference(Strict):
@@ -216,76 +220,139 @@ def _attempt_evidence(text):
     return evidence
 
 
+def _name_language(name: str) -> str:
+    text = str(name or "")
+    if any("\u3040" <= char <= "\u30ff" for char in text):
+        return "ja"
+    if text.isascii():
+        return "en"
+    return "zh"
+
+
+def _plan_name_records(project: dict, plan: NamePlan) -> list[dict]:
+    records: list[dict] = []
+    seen: set[str] = set()
+
+    def add(name: object, language: str = "", source: str = "") -> None:
+        text = str(name or "").strip()
+        if not text or len(text) > 120:
+            return
+        key = text.casefold()
+        if key in seen:
+            return
+        seen.add(key)
+        records.append({"name": text, "language": language or _name_language(text),
+                        "source": source or "plan_name"})
+
+    if plan.name_records:
+        for record in plan.name_records:
+            if isinstance(record, dict):
+                add(record.get("name"), str(record.get("language") or ""),
+                    str(record.get("source") or "plan_name"))
+    add(project.get("character"), source="project_character")
+    for name in plan.names:
+        add(name, source="plan_name")
+    return records[:16]
+
+
 def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]:
-    names=list(dict.fromkeys(x.strip() for x in [project['character'],*plan.names] if x.strip()))
-    if any(len(x)>120 for x in names+plan.costume_names):
-        raise ValueError('Name plan exceeds field limits')
-    english=[x for x in names if x.isascii()]
-    local=[x for x in names if not x.isascii()]
-    sources=list(dict.fromkeys(s for s in sources if s in ('xiaohongshu','pinterest')))
-    steps=[];seen=set();pools={source:[] for source in sources}
+    records = _plan_name_records(project, plan)
+    if not records:
+        raise ValueError("Name plan has no usable trusted name")
+    # Short aliases help text routing (e.g. "maki") but are too broad as a
+    # standalone query. Query generation keeps full names only.
+    query_records = [record for record in records
+                     if record["source"] == "user_input"
+                     or (record["language"] == "en" and " " in record["name"])
+                     or (record["language"] != "en" and len(record["name"]) >= 3)]
+    if query_records:
+        records = query_records
+    work = str(project.get("work") or "").strip()
+    costume = str(project.get("costume") or "").strip()
+    sources = list(dict.fromkeys(s for s in sources if s in ("xiaohongshu", "pinterest")))
+    intents = {
+        "xiaohongshu": ("cos 摄影", "cos 场照", "cos 棚拍", "cos 正片"),
+        "pinterest": ("cosplay photography", "cosplay photoshoot",
+                      "cosplay convention", "cosplay portrait"),
+    }
+    pools = {}
     for source in sources:
-        for i in range(4):
-            ordered=(english+local) if source=='pinterest' else (local+english)
-            if not ordered:continue
-            costume=project.get('costume','').strip()
-            # The requested costume is retained; an alias is only an alternate discovery query.
-            if costume and i>0 and plan.costume_names:
-                costume=plan.costume_names[(i-1)%len(plan.costume_names)]
-            name=ordered[i%len(ordered)]
-            if source=='pinterest':
-                # Different photo intent finds different pools; reversed names often repeat Pins.
-                if i==1 and local:name=next((n for n in local if re.search(r'[\u3040-\u30ff]',n)),local[-1])
-                if i==2:name=ordered[0]
-                if i==3 and len(sources)==1:name=project['character']
-                intent=('cosplay photography','cosplay photoshoot','cosplay convention','cosplay portrait')[i]
-            else:
-                name=project['character'] if i==0 or len(sources)>1 else ordered[i%len(ordered)]
-                intent=('cos 摄影','cos 场照','cos 棚拍','cos 正片')[i]
-            query=' '.join(x for x in (name,costume,intent) if x)
-            key=(source,query.casefold())
-            if key not in seen:
-                language='ja' if re.search(r'[\u3040-\u30ff]',name) else ('en' if name.isascii() else 'zh')
-                seen.add(key);pools[source].append({'source':source,'query':query,'language':language,'alias_origin':'agent_discovery_hypothesis'})
-    # Give each selected platform and available name language an early bounded opportunity.
-    for source in sources:
-        if pools[source]:steps.append(pools[source].pop(0))
-    languages={step['language'] for step in steps}
-    for source in sources:
-        for step in list(pools[source]):
-            if step['language'] not in languages:
-                steps.append(step);languages.add(step['language']);pools[source].remove(step)
-    for i in range(4):
+        preference = ("en", "ja", "zh") if source == "pinterest" else ("zh", "ja", "en")
+        ordered: list[dict] = []
+        for language in preference:
+            ordered.extend(record for record in records if record["language"] == language)
+        ordered.extend(record for record in records if record not in ordered)
+        # Explicit user aliases get an early query slot; they are the user's
+        # direct correction, not a model hypothesis.
+        ordered = ([record for record in records if record["source"] == "user_input"]
+                   + [record for record in ordered if record["source"] != "user_input"])
+        selected: list[dict] = []
+        for language in preference:
+            first = next((record for record in ordered if record["language"] == language
+                          and record not in selected), None)
+            if first is not None:
+                selected.append(first)
+        selected.extend(record for record in ordered if record not in selected)
+        pool = []
+        for index in range(4):
+            record = selected[index % len(selected)]
+            parts = [record["name"]]
+            if work and work.casefold() not in record["name"].casefold() and index == 0:
+                parts.append(work)
+            if costume:
+                parts.append(costume)
+            parts.append(intents[source][index])
+            query = " ".join(part for part in parts if part).strip()
+            if len(query) > 240:
+                query = query[:240].rstrip()
+            key = (source, query.casefold())
+            if any(step["source"] == source and step["query"].casefold() == query.casefold()
+                   for step in pool):
+                continue
+            pool.append({
+                "source": source, "query": query, "language": record["language"],
+                "used_name": record["name"], "name_source": record["source"],
+                "alias_origin": "agent_discovery_hypothesis", "work_term": work,
+                "intent": intents[source][index],
+            })
+        pools[source] = pool
+    # Interleave platforms so neither source waits for all queries of the other.
+    steps: list[dict] = []
+    for index in range(4):
         for source in sources:
-            if pools[source]:steps.append(pools[source].pop(0))
+            if index < len(pools[source]):
+                steps.append(pools[source][index])
     return steps[:8]
 
 
-def deterministic_plan(project: dict, aliases=()) -> NamePlan:
-    """Build searchable queries from fields the user already entered.
+def deterministic_plan(project: dict, aliases=(), *, identity_context: dict | None = None,
+                       user_aliases=()) -> NamePlan:
+    """Build searchable queries from user/project names without a model call.
 
-    This is deliberately not a model call and not an official-name claim. Search
-    may start before any alias/reference research exists; Review can later build
-    a fuller NamePlan without changing what was already downloaded.
+    Trust order: project character -> identity-context aliases -> a manually
+    curated preset -> explicit user aliases. Model output and old discovery
+    hypotheses are not treated as trusted names. The work title is kept as a
+    separate context term; it is never concatenated into a fake English name.
     """
-    character = str(project.get('character') or '').strip()
+    character = str(project.get("character") or "").strip()
     if not character:
         raise AgentUnavailable('角色名为空，无法生成搜索词。')
     work = str(project.get('work') or '').strip()
     costume = str(project.get('costume') or '').strip()
-    names = [character]
-    if work:
-        # A combined query keeps the role in every search, unlike cycling a bare work name.
-        combined = f'{character} {work}'.strip()
-        if len(combined) <= 120 and combined.casefold() != character.casefold():
-            names.append(combined)
-    for alias in aliases:
-        alias = str(alias or '').strip()
-        if alias and alias.casefold() not in {name.casefold() for name in names} and len(alias) <= 120:
-            names.append(alias)
-    return NamePlan(names=names[:8], costume_names=[costume] if costume else [],
-                    uncertainty='快速搜图仅使用项目已有字段；角色别名与官方参照留给独立审核阶段。',
-                    work_aliases=[work] if work else [])
+    records = trusted_alias_records(character, identity_context)
+    seen = {record["name"].casefold() for record in records}
+    for alias in [*aliases, *user_aliases]:
+        text = str(alias or "").strip()
+        if text and len(text) <= 120 and text.casefold() not in seen:
+            seen.add(text.casefold())
+            records.append({"name": text, "language": _name_language(text),
+                            "source": "user_input"})
+    names = [record["name"] for record in records][:8]
+    return NamePlan(names=names, costume_names=[costume] if costume else [],
+                    uncertainty=('快速搜图只使用项目名称、人工维护别名和用户补充别名；'
+                                 '未命中名称时会保留无文字探索候选并标记“角色相关性未确认”。'),
+                    work_aliases=[work] if work else [],
+                    name_records=records[:16])
 
 
 def parse_agent_stream(text: str, result_type, image_path: Path | None = None, *, reference_paths=()):

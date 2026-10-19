@@ -175,6 +175,10 @@ def _item(row: dict, review: dict | None, human: dict | None, job_id: str) -> di
         "review_error": str((review or {}).get("error", ""))[:800],
         "human_decision": str((human or {}).get("decision", "")),
         "human_decided_at": (human or {}).get("at"),
+        "relevance": row.get("relevance") if isinstance(row.get("relevance"), dict) else {
+            "tier": "unconfirmed", "label": "角色相关性未确认",
+            "reason": "该候选没有保存文字相关性记录。",
+        },
         "original_url": f"/api/jobs/{job_id}/candidates/{row['asset_sha']}/original",
     }
 
@@ -190,9 +194,20 @@ def counts(items: list[dict]) -> dict:
         "blocked": 0,
         "pending": 0,
         "reviewing": 0,
+        "target_confirmed": 0,
+        "exploration": 0,
+        "other_character": 0,
+        "non_photo": 0,
     }
     for item in items:
         status = item.get("status")
+        tier = str((item.get("relevance") or {}).get("tier") or "unconfirmed")
+        if tier == "target_named":
+            result["target_confirmed"] += 1
+        elif tier in {"target_context", "unconfirmed"}:
+            result["exploration"] += 1
+        elif tier in {"other_character", "non_photo"}:
+            result[tier] += 1
         if status == "accepted":
             result["accepted"] += 1
         elif status == "human_keep":

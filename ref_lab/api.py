@@ -18,7 +18,7 @@ from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import __version__
 from .config import Settings
-from .collection_queue import decide as decide_candidate, original_bytes as candidate_original, snapshot as candidate_snapshot
+from .collection_queue import original_bytes as candidate_original, snapshot as candidate_snapshot
 from .learning_preview import STATIC_FILES as LEARNING_STATIC_FILES, preview_router
 from .learning_state import router as learning_state_router
 from .action_directing_media import ACTION_DIRECTING_SOURCE_IMAGE_CSP
@@ -26,6 +26,7 @@ from .learning_media import SOURCE_IMAGE_CSP
 from .export import build_job_pack, build_pack, build_contact_board
 from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
 from .models import (AnalysisImport, AnalysisResult, CandidateDecisionInput, CandidateInput, Card, CardInput, JobInput, JobResult,
+                     CollectionContinueInput,
                      NoteEdit, NoteInput, PackInput, ProjectEdit, ProjectInput, ReferenceEdit, ReflectionInput,
                      RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport,
                      CandidatePreflightInput, PreflightOverrideInput,
@@ -482,10 +483,11 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         search_counts = job.get("search_counts") or {}
         review_counts = job.get("review_counts") or {}
         can_review = (mode != "verified"
-                      and job.get("search_state") in {"completed", "blocked"}
+                      and job.get("search_state") in {"completed", "partial", "blocked"}
                       and int(search_counts.get("found", 0) or 0) > 0
                       and job.get("review_state") in {None, "idle", "completed", "partial", "blocked", "cancelled"})
         return {**job, "can_resume": collection_can_resume(library, job),
+                "search_target_total": int(job.get("target_count") or 0) + int(job.get("search_extra_target") or 0),
                 "can_resume_search": (mode != "verified" and job.get("search_state") in {"running", "blocked", "failed"}
                                       and collection_can_resume(library, job)),
                 "can_resume_review": (mode != "verified" and review_can_resume(library, job)),
@@ -583,6 +585,15 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         from .collection_stages import launch_search
         return job_view(launch_search(library, job_id))
 
+    @app.post("/api/jobs/{job_id}/search/continue")
+    def continue_split_search(job_id: str, data: CollectionContinueInput):
+        job = library.job(job_id)
+        if job["kind"] != "collection" or job.get("collection_mode", "verified") == "verified":
+            raise Problem(409, "该任务不是快速搜图模式")
+        library.extend_search(job_id, data.extra_target)
+        from .collection_stages import launch_search
+        return job_view(launch_search(library, job_id))
+
     @app.post("/api/jobs/{job_id}/review")
     def start_split_review(job_id: str):
         job = library.job(job_id)
@@ -627,7 +638,7 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         job = library.job(job_id)
         if job["kind"] != "collection":
             raise Problem(409, "不是采集任务")
-        return decide_candidate(job_id, sha, data.decision)
+        return library.decide_candidate_human(job_id, sha, data.decision)
 
     @app.get("/api/projects/{project_id}/screening-sessions/current")
     def current_screening_session(project_id: str):
