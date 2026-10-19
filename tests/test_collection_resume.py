@@ -17,6 +17,7 @@ def fake_processes(monkeypatch, responses):
     class Process:
         def __init__(self,command,**kwargs):
             calls.append(command);self.returncode,self.output,self.error=next(values)
+            self.stdout=io.StringIO(self.output);self.stderr=io.StringIO(self.error)
         def communicate(self,**kwargs):return self.output,self.error
         def poll(self):return self.returncode
         def wait(self,**kwargs):return self.returncode

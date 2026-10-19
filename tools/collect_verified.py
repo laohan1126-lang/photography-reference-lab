@@ -24,9 +24,11 @@ import httpx
 from PIL import Image
 
 from ref_lab.models import CandidatePackage
-from ref_lab.verified_collection import AntigravityCollectionAgent,AgentUnavailable,CollectionVision,accepted,query_steps,reference_supported,scope_sha
+from ref_lab.verified_collection import AntigravityCollectionAgent,AgentUnavailable,AgentCallFailed,CollectionVision,accepted,query_steps,reference_supported,scope_sha
 from ref_lab.storage import atomic_write
 from ref_lab.collection_history import ImageHistory,historical_paths
+from ref_lab.collection_pipeline import OrderedReviews
+from ref_lab.collection_timing import CollectionTiming
 from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata
 from tools.exact_recall import assess_search,capture_note,save
 
@@ -294,13 +296,16 @@ class Browser:
         if self.session:self.command('session','stop',self.session,timeout=10)
 
 
-def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[str,bytes]]:
+def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1)->tuple[dict,dict[str,bytes]]:
     project={**job['project_snapshot'],'notes':job.get('notes','')}
     requested=int(job.get('target_count') or 12);target=min(requested,100)
     agent.candidate_limit=min(MAX_IMAGES,max(20,target*2))
     sources=job.get('preferred_sources') or ['xiaohongshu','pinterest']
     candidates=[];images={};queries=[];checks={};seen=set();pages=set();audit=[];received=[];collisions=[];duplicates=[];gaps=[];blocked=False;reviewed=0;attempted=0;details=0;windows=0;stop_reason=''
     started=time.monotonic()
+    timing=getattr(agent,'timing',None) or CollectionTiming(folder)
+    pending=OrderedReviews(agent,project,workers=workers)
+    first_usable=None;displayed=-1
     calls=lambda:getattr(agent,'candidate_calls',attempted)
     def limit_reason():
         if len(candidates)>=target:return 'soft_target_reached'
@@ -309,22 +314,68 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
         if details>=MAX_DETAIL_PAGES:return 'detail_budget_exhausted'
         return ''
     def checkpoint(phase='collecting'):
+        nonlocal displayed
         save(folder/'progress.json',{'phase':phase,'stop_reason':stop_reason,'soft_target':target,
              'accepted':len(candidates),'received':len(received),'reviewed':reviewed,'duplicates':len(duplicates),
              'queries':len(queries),'visible_windows':windows,'detail_pages':details,
-             'vision_cli_calls':getattr(agent,'vision_cli_calls',calls()),'wall_seconds':round(time.monotonic()-started,3)})
+             'vision_cli_calls':getattr(agent,'vision_cli_calls',calls()),'wall_seconds':round(time.monotonic()-started,3),
+             'first_usable_seconds':first_usable,'pending_reviews':len(pending),'vision_workers':workers})
+        if displayed!=len(candidates) or phase=='finished':
+            render_result(folder,{'candidates':candidates,'execution_report':{'summary':'任务'+('已停止：'+stop_reason if phase=='finished' else '仍在运行'),
+                          'gaps':gaps}},images,running=phase!='finished')
+            displayed=len(candidates)
+
+    def finish_one():
+        nonlocal reviewed,blocked,kept,first_usable
+        row=pending.pending[0][0];sha=row['asset_sha']
+        try:
+            _,result,references=pending.take()
+            if result.asset_sha!=sha or result.context_sha!=scope_sha(project):
+                raise AgentCallFailed('input_binding_changed',fatal=True)
+            raw=Path(row['original_path']).read_bytes()
+            if hashlib.sha256(raw).hexdigest()!=result.asset_sha:
+                raise AgentCallFailed('input_binding_changed',fatal=True)
+        except (AgentUnavailable,OSError,ValueError) as exc:
+            if not isinstance(exc,AgentUnavailable):exc=AgentCallFailed('local_input_invalid',fatal=True)
+            gap='视觉执行：'+str(exc)
+            if gap not in gaps:gaps.append(gap)
+            blocked=True
+            audit.append({'asset_sha':sha,'source_page':row['page_url'],'review':None,'accepted':False,
+                          'decision':'NEEDS_EVIDENCE','execution_error':str(exc)})
+            save(folder/'visual-audit.json',audit);checkpoint()
+            if fatal_visual_error(exc):raise exc
+            return
+        reviewed+=1
+        valid=accepted(result,project,references=references)
+        verdict='CONFIRMED' if valid else ('MISMATCH' if result.kind not in ('cosplay_photo','portrait_photo','unknown') or (result.identity=='match' and result.costume=='mismatch' and reference_supported(result,references)) else 'NEEDS_EVIDENCE')
+        audit.append({'asset_sha':sha,'source_page':row['page_url'],'review':result.model_dump(),'accepted':valid,'decision':verdict,
+                      'reference_shas':[r['asset_sha'] for r in references]})
+        save(folder/'visual-audit.json',audit)
+        timing.event('review_committed',asset_sha=sha,accepted=valid)
+        if valid:
+            filename=Path(row['original_path']).name
+            candidates.append(verified_candidate(row,result,project,references,row['search_query'],row['discovery_url']))
+            images[filename]=raw;kept+=1
+            if first_usable is None:
+                first_usable=time.monotonic()-timing.started
+                timing.event('first_usable',asset_sha=sha)
+        checkpoint()
+
+    def drain():
+        while pending:finish_one()
     try:
         checkpoint('planning')
-        plan=agent.plan(project)
+        with timing.span('name_plan'):plan=agent.plan(project)
         steps=query_steps(project,plan,sources)
         save(folder/'name-plan.json',{'plan':plan.model_dump(),'steps':steps,'origin':'agent_discovery_hypothesis'})
         if not steps:raise AgentUnavailable('当前所选来源没有正式适配器；未静默改用其他来源。')
-        try:agent.prepare(project,plan)
+        try:
+            with timing.span('reference_prepare'):agent.prepare(project,plan)
         except AgentUnavailable as exc:
             gaps.append('参照阶段：'+str(exc))
             if fatal_visual_error(exc):raise
         agent.references=agent.references or []
-        browser.start()
+        with timing.span('browser_start'):browser.start()
         for step in steps[:MAX_QUERIES]:
             source=step['source'];query=step['query']
             if checks.get(source,{}).get('status') in ('login_required','blocked'):continue
@@ -336,7 +387,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
                     stop_reason=limit_reason()
                     if stop_reason:break
                     if window and not hasattr(browser,'more'):break
-                    snapshot=browser.search(step) if window==0 else browser.more(step)
+                    with timing.span('browser_search' if window==0 else 'browser_more'):
+                        snapshot=browser.search(step) if window==0 else browser.more(step)
                     windows+=1
                     save(folder/f'search-{len(queries)+1}-window-{window+1}.json',snapshot)
                     assessment=assess_search(snapshot,query,{'character':project['character'],'costume':project.get('costume','')})
@@ -348,6 +400,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
                     checks[source]={'source':source,'status':'usable','detail':'实际查询正常页面；交付数量只计视觉通过。'}
                     inspected=0;window_before=len(received);kept_before=len(candidates)
                     for card in snapshot.get('cards',[]):
+                        while pending and pending.pending[0][1] is not None and pending.pending[0][1].done():finish_one()
+                        while pending and len(candidates)+len(pending)>=target:finish_one()
                         stop_reason=limit_reason()
                         if inspected>=SAMPLE_PER_QUERY or stop_reason:break
                         parsed=urlsplit(card['page'])
@@ -356,13 +410,15 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
                         if page_key in pages:continue
                         pages.add(page_key)
                         inspected+=1;details+=1;per_note=0
-                        try:rows=browser.receive(card,step)
+                        try:
+                            with timing.span('browser_receive'):rows=browser.receive(card,step)
                         except SourceBlocked:
                             checks[source]={'source':source,'status':'blocked','detail':'已停止受登录/验证限制的来源，尝试其他授权来源。'}
                             reason='login_or_challenge';break
                         except ValueError:
                             reason='detail_unavailable';continue
                         for row in rows:
+                            while pending and (len(pending)>=workers or len(candidates)+len(pending)>=target):finish_one()
                             sha=row['asset_sha']
                             if sha in seen:
                                 duplicates.append({'asset_sha':sha,'page_url':row['page_url'],'duplicate_of':sha,'reason':'same_bytes_this_run'});continue
@@ -374,40 +430,18 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
                                 raise AgentUnavailable('收到的原图SHA不一致；停止，不采用未绑定图片。')
                             seen.add(sha)
                             if history is not None:
-                                duplicate=history.consider(Path(row['original_path']))
+                                with timing.span('history_consider'):duplicate=history.consider(Path(row['original_path']))
                                 if duplicate:
                                     duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate})
                                     save(folder/'duplicates.json',duplicates);checkpoint();continue
                             row={**row,'search_query':query,'discovery_url':snapshot['url']}
                             received.append(row);attempted+=1;per_note+=1
                             save(folder/'received.json',received)
-                            try:
-                                result=agent.review(Path(row['original_path']),project)
-                            except AgentUnavailable as exc:
-                                gap='视觉执行：'+str(exc)
-                                if gap not in gaps:gaps.append(gap)
-                                blocked=True
-                                audit.append({'asset_sha':sha,'source_page':row['page_url'],'review':None,'accepted':False,
-                                              'decision':'NEEDS_EVIDENCE','execution_error':str(exc)})
-                                save(folder/'visual-audit.json',audit)
-                                checkpoint()
-                                if fatal_visual_error(exc):raise
-                                continue
-                            reviewed+=1
-                            valid=accepted(result,project,references=agent.references)
-                            verdict='CONFIRMED' if valid else ('MISMATCH' if result.kind not in ('cosplay_photo','portrait_photo','unknown') or (result.identity=='match' and result.costume=='mismatch' and reference_supported(result,agent.references)) else 'NEEDS_EVIDENCE')
-                            audit.append({'asset_sha':sha,'source_page':row['page_url'],'review':result.model_dump(),'accepted':valid,'decision':verdict})
-                            save(folder/'visual-audit.json',audit)
-                            checkpoint()
-                            if not valid:continue
-                            raw=Path(row['original_path']).read_bytes()
-                            if hashlib.sha256(raw).hexdigest()!=result.asset_sha:raise AgentUnavailable('核验后的图片字节变化；未导入。')
-                            filename=Path(row['original_path']).name
-                            candidates.append(verified_candidate(row,result,project,agent.references,query,snapshot['url']))
-                            images[filename]=raw;kept+=1;checkpoint()
+                            pending.submit(row)
+                            if workers==1:finish_one()
                         if getattr(browser,'return_failed',False):
                             reason='search_return_unconfirmed_change_query';break
-                    checkpoint()
+                    drain();checkpoint()
                     if reason=='login_or_challenge' or getattr(browser,'return_failed',False):break
                     if not inspected:
                         reason='no_new_visible_posts_change_query';break
@@ -415,7 +449,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
                         reason='no_verified_match_change_name_or_source';break
                     reason=reason or ('verified_matches' if len(candidates)>before else 'no_verified_match_change_name_or_source')
             except AgentUnavailable:raise
-            except (ValueError,OSError,subprocess.SubprocessError,httpx.HTTPError):reason='source_or_detail_failed_change_source'
+            except (ValueError,OSError,subprocess.SubprocessError,httpx.HTTPError):
+                reason='source_or_detail_failed_change_source';drain()
             finally:
                 queries.append({'source':source,'query':query,'kept':kept,'stop_reason':reason or 'agent_blocked'})
                 checkpoint()
@@ -424,8 +459,23 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
         category=getattr(exc,'category','')
         stop_reason=({'time_budget_exhausted':'time_budget_exhausted','call_budget_exhausted':'visual_budget_exhausted'}.get(category)
                      or ('unrecoverable_agent_failure' if fatal_visual_error(exc) else 'agent_failure'))
+    except (KeyboardInterrupt,SystemExit):
+        blocked=True;stop_reason='cancelled'
+        raise
+    except BaseException:
+        blocked=True;stop_reason='internal_error'
+        raise
     finally:
+        pending.close(cancel=True)
+        if hasattr(agent,'cache_references'):agent.cache_references(project)
         stop_reason=stop_reason or limit_reason() or 'search_plan_exhausted'
+        completed={r['asset_sha'] for r in audit}
+        for row in received:
+            if row['asset_sha'] not in completed:
+                audit.append({'asset_sha':row['asset_sha'],'source_page':row['page_url'],'review':None,'accepted':False,
+                              'decision':'NEEDS_EVIDENCE','execution_error':'Not committed before '+stop_reason})
+        order={r['asset_sha']:i for i,r in enumerate(received)}
+        audit.sort(key=lambda r:order[r['asset_sha']])
         try:browser.close()
         except (ValueError,OSError,subprocess.SubprocessError):gaps.append('本轮浏览器会话清理未确认，请检查自有会话。');blocked=True
         save(folder/'received.json',received);save(folder/'visual-audit.json',audit);save(folder/'reference-collisions.json',collisions)
@@ -436,7 +486,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
                                   'execution_unreviewed':sum(r.get('review') is None for r in audit),
                                   'vision_cli_calls':getattr(agent,'vision_cli_calls',calls()),
                                   'historical_images':getattr(history,'initial_count',0),'duplicates':len(duplicates),
-                                  'detail_pages':details,'visible_windows':windows,'stop_reason':stop_reason})
+                                  'detail_pages':details,'visible_windows':windows,'stop_reason':stop_reason,
+                                  'first_usable_seconds':first_usable,'vision_workers':workers})
+        timing.event('collection_finished',accepted=len(candidates),reviewed=reviewed,stop_reason=stop_reason)
     for source in sources:
         if source not in checks:checks[source]={'source':source,'status':'untested','detail':'预算或前置Agent阻断；未实际确认来源。'}
     if len(candidates)<requested:gaps.append(f'已视觉确认{len(candidates)}/{requested}；不以未知或错误图片凑数。')
@@ -448,10 +500,11 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None)->tuple[dict,dict[
               'source_checks':list(checks.values()),'query_log':queries,'gaps':gaps}}
     CandidatePackage.model_validate(manifest)
     save(folder/'manifest.json',manifest)
+    render_result(folder,manifest,images)
     return manifest,images
 
 
-def render_result(folder,manifest,images):
+def render_result(folder,manifest,images,*,running=False):
     """A read-only view of the original Agent output, without Root selection."""
     public=folder/'public';public.mkdir(exist_ok=True);figures=[]
     for i,candidate in enumerate(manifest['candidates'],1):
@@ -461,12 +514,16 @@ def render_result(folder,manifest,images):
         figures.append('<article><h2>'+str(i)+' · '+html.escape(candidate['title'])+'</h2><img src="'+html.escape(name,quote=True)+'" alt="AGY摄影参考'+str(i)+'"><p>'+html.escape(candidate['notes'])+'</p><a target="_blank" rel="noreferrer" href="'+html.escape(candidate['source']['page_url'],quote=True)+'">查看来源帖子</a></article>')
     report=manifest['execution_report']
     body='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AGY本轮摄影参考</title><style>body{margin:0;background:#f5f3ed;color:#242824;font:16px/1.7 system-ui}main{max-width:960px;margin:auto;padding:24px}h1{font-size:26px}h2{font-size:20px}article{border-top:1px solid #ccc;padding:24px 0}img{display:block;max-width:100%;max-height:84vh;margin:auto}a{color:#205f43}</style><main><h1>AGY本轮摄影参考 · '+str(len(figures))+'张</h1><p>本轮自动核验通过的原图与原说明。角色/服装为模型判断，具体版本名和摄影署名未全部核实；个人喜好由你决定，无需评分提交。</p>'+(''.join(figures) or '<p>本轮没有可交付的已核验图片。</p>')+'<details><summary>本轮结果与停止原因</summary><p>'+html.escape(report['summary'])+'</p><ul>'+''.join('<li>'+html.escape(g)+'</li>' for g in report['gaps'])+'</ul></details></main></html>'
+    if running:
+        body=body.replace('<title>','<meta http-equiv="refresh" content="10"><title>',1)
+        body=body.replace('<main>','<main><p role="status">任务仍在运行；这里只展示已经正式核验通过的图片。每10秒刷新。</p>',1)
     atomic_write(public/'index.html',body.encode('utf8'))
 
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('task',type=Path);ap.add_argument('result',type=Path)
     ap.add_argument('--resume',type=Path,help='仅续核已保存原图；结果路径须在对应.local/collection-resumes状态目录内。')
+    ap.add_argument('--vision-workers',type=int,choices=(1,2),default=2,help='最多两个独立摄影初判；1用于串行对照。')
     args=ap.parse_args();job,_=load_job_info(args.task)
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,100}',job['id']):raise ValueError('Invalid job identity')
     if args.resume:
@@ -480,23 +537,28 @@ def main():
         atomic_write(args.result,stream.getvalue())
         print(manifest['execution_report']['status']+': '+str(len(manifest['candidates']))+' verified candidates; no new search')
         return
-    folder=ROOT/'.local'/'collection-runs'/job['id']/uuid4().hex
-    folder.mkdir(parents=True)
-    agent=AntigravityCollectionAgent(folder,target_count=int(job.get('target_count') or 12));browser=Browser(folder)
-    save(folder/'run-info.json',{'job_id':job['id'],'adapter_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-         'agent_contract_sha256':hashlib.sha256((ROOT/'ref_lab/verified_collection.py').read_bytes()).hexdigest(),
-         'reference_research_sha256':hashlib.sha256((ROOT/'ref_lab/automatic_references.py').read_bytes()).hexdigest(),
-         'model':agent.model,'query_budget':MAX_QUERIES,'windows_per_query':MAX_WINDOWS,'detail_page_budget':MAX_DETAIL_PAGES,
-         'visual_call_budget':min(MAX_IMAGES,max(20,min(int(job.get('target_count') or 12),100)*2)),
-         'pid':os.getpid(),'started_at':time.time()})
-    history=ImageHistory(historical_paths(ROOT,folder))
-    save(folder/'history-index.json',{'images':list(history.records.values()),'historical_images':history.initial_count})
-    manifest,images=collect(job,agent,browser,folder,history=history)
-    args.result.parent.mkdir(parents=True,exist_ok=True)
-    with zipfile.ZipFile(args.result,'x',zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr('manifest.json',json.dumps(manifest,ensure_ascii=False))
-        for name,data in images.items():archive.writestr('images/'+name,data)
-    render_result(folder,manifest,images)
+    with resume_lock(ROOT/'.local/collection-runs'/job['id']):
+        if args.result.exists():raise ValueError('Result already exists; refusing duplicate collection')
+        folder=ROOT/'.local'/'collection-runs'/job['id']/uuid4().hex
+        folder.mkdir(parents=True)
+        agent=AntigravityCollectionAgent(folder,target_count=int(job.get('target_count') or 12));browser=Browser(folder)
+        save(folder/'run-info.json',{'job_id':job['id'],'adapter_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+             'agent_contract_sha256':hashlib.sha256((ROOT/'ref_lab/verified_collection.py').read_bytes()).hexdigest(),
+             'reference_research_sha256':hashlib.sha256((ROOT/'ref_lab/automatic_references.py').read_bytes()).hexdigest(),
+             'model':agent.model,'query_budget':MAX_QUERIES,'windows_per_query':MAX_WINDOWS,'detail_page_budget':MAX_DETAIL_PAGES,
+             'visual_call_budget':min(MAX_IMAGES,max(20,min(int(job.get('target_count') or 12),100)*2)),
+             'vision_workers':args.vision_workers,'pid':os.getpid(),'started_at':time.time()})
+        with agent.timing.span('history_index'):history=ImageHistory(historical_paths(ROOT,folder))
+        save(folder/'history-index.json',{'images':list(history.records.values()),'historical_images':history.initial_count})
+        print('Read-only gallery (updates during collection): '+str(folder/'public/index.html'),flush=True)
+        manifest,images=collect(job,agent,browser,folder,history=history,workers=args.vision_workers)
+        args.result.parent.mkdir(parents=True,exist_ok=True)
+        with agent.timing.span('final_export'):
+            stream=io.BytesIO()
+            with zipfile.ZipFile(stream,'w',zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr('manifest.json',json.dumps(manifest,ensure_ascii=False))
+                for name,data in images.items():archive.writestr('images/'+name,data)
+            atomic_write(args.result,stream.getvalue())
     print(manifest['execution_report']['status']+': '+str(len(manifest['candidates']))+' verified candidates')
     print('Read-only gallery: '+str(folder/'public/index.html'))
 
