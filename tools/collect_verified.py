@@ -475,9 +475,10 @@ class Browser:
                                   timing=getattr(self,'timing',None))
                 self.download_errors=getattr(self,'download_errors',[])+errors
                 return rows
-            with self._span('detail_navigate',source=source):
-                detail=fetch_pinterest_detail_metadata(self.bsk,self.session,page,self.env,
-                                                       timing=getattr(self,'timing',None))
+            # Navigation and DOM are timed inside the adapter; an outer span here
+            # duplicated the same stage name and made a naive sum double count it.
+            detail=fetch_pinterest_detail_metadata(self.bsk,self.session,page,self.env,
+                                                   timing=getattr(self,'timing',None))
             if detail.get('is_login_wall'):raise SourceBlocked('登录门槛')
             url=detail.get('image_url')
             if not url:return []
@@ -532,6 +533,41 @@ class Browser:
         if self.session:self.command('session','stop',self.session,timeout=10)
 
 
+def restore_history_index(history, folder, received) -> dict:
+    """Restore this Job's verified originals *and* valid tiles into the index.
+
+    Called before any download decision, including on a resumed run. Reusing an
+    already-processed record is fine; skipping the index restore is not, because
+    then a repeat could be admitted as a new independent photo.
+    """
+    result = {'originals': 0, 'children': 0, 'errors': []}
+    if history is None:
+        return result
+    from ref_lab.collage import DerivedStore, VALID, record_is_current
+    from ref_lab.collection_counts import _child_ok
+    records = DerivedStore(folder).items()
+    for row in received:
+        try:
+            history.consider(Path(row['original_path'])); result['originals'] += 1
+        except (OSError, ValueError) as exc:
+            result['errors'].append({'asset_sha': row['asset_sha'], 'stage': 'original',
+                                     'error': type(exc).__name__})
+        record = records.get(row['asset_sha'])
+        if not record_is_current(record):
+            continue
+        for child in record.get('children') or []:
+            if not isinstance(child, dict) or child.get('status') != VALID:
+                continue
+            if not _child_ok(folder, child, row['asset_sha']):
+                continue
+            try:
+                history.consider(Path(child['path'])); result['children'] += 1
+            except (OSError, ValueError) as exc:
+                result['errors'].append({'asset_sha': child.get('child_sha', ''),
+                                         'stage': 'child', 'error': type(exc).__name__})
+    return result
+
+
 def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize_only=False,
             search_only=False)->tuple[dict,dict[str,bytes]]:
     project={**job['project_snapshot'],'notes':job.get('notes','')}
@@ -554,8 +590,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     candidates=[];images={};seen={r['asset_sha'] for r in received};blocked=False;stop_reason='';interrupted=False;kept=0
     reviewed=sum(bool(r.get('review')) for r in audit);attempted=len(received)
     by_sha={r['asset_sha']:r for r in received}
-    if history is not None:
-        for row in received:history.consider(Path(row['original_path']))
+    # Restore the whole known set before any download decision: originals and
+    # already-verified tiles of this Job, so a resumed run cannot re-admit a
+    # repeat as a new independent photo.
+    history_restore=restore_history_index(history,folder,received)
     for record in audit:
         if not record.get('review'):continue
         value=CollectionVision.model_validate(record['review']);row=by_sha[record['asset_sha']]
@@ -634,18 +672,21 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     work_terms=[str(project.get('work') or '').strip()]
     other_terms=[]
     skipped={'other_character':0,'non_photo':0,'exploration_budget':0}
-    def usable_independent_named():
-        """Independent name-hit photos after local collage processing.
-
-        A single original counts once. A split collage is replaced by its usable
-        tiles, and an unsplit/low-resolution collage never counts as a clean
-        reference. Originals not processed yet are not guessed: they count 0
-        until the local stage has a record, which keeps the target honest.
-        """
-        from ref_lab.collage import DerivedStore, usable_named_count
-        return usable_named_count(received, DerivedStore(folder).items(), is_confirmed)
+    canonical_cache={'key':None,'value':None}
+    def canonical_counts(force=False):
+        """The one count used by the stop condition, summary and counts.json."""
+        from ref_lab.collage import DerivedStore
+        from ref_lab.collection_counts import compute
+        try:
+            stat=(folder/'derived.json').stat();key=(len(received),stat.st_size,stat.st_mtime_ns)
+        except OSError:
+            key=(len(received),0,0)
+        if force or canonical_cache['key']!=key or canonical_cache['value'] is None:
+            canonical_cache['value']=compute(folder,received,DerivedStore(folder).items())
+            canonical_cache['key']=key
+        return canonical_cache['value']
     def confirmed():
-        return usable_independent_named() if search_only else len(candidates)
+        return canonical_counts()['usable_named'] if search_only else len(candidates)
     def exploration():
         return exploration_count(received) if search_only else 0
     def limit_reason():
@@ -991,7 +1032,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
             stop_reason='sources_blocked';blocked=True
         stop_reason=stop_reason or limit_reason() or 'search_plan_exhausted'
-        confirmed_total=confirmed() if search_only else len(candidates)
+        confirmed_total=canonical_counts(force=True)['usable_named'] if search_only else len(candidates)
         if search_only and not interrupted:
             if stop_reason=='target_reached' and confirmed_total<target:
                 # A target_reached reason must be backed by confirmed names, never downloads alone.
@@ -1010,6 +1051,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 status='blocked'
             elapsed_total=previous_elapsed+(time.monotonic()-started)
             collage_totals=collage_worker.summary() if collage_worker is not None else {}
+            canonical=canonical_counts()
             summary=write_search_summary(
                 folder,status=status,stop_reason=stop_reason,received=received,queries=queries,checks=checks,
                 searches=searches,started=started,
@@ -1020,12 +1062,14 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'budget_note':('本轮上限 100 张；请求 %s 张，按 %s 张执行。' % (requested_total,target)
                                                              if requested_total>target else ''),
                                               'search_only':True,
+                                              'canonical':canonical,
                                               'usable_independent_named':confirmed_total,
                                               'collage':collage_totals,
                                               'collage_errors':list(getattr(collage_worker,'errors',[]))[:10],
                                               'collage_seconds':round(getattr(collage_worker,'seconds',0.0),3),
                                               'collage_processed':int(getattr(collage_worker,'processed',0)),
                                               'preview_bytes_reused':int(getattr(browser,'preview_reused',0)),
+                                              'history_restore':history_restore,
                                               'cumulative_elapsed_seconds':round(elapsed_total,3),
                                               'continue':continue_info,
                                               'query_history':len(state.get('query_history',[])),
@@ -1043,32 +1087,42 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 gaps.append('本轮浏览器会话清理未确认，请检查自有会话。')
             save(folder/'received.json',received);save(folder/'search-errors.json',received_errors)
             save(folder/'duplicates.json',duplicates);save(folder/'reference-collisions.json',collisions)
-            relevance_summary=relevance_counts(received)
-            usable_independent=(len(received)-int(collage_totals.get('collages',0))
-                                +int(collage_totals.get('derived_valid',0)))
-            save(folder/'counts.json',{'unique_images_received':len(received),'duplicates':len(duplicates),
-                                       'target_confirmed':relevance_summary['confirmed'],
-                                       'exploration':relevance_summary['exploration'],
-                                       'other_character':relevance_summary['other_character'],
-                                       'non_photo':relevance_summary['non_photo'],
-                                       'original_singles':(len(received)-int(collage_totals.get('collages',0))),
-                                       'collages':int(collage_totals.get('collages',0)),
-                                       'derived_valid':int(collage_totals.get('derived_valid',0)),
-                                       'derived_rejected':int(collage_totals.get('derived_rejected',0)),
-                                       'derived_duplicate':int(collage_totals.get('derived_duplicate',0)),
-                                       'usable_independent':usable_independent,
-                                       'usable_independent_named':confirmed_total,
-                                       'collage':collage_totals,
-                                       'skipped_other_character':skipped['other_character'],
-                                       'skipped_non_photo':skipped['non_photo'],
-                                       'skipped_exploration_budget':skipped['exploration_budget'],
-                                       'search_errors':len(received_errors),'detail_pages':details,
-                                       'visible_windows':windows,'stop_reason':stop_reason,
-                                       'first_received_seconds':first_usable,
-                                       'history_images':getattr(history,'known_count',getattr(history,'initial_count',0)),
-                                       'history_ready':getattr(history,'ready',None),
-                                       'model_calls':summary['model_calls'],'tokens':summary['tokens'],
-                                       'preview_bytes_reused':int(getattr(browser,'preview_reused',0))})
+            save(folder/'counts.json',{
+                # Canonical numbers shared with the stop condition, queue API and
+                # search-summary. Do not recompute them here.
+                'unique_images_received':canonical['found'],
+                'duplicates':len(duplicates),
+                'target_confirmed':canonical['target_confirmed'],
+                'exploration':canonical['exploration'],
+                'other_character':canonical['other_character'],
+                'non_photo':canonical['non_photo'],
+                'original_singles':canonical['original_singles'],
+                'collages':canonical['collages'],
+                'collage_split_ok':canonical['collage_split_ok'],
+                'collage_needs_manual':canonical['collage_needs_manual'],
+                'collage_low_resolution':canonical['collage_low_resolution'],
+                'collage_failed':canonical['collage_failed'],
+                'derived_valid':canonical['derived_valid'],
+                'derived_rejected':canonical['derived_rejected'],
+                'derived_duplicate':canonical['derived_duplicate'],
+                'usable_independent':canonical['usable_independent'],
+                'usable_independent_named':canonical['usable_named'],
+                'awaiting_manual':canonical['awaiting_manual'],
+                'outdated_records':canonical['outdated_records'],
+                'unprocessed':canonical['unprocessed'],
+                'integrity_failures':canonical['integrity_failures'],
+                'collage':collage_totals,
+                'history_restore':history_restore,
+                'skipped_other_character':skipped['other_character'],
+                'skipped_non_photo':skipped['non_photo'],
+                'skipped_exploration_budget':skipped['exploration_budget'],
+                'search_errors':len(received_errors),'detail_pages':details,
+                'visible_windows':windows,'stop_reason':stop_reason,
+                'first_received_seconds':first_usable,
+                'history_images':getattr(history,'known_count',getattr(history,'initial_count',0)),
+                'history_ready':getattr(history,'ready',None),
+                'model_calls':summary['model_calls'],'tokens':summary['tokens'],
+                'preview_bytes_reused':int(getattr(browser,'preview_reused',0))})
             checkpoint('finished')
             search_summary_result=summary
         completed={r['asset_sha'] for r in audit}
@@ -1419,27 +1473,38 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
                          started,first_received,duplicates,errors,extra=None):
     calls,tokens,with_usage=_attempt_usage(folder)
     relevance=relevance_counts(received)
+    canonical=(extra or {}).get('canonical') if isinstance(extra,dict) else None
+    counts={'found':len(received),'duplicates':len(duplicates),'errors':len(errors),
+            'target_confirmed':relevance['confirmed'],
+            'exploration':relevance['exploration'],
+            'other_character':relevance['other_character'],
+            'non_photo':relevance['non_photo']}
+    if isinstance(canonical,dict):
+        # Canonical numbers from ref_lab.collection_counts.compute; the same
+        # values the stop condition and counts.json used.
+        for key in ('found','target_confirmed','exploration','other_character','non_photo',
+                    'original_singles','derived_valid','usable_independent','usable_named',
+                    'awaiting_manual'):
+            if key in canonical:
+                counts[key] = canonical[key]
     summary={'version':1,'status':status,'stop_reason':stop_reason,
              'target':int(extra.get('target',0)) if extra else 0,
              'target_reached':bool(extra.get('target_reached')) if extra else False,
-             'counts':{'found':len(received),'duplicates':len(duplicates),'errors':len(errors),
-                       'target_confirmed':relevance['confirmed'],
-                       'exploration':relevance['exploration'],
-                       'other_character':relevance['other_character'],
-                       'non_photo':relevance['non_photo']},
+             'counts':counts,
              'first_received_seconds':(round(first_received-started,3)
                                        if isinstance(first_received,(int,float)) else None),
              'elapsed_seconds':round(time.monotonic()-started,3),
              'finished_at':time.time(),'queries':queries,'source_checks':list(checks.values()),
              'searches':searches,'errors':list(errors)[:20],
              'model_calls':calls,'tokens':tokens,'attempts_with_usage':with_usage,
+             'counts_source':'ref_lab.collection_counts.compute',
              'model_calls_note':'快速搜图不调用名称/参照/视觉模型；此计数仅兼容历史回执。'}
     if extra:
         for key in ('target','requested_target','effective_target','target_reached','budget_note',
                     'search_only','history_ready','history_known','history_errors','source_blocked',
-                    'cumulative_elapsed_seconds','continue','query_history',
+                    'cumulative_elapsed_seconds','continue','query_history','canonical',
                     'usable_independent_named','collage','collage_errors','collage_seconds',
-                    'collage_processed','preview_bytes_reused',
+                    'collage_processed','preview_bytes_reused','history_restore',
                     'skipped_other_character','skipped_non_photo','skipped_exploration_budget'):
             if key in extra:summary[key]=extra[key]
     save(folder/'search-summary.json',summary)
@@ -1449,36 +1514,72 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
 def render_search_gallery(folder,rows,*,running=False):
     """Read-only fallback view of acquired originals plus their usable crops.
 
-    The gallery is rewritten on every checkpoint. Existing copies are not re-read:
-    the previous version read every original twice per new image, which is pure
-    duplicated disk I/O while the search is running.
+    Every referenced file is copied next to the page and its SHA is verified
+    before the link is written, so the page never points at a missing or changed
+    image. Existing copies are reused; the previous version re-read every original
+    twice on every checkpoint, which was pure duplicated disk I/O.
     """
-    from ref_lab.collage import DerivedStore
+    from ref_lab.collage import DerivedStore, VALID, record_is_current
+    from ref_lab.integrity import sha_matches
     public=folder/'public';public.mkdir(exist_ok=True);figures=[]
     records=DerivedStore(folder).items()
-    def copy_once(source: Path, target: Path):
-        if not target.exists():atomic_write(target,source.read_bytes())
+    problems=[]
+    def ensure(source: Path, expected_sha: str):
+        target=public/source.name
+        if not target.exists():
+            try:atomic_write(target,source.read_bytes())
+            except OSError:
+                problems.append({'file':source.name,'reason':'copy_failed'});return None
+        if not sha_matches(target,expected_sha):
+            problems.append({'file':target.name,'reason':'sha_mismatch'});return None
+        return target.name
     for i,row in enumerate(rows,1):
-        source=Path(row['original_path']);target=public/source.name
-        copy_once(source,target)
+        source=Path(row['original_path'])
+        original_name=ensure(source,str(row['asset_sha']))
+        if original_name is None:continue
         record=records.get(row['asset_sha']) or {}
+        current=record_is_current(record)
         children=[child for child in (record.get('children') or []) if isinstance(child,dict)]
-        usable=[child for child in children if child.get('status')=='valid']
-        collage_note=(''
-            if not record or record.get('status')=='no_collage'
-            else '<p>本地图片处理：'+html.escape(str(record.get('layout','')))
-                 +' · '+html.escape(str(record.get('status','')))
-                 +f' · 子图 {len(children)} 张，可用 {len(usable)} 张。原图与其子图不重复计入可用照片。</p>')
+        usable=[child for child in children if child.get('status')==VALID] if current else []
         child_figures=''
         if usable:
-            child_figures='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">'+''.join(
-                '<figure style="margin:0;max-width:220px"><img style="max-height:200px;margin:0" src="'
-                +html.escape(Path(child['path']).name,quote=True)+'" alt="子图'+str(index)+'">'
-                '<figcaption style="font-size:12px">子图 '+str(index)+' · '
-                +html.escape('×'.join(str(value) for value in (child.get('size') or [])))
-                +'</figcaption></figure>'
-                for index,child in enumerate(usable,1))+'</div>'
-        figures.append('<article><h2>'+str(i)+' · 候选原图</h2><img src="'+html.escape(source.name,quote=True)+'" alt="候选原图'+str(i)+'">'
+            cards=[]
+            for index,child in enumerate(usable,1):
+                child_sha=str(child.get('child_sha') or '')
+                child_path=Path(str(child.get('path') or ''))
+                if not child_sha or not sha_matches(child_path,child_sha):
+                    problems.append({'file':child_path.name,'reason':'child_sha_mismatch'})
+                    continue
+                child_name=ensure(child_path,child_sha)
+                if child_name is None:continue
+                cards.append('<figure style="margin:0;max-width:220px"><img style="max-height:200px;margin:0" src="'
+                             +html.escape(child_name,quote=True)+'" alt="子图'+str(index)+'">'
+                             '<figcaption style="font-size:12px">子图 '+str(index)+' · '
+                             +html.escape('×'.join(str(value) for value in (child.get('size') or [])))
+                             +'</figcaption></figure>')
+            if cards:
+                child_figures='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">'+''.join(cards)+'</div>'
+        status=str(record.get('status') or 'no_collage')
+        if not record or status=='no_collage':
+            collage_note=''
+        elif not current:
+            collage_note='<p>本地拼图记录版本待更新：未计入可用照片，重新处理后才生效；原拼图仍可查看。</p>'
+        elif status=='needs_manual_crop':
+            collage_note=('<p>检测到更密或不可靠的拼图分界（'+html.escape(str(record.get('reason','')))
+                          +'），已标记待人工裁切，不产生可计数的拼图大块；原拼图仍可查看。</p>')
+        elif status=='low_resolution':
+            collage_note=('<p>本地图片处理：'+html.escape(str(record.get('layout','')))
+                          +'，子图分辨率或画质不足，未作为可用照片；原拼图仍可查看。</p>')
+        elif status=='failed':
+            collage_note=('<p>派生记录完整性检查失败，未计入可用照片；原拼图与现有文件保留可查看。</p>')
+        elif usable:
+            collage_note=('<p>本地图片处理：'+html.escape(str(record.get('layout','')))
+                          +' · 子图 '+str(len(children))+' 张，可用 '+str(len(usable))
+                          +' 张。原图与其子图不重复计入可用照片。</p>')
+        else:
+            collage_note=('<p>本地图片处理：'+html.escape(str(record.get('layout','')))
+                          +'，没有合格子图，未计入可用照片；原拼图仍可查看。</p>')
+        figures.append('<article><h2>'+str(i)+' · 候选原图</h2><img src="'+html.escape(original_name,quote=True)+'" alt="候选原图'+str(i)+'">'
                        '<p>来源：<a target="_blank" rel="noreferrer" href="'+html.escape(row.get('page_url',''),quote=True)+'">原帖</a>'
                        ' · 搜索词：'+html.escape(row.get('search_query',''))+'</p>'
                        '<p>状态：已下载，待审核。不是已通过摄影审核。</p>'

@@ -105,21 +105,34 @@ def test_pinterest_detail_reuses_the_preview_instead_of_downloading_again(tmp_pa
 
 
 def test_search_target_counts_independent_named_photos_not_downloads(tmp_path):
-    from ref_lab.collage import STATUS_LOW_RESOLUTION, STATUS_NO_COLLAGE, STATUS_SPLIT_OK, usable_named_count
+    """The unified count: singles + valid tiles, no parent/tile double count."""
+    from ref_lab.collage import STATUS_SPLIT_OK, process_original
+    from ref_lab.collection_counts import compute
+    from tests.test_collage_split import _collage, _textured, _write_original
 
-    named = {"asset_sha": "a" * 64, "relevance": {"tier": "target_named"}}
-    exploration = {"asset_sha": "b" * 64, "relevance": {"tier": "unconfirmed"}}
-    collage_row = {"asset_sha": "c" * 64, "relevance": {"tier": "target_named"}}
-    lowres_row = {"asset_sha": "d" * 64, "relevance": {"tier": "target_named"}}
-    records = {
-        named["asset_sha"]: {"status": STATUS_NO_COLLAGE, "children": []},
-        exploration["asset_sha"]: {"status": STATUS_NO_COLLAGE, "children": []},
-        collage_row["asset_sha"]: {"status": STATUS_SPLIT_OK, "children": [
-            {"status": "valid"}, {"status": "valid"}, {"status": "low_resolution"}]},
-        lowres_row["asset_sha"]: {"status": STATUS_LOW_RESOLUTION, "children": [
-            {"status": "low_resolution"}, {"status": "low_resolution"}]},
-    }
-    assert usable_named_count([named, exploration, collage_row, lowres_row], records) == 3
+    folder = tmp_path / "run"
+    named = _write_original(folder, _textured((800, 1200), 1, (90, 130, 170)), name="named.png")
+    named["relevance"] = {"tier": "target_named"}
+    exploration = _write_original(folder, _textured((900, 1200), 2, (140, 90, 70)), name="explore.png")
+    exploration["relevance"] = {"tier": "unconfirmed"}
+    split_row = _write_original(folder, _collage(2, 1, tile=(800, 600)), name="split.png")
+    split_row["relevance"] = {"tier": "target_named"}
+    lowres_row = _write_original(folder, _collage(3, 1, tile=(360, 480)), name="lowres.png")
+    lowres_row["relevance"] = {"tier": "target_named"}
+    rows = [named, exploration, split_row, lowres_row]
+    records = {row["asset_sha"]: process_original(folder, row) for row in rows}
+    assert records[split_row["asset_sha"]]["status"] == STATUS_SPLIT_OK
+    counts = compute(folder, rows, records)
+    assert counts["found"] == 4
+    assert counts["target_confirmed"] == 3            # originals only
+    assert counts["original_singles"] == 2            # named + exploration singles
+    assert counts["derived_valid"] == 2               # the 2-panel collage
+    assert counts["usable_independent"] == 4          # 2 singles + 2 tiles
+    assert counts["usable_named"] == 3                # named single + 2 tiles
+    assert counts["awaiting_manual"] == 2             # exploration relevance + low-res collage
     # An original not yet processed is not guessed as one photo.
-    assert usable_named_count([{**named, "asset_sha": "e" * 64}], records) == 0
-    assert collage.count_summary(STATUS_SPLIT_OK, records[collage_row["asset_sha"]]["children"])["independent"] == 2
+    pending = _write_original(folder, _textured((700, 1000), 3, (60, 90, 60)), name="pending.png")
+    pending["relevance"] = {"tier": "target_named"}
+    assert compute(folder, [*rows, pending], records)["usable_named"] == 3
+    assert compute(folder, [*rows, pending], records)["unprocessed"] == 1
+    assert collage.count_summary(STATUS_SPLIT_OK, records[split_row["asset_sha"]]["children"])["independent"] == 2

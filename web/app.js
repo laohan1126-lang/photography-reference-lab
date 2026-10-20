@@ -1118,6 +1118,9 @@ function candidateCountsMarkup(counts){
         +cell(c.usable_independent,'实际可用独立照片')
         +cell(c.usable_named,'其中名称命中')
         +cell(c.awaiting_manual,'待人工裁切/未确认')
+        +cell(c.outdated_records,'记录待更新')
+        +cell(c.unprocessed,'处理中')
+        +cell(c.integrity_failures,'完整性异常')
         +cell(c.passed,'已通过')
         +cell(c.rejected_total||c.rejected,'审核拒绝')
         +cell(c.pending,'尚待审核')
@@ -1157,8 +1160,24 @@ function renderCandidateQueue(jobId,data,projectId){
         const review=item.review?`<p class="form-help">${esc(item.review.identity?('角色 '+item.review.identity):'')}${item.review.costume?' · 服装 '+esc(item.review.costume):''}${item.review.confidence?' · '+esc(item.review.confidence):''}</p>${item.review.reason?`<p>${esc(item.review.reason)}</p>`:''}`:'';
         const error=item.review_error?`<p class="error-text">${esc(item.review_error)}</p>`:'';
         const derived=item.derived?`<span class="badge" title="由原拼图本地无损裁切生成；不是 AI 通过">拼图子图 ${esc(item.child_index||'?')}/${esc(item.child_total||'?')}</span>`:'';
-        const collageInfo=(!item.derived&&item.collage&&item.collage.status!=='no_collage')
-            ?`<p class="form-help">本地拼图处理：${esc(item.collage.layout||'')} · ${esc(item.collage.status)} · 子图 ${esc(item.collage.children_valid||0)}/${esc(item.collage.children_total||0)} 张可用。原图与子图不重复计入可用照片。</p>`:'';
+        const collage=item.collage||{};
+        let collageInfo='';
+        if(!item.derived&&collage.status&&collage.status!=='no_collage'){
+            const reason=collage.reason?'（'+esc(collage.reason)+'）':'';
+            if(collage.outdated){
+                collageInfo='<p class="form-help">本地拼图记录版本待更新：未计入可用照片，重新处理后才生效；原拼图仍可查看。</p>';
+            }else if(collage.status==='needs_manual_crop'){
+                collageInfo=`<p class="form-help">检测到更密或不可靠的拼图分界${reason}，已标记待人工裁切，不产生可计数的拼图大块；原拼图仍可查看。</p>`;
+            }else if(collage.status==='low_resolution'){
+                collageInfo=`<p class="form-help">本地拼图处理：${esc(collage.layout||'')}，子图分辨率或画质不足，未作为可用照片；原拼图仍可查看。</p>`;
+            }else if(collage.status==='failed'){
+                collageInfo='<p class="form-help">派生记录完整性检查失败，未计入可用照片；原拼图与现有文件保留可查看。</p>';
+            }else if((collage.children_valid||0)>0){
+                collageInfo=`<p class="form-help">本地拼图处理：${esc(collage.layout||'')} · 子图 ${esc(collage.children_valid||0)}/${esc(collage.children_total||0)} 张可用。原图与子图不重复计入可用照片。</p>`;
+            }else{
+                collageInfo=`<p class="form-help">本地拼图处理：${esc(collage.layout||'')}，没有合格子图，未计入可用照片；原拼图仍可查看。</p>`;
+            }
+        }
         const crop=item.derived&&Array.isArray(item.crop)
             ?`<p class="form-help">裁切 x${esc(item.crop[0])} y${esc(item.crop[1])} · ${esc(item.crop[2])}×${esc(item.crop[3])} · 清晰度 ${esc(item.quality?.sharpness??'—')}</p>`:'';
         return `<article class="candidate-card" data-sha="${esc(item.asset_sha)}">

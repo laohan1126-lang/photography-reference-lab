@@ -30,8 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from ref_lab.collage import (STATUS_NO_COLLAGE, DerivedStore, process_original,  # noqa: E402
-                             summarize_records)
+from ref_lab.collage import (STATUS_NO_COLLAGE, DerivedStore, process_original)  # noqa: E402
 
 STATUS_LABELS = {
     "no_collage": "单图（不拆分）",
@@ -184,7 +183,8 @@ def main(argv=None) -> int:
         item["sha_after"] = after.get(item["sha"], "")
     after_files = {path.name for path in (run / "derived").glob("*.png")}
     records = DerivedStore(run).items()
-    totals = summarize_records(records)
+    from ref_lab.collection_counts import compute
+    totals = compute(run, rows, records)
     report = {
         "run": str(run),
         "generated_at": time.time(),

@@ -35,6 +35,12 @@ from PIL import Image, ImageOps
 from .storage import atomic_write
 
 # --- conservative thresholds -------------------------------------------------
+# Bump whenever detection, cropping or quality rules change. Records written by
+# another version are never reused as an effective result: they may be
+# snapshotted and recomputed by an explicit processing operation, but a read-only
+# view reports them as pending update instead of silently counting them.
+ALGORITHM_VERSION = 2
+
 # A tile smaller than this is not delivered as an independent photography
 # reference (the 1080x1440 nine-grid case: 360x480).
 MIN_CHILD_SHORT_SIDE = 480
@@ -78,6 +84,7 @@ ODD_ASPECT = "odd_aspect"
 DUPLICATE_RUN = "duplicate_run"
 DUPLICATE_HISTORY = "duplicate_history"
 ENCODE_FAILED = "encode_failed"
+CORRUPT = "corrupt"
 
 STATUS_NO_COLLAGE = "no_collage"
 STATUS_SPLIT_OK = "split_ok"
@@ -87,9 +94,20 @@ STATUS_LOW_RESOLUTION = "low_resolution"
 STATUS_DUPLICATE = "duplicate_only"
 STATUS_FAILED = "failed"
 
+# Statuses that never count as an independent photography reference.
+UNRESOLVED_STATUSES = {STATUS_NEEDS_MANUAL, STATUS_LOW_RESOLUTION, STATUS_DUPLICATE,
+                       STATUS_FAILED}
+
 
 class CollageError(ValueError):
     """A deterministic, reportable failure; the original is never modified."""
+
+
+def record_is_current(record: dict | None) -> bool:
+    """A record may only contribute numbers when written by this algorithm."""
+    return (isinstance(record, dict)
+            and str(record.get("algorithm_version", "")) == str(ALGORITHM_VERSION))
+
 
 
 def _display_image(image: Image.Image) -> Image.Image:
@@ -311,6 +329,37 @@ def _tile_quality(tile: Image.Image) -> dict:
             "status": reasons[0] if reasons else VALID, "reasons": reasons}
 
 
+def _axis_decision(strict: list[dict], grid: list[dict], *, other_axis_parts: int,
+                   allow_grid: bool) -> tuple[int, dict | None, str, str]:
+    """Choose one supported split for an axis, or report why it cannot be trusted.
+
+    Denser regular grids (4/5-part) and mutually inconsistent seam sets are not
+    "close enough" to a 2- or 3-part split: cutting them would deliver large
+    blocks that are not independent photographs. They return a problem instead.
+    """
+    supported = [c for c in strict if c["parts"] <= MAX_SPLIT_PARTS]
+    dense = [c for c in strict if c["parts"] > MAX_SPLIT_PARTS]
+    if dense:
+        return 1, None, "dense_grid", f"dense_grid_{max(c['parts'] for c in dense)}_part"
+    distinct = sorted({c["parts"] for c in supported})
+    if len(distinct) > 1:
+        return 1, None, "conflicting", "conflicting_boundaries_" + "-".join(str(p) for p in distinct)
+    if supported:
+        return supported[0]["parts"], supported[0], "", ""
+    if not allow_grid or other_axis_parts < 2:
+        return 1, None, "", ""
+    grid_dense = [c for c in grid if c["parts"] > MAX_SPLIT_PARTS]
+    if grid_dense:
+        return 1, None, "dense_grid", f"dense_grid_{max(c['parts'] for c in grid_dense)}_part"
+    grid_supported = [c for c in grid if c["parts"] <= MAX_SPLIT_PARTS]
+    distinct = sorted({c["parts"] for c in grid_supported})
+    if len(distinct) > 1:
+        return 1, None, "conflicting", "conflicting_low_contrast_boundaries"
+    if grid_supported:
+        return grid_supported[0]["parts"], grid_supported[0], "", ""
+    return 1, None, "", ""
+
+
 def analyze(image: Image.Image) -> dict:
     """Detect a regular grid without cutting anything.
 
@@ -359,45 +408,53 @@ def analyze(image: Image.Image) -> dict:
         amplitude_min=SEAM_GRID_AMPLITUDE_MIN, tolerance_frac=SEAM_TOLERANCE_FRAC,
         bands=col_bands) if candidate["parts"] >= 3]
 
-    best_rows = max((c["parts"] for c in strict_rows if c["parts"] <= MAX_SPLIT_PARTS), default=1)
-    best_cols = max((c["parts"] for c in strict_cols if c["parts"] <= MAX_SPLIT_PARTS), default=1)
-    if best_cols >= 2 and best_rows == 1:
-        supported = [c for c in grid_rows if c["parts"] <= MAX_SPLIT_PARTS]
-        if supported:
-            best_rows = max(c["parts"] for c in supported)
-            strict_rows = strict_rows + supported
-    if best_rows >= 2 and best_cols == 1:
-        supported = [c for c in grid_cols if c["parts"] <= MAX_SPLIT_PARTS]
-        if supported:
-            best_cols = max(c["parts"] for c in supported)
-            strict_cols = strict_cols + supported
-    if best_rows == 1 and best_cols == 1:
+    row_parts, row_measure, row_problem, row_reason = _axis_decision(
+        strict_rows, grid_rows, other_axis_parts=1, allow_grid=False)
+    col_parts, col_measure, col_problem, col_reason = _axis_decision(
+        strict_cols, grid_cols, other_axis_parts=1, allow_grid=False)
+    if not row_problem and row_parts == 1 and col_parts >= 2:
+        row_parts, row_measure, row_problem, row_reason = _axis_decision(
+            strict_rows, grid_rows, other_axis_parts=col_parts, allow_grid=True)
+    if not col_problem and col_parts == 1 and row_parts >= 2:
+        col_parts, col_measure, col_problem, col_reason = _axis_decision(
+            strict_cols, grid_cols, other_axis_parts=row_parts, allow_grid=True)
+    detections = {
+        "row_parts_found": sorted({c["parts"] for c in (*strict_rows, *grid_rows)}),
+        "col_parts_found": sorted({c["parts"] for c in (*strict_cols, *grid_cols)}),
+    }
+    if row_problem or col_problem:
+        return {"status": STATUS_NEEDS_MANUAL,
+                "layout": f"unsupported_{row_parts}x{col_parts}",
+                "rows": 1, "cols": 1, "seams": {}, "detections": detections,
+                "reason": row_reason or col_reason or "unsupported_grid"}
+    if row_parts == 1 and col_parts == 1:
         # Nothing splittable. A strong multi-seam pattern that is not a regular
         # 1x2..3x3 grid is reported as "needs manual crop" instead of being
         # silently counted as a single usable photograph.
         unsupported = [c["parts"] for c in (*loose_rows, *loose_cols) if c["parts"] > MAX_SPLIT_PARTS]
         if unsupported:
             return {"status": STATUS_NEEDS_MANUAL, "layout": f"irregular_{max(unsupported)}_part",
-                    "rows": 1, "cols": 1, "seams": {},
+                    "rows": 1, "cols": 1, "seams": {}, "detections": detections,
                     "reason": "unusual_grid_density_beyond_supported_layouts"}
         return {"status": STATUS_NO_COLLAGE, "layout": "single_image", "rows": 1, "cols": 1,
-                "seams": {}, "reason": "no_supported_uniform_seams"}
+                "seams": {}, "detections": detections, "reason": "no_supported_uniform_seams"}
 
-    row_measure = next((c for c in strict_rows if c["parts"] == best_rows), {"seams": []})
-    col_measure = next((c for c in strict_cols if c["parts"] == best_cols), {"seams": []})
     scale_back = 1.0 / scale if scale < 1.0 else 1.0
+    row_seams = (row_measure or {}).get("seams", [])
+    col_seams = (col_measure or {}).get("seams", [])
     return {
         "status": STATUS_SPLIT_OK,
-        "layout": f"grid_{best_rows}x{best_cols}",
-        "rows": best_rows,
-        "cols": best_cols,
+        "layout": f"grid_{row_parts}x{col_parts}",
+        "rows": row_parts,
+        "cols": col_parts,
+        "detections": detections,
         "seams": {
-            "rows": [round(seam["at"] * scale_back) for seam in row_measure["seams"]],
-            "cols": [round(seam["at"] * scale_back) for seam in col_measure["seams"]],
-            "row_scores": [seam["score"] for seam in row_measure["seams"]],
-            "col_scores": [seam["score"] for seam in col_measure["seams"]],
-            "row_correlation": [seam.get("correlation") for seam in row_measure["seams"]],
-            "col_correlation": [seam.get("correlation") for seam in col_measure["seams"]],
+            "rows": [round(seam["at"] * scale_back) for seam in row_seams],
+            "cols": [round(seam["at"] * scale_back) for seam in col_seams],
+            "row_scores": [seam["score"] for seam in row_seams],
+            "col_scores": [seam["score"] for seam in col_seams],
+            "row_correlation": [seam.get("correlation") for seam in row_seams],
+            "col_correlation": [seam.get("correlation") for seam in col_seams],
             "row_bands": row_bands,
             "col_bands": col_bands,
         },
@@ -428,10 +485,12 @@ def split(image: Image.Image) -> dict:
     started = time.monotonic()
     display = _display_image(image)
     detected = analyze(display)
-    record = {"version": 1, "status": STATUS_NO_COLLAGE, "layout": detected["layout"],
+    record = {"version": 1, "algorithm_version": ALGORITHM_VERSION,
+              "status": STATUS_NO_COLLAGE, "layout": detected["layout"],
               "rows": detected["rows"], "cols": detected["cols"],
               "original_size": [display.width, display.height],
-              "children": [], "reason": detected["reason"], "seams": detected.get("seams", {})}
+              "children": [], "reason": detected["reason"], "seams": detected.get("seams", {}),
+              "detections": detected.get("detections", {})}
     if detected["status"] != STATUS_SPLIT_OK:
         record["status"] = detected["status"]
         record["elapsed_seconds"] = round(time.monotonic() - started, 4)
@@ -504,27 +563,135 @@ def _encode_png(tile: Image.Image) -> bytes:
     return buffer.getvalue()
 
 
+def _inside(path: Path, root: Path) -> bool:
+    try:
+        return not path.is_symlink() and path.resolve().is_relative_to(root.resolve())
+    except (OSError, RuntimeError):
+        return False
+
+
+def verify_record(folder: Path, record: dict, parent_sha: str, original_path) -> dict:
+    """Verify a stored record without changing it.
+
+    A record is reusable only when it was written by the current algorithm, its
+    parent binding is intact, every path stays inside the run directory and every
+    file hash matches. Corrupt files are reported and never overwritten.
+    """
+    from .integrity import sha_matches
+    problems: list[str] = []
+    bad_children: list[str] = []
+    verified_children = 0
+    outdated = not record_is_current(record)
+    if str(record.get("parent_sha") or "") != parent_sha:
+        problems.append("parent_binding_mismatch")
+    images_root = (folder / "images").resolve()
+    derived_root = (folder / "derived").resolve()
+    source = Path(str(original_path or ""))
+    if not _inside(source, images_root) or not sha_matches(source, parent_sha):
+        problems.append("original_missing_or_changed")
+    for child in record.get("children") or []:
+        if not isinstance(child, dict):
+            problems.append("child_record_invalid")
+            continue
+        sha = str(child.get("child_sha") or "")
+        path = Path(str(child.get("path") or ""))
+        if str(child.get("parent_sha") or "") != parent_sha:
+            problems.append("child_parent_mismatch")
+            bad_children.append(sha)
+            continue
+        if not sha or not _inside(path, derived_root):
+            problems.append("child_path_outside_derived")
+            bad_children.append(sha)
+            continue
+        if not sha_matches(path, sha):
+            problems.append("child_missing_or_changed")
+            bad_children.append(sha)
+            continue
+        verified_children += 1
+    corrupt = any(problem in {"original_missing_or_changed", "child_missing_or_changed",
+                              "child_path_outside_derived", "child_parent_mismatch",
+                              "child_record_invalid"}
+                  for problem in problems)
+    return {"ok": not problems and not outdated,
+            "outdated": outdated,
+            "corrupt": corrupt,
+            "problems": sorted(set(problems)),
+            "bad_children": sorted(set(bad_children)),
+            "verified_children": verified_children}
+
+
 def process_original(folder: Path, row: dict, *, history=None, known_shas: set[str] | None = None,
                      record_only: bool = False) -> dict:
     """Analyse one received original and persist its derived record.
 
-    Idempotent by ``parent_sha``: an existing record with intact child files is
-    returned unchanged and no new file is produced.
+    Idempotent by ``parent_sha`` for records written by the current algorithm
+    whose files still verify. An outdated record is snapshotted and recomputed by
+    this explicit processing operation; a corrupt record is kept as evidence and
+    marked failed instead of being regenerated over damaged files.
     """
     folder = Path(folder)
     parent_sha = str(row.get("asset_sha") or "")
     if not parent_sha:
         raise CollageError("missing_parent_sha")
-    store = DerivedStore(folder)
-    with store.lock:
-        existing = store.get(parent_sha)
-    if existing is not None and store.children_intact(existing):
-        return {**existing, "reused": True}
-
     source = Path(str(row.get("original_path") or ""))
     images_root = (folder / "images").resolve()
     if source.is_symlink() or not source.resolve().is_relative_to(images_root) or not source.is_file():
         raise CollageError("original_outside_run")
+    store = DerivedStore(folder)
+    previous_version = None
+    snapshot_path = ""
+    existing = store.get(parent_sha)
+    if existing is not None:
+        integrity = verify_record(folder, existing, parent_sha, source)
+        if integrity["ok"]:
+            return {**existing, "reused": True}
+        if integrity["corrupt"]:
+            bad = set(integrity["bad_children"])
+            children = []
+            for child in existing.get("children") or []:
+                if not isinstance(child, dict):
+                    continue
+                updated = child
+                if child.get("child_sha") in bad:
+                    updated = {**child, "status": CORRUPT,
+                               "corrupt_reason": "content_hash_mismatch_missing_or_unbound"}
+                children.append(updated)
+            original_bad = any(problem in {"original_missing_or_changed", "parent_binding_mismatch",
+                                           "child_parent_mismatch",
+                                           "child_path_outside_derived", "child_record_invalid"}
+                               for problem in integrity["problems"])
+            if original_bad:
+                # The record itself cannot be trusted (wrong parent, escaped path,
+                # changed original): nothing from it may count.
+                for child in children:
+                    child["status"] = CORRUPT
+                    child["corrupt_reason"] = "record_integrity_failure"
+                status = STATUS_FAILED
+            else:
+                usable = [child for child in children if child.get("status") == VALID]
+                if usable and len(usable) == len(children):
+                    status = STATUS_SPLIT_OK
+                elif usable:
+                    status = STATUS_SPLIT_PARTIAL
+                elif children and all(child.get("status") in {DUPLICATE_RUN, DUPLICATE_HISTORY}
+                                      for child in children):
+                    status = STATUS_DUPLICATE
+                else:
+                    status = STATUS_LOW_RESOLUTION
+            record = {**existing, "integrity": integrity, "status": status,
+                      "reason": "integrity_failure:" + ",".join(integrity["problems"]),
+                      "counts": count_summary(status, children), "children": children,
+                      "checked_at": time.time()}
+            if original_bad:
+                record["status"] = STATUS_FAILED
+                record["counts"] = count_summary(STATUS_FAILED, children)
+            store.put(parent_sha, record)
+            return {**record, "reused": False, "integrity": integrity}
+        # Outdated version: keep the old record, old files and old SHA-keyed
+        # human decisions, then recompute with the current rules.
+        previous_version = str(existing.get("algorithm_version") or "legacy")
+        snapshot_path = store.snapshot(parent_sha, existing)
+
     raw = source.read_bytes()
     if hashlib.sha256(raw).hexdigest() != parent_sha:
         raise CollageError("original_sha_changed")
@@ -536,8 +703,13 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
     record = {key: value for key, value in result.items() if key != "children"}
     record.pop("_image", None)
     record.update(parent_sha=parent_sha, processed_at=time.time(),
+                  algorithm_version=ALGORITHM_VERSION,
                   elapsed_seconds=round(time.monotonic() - started, 4), children=[])
+    if previous_version is not None:
+        record["previous_algorithm_version"] = previous_version
+        record["previous_record_snapshot"] = snapshot_path
     children = []
+    seen_children: set[str] = set()
     for item in result.get("children", []):
         tile = item.pop("_image", None)
         if tile is None:
@@ -559,7 +731,10 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
                 continue
         else:
             atomic_write(target, raw_png)
-        if child["status"] == VALID:
+        if child_sha in seen_children:
+            child["status"] = DUPLICATE_RUN
+            child["duplicate_of"] = child_sha
+        elif child["status"] == VALID:
             if known_shas and child_sha in known_shas:
                 child["status"] = DUPLICATE_RUN
                 child["duplicate_of"] = child_sha
@@ -569,10 +744,12 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
                 except (OSError, ValueError) as exc:
                     match = {"duplicate_of": "", "reason": "history_error:" + type(exc).__name__}
                 if match:
-                    child["status"] = (DUPLICATE_HISTORY
-                                       if match.get("reason") == "same_bytes" else DUPLICATE_HISTORY)
+                    child["status"] = DUPLICATE_HISTORY
                     child["duplicate_of"] = str(match.get("duplicate_of") or "")
                     child["duplicate_reason"] = str(match.get("reason") or "")
+        seen_children.add(child_sha)
+        if known_shas is not None:
+            known_shas.add(child_sha)
         children.append(child)
     record["children"] = children
     if record["status"] in {STATUS_SPLIT_OK, STATUS_SPLIT_PARTIAL, STATUS_LOW_RESOLUTION}:
@@ -586,6 +763,7 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
         else:
             record["status"] = STATUS_LOW_RESOLUTION
     record["counts"] = count_summary(record["status"], children)
+    record["integrity"] = {"ok": True, "problems": [], "verified_children": len(children)}
     record["elapsed_seconds"] = round(time.monotonic() - started, 4)
     store.put(parent_sha, record)
     return record
@@ -624,10 +802,29 @@ class DerivedStore:
             payload = json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True)
             atomic_write(self.path, payload.encode("utf8"))
 
+    def snapshot(self, parent_sha: str, record: dict) -> str:
+        """Keep a previous record verbatim before an explicit recomputation."""
+        version = str(record.get("algorithm_version") or "legacy")
+        target = (self.folder / "derived-snapshots"
+                  / f"{parent_sha}@v{version}-{int(time.time())}.json")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        payload = json.dumps({"parent_sha": parent_sha, "snapshot_of_version": version,
+                              "snapshot_at": time.time(), "record": record},
+                             ensure_ascii=False, indent=2, sort_keys=True)
+        atomic_write(target, payload.encode("utf8"))
+        return str(target)
+
     def children_intact(self, record: dict) -> bool:
-        for child in record.get("children", []) or []:
+        from .integrity import sha_matches
+        if not record_is_current(record):
+            return False
+        derived_root = (self.folder / "derived").resolve()
+        for child in record.get("children") or []:
+            if not isinstance(child, dict):
+                return False
+            sha = str(child.get("child_sha") or "")
             path = Path(str(child.get("path") or ""))
-            if not path.is_file():
+            if not sha or not _inside(path, derived_root) or not sha_matches(path, sha):
                 return False
             if str(child.get("parent_sha")) != str(record.get("parent_sha")):
                 return False
@@ -706,38 +903,31 @@ class CollageWorker:
         return summarize_records(records)
 
 
-def usable_named_count(rows, records: dict[str, dict], is_named=None) -> int:
+def usable_named_count(folder, rows, records: dict[str, dict], is_named=None) -> int:
     """How many *independent* name-hit photos the local stage has produced.
 
-    Search targets this number, not the downloaded file count. A single original
-    counts 1; a split collage is replaced by its usable tiles; an unsplit,
-    low-resolution or not-yet-processed collage counts 0 instead of being guessed.
+    Thin compatibility wrapper around :func:`ref_lab.collection_counts.compute`;
+    Search, the queue API, the summary and counts.json all use that one function.
     """
-    from .search_relevance import is_confirmed
-    predicate = is_named or is_confirmed
-    total = 0
-    for row in rows:
-        if not predicate(row):
-            continue
-        record = records.get(row.get("asset_sha"))
-        if not isinstance(record, dict):
-            continue
-        if record.get("status") == STATUS_NO_COLLAGE:
-            total += 1
-            continue
-        total += sum(1 for child in (record.get("children") or [])
-                     if isinstance(child, dict) and child.get("status") == VALID)
-    return total
+    from .collection_counts import compute
+    return compute(folder, rows, records, named=is_named)["usable_named"]
 
 
 def summarize_records(records: dict[str, dict]) -> dict:
-    """Aggregate counting used by search-summary, counts.json and the web view."""
+    """Aggregate stored records without the received-original rows.
+
+    Used by the offline audit tool; the live product numbers come from
+    :func:`ref_lab.collection_counts.compute`, which also checks files and rows.
+    """
     totals = {"originals": 0, "collages": 0, "collage_split_ok": 0, "collage_partial": 0,
               "collage_needs_manual": 0, "collage_low_resolution": 0, "collage_duplicate": 0,
               "collage_failed": 0, "derived_total": 0, "derived_valid": 0, "derived_rejected": 0,
-              "derived_duplicate": 0, "independent_from_children": 0}
+              "derived_duplicate": 0, "independent_from_children": 0, "outdated_records": 0}
     for record in records.values():
         if not isinstance(record, dict):
+            continue
+        if not record_is_current(record):
+            totals["outdated_records"] += 1
             continue
         totals["originals"] += 1
         status = str(record.get("status") or STATUS_NO_COLLAGE)

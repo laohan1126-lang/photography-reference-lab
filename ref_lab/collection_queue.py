@@ -97,36 +97,48 @@ def _derived_records(folder: Path) -> dict[str, dict]:
 def _derived_rows(folder: Path, parents: dict[str, dict]) -> dict[str, list[dict]]:
     """Usable derived tiles per parent SHA.
 
-    Only ``valid`` children become candidate cards. Rejected tiles stay in
-    ``derived.json`` and in the counts, but they are never offered as an
-    independent photography reference.
+    Only ``valid`` children written by the current algorithm become candidate
+    cards. Records from another version are reported as pending update, damaged
+    or unbound tiles are excluded (and stay on disk), and a tile SHA is shown at
+    most once even if two records claim it.
     """
+    from . import collage
+    from .integrity import sha_matches
     output: dict[str, list[dict]] = {}
     derived_dir = (folder / "derived").resolve()
+    seen_children: set[str] = set()
     for parent_sha, record in _derived_records(folder).items():
         parent = parents.get(parent_sha)
         if parent is None:
             continue
+        if not collage.record_is_current(record):
+            continue
         children = [child for child in (record.get("children") or []) if isinstance(child, dict)]
         total = len(children)
         for index, child in enumerate(children, 1):
-            if child.get("status") != "valid":
+            if child.get("status") != collage.VALID:
                 continue
             sha = child.get("child_sha")
-            if not _valid_sha(sha) or sha == parent_sha:
+            if not _valid_sha(sha) or sha == parent_sha or sha in seen_children:
+                continue
+            if str(child.get("parent_sha") or "") != parent_sha:
                 continue
             try:
                 path = Path(str(child.get("path") or ""))
                 resolved = path.resolve()
-                if path.is_symlink() or not resolved.is_relative_to(derived_dir) or not resolved.is_file():
+                if path.is_symlink() or not resolved.is_relative_to(derived_dir):
                     continue
             except (OSError, RuntimeError, ValueError):
                 continue
+            if not sha_matches(resolved, sha):
+                continue
+            seen_children.add(sha)
             size = child.get("size") or [None, None]
             output.setdefault(parent_sha, []).append({
                 **{key: parent.get(key) for key in
                    ("page_url", "image_url", "search_query", "author", "source_text",
-                    "discovery_url", "relevance", "acquired_at")},                "asset_sha": sha,
+                    "discovery_url", "relevance", "acquired_at")},
+                "asset_sha": sha,
                 "original_path": str(resolved),
                 "original_filename": resolved.name,
                 "width": size[0] if len(size) > 0 else None,
@@ -139,6 +151,7 @@ def _derived_rows(folder: Path, parents: dict[str, dict]) -> dict[str, list[dict
                 "child_index": index,
                 "child_total": total,
                 "collage_layout": record.get("layout"),
+                "algorithm_version": record.get("algorithm_version"),
             })
     return output
 
@@ -252,47 +265,37 @@ def _item(row: dict, review: dict | None, human: dict | None, job_id: str,
     }
 
 
-def counts(items: list[dict], *, originals: int | None = None) -> dict:
-    result = {
-        "found": len(items) if originals is None else int(originals),
-        "cards": len(items),
-        "accepted": 0,
-        "human_keep": 0,
-        "passed": 0,
-        "rejected": 0,
-        "human_reject": 0,
-        "blocked": 0,
-        "pending": 0,
-        "reviewing": 0,
-        "target_confirmed": 0,
-        "exploration": 0,
-        "other_character": 0,
-        "non_photo": 0,
-        "original_singles": 0,
-        "collages": 0,
-        "collage_split_ok": 0,
-        "collage_partial": 0,
-        "collage_needs_manual": 0,
-        "collage_low_resolution": 0,
-        "collage_duplicate": 0,
-        "derived_valid": 0,
-        "derived_rejected": 0,
-        "usable_independent": 0,
-        "usable_named": 0,
-        "awaiting_manual": 0,
-    }
-    parents_with_children = {item.get("parent_sha") for item in items if item.get("derived")}
+def counts(items: list[dict], *, originals: int | None = None, folder=None,
+           rows=None, records=None) -> dict:
+    """Candidate counts.
+
+    The photography/counting numbers come from the single canonical function
+    (``collection_counts.compute``); this wrapper adds the per-card review and
+    human-decision statuses. Human keep/reject never changes how many photos were
+    acquired.
+    """
+    from .collection_counts import compute
+    if folder is not None and rows is not None and records is not None:
+        result = compute(folder, rows, records)
+    else:
+        result = {
+            "found": len(items) if originals is None else int(originals),
+            "target_confirmed": 0, "exploration": 0, "other_character": 0,
+            "non_photo": 0, "original_singles": 0, "derived_valid": 0,
+            "usable_independent": 0, "usable_named": 0, "awaiting_manual": 0,
+            "collages": 0, "collage_split_ok": 0, "collage_partial": 0,
+            "collage_needs_manual": 0, "collage_low_resolution": 0,
+            "collage_duplicate": 0, "collage_failed": 0,
+            "derived_total": 0, "derived_rejected": 0, "derived_duplicate": 0,
+            "outdated_records": 0, "unprocessed": 0, "integrity_failures": 0,
+        }
+    result = {**result}
+    result["cards"] = len(items)
+    for key in ("accepted", "human_keep", "passed", "rejected", "human_reject",
+                "blocked", "pending", "reviewing"):
+        result[key] = 0
     for item in items:
         status = item.get("status")
-        tier = str((item.get("relevance") or {}).get("tier") or "unconfirmed")
-        derived = bool(item.get("derived"))
-        collage = item.get("collage") or {}
-        if tier == "target_named":
-            result["target_confirmed"] += 1
-        elif tier in {"target_context", "unconfirmed"}:
-            result["exploration"] += 1
-        elif tier in {"other_character", "non_photo"}:
-            result[tier] += 1
         if status == "accepted":
             result["accepted"] += 1
         elif status == "human_keep":
@@ -307,43 +310,6 @@ def counts(items: list[dict], *, originals: int | None = None) -> dict:
             result["reviewing"] += 1
         else:
             result["pending"] += 1
-        if derived:
-            result["derived_valid"] += 1
-            continue
-        collage_status = str(collage.get("status") or "no_collage")
-        if collage_status in {"split_ok", "split_partial", "needs_manual_crop",
-                              "low_resolution", "duplicate_only"}:
-            result["collages"] += 1
-        if collage_status == "split_ok":
-            result["collage_split_ok"] += 1
-        elif collage_status == "split_partial":
-            result["collage_partial"] += 1
-        elif collage_status == "needs_manual_crop":
-            result["collage_needs_manual"] += 1
-        elif collage_status == "low_resolution":
-            result["collage_low_resolution"] += 1
-        elif collage_status == "duplicate_only":
-            result["collage_duplicate"] += 1
-        if collage_status == "no_collage" or not collage:
-            result["original_singles"] += 1
-        if collage.get("children_rejected"):
-            result["derived_rejected"] += int(collage["children_rejected"])
-        counts_as_independent = (not item["asset_sha"] in parents_with_children
-                                 and (not collage or bool(collage.get("parent_counts"))))
-        # A collage parent counts only when it produced no usable child, and then
-        # it is reported as awaiting manual cropping rather than a clean photo.
-        if counts_as_independent and collage_status in {"no_collage"}:
-            result["usable_independent"] += 1
-            if tier == "target_named":
-                result["usable_named"] += 1
-        elif collage_status in {"needs_manual_crop", "low_resolution"} or (
-                collage and not collage.get("parent_counts")):
-            result["awaiting_manual"] += 1
-        if tier in {"target_context", "unconfirmed"}:
-            result["awaiting_manual"] += 1
-    result["usable_independent"] += result["derived_valid"]
-    result["usable_named"] += sum(1 for item in items if item.get("derived")
-                                  and str((item.get("relevance") or {}).get("tier")) == "target_named")
     result["passed"] = result["accepted"] + result["human_keep"]
     result["rejected_total"] = result["rejected"] + result["human_reject"]
     return result
@@ -369,11 +335,14 @@ def snapshot(job_id: str, *, offset: int = 0, limit: int = 200) -> dict:
         collage_children = [child for child in (record.get("children") or []) if isinstance(child, dict)]
         collage = None
         if record:
+            from . import collage as _collage
             collage = {
                 "status": record.get("status") or "no_collage",
                 "layout": record.get("layout") or "",
                 "rows": record.get("rows"),
                 "cols": record.get("cols"),
+                "algorithm_version": record.get("algorithm_version"),
+                "outdated": not _collage.record_is_current(record),
                 "children_total": len(collage_children),
                 "children_valid": sum(1 for child in collage_children if child.get("status") == "valid"),
                 "children_rejected": sum(1 for child in collage_children
@@ -381,12 +350,13 @@ def snapshot(job_id: str, *, offset: int = 0, limit: int = 200) -> dict:
                 "parent_counts": bool((record.get("counts") or {}).get("parent_counts",
                                                                       record.get("status") == "no_collage")),
                 "reason": record.get("reason") or "",
+                "integrity": record.get("integrity") or {},
             }
         items.append(_item(row, reviews.get(row["asset_sha"]), humans.get(row["asset_sha"]),
                            job_id, collage=collage))
         for child in children.get(row["asset_sha"], []):
             items.append(_item(child, None, humans.get(child["asset_sha"]), job_id))
-    overall = counts(items, originals=len(rows))
+    overall = counts(items, folder=folder, rows=rows, records=records)
     offset = max(0, int(offset))
     limit = min(500, max(1, int(limit)))
     return {

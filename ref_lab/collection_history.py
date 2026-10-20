@@ -81,6 +81,30 @@ def historical_paths(root: Path, current: Path, history_roots=()):
                 if not path.is_file():raise ValueError('Historical original is missing; cannot prove no repeat')
                 if hashlib.sha256(path.read_bytes()).hexdigest()!=row['asset_sha']:raise ValueError('Historical image SHA changed')
                 paths.add(path)
+            # Valid derived tiles of older, never-imported batches are real images
+            # too: a new download identical to one of them is a repeat, not a new
+            # independent reference. Only current-algorithm, verified tiles count.
+            derived=base/'derived.json'
+            if derived.is_file():
+                from .collage import ALGORITHM_VERSION, VALID
+                try:data=json.loads(derived.read_text('utf8'))
+                except (OSError,ValueError):data={}
+                items=data.get('items') if isinstance(data,dict) else None
+                for parent_sha,record in (items or {}).items():
+                    if not isinstance(record,dict):continue
+                    if str(record.get('algorithm_version',''))!=str(ALGORITHM_VERSION):continue
+                    for child in record.get('children') or []:
+                        if not isinstance(child,dict) or child.get('status')!=VALID:continue
+                        sha=str(child.get('child_sha') or '')
+                        if not sha:continue
+                        path=Path(str(child.get('path') or '')).resolve()
+                        if not path.is_relative_to(local_root):
+                            raise ValueError('Historical derived tile escapes local collection boundary')
+                        if not path.is_file():
+                            raise ValueError('Historical derived tile is missing; cannot prove no repeat')
+                        if hashlib.sha256(path.read_bytes()).hexdigest()!=sha:
+                            raise ValueError('Historical derived tile SHA changed')
+                        paths.add(path)
     return sorted(paths)
 
 

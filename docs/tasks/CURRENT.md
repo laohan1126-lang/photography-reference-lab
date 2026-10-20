@@ -1,5 +1,19 @@
 # 当前任务
 
+- 本轮任务：[六项缺陷修复、隔离验收与唯一真实搜索](2026-10-20-search-collage-audit-fix.md)
+- 分支：`codex/search-collage-audit-fix-20261020`（基线 `da25d7156465925e343e8611a0e6de6663f9cc8a`），工作树
+  `.local/worktrees/search-collage-audit-fix-20261020/root`；Publisher task `search-collage-audit-fix-20261020`。
+- 检查点：六项修复已实现并验证——密网格一律待人工裁切、记录带 `algorithm_version` 且旧记录快照后重算、
+  损坏/缺失/越界文件保留并排除计数、轮询用大小+mtime 缓存完整性、恢复下载前恢复原件与有效子图索引、
+  历史未入库子图入排重、队列/停止条件/summary/counts.json 共用 `collection_counts.compute`、
+  静态页复制并校验子图、Pinterest 重复导航计时删除、旧报告追加更正。
+  35 项定向回归通过；相关历史回归 248 项通过；两批旧图隔离复验 0 问题；Edge + LAB_CHROMIUM 网页验收 22/22。
+- 唯一真实搜索：第 1 次尝试因私有探针残留的相对路径被历史索引拒绝（已清理归档），第 2 次同一 Job
+  `4a81ff48…` 达到 16 张名称命中可用独立照片（19 原图，含 1 张 2×1 拼图贡献 2 张，另 1 张 6 格排版
+  正确待人工裁切），0 模型调用，首图 68.23 秒、总 406.98 秒；重启后计数/引用/图片保持。
+- 发布：Git-only。首次 Publisher 事务在暂存空白行检查处失败（未提交、未推送，回执与状态已归档），
+  已删除多余行尾空行并在同一 task id 上重建事务；Notion 按用户边界本轮未写入，Publisher 记 `FAILED_PENDING`。
+- 下一步：本轮停止。用户可自行抽查候选图库；不自动开 Review、不加角色、不补跑、不合并 main。
 - 本轮任务：[快速搜图性能与拼图拆分](2026-10-20-search-perf-collage.md)
 - 分支：`codex/search-perf-collage-20261020`（基线 `fde7e65791d5a4bfaa042167cbc79764162e2065`），工作树
   `.local/worktrees/search-perf-collage-20261020/root`；隔离服务 `http://127.0.0.1:18790/`（未触碰日用 18765）。
