@@ -220,7 +220,7 @@ def run_search_stage(library: Library, job_id: str, attempt_id: str) -> dict:
             if library.job(job_id).get("active_attempt_id") != attempt_id:
                 return library.job(job_id)
             summary = read_json(folder / "search-summary.json", {})
-            if not isinstance(summary, dict) or summary.get("status") not in {"completed", "blocked", "failed", "cancelled"}:
+            if not isinstance(summary, dict) or summary.get("status") not in {"completed", "partial", "blocked", "failed", "cancelled"}:
                 summary = _summary_blocked(job_id, exc.code, exc.detail, target=target)
             result = library.update_search_stage(job_id, attempt_id, "blocked", summary, exc.detail)
             _import_search(library, job_id)
@@ -235,7 +235,7 @@ def run_search_stage(library: Library, job_id: str, attempt_id: str) -> dict:
             _import_search(library, job_id)
             return result
         summary = read_json(folder / "search-summary.json", {})
-        if not isinstance(summary, dict) or summary.get("status") not in {"completed", "blocked", "failed", "cancelled"}:
+        if not isinstance(summary, dict) or summary.get("status") not in {"completed", "partial", "blocked", "failed", "cancelled"}:
             summary = _summary_blocked(job_id, "summary_missing", "搜索进程没有留下阶段回执；未宣称完成。",
                                        target=target)
         if library.job(job_id).get("active_attempt_id") != attempt_id:

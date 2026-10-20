@@ -84,6 +84,16 @@ if search_only:
         if row['asset_sha'] not in have:
             received.append(row); have.add(row['asset_sha'])
     write(folder / 'received.json', received)
+    if os.environ.get('FAKE_SEARCH_PARTIAL_SUMMARY') == '1':
+        write(folder / 'search-summary.json', {
+            'version': 1, 'status': 'partial', 'stop_reason': 'target_partial',
+            'target': 2, 'target_reached': False,
+            'counts': {'found': len(received), 'duplicates': 0, 'errors': 0,
+                       'usable_named': len(received), 'target_confirmed': len(received)},
+            'elapsed_seconds': 0.01, 'first_received_seconds': 0.01,
+            'queries': [], 'source_checks': [], 'searches': {}, 'errors': [],
+            'model_calls': 0, 'tokens': 0})
+        raise SystemExit(0)
     if partial:
         raise SystemExit(1)
     write(folder / 'search-summary.json', {
@@ -495,6 +505,26 @@ def test_partial_search_exit_keeps_originals_and_a_second_search_continues_the_s
     for item in body["items"]:
         _, raw = collection_queue.original_bytes(job["id"], item["asset_sha"])
         assert hashlib.sha256(raw).hexdigest() == item["asset_sha"]
+
+
+def test_partial_search_summary_is_accepted_as_the_stage_receipt(
+        tmp_path, library, project, client, monkeypatch):
+    """A finished search that fell short writes status=partial; the service must
+    keep that receipt instead of reporting a missing summary."""
+    isolate_queue(tmp_path, monkeypatch)
+    adapter(tmp_path, monkeypatch)
+    monkeypatch.setenv("FAKE_SEARCH_PARTIAL_SUMMARY", "1")
+    monkeypatch.setenv("FAKE_SEARCH_PARTIAL", "1")     # one original, target not reached
+    job = create_job(client, project, "search", 2)
+    assert client.post(f"/api/jobs/{job['id']}/search").status_code == 200
+    wait_until(lambda: library.job(job["id"])["search_state"] in {"partial", "blocked"}, timeout=20)
+    current = library.job(job["id"])
+    assert current["search_state"] == "partial"
+    assert current["search_stop_reason"] == "target_partial"
+    assert current["search_counts"]["found"] == 1
+    assert current["search_counts"]["usable_named"] == 1
+    body = stages(client, job["id"])
+    assert body["counts"]["found"] == 1
 
 
 def test_stage_endpoints_keep_search_complete_while_review_is_blocked(
