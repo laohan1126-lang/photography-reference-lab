@@ -1109,7 +1109,20 @@ function stopCandidateQueuePolling(){if(candidateQueueTimer){clearInterval(candi
 function stageWords(state,labels){return labels[state]||state||'未知';}
 function candidateCountsMarkup(counts){
     const c=counts||{};
-    return `<div class="candidate-counts" id="cq-counts"><span><strong>${c.found||0}</strong> 已找到候选</span><span><strong>${c.target_confirmed||0}</strong> 角色名称命中</span><span><strong>${c.exploration||0}</strong> 相关性未确认</span><span><strong>${c.passed||0}</strong> 已通过</span><span><strong>${c.rejected_total||c.rejected||0}</strong> 审核拒绝</span><span><strong>${c.pending||0}</strong> 尚待审核</span><span><strong>${c.blocked||0}</strong> 审核受阻</span></div>`;
+    const cell=(value,label)=>`<span><strong>${value||0}</strong> ${label}</span>`;
+    return `<div class="candidate-counts" id="cq-counts">`
+        +cell(c.found,'已下载原图')
+        +cell(c.target_confirmed,'角色名称命中')
+        +cell(c.original_singles,'原始独立单图')
+        +cell(c.derived_valid,'拼图有效子图')
+        +cell(c.usable_independent,'实际可用独立照片')
+        +cell(c.usable_named,'其中名称命中')
+        +cell(c.awaiting_manual,'待人工裁切/未确认')
+        +cell(c.passed,'已通过')
+        +cell(c.rejected_total||c.rejected,'审核拒绝')
+        +cell(c.pending,'尚待审核')
+        +cell(c.blocked,'审核受阻')
+        +`</div>`;
 }
 function renderCandidateQueue(jobId,data,projectId){
     const counts=data.counts||{},search=data.search||{},review=data.review||{};
@@ -1117,7 +1130,7 @@ function renderCandidateQueue(jobId,data,projectId){
     const reviewState=review.status||data.job?.review_state||'idle';
     const status=$('cq-status'),countsNode=$('cq-counts'),grid=$('cq-grid');
     if(!status||!grid)return;
-    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“角色名称命中”只是发现文字线索，仍需逐图视觉核验；“相关性未确认”是保留给你看的探索候选，不会计入目标。人工保留与 AI 通过是两种证据。</p>`;
+    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 名称命中的单图 + 拼图拆出的合格子图；拼图原件与它的子图不重复计数，低画质子图仍可查看但不算已获得的参考。名称命中不等于视觉身份通过；人工保留与 AI 通过是两种证据。</p>`;
     if(countsNode)countsNode.outerHTML=candidateCountsMarkup(counts);
     const start=$('cq-start-review');
     if(start){
@@ -1143,12 +1156,17 @@ function renderCandidateQueue(jobId,data,projectId){
             :`<span class="badge" title="文字名称命中不等于视觉身份通过">名称命中 · 未视觉核验</span>`;
         const review=item.review?`<p class="form-help">${esc(item.review.identity?('角色 '+item.review.identity):'')}${item.review.costume?' · 服装 '+esc(item.review.costume):''}${item.review.confidence?' · '+esc(item.review.confidence):''}</p>${item.review.reason?`<p>${esc(item.review.reason)}</p>`:''}`:'';
         const error=item.review_error?`<p class="error-text">${esc(item.review_error)}</p>`:'';
+        const derived=item.derived?`<span class="badge" title="由原拼图本地无损裁切生成；不是 AI 通过">拼图子图 ${esc(item.child_index||'?')}/${esc(item.child_total||'?')}</span>`:'';
+        const collageInfo=(!item.derived&&item.collage&&item.collage.status!=='no_collage')
+            ?`<p class="form-help">本地拼图处理：${esc(item.collage.layout||'')} · ${esc(item.collage.status)} · 子图 ${esc(item.collage.children_valid||0)}/${esc(item.collage.children_total||0)} 张可用。原图与子图不重复计入可用照片。</p>`:'';
+        const crop=item.derived&&Array.isArray(item.crop)
+            ?`<p class="form-help">裁切 x${esc(item.crop[0])} y${esc(item.crop[1])} · ${esc(item.crop[2])}×${esc(item.crop[3])} · 清晰度 ${esc(item.quality?.sharpness??'—')}</p>`:'';
         return `<article class="candidate-card" data-sha="${esc(item.asset_sha)}">
           <a class="candidate-image" href="${esc(item.original_url)}" target="_blank" rel="noreferrer"><img loading="lazy" src="${esc(item.original_url)}" alt="候选原图 ${index+1}"></a>
-          <div class="candidate-body"><div class="compact-row"><span class="badge">${esc(label)}</span>${relevanceBadge}${item.human_decision?`<span class="badge">人工决定优先</span>`:''}</div>
+          <div class="candidate-body"><div class="compact-row"><span class="badge">${esc(label)}</span>${relevanceBadge}${derived}${item.human_decision?`<span class="badge">人工决定优先</span>`:''}</div>
           <p>${esc(item.source.search_query||'来源搜索词未记录')}</p>
-          <p class="form-help">${esc(item.source.author||'作者未记录')} · ${item.width&&item.height?esc(item.width+'×'+item.height):'尺寸未记录'}</p>${review}${error}
-          <div class="compact-row"><a href="${esc(item.original_url)}" target="_blank" rel="noreferrer">打开原图</a><a href="${esc(item.source.page_url)}" target="_blank" rel="noreferrer">原帖</a><button data-decision="keep" class="quiet">人工保留</button><button data-decision="reject" class="quiet">人工淘汰</button>${item.human_decision?'<button data-decision="clear" class="quiet">撤销人工决定</button>':''}</div></div>
+          <p class="form-help">${esc(item.source.author||'作者未记录')} · ${item.width&&item.height?esc(item.width+'×'+item.height):'尺寸未记录'}</p>${collageInfo}${crop}${review}${error}
+          <div class="compact-row"><a href="${esc(item.original_url)}" target="_blank" rel="noreferrer">${item.derived?'打开子图':'打开原图'}</a><a href="${esc(item.source.page_url)}" target="_blank" rel="noreferrer">原帖</a><button data-decision="keep" class="quiet">人工保留</button><button data-decision="reject" class="quiet">人工淘汰</button>${item.human_decision?'<button data-decision="clear" class="quiet">撤销人工决定</button>':''}</div></div>
         </article>`;
     }).join('')||empty('还没有下载到候选','搜索正在尝试；这里只显示已经成功保存的真实原图。登录、验证或来源受阻时会保留已下载部分。');
     grid.onclick=async event=>{

@@ -16,7 +16,7 @@ import time
 from urllib.parse import quote,urlsplit
 from uuid import uuid4
 import zipfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
@@ -33,7 +33,7 @@ from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
 from ref_lab.collection_checkpoint import load_checkpoint,original_bytes,coverage,read_json,rule_contract,job_binding
 from ref_lab.search_relevance import (classify_card, confirmed_count, exploration_count,
-                                      exploration_limit, relevance_counts)
+                                      exploration_limit, is_confirmed, relevance_counts)
 from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
 from tools.exact_recall import assess_search,capture_note,save
 
@@ -295,10 +295,35 @@ SEARCH_JS=r"""(() => {
 })()"""
 
 
+DETAIL_PROBE_JS=r"""(() => {
+ const visible=x=>{const r=x.getBoundingClientRect();return r.width>0&&r.height>0
+   &&(!x.checkVisibility||x.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}));};
+ const text=(document.body.innerText||'').slice(0,4000);
+ const login=Array.from(document.querySelectorAll('[role="dialog"],.login-container,.login-box'))
+   .some(x=>visible(x)&&/登录|登入|扫码|Log in|Sign up/.test(x.innerText));
+ const challenge=Array.from(document.querySelectorAll('iframe[src*="captcha"]')).some(visible)
+   ||/访问过于频繁|验证后继续|Verify you are human/.test(text);
+ const notFound=/当前笔记暂时无法浏览|内容不存在|页面不见了|Note not found/i.test(text);
+ return {url:location.href,login_required:login,challenge,not_found:notFound};
+})()"""
+
+
 class Browser:
     supports_sort=True
     def __init__(self,folder:Path):
         self.folder=folder;self.session=None;self.bsk=None;self.env={**os.environ,'BSK_AUTO_START':'0'}
+        self.timing=None;self.preview=None;self.preview_reused=0
+
+    def _span(self,name,**fields):
+        timing=getattr(self,'timing',None)
+        return timing.span(name,**fields) if timing is not None else nullcontext()
+
+    def _probe_detail(self):
+        """Cheap binding/login/404 check for a just-opened detail page."""
+        data=json.loads(self.command('evaluate','--session',self.session,'--json',DETAIL_PROBE_JS))
+        if data.get('ok') is not True or not isinstance(data.get('value'),dict):
+            raise ValueError('Detail page read failed')
+        return data['value']
 
     def command(self,*args,timeout=35):
         # Retry only idempotent reads/navigation; never repeat a click or challenge.
@@ -329,44 +354,55 @@ class Browser:
         q=quote(step['query'])
         url=('https://www.pinterest.com/search/pins/?q='+q if step['source']=='pinterest'
              else 'https://www.xiaohongshu.com/search_result?keyword='+q)
-        self.command('navigate',url,'--session',self.session,'--wait-until','domcontentloaded','--timeout','25s')
+        with self._span('search_navigate',source=step['source']):
+            self.command('navigate',url,'--session',self.session,'--wait-until','domcontentloaded','--timeout','25s')
         snapshot={}
         for attempt in range(3):
-            snapshot=self.snapshot()
+            with self._span('search_dom',source=step['source']):
+                snapshot=self.snapshot()
             if snapshot.get('cards') or snapshot.get('login_required') or snapshot.get('challenge'):break
             if '找不到與這個搜尋條件相符的 Pin' in snapshot.get('visibleMain',''):break
             if attempt<2:time.sleep(1)
         if step['source']=='xiaohongshu' and snapshot.get('cards') and not snapshot.get('login_required') and not snapshot.get('challenge'):
-            controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
-            if controls.get('ok') is True and controls['value'].get('trigger'):
-                self.command('hover','--selector',controls['value']['trigger'],'--session',self.session)
-                controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
-            desired=('latest' if sort=='latest' else 'comprehensive')
-            value=controls.get('value') or {}
-            target_selector=value.get(desired)
-            active=value.get('active') or []
-            already='最新' if desired=='latest' else '综合'
-            if target_selector and already not in active:
-                self.command('click','--selector',target_selector,'--session',self.session)
-                time.sleep(1)
-                controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
-                if controls.get('ok') is True and controls['value'].get('trigger'):
-                    self.command('hover','--selector',controls['value']['trigger'],'--session',self.session)
-                    controls=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
-            snapshot=self.snapshot()
-            active=(controls.get('value') or {}).get('active') or []
-            snapshot['sort_state']=('comprehensive' if '综合' in active else
-                                    ('latest' if '最新' in active else 'default'))
-            snapshot['sort_evidence']={'available': active, 'requested': desired}
-            if controls.get('ok') is True and controls['value'].get('dismiss'):
-                self.command('hover','--selector',controls['value']['dismiss'],'--session',self.session)
-                snapshot=self.snapshot()
-                snapshot['sort_state']=('comprehensive' if '综合' in active else
-                                        ('latest' if '最新' in active else 'default'))
-                snapshot['sort_evidence']={'available': active, 'requested': desired}
+            with self._span('search_sort',source=step['source']):
+                state=self._apply_sort(sort)
+            snapshot.update(state)
+            with self._span('search_dom',source=step['source']):
+                snapshot={**self.snapshot(),**state}
         if step['source']=='xiaohongshu' and 'sort_state' not in snapshot:
             snapshot['sort_state']='default_control_unavailable'
         return snapshot
+
+    def _apply_sort(self,sort):
+        """Pick 综合/最新 through the visible control and report what is active.
+
+        The previous version took a full-page snapshot after every interaction.
+        Sort state is readable from the small tag strip, so only one full search
+        snapshot is needed afterwards.
+        """
+        def read():
+            payload=json.loads(self.command('evaluate','--session',self.session,'--json',XHS_SORT_JS))
+            return (payload.get('value') or {}) if payload.get('ok') is True else {}
+
+        value=read()
+        trigger=value.get('trigger')
+        if trigger:
+            self.command('hover','--selector',trigger,'--session',self.session)
+            value={**value,**read()}
+        desired='latest' if sort=='latest' else 'comprehensive'
+        label='最新' if desired=='latest' else '综合'
+        if value.get(desired) and label not in (value.get('active') or []):
+            self.command('click','--selector',value[desired],'--session',self.session)
+            time.sleep(1)
+            value={**value,**read()}
+        dismiss=value.get('dismiss')
+        if dismiss:
+            self.command('hover','--selector',dismiss,'--session',self.session)
+            value={**value,**read()}
+        active=value.get('active') or []
+        return {'sort_state':('comprehensive' if '综合' in active else
+                              ('latest' if '最新' in active else 'default')),
+                'sort_evidence':{'available': active, 'requested': desired}}
 
     def more(self,step):
         self.scroll_windows+=1
@@ -376,6 +412,7 @@ class Browser:
 
     def check_duplicate(self,card,history):
         # shortcut: single primary-image Pins only; revisit when Pin galleries are collected.
+        self.preview=None
         page=urlsplit(card.get('page',''));url=card.get('cover_url','');parsed=urlsplit(url)
         if (page.scheme!='https' or page.username or page.password or page.hostname not in ('pinterest.com','www.pinterest.com')
                 or not re.fullmatch(r'/pin/\d+/?',page.path) or parsed.scheme!='https' or parsed.username or parsed.password
@@ -402,6 +439,7 @@ class Browser:
             if path.is_symlink():return None
             if not path.exists():atomic_write(path,raw)
             elif path.read_bytes()!=raw:return None
+            self.preview={'url':url,'sha':sha,'path':str(path.resolve())}
             match=history.match(path)
             if match:return {**match,'reason':'visible_cover_matches_history','preview_match':match['reason'],
                              'asset_role':'discovery_preview','preview_sha256':sha,'preview_path':str(path.resolve()),
@@ -419,33 +457,32 @@ class Browser:
                 match=re.search(r'/(?:explore|search_result)/([a-f0-9]{24})',urlsplit(page).path)
                 if not match:return []
                 note=match.group(1)
-                self.command('click','--selector',f'a.cover[href*="{note}"]','--session',self.session)
-                visible=self.snapshot()
-                path=urlsplit(visible.get('url','')).path
-                entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',path))
-                if visible.get('login_required') or visible.get('challenge'):
+                with self._span('detail_click',source=source):
+                    self.command('click','--selector',f'a.cover[href*="{note}"]','--session',self.session)
+                with self._span('detail_dom_wait',source=source):
+                    probe=self._probe_detail()
+                entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',
+                                                 urlsplit(probe.get('url','')).path))
+                if probe.get('login_required') or probe.get('challenge'):
                     raise SourceBlocked('登录或验证门槛')
-                if '/404' in path:
+                if probe.get('not_found') or '/404' in str(probe.get('url','')):
                     self.return_failed=True
                     return []
                 if not entered_detail:raise ValueError('Note did not open; search page preserved')
                 canonical='https://www.xiaohongshu.com/explore/'+note
                 errors=[]
-                rows=capture_note(self.bsk,self.session,self.folder,canonical,limit=3,errors=errors)
+                rows=capture_note(self.bsk,self.session,self.folder,canonical,limit=3,errors=errors,
+                                  timing=getattr(self,'timing',None))
                 self.download_errors=getattr(self,'download_errors',[])+errors
                 return rows
-            detail=fetch_pinterest_detail_metadata(self.bsk,self.session,page,self.env)
+            with self._span('detail_navigate',source=source):
+                detail=fetch_pinterest_detail_metadata(self.bsk,self.session,page,self.env,
+                                                       timing=getattr(self,'timing',None))
             if detail.get('is_login_wall'):raise SourceBlocked('登录门槛')
             url=detail.get('image_url')
             if not url:return []
-            with httpx.stream('GET',url,timeout=15,follow_redirects=False) as response:
-                response.raise_for_status();content=bytearray()
-                for chunk in response.iter_bytes():
-                    content.extend(chunk)
-                    if len(content)>20*1024*1024:raise ValueError('Image exceeds size limit')
-            raw=bytes(content)
-            with Image.open(io.BytesIO(raw)) as image:
-                image.load();width,height=image.size;fmt=image.format
+            with self._span('detail_download',source=source):
+                raw,width,height,fmt,reused=self._pinterest_bytes(url)
             ext={'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(fmt)
             if ext is None:return []
             sha=hashlib.sha256(raw).hexdigest();path=self.folder/'images'/f'{sha}.{ext}'
@@ -453,12 +490,43 @@ class Browser:
             if not path.exists():path.write_bytes(raw)
             elif hashlib.sha256(path.read_bytes()).hexdigest()!=sha:raise ValueError('Immutable image conflict')
             return [{'asset_sha':sha,'original_path':str(path.resolve()),'page_url':page,'image_url':url,
-                     'source_text':detail.get('title','')+'\n'+detail.get('desc',''),'width':width,'height':height}]
+                     'source_text':detail.get('title','')+'\n'+detail.get('desc',''),'width':width,'height':height,
+                     'preview_bytes_reused':reused}]
         finally:
             # Restore the same search page; do not start another query or inspect a related feed.
             try:
-                if entered_detail:self.command('navigate-back','--session',self.session,'--timeout','5s',timeout=15)
+                if entered_detail:
+                    with self._span('detail_return',source=source):
+                        self.command('navigate-back','--session',self.session,'--timeout','5s',timeout=15)
             except (ValueError,OSError,subprocess.SubprocessError):self.return_failed=True
+
+    def _pinterest_bytes(self,url):
+        """Download the Pin's primary image, reusing the preview we already fetched.
+
+        ``check_duplicate`` streams the visible cover before history comparison.
+        When the detail page reports the very same URL, re-downloading identical
+        bytes is pure duplication; the stored preview is verified by SHA instead.
+        """
+        preview=self.preview
+        if preview and preview.get('url')==url:
+            try:
+                raw=Path(preview['path']).read_bytes()
+                if hashlib.sha256(raw).hexdigest()==preview['sha']:
+                    with Image.open(io.BytesIO(raw)) as image:
+                        image.load();width,height=image.size;fmt=image.format
+                    self.preview_reused+=1
+                    return raw,width,height,fmt,True
+            except (OSError,ValueError,Image.DecompressionBombError):
+                pass
+        with httpx.stream('GET',url,timeout=15,follow_redirects=False) as response:
+            response.raise_for_status();content=bytearray()
+            for chunk in response.iter_bytes():
+                content.extend(chunk)
+                if len(content)>20*1024*1024:raise ValueError('Image exceeds size limit')
+        raw=bytes(content)
+        with Image.open(io.BytesIO(raw)) as image:
+            image.load();width,height=image.size;fmt=image.format
+        return raw,width,height,fmt,False
 
     def close(self):
         if self.session:self.command('session','stop',self.session,timeout=10)
@@ -547,6 +615,16 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     if hasattr(agent,'candidate_calls'):agent.candidate_calls=max(agent.candidate_calls,state.get('candidate_calls',0))
     started=time.monotonic()
     timing=getattr(agent,'timing',None) or CollectionTiming(folder)
+    if hasattr(browser,'timing'):browser.timing=timing
+    collage_worker=None
+    collage_closed=False
+    if search_only:
+        from ref_lab.collage import CollageWorker
+        collage_worker=CollageWorker(folder,history=history,known_shas=seen)
+        # A resumed run must finish local processing for originals received before
+        # the interruption; already-completed records are reused, not reprocessed.
+        for existing in list(received):
+            collage_worker.enqueue(existing)
     pending=OrderedReviews(agent,project,workers=workers) if not search_only else None
     first_usable=state.get('first_usable');displayed=-1;displayed_received=-1
     received_errors=state.get('search_errors',[]) if search_only else []
@@ -556,8 +634,18 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     work_terms=[str(project.get('work') or '').strip()]
     other_terms=[]
     skipped={'other_character':0,'non_photo':0,'exploration_budget':0}
+    def usable_independent_named():
+        """Independent name-hit photos after local collage processing.
+
+        A single original counts once. A split collage is replaced by its usable
+        tiles, and an unsplit/low-resolution collage never counts as a clean
+        reference. Originals not processed yet are not guessed: they count 0
+        until the local stage has a record, which keeps the target honest.
+        """
+        from ref_lab.collage import DerivedStore, usable_named_count
+        return usable_named_count(received, DerivedStore(folder).items(), is_confirmed)
     def confirmed():
-        return confirmed_count(received) if search_only else len(candidates)
+        return usable_independent_named() if search_only else len(candidates)
     def exploration():
         return exploration_count(received) if search_only else 0
     def limit_reason():
@@ -825,6 +913,11 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 timing.event('first_received',asset_sha=sha)
                             save(folder/'received.json',received)
                             checkpoint()
+                            if search_only and collage_worker is not None:
+                                # Local, model-free post-processing runs off the
+                                # download path: the original is already durable
+                                # and visible before any tile is produced.
+                                collage_worker.enqueue(row)
                             if not search_only:
                                 pending.submit(row)
                                 checkpoint()
@@ -888,6 +981,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         raise
     finally:
         if pending is not None:pending.close(cancel=True)
+        if collage_worker is not None and not collage_closed:
+            # The download path never waits for splitting; the bounded drain here
+            # only makes the final counts and gallery complete before the summary.
+            deadline=getattr(agent,'deadline',float('inf'))
+            collage_worker.close(timeout=max(1.0,min(30.0,deadline-time.monotonic())))
+            collage_closed=True
         if not search_only and hasattr(agent,'cache_references'):agent.cache_references(project)
         if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
             stop_reason='sources_blocked';blocked=True
@@ -910,6 +1009,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             else:
                 status='blocked'
             elapsed_total=previous_elapsed+(time.monotonic()-started)
+            collage_totals=collage_worker.summary() if collage_worker is not None else {}
             summary=write_search_summary(
                 folder,status=status,stop_reason=stop_reason,received=received,queries=queries,checks=checks,
                 searches=searches,started=started,
@@ -920,6 +1020,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'budget_note':('本轮上限 100 张；请求 %s 张，按 %s 张执行。' % (requested_total,target)
                                                              if requested_total>target else ''),
                                               'search_only':True,
+                                              'usable_independent_named':confirmed_total,
+                                              'collage':collage_totals,
+                                              'collage_errors':list(getattr(collage_worker,'errors',[]))[:10],
+                                              'collage_seconds':round(getattr(collage_worker,'seconds',0.0),3),
+                                              'collage_processed':int(getattr(collage_worker,'processed',0)),
+                                              'preview_bytes_reused':int(getattr(browser,'preview_reused',0)),
                                               'cumulative_elapsed_seconds':round(elapsed_total,3),
                                               'continue':continue_info,
                                               'query_history':len(state.get('query_history',[])),
@@ -938,11 +1044,21 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             save(folder/'received.json',received);save(folder/'search-errors.json',received_errors)
             save(folder/'duplicates.json',duplicates);save(folder/'reference-collisions.json',collisions)
             relevance_summary=relevance_counts(received)
+            usable_independent=(len(received)-int(collage_totals.get('collages',0))
+                                +int(collage_totals.get('derived_valid',0)))
             save(folder/'counts.json',{'unique_images_received':len(received),'duplicates':len(duplicates),
                                        'target_confirmed':relevance_summary['confirmed'],
                                        'exploration':relevance_summary['exploration'],
                                        'other_character':relevance_summary['other_character'],
                                        'non_photo':relevance_summary['non_photo'],
+                                       'original_singles':(len(received)-int(collage_totals.get('collages',0))),
+                                       'collages':int(collage_totals.get('collages',0)),
+                                       'derived_valid':int(collage_totals.get('derived_valid',0)),
+                                       'derived_rejected':int(collage_totals.get('derived_rejected',0)),
+                                       'derived_duplicate':int(collage_totals.get('derived_duplicate',0)),
+                                       'usable_independent':usable_independent,
+                                       'usable_independent_named':confirmed_total,
+                                       'collage':collage_totals,
                                        'skipped_other_character':skipped['other_character'],
                                        'skipped_non_photo':skipped['non_photo'],
                                        'skipped_exploration_budget':skipped['exploration_budget'],
@@ -951,7 +1067,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                        'first_received_seconds':first_usable,
                                        'history_images':getattr(history,'known_count',getattr(history,'initial_count',0)),
                                        'history_ready':getattr(history,'ready',None),
-                                       'model_calls':summary['model_calls'],'tokens':summary['tokens']})
+                                       'model_calls':summary['model_calls'],'tokens':summary['tokens'],
+                                       'preview_bytes_reused':int(getattr(browser,'preview_reused',0))})
             checkpoint('finished')
             search_summary_result=summary
         completed={r['asset_sha'] for r in audit}
@@ -1321,6 +1438,8 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
         for key in ('target','requested_target','effective_target','target_reached','budget_note',
                     'search_only','history_ready','history_known','history_errors','source_blocked',
                     'cumulative_elapsed_seconds','continue','query_history',
+                    'usable_independent_named','collage','collage_errors','collage_seconds',
+                    'collage_processed','preview_bytes_reused',
                     'skipped_other_character','skipped_non_photo','skipped_exploration_budget'):
             if key in extra:summary[key]=extra[key]
     save(folder/'search-summary.json',summary)
@@ -1328,17 +1447,42 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
 
 
 def render_search_gallery(folder,rows,*,running=False):
-    """Read-only fallback view of acquired originals; status is not visual verification."""
+    """Read-only fallback view of acquired originals plus their usable crops.
+
+    The gallery is rewritten on every checkpoint. Existing copies are not re-read:
+    the previous version read every original twice per new image, which is pure
+    duplicated disk I/O while the search is running.
+    """
+    from ref_lab.collage import DerivedStore
     public=folder/'public';public.mkdir(exist_ok=True);figures=[]
+    records=DerivedStore(folder).items()
+    def copy_once(source: Path, target: Path):
+        if not target.exists():atomic_write(target,source.read_bytes())
     for i,row in enumerate(rows,1):
         source=Path(row['original_path']);target=public/source.name
-        raw=source.read_bytes()
-        if target.exists() and target.read_bytes()!=raw:raise ValueError('Immutable gallery image conflict')
-        if not target.exists():atomic_write(target,raw)
+        copy_once(source,target)
+        record=records.get(row['asset_sha']) or {}
+        children=[child for child in (record.get('children') or []) if isinstance(child,dict)]
+        usable=[child for child in children if child.get('status')=='valid']
+        collage_note=(''
+            if not record or record.get('status')=='no_collage'
+            else '<p>本地图片处理：'+html.escape(str(record.get('layout','')))
+                 +' · '+html.escape(str(record.get('status','')))
+                 +f' · 子图 {len(children)} 张，可用 {len(usable)} 张。原图与其子图不重复计入可用照片。</p>')
+        child_figures=''
+        if usable:
+            child_figures='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">'+''.join(
+                '<figure style="margin:0;max-width:220px"><img style="max-height:200px;margin:0" src="'
+                +html.escape(Path(child['path']).name,quote=True)+'" alt="子图'+str(index)+'">'
+                '<figcaption style="font-size:12px">子图 '+str(index)+' · '
+                +html.escape('×'.join(str(value) for value in (child.get('size') or [])))
+                +'</figcaption></figure>'
+                for index,child in enumerate(usable,1))+'</div>'
         figures.append('<article><h2>'+str(i)+' · 候选原图</h2><img src="'+html.escape(source.name,quote=True)+'" alt="候选原图'+str(i)+'">'
                        '<p>来源：<a target="_blank" rel="noreferrer" href="'+html.escape(row.get('page_url',''),quote=True)+'">原帖</a>'
                        ' · 搜索词：'+html.escape(row.get('search_query',''))+'</p>'
-                       '<p>状态：已下载，待审核。不是已通过摄影审核。</p></article>')
+                       '<p>状态：已下载，待审核。不是已通过摄影审核。</p>'
+                       +collage_note+child_figures+'</article>')
     body=('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
           '<title>快速搜图候选</title><style>body{margin:0;background:#f5f3ed;color:#242824;font:16px/1.7 system-ui}'
           'main{max-width:960px;margin:auto;padding:24px}h1{font-size:26px}h2{font-size:20px}'

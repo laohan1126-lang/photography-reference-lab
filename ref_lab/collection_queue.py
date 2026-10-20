@@ -84,6 +84,65 @@ def _received_rows(folder: Path) -> list[dict]:
     return output
 
 
+def _derived_records(folder: Path) -> dict[str, dict]:
+    """Read the local collage records without trusting their paths."""
+    data = read_json(folder / "derived.json", {})
+    items = data.get("items") if isinstance(data, dict) else None
+    if not isinstance(items, dict):
+        return {}
+    return {sha: value for sha, value in items.items()
+            if _valid_sha(sha) and isinstance(value, dict)}
+
+
+def _derived_rows(folder: Path, parents: dict[str, dict]) -> dict[str, list[dict]]:
+    """Usable derived tiles per parent SHA.
+
+    Only ``valid`` children become candidate cards. Rejected tiles stay in
+    ``derived.json`` and in the counts, but they are never offered as an
+    independent photography reference.
+    """
+    output: dict[str, list[dict]] = {}
+    derived_dir = (folder / "derived").resolve()
+    for parent_sha, record in _derived_records(folder).items():
+        parent = parents.get(parent_sha)
+        if parent is None:
+            continue
+        children = [child for child in (record.get("children") or []) if isinstance(child, dict)]
+        total = len(children)
+        for index, child in enumerate(children, 1):
+            if child.get("status") != "valid":
+                continue
+            sha = child.get("child_sha")
+            if not _valid_sha(sha) or sha == parent_sha:
+                continue
+            try:
+                path = Path(str(child.get("path") or ""))
+                resolved = path.resolve()
+                if path.is_symlink() or not resolved.is_relative_to(derived_dir) or not resolved.is_file():
+                    continue
+            except (OSError, RuntimeError, ValueError):
+                continue
+            size = child.get("size") or [None, None]
+            output.setdefault(parent_sha, []).append({
+                **{key: parent.get(key) for key in
+                   ("page_url", "image_url", "search_query", "author", "source_text",
+                    "discovery_url", "relevance", "acquired_at")},                "asset_sha": sha,
+                "original_path": str(resolved),
+                "original_filename": resolved.name,
+                "width": size[0] if len(size) > 0 else None,
+                "height": size[1] if len(size) > 1 else None,
+                "derived": True,
+                "parent_sha": parent_sha,
+                "crop": child.get("crop"),
+                "source_size": child.get("source_size"),
+                "quality": child.get("quality"),
+                "child_index": index,
+                "child_total": total,
+                "collage_layout": record.get("layout"),
+            })
+    return output
+
+
 def _review_items(folder: Path) -> dict[str, dict]:
     data = read_json(folder / "review-audit.json", {})
     items = data.get("items") if isinstance(data, dict) else None
@@ -142,7 +201,8 @@ def _status(row: dict, review: dict | None, human: dict | None) -> str:
     return "pending"
 
 
-def _item(row: dict, review: dict | None, human: dict | None, job_id: str) -> dict:
+def _item(row: dict, review: dict | None, human: dict | None, job_id: str,
+          collage: dict | None = None) -> dict:
     status = _status(row, review, human)
     value = review.get("review") if isinstance((review or {}).get("review"), dict) else None
     comparisons = value.get("reference_comparisons", []) if value else []
@@ -161,7 +221,7 @@ def _item(row: dict, review: dict | None, human: dict | None, job_id: str) -> di
         "height": row.get("height"),
         "acquired_at": row.get("acquired_at"),
         "source": source,
-        "discovery_url": str(row.get("discovery_url", "")),
+        "discovery_url": str(row.get("discovery_url") or ""),
         "review": None if value is None else {
             "decision": review.get("decision", ""),
             "accepted": bool(review.get("accepted")),
@@ -180,12 +240,22 @@ def _item(row: dict, review: dict | None, human: dict | None, job_id: str) -> di
             "reason": "该候选没有保存文字相关性记录。",
         },
         "original_url": f"/api/jobs/{job_id}/candidates/{row['asset_sha']}/original",
+        "derived": bool(row.get("derived")),
+        "parent_sha": row.get("parent_sha") if row.get("derived") else None,
+        "crop": row.get("crop") if row.get("derived") else None,
+        "source_size": row.get("source_size") if row.get("derived") else None,
+        "child_index": row.get("child_index") if row.get("derived") else None,
+        "child_total": row.get("child_total") if row.get("derived") else None,
+        "collage_layout": row.get("collage_layout") if row.get("derived") else None,
+        "quality": row.get("quality") if row.get("derived") else None,
+        "collage": collage if not row.get("derived") else None,
     }
 
 
-def counts(items: list[dict]) -> dict:
+def counts(items: list[dict], *, originals: int | None = None) -> dict:
     result = {
-        "found": len(items),
+        "found": len(items) if originals is None else int(originals),
+        "cards": len(items),
         "accepted": 0,
         "human_keep": 0,
         "passed": 0,
@@ -198,10 +268,25 @@ def counts(items: list[dict]) -> dict:
         "exploration": 0,
         "other_character": 0,
         "non_photo": 0,
+        "original_singles": 0,
+        "collages": 0,
+        "collage_split_ok": 0,
+        "collage_partial": 0,
+        "collage_needs_manual": 0,
+        "collage_low_resolution": 0,
+        "collage_duplicate": 0,
+        "derived_valid": 0,
+        "derived_rejected": 0,
+        "usable_independent": 0,
+        "usable_named": 0,
+        "awaiting_manual": 0,
     }
+    parents_with_children = {item.get("parent_sha") for item in items if item.get("derived")}
     for item in items:
         status = item.get("status")
         tier = str((item.get("relevance") or {}).get("tier") or "unconfirmed")
+        derived = bool(item.get("derived"))
+        collage = item.get("collage") or {}
         if tier == "target_named":
             result["target_confirmed"] += 1
         elif tier in {"target_context", "unconfirmed"}:
@@ -222,6 +307,43 @@ def counts(items: list[dict]) -> dict:
             result["reviewing"] += 1
         else:
             result["pending"] += 1
+        if derived:
+            result["derived_valid"] += 1
+            continue
+        collage_status = str(collage.get("status") or "no_collage")
+        if collage_status in {"split_ok", "split_partial", "needs_manual_crop",
+                              "low_resolution", "duplicate_only"}:
+            result["collages"] += 1
+        if collage_status == "split_ok":
+            result["collage_split_ok"] += 1
+        elif collage_status == "split_partial":
+            result["collage_partial"] += 1
+        elif collage_status == "needs_manual_crop":
+            result["collage_needs_manual"] += 1
+        elif collage_status == "low_resolution":
+            result["collage_low_resolution"] += 1
+        elif collage_status == "duplicate_only":
+            result["collage_duplicate"] += 1
+        if collage_status == "no_collage" or not collage:
+            result["original_singles"] += 1
+        if collage.get("children_rejected"):
+            result["derived_rejected"] += int(collage["children_rejected"])
+        counts_as_independent = (not item["asset_sha"] in parents_with_children
+                                 and (not collage or bool(collage.get("parent_counts"))))
+        # A collage parent counts only when it produced no usable child, and then
+        # it is reported as awaiting manual cropping rather than a clean photo.
+        if counts_as_independent and collage_status in {"no_collage"}:
+            result["usable_independent"] += 1
+            if tier == "target_named":
+                result["usable_named"] += 1
+        elif collage_status in {"needs_manual_crop", "low_resolution"} or (
+                collage and not collage.get("parent_counts")):
+            result["awaiting_manual"] += 1
+        if tier in {"target_context", "unconfirmed"}:
+            result["awaiting_manual"] += 1
+    result["usable_independent"] += result["derived_valid"]
+    result["usable_named"] += sum(1 for item in items if item.get("derived")
+                                  and str((item.get("relevance") or {}).get("tier")) == "target_named")
     result["passed"] = result["accepted"] + result["human_keep"]
     result["rejected_total"] = result["rejected"] + result["human_reject"]
     return result
@@ -231,15 +353,40 @@ def snapshot(job_id: str, *, offset: int = 0, limit: int = 200) -> dict:
     """Return a complete count plus a bounded item page.
 
     The project is rebuilt from atomic local files, so a fresh server process or
-    a reopened browser sees the same candidates after a restart.
+    a reopened browser sees the same candidates after a restart. Derived collage
+    tiles appear next to their parent, never in place of the original.
     """
     folder = run_directory(job_id)
     with _LOCK:
         rows = _received_rows(folder)
+        records = _derived_records(folder)
+        children = _derived_rows(folder, {row["asset_sha"]: row for row in rows})
         reviews = _review_items(folder)
         humans = _human_items(folder)
-    items = [_item(row, reviews.get(row["asset_sha"]), humans.get(row["asset_sha"]), job_id) for row in rows]
-    overall = counts(items)
+    items = []
+    for row in rows:
+        record = records.get(row["asset_sha"]) or {}
+        collage_children = [child for child in (record.get("children") or []) if isinstance(child, dict)]
+        collage = None
+        if record:
+            collage = {
+                "status": record.get("status") or "no_collage",
+                "layout": record.get("layout") or "",
+                "rows": record.get("rows"),
+                "cols": record.get("cols"),
+                "children_total": len(collage_children),
+                "children_valid": sum(1 for child in collage_children if child.get("status") == "valid"),
+                "children_rejected": sum(1 for child in collage_children
+                                         if child.get("status") not in {"valid"}),
+                "parent_counts": bool((record.get("counts") or {}).get("parent_counts",
+                                                                      record.get("status") == "no_collage")),
+                "reason": record.get("reason") or "",
+            }
+        items.append(_item(row, reviews.get(row["asset_sha"]), humans.get(row["asset_sha"]),
+                           job_id, collage=collage))
+        for child in children.get(row["asset_sha"], []):
+            items.append(_item(child, None, humans.get(child["asset_sha"]), job_id))
+    overall = counts(items, originals=len(rows))
     offset = max(0, int(offset))
     limit = min(500, max(1, int(limit)))
     return {
@@ -256,13 +403,23 @@ def snapshot(job_id: str, *, offset: int = 0, limit: int = 200) -> dict:
     }
 
 
+def _queue_rows(folder: Path) -> list[dict]:
+    """Durable rows a decision may target: originals plus usable collage tiles."""
+    rows = _received_rows(folder)
+    children = _derived_rows(folder, {row["asset_sha"]: row for row in rows})
+    output = list(rows)
+    for row in rows:
+        output.extend(children.get(row["asset_sha"], []))
+    return output
+
+
 def decide(job_id: str, sha: str, decision: str) -> dict:
     if decision not in {"keep", "reject", "clear"}:
         raise ValueError("Human decision must be keep, reject or clear")
     if not _valid_sha(sha):
         raise ValueError("Invalid image SHA")
     folder = run_directory(job_id)
-    rows = {row["asset_sha"]: row for row in _received_rows(folder)}
+    rows = {row["asset_sha"]: row for row in _queue_rows(folder)}
     if sha not in rows:
         raise ValueError("This image is not in the acquired candidate queue")
     with _DECISION_LOCK:
@@ -283,10 +440,15 @@ def decide(job_id: str, sha: str, decision: str) -> dict:
 
 
 def original_bytes(job_id: str, sha: str) -> tuple[Path, bytes]:
+    """Bytes for one candidate card: an original or a usable derived tile.
+
+    The content hash is always re-verified, so a changed file is refused instead
+    of being displayed as the reviewed image.
+    """
     if not _valid_sha(sha):
         raise ValueError("Invalid image SHA")
     folder = run_directory(job_id)
-    for row in _received_rows(folder):
+    for row in _queue_rows(folder):
         if row["asset_sha"] != sha:
             continue
         path = Path(row["original_path"])

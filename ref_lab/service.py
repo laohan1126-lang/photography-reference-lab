@@ -464,9 +464,28 @@ class Library:
         tier = str(relevance.get("tier") or "unconfirmed")
         label = str(relevance.get("label") or "角色相关性未确认")
         source = item.get("source") if isinstance(item.get("source"), dict) else {}
-        title = (str(project.get("character") or "") + " · " +
-                 ("名称命中候选（未视觉核验）" if tier == "target_named"
-                  else "角色相关性未确认候选"))[:400]
+        character = str(project.get("character") or "")
+        derived = bool(item.get("derived"))
+        parent_sha = str(item.get("parent_sha") or "")
+        crop = item.get("crop") or []
+        index = item.get("child_index") or 0
+        total = item.get("child_total") or 0
+        collage = item.get("collage") if isinstance(item.get("collage"), dict) else {}
+        if derived:
+            title = f"{character} · 拼图子图 {index}/{total}（未视觉核验）"[:400]
+            crop_text = ",".join(str(value) for value in crop) if crop else "未记录"
+            reason = (f"由原图 {parent_sha[:12]} 本地无损裁切第 {index}/{total} 格；"
+                      f"裁切矩形 x,y,w,h={crop_text}；尚未通过视觉审核，不是 AI 通过。")
+        elif collage and str(collage.get("status") or "no_collage") != "no_collage":
+            title = (f"{character} · 拼图原件（本地处理 {collage.get('status', '')}，"
+                     f"可用子图 {collage.get('children_valid', 0)} 张）")[:400]
+            reason = ("该原图被识别为拼图。原图保留可查看，但不与它的子图重复计入"
+                      "“实际可用独立照片”；子图在候选图库中单独选择。")
+        else:
+            title = (character + " · " +
+                     ("名称命中候选（未视觉核验）" if tier == "target_named"
+                      else "角色相关性未确认候选"))[:400]
+            reason = f"快速搜图已下载并保存原图；{label}；尚未通过视觉审核。"
         return CandidateInput(
             asset_sha=item["asset_sha"], title=title,
             source=Source(page_url=str(source.get("page_url") or ""),
@@ -476,7 +495,7 @@ class Library:
                           obtained_as="platform_variant"),
             job_id=job["id"],
             discovery_intent="exact_character" if tier == "target_named" else "unknown",
-            discovery_reason=f"快速搜图已下载并保存原图；{label}；尚未通过视觉审核。",
+            discovery_reason=reason,
             discovery_url=str(item.get("discovery_url") or ""))
 
     def _sync_queue_decision(self, ref: dict, decision: str) -> str:

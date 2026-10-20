@@ -81,51 +81,59 @@ def after_visual_sample(states: list[str]) -> str:
 
 
 def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit: int = 3,
-                 errors: list | None = None) -> list[dict]:
+                 errors: list | None = None, timing=None) -> list[dict]:
     """Read only currently rendered note DOM. No bootstrap state, cookies or API.
 
     A single unusable slide must not discard slides already received from the
     same note. When ``errors`` is supplied, per-image failures are recorded and
     the remaining slides are still attempted; page/login/binding errors still stop.
+    ``timing`` optionally receives locate/download/store spans, so the expensive
+    detail phase can be attributed instead of appearing as one opaque block.
     """
-    result = subprocess.run([bsk,'evaluate','--session',session,'--json',XHS_NOTE_JS],
-                            capture_output=True,text=True,encoding='utf8',timeout=30,check=True)
-    envelope = json.loads(result.stdout)
-    data = envelope.get('value', {})
-    if envelope.get('ok') is not True or not isinstance(data,dict) or data.get('error'):
-        raise ValueError('Note unavailable or login required')
-    page = data.get('page_url','')
-    if page != expected_page or not re.fullmatch(r'https://www\.xiaohongshu\.com/explore/[a-f0-9]{24}', page):
-        raise ValueError('Note page binding mismatch')
+    from contextlib import nullcontext
+    def span(name):
+        return timing.span(name) if timing is not None else nullcontext()
+    with span('detail_locate'):
+        result = subprocess.run([bsk,'evaluate','--session',session,'--json',XHS_NOTE_JS],
+                                capture_output=True,text=True,encoding='utf8',timeout=30,check=True)
+        envelope = json.loads(result.stdout)
+        data = envelope.get('value', {})
+        if envelope.get('ok') is not True or not isinstance(data,dict) or data.get('error'):
+            raise ValueError('Note unavailable or login required')
+        page = data.get('page_url','')
+        if page != expected_page or not re.fullmatch(r'https://www\.xiaohongshu\.com/explore/[a-f0-9]{24}', page):
+            raise ValueError('Note page binding mismatch')
     rows = []
     for index,image in enumerate(data.get('images', [])[:limit],1):
         try:
             url = image['url']; parsed = urlsplit(url)
             if parsed.scheme != 'https' or not (parsed.hostname or '').endswith('.xhscdn.com'):
                 raise ValueError('Untrusted image host')
-            response = httpx.get(url, timeout=20, follow_redirects=False)
-            response.raise_for_status()
-            content = response.content
-            if len(content) > 20*1024*1024:
-                raise ValueError('Image too large')
-            sha = hashlib.sha256(content).hexdigest()
-            import io
-            with Image.open(io.BytesIO(content)) as im:
-                im.load(); width,height = im.size; fmt = im.format
-            if (width,height) != (image['width'],image['height']):
-                raise ValueError('Received dimensions differ from the rendered image')
-            ext = {'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(fmt)
-            if ext is None:
-                raise ValueError('Unsupported original image type')
-            target = folder/'images'/f'{sha}.{ext}'
-            target.parent.mkdir(parents=True,exist_ok=True)
-            if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest()!=sha:
-                raise ValueError('Immutable file conflict')
-            if not target.exists():
-                with target.open('xb') as stream: stream.write(content)
-            rows.append({'asset_sha':sha,'original_path':str(target.resolve()),'page_url':page,
-                         'image_url':url,'width':width,'height':height,'source_text':data['text'],
-                         'image_index':index,'visual_state':'UNREVIEWED'})
+            with span('detail_download'):
+                response = httpx.get(url, timeout=20, follow_redirects=False)
+                response.raise_for_status()
+                content = response.content
+                if len(content) > 20*1024*1024:
+                    raise ValueError('Image too large')
+            with span('detail_store'):
+                sha = hashlib.sha256(content).hexdigest()
+                import io
+                with Image.open(io.BytesIO(content)) as im:
+                    im.load(); width,height = im.size; fmt = im.format
+                if (width,height) != (image['width'],image['height']):
+                    raise ValueError('Received dimensions differ from the rendered image')
+                ext = {'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(fmt)
+                if ext is None:
+                    raise ValueError('Unsupported original image type')
+                target = folder/'images'/f'{sha}.{ext}'
+                target.parent.mkdir(parents=True,exist_ok=True)
+                if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest()!=sha:
+                    raise ValueError('Immutable file conflict')
+                if not target.exists():
+                    with target.open('xb') as stream: stream.write(content)
+                rows.append({'asset_sha':sha,'original_path':str(target.resolve()),'page_url':page,
+                             'image_url':url,'width':width,'height':height,'source_text':data['text'],
+                             'image_index':index,'visual_state':'UNREVIEWED'})
         except (ValueError,OSError,httpx.HTTPError) as exc:
             if errors is None:raise
             errors.append({'page_url':page,'image_index':index,

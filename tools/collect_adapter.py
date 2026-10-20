@@ -741,32 +741,38 @@ def _pinterest_pin_id(url: str) -> str:
 
 
 def fetch_pinterest_detail_metadata(
-    bsk_bin: str, session_id: str, page_url: str, env: dict[str, str]
+    bsk_bin: str, session_id: str, page_url: str, env: dict[str, str], timing=None
 ) -> dict:
     """Resolve a visible Pin to its actual primary image without rewriting URLs.
 
     Missing title/foreign text is not a visual rejection. This function obtains
     review input only: neither a character prediction nor original-author proof.
+    ``timing`` optionally receives navigate / DOM-wait spans.
     """
+    from contextlib import nullcontext
+    def span(name):
+        return timing.span(name) if timing is not None else nullcontext()
     expected = _pinterest_pin_id(page_url)
     if not expected:
         return {}
     try:
-        navigated = subprocess.run(
-            [bsk_bin, "navigate", page_url, "--session", session_id,
-             "--wait-until", "domcontentloaded", "--timeout", "25s"],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30,
-        )
+        with span("detail_navigate"):
+            navigated = subprocess.run(
+                [bsk_bin, "navigate", page_url, "--session", session_id,
+                 "--wait-until", "domcontentloaded", "--timeout", "25s"],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30,
+            )
         if getattr(navigated, "returncode", 0) != 0:
             return {}
         for attempt in range(3):
             if attempt:
                 time.sleep(1)
-            completed = subprocess.run(
-                [bsk_bin, "evaluate", "--session", session_id, "--json", PINTEREST_DETAIL_JS],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=15,
-            )
-            payload = json.loads(completed.stdout)
+            with span("detail_dom_wait"):
+                completed = subprocess.run(
+                    [bsk_bin, "evaluate", "--session", session_id, "--json", PINTEREST_DETAIL_JS],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=15,
+                )
+                payload = json.loads(completed.stdout)
             if not isinstance(payload, dict) or payload.get("ok") is False:
                 return {}
             data = payload.get("value", {})
