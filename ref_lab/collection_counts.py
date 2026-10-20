@@ -14,9 +14,13 @@ Rules (field names are kept for existing readers):
                            algorithm with an intact file
 * ``derived_valid``        unique, intact, qualified tiles
 * ``usable_independent``   unique-SHA union of qualified singles and valid tiles
-* ``usable_named``         the subset of that union with a name-hit association
+* ``usable_named``         the subset of that union with a name-hit association,
+                           discovered through any parent record and intersected
+                           with the unique photos afterwards
 * ``awaiting_manual``      originals with an unresolved crop, quality or
-                           relevance problem, counted once per original
+                           relevance problem, counted once per original; a
+                           blurred tile next to a qualified sibling still needs
+                           a human, pure duplicate exclusion does not
 
 Records from another algorithm version, unprocessed originals and integrity
 failures never silently count as a single photograph.
@@ -70,8 +74,13 @@ def compute(folder, rows, records, *, named=None) -> dict:
         "outdated_records": 0, "unprocessed": 0, "integrity_failures": 0,
     }
     records = records if isinstance(records, dict) else {}
+    # Photo uniqueness and name-hit discovery are aggregated separately, then
+    # intersected. A tile can appear in two parent records: whichever record is
+    # seen first owns the unique photo, while a name-hit association discovered
+    # through either parent still applies to that photo. Parent order therefore
+    # cannot change ``usable_named``.
     usable: set[str] = set()
-    usable_named: set[str] = set()
+    named_associations: set[str] = set()
     valid_tiles: set[str] = set()
     seen_originals: set[str] = set()
     for row in rows or ():
@@ -86,6 +95,7 @@ def compute(folder, rows, records, *, named=None) -> dict:
         named_row = bool(predicate(row))
         if named_row:
             counts["target_confirmed"] += 1
+            named_associations.add(sha)
         elif tier in EXPLORATION_TIERS:
             counts["exploration"] += 1
         elif tier in {"other_character", "non_photo"}:
@@ -114,19 +124,17 @@ def compute(folder, rows, records, *, named=None) -> dict:
         counts["derived_total"] += len(children)
         good = [child for child in children
                 if child.get("status") == collage.VALID and _child_ok(folder, child, sha)]
-        counts["derived_rejected"] += sum(
-            1 for child in children
-            if child.get("status") not in {collage.VALID, collage.DUPLICATE_RUN,
-                                           collage.DUPLICATE_HISTORY}
-            or (child.get("status") == collage.VALID and child not in good))
+        rejected = [child for child in children
+                    if child.get("status") not in {collage.VALID, collage.DUPLICATE_RUN,
+                                                   collage.DUPLICATE_HISTORY}
+                    or (child.get("status") == collage.VALID and child not in good)]
+        counts["derived_rejected"] += len(rejected)
         counts["derived_duplicate"] += sum(
             1 for child in children
             if child.get("status") in {collage.DUPLICATE_RUN, collage.DUPLICATE_HISTORY})
         if status == collage.STATUS_NO_COLLAGE:
             counts["original_singles"] += 1
             usable.add(sha)
-            if named_row:
-                usable_named.add(sha)
         else:
             counts["collages"] += 1
             if status == collage.STATUS_SPLIT_OK:
@@ -141,6 +149,14 @@ def compute(folder, rows, records, *, named=None) -> dict:
                 counts["collage_duplicate"] += 1
             elif status == collage.STATUS_FAILED:
                 counts["collage_failed"] += 1
+            if named_row:
+                # Name hit is discovery information: it may come from a record
+                # whose tile was already counted through another parent, but it
+                # never adds a photo that is not in ``usable``.
+                for child in children:
+                    child_sha = str(child.get("child_sha") or "")
+                    if child_sha and child.get("status") in {collage.VALID, collage.DUPLICATE_RUN}:
+                        named_associations.add(child_sha)
             if good:
                 for child in good:
                     child_sha = str(child.get("child_sha") or "")
@@ -148,13 +164,17 @@ def compute(folder, rows, records, *, named=None) -> dict:
                         continue
                     valid_tiles.add(child_sha)
                     usable.add(child_sha)
-                    if named_row:
-                        usable_named.add(child_sha)
-            else:
+            only_duplicates = bool(children) and all(
+                child.get("status") in {collage.DUPLICATE_RUN, collage.DUPLICATE_HISTORY}
+                for child in children)
+            if rejected or (not good and not only_duplicates):
+                # One qualified tile does not resolve a blurred sibling: the
+                # original still needs a human, counted once per original.
+                # Pure duplicate exclusion is not a crop or quality problem.
                 unresolved = True
         if unresolved:
             counts["awaiting_manual"] += 1
     counts["derived_valid"] = len(valid_tiles)
     counts["usable_independent"] = len(usable)
-    counts["usable_named"] = len(usable_named)
+    counts["usable_named"] = len(usable & named_associations)
     return counts

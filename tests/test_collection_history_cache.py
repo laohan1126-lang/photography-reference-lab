@@ -121,6 +121,17 @@ def test_history_received_sha_binding_is_still_enforced_with_a_cache(tmp_path):
         historical_paths(root, current)
 
 
+def test_archived_diagnostic_run_stays_in_the_duplicate_history(tmp_path):
+    """Archiving a batch for evidence must not remove its received images from
+    duplicate history: the same bytes may not be re-counted as new later."""
+    root = tmp_path
+    archived_run = root / '.local' / 'backups' / 'diagnostic-1' / 'current'
+    archived = photo(archived_run / 'images' / 'one.png', (80, 90, 100))
+    received(archived_run, archived)
+    current = root / '.local' / 'current-job'
+    assert archived.resolve() in historical_paths(root, current)
+
+
 def test_explicit_history_roots_include_parent_and_performance_but_exclude_current_and_venv(tmp_path, monkeypatch):
     monkeypatch.delenv('LAB_DATA_DIR', raising=False)
     monkeypatch.delenv('LAB_COLLECTION_HISTORY_DIR', raising=False)

@@ -1133,7 +1133,7 @@ function renderCandidateQueue(jobId,data,projectId){
     const reviewState=review.status||data.job?.review_state||'idle';
     const status=$('cq-status'),countsNode=$('cq-counts'),grid=$('cq-grid');
     if(!status||!grid)return;
-    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 名称命中的单图 + 拼图拆出的合格子图；拼图原件与它的子图不重复计数，低画质子图仍可查看但不算已获得的参考。名称命中不等于视觉身份通过；人工保留与 AI 通过是两种证据。</p>`;
+    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 探索或名称命中的独立单图与拼图合格子图按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
     if(countsNode)countsNode.outerHTML=candidateCountsMarkup(counts);
     const start=$('cq-start-review');
     if(start){
@@ -1173,7 +1173,7 @@ function renderCandidateQueue(jobId,data,projectId){
             }else if(collage.status==='failed'){
                 collageInfo='<p class="form-help">派生记录完整性检查失败，未计入可用照片；原拼图与现有文件保留可查看。</p>';
             }else if((collage.children_valid||0)>0){
-                collageInfo=`<p class="form-help">本地拼图处理：${esc(collage.layout||'')} · 子图 ${esc(collage.children_valid||0)}/${esc(collage.children_total||0)} 张可用。原图与子图不重复计入可用照片。</p>`;
+                collageInfo=`<p class="form-help">本地拼图处理：${esc(collage.layout||'')} · 子图 ${esc(collage.children_valid||0)}/${esc(collage.children_total||0)} 张可用；低清或画质不合格的子图不进入候选卡，原拼图仍可查看。原图与子图不重复计入可用照片。</p>`;
             }else{
                 collageInfo=`<p class="form-help">本地拼图处理：${esc(collage.layout||'')}，没有合格子图，未计入可用照片；原拼图仍可查看。</p>`;
             }

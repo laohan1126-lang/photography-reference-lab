@@ -129,7 +129,7 @@ def test_candidate_queue_shows_acquired_originals_and_keeps_human_decision(
     page = component_factory()
     page.evaluate('id => openCandidateQueue(id,{autoStart:false})', job['id'])
     expect(page.locator('#cq-grid .candidate-card')).to_have_count(2)
-    expect(page.locator('#cq-counts')).to_contain_text('2 已找到候选')
+    expect(page.locator('#cq-counts')).to_contain_text('2 已下载原图')
     expect(page.locator('#cq-counts')).to_contain_text('1 已通过')
     expect(page.locator('#cq-counts')).to_contain_text('1 审核受阻')
     expect(page.locator('#cq-status')).to_contain_text('搜索完成')

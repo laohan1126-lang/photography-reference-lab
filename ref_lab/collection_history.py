@@ -67,7 +67,10 @@ def historical_paths(root: Path, current: Path, history_roots=()):
             if path.is_file() and not path.is_symlink():paths.add(path.resolve())
         for base,dirs,files in os.walk(history_local,followlinks=False):
             base=Path(base)
-            dirs[:]=[name for name in dirs if name not in {'worktrees','backups','public','baseline','reference-research','reference-images','visual-references','node_modules','__pycache__','.git','restored-library'}
+            # Archived batches under ``backups`` stay in duplicate history: moving
+            # a diagnostic run aside for evidence must not let its received bytes
+            # be counted as new later.
+            dirs[:]=[name for name in dirs if name not in {'worktrees','public','baseline','reference-research','reference-images','visual-references','node_modules','__pycache__','.git','restored-library'}
                      and name.casefold() not in {'.venv','venv'}
                      and not name.casefold().startswith(('test','pytest','browser')) and not _is_link_or_junction(base/name)
                      and not (base/name).resolve().is_relative_to(current)]

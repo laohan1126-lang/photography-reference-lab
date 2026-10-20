@@ -1,6 +1,15 @@
 # 当前任务
 
-- 本轮任务：[六项缺陷修复、隔离验收与唯一真实搜索](2026-10-20-search-collage-audit-fix.md)
+- 本轮任务：[第二轮审计修复、主项目整合与主项目真实搜图验收](2026-10-21-search-integration.md)
+- 分支：`codex/search-integration-20261021`（基线 `7c0773c5a85c51defd082fb86d787953462d74b6`），工作树
+  `.local/worktrees/search-integration-20261021/root`。
+- 检查点（阶段 A）：关闭第二轮审计的三项产品缺陷——旧版本升级把本 Job 已入库子图当历史重复（2→0）、
+  名称命中随父图顺序变化（1/2 不一致）、部分子图画质失败仍显示 `awaiting_manual=0`；归档诊断批次重新
+  进入排重范围；顶部/单卡文案统一；旧报告追加更正。新增回归先在 `7c0773c` 上失败（升级 5 失败/3 通过、
+  历史 1 失败/8 通过），修复后全部通过。
+- 下一步：跑相关回归与隔离网页验收；达标后进入阶段 B（主项目集成、合并 main、受控切换日用服务）。
+
+- 前轮任务：[六项缺陷修复、隔离验收与唯一真实搜索](2026-10-20-search-collage-audit-fix.md)
 - 分支：`codex/search-collage-audit-fix-20261020`（基线 `da25d7156465925e343e8611a0e6de6663f9cc8a`），工作树
   `.local/worktrees/search-collage-audit-fix-20261020/root`；Publisher task `search-collage-audit-fix-20261020`。
 - 检查点：六项修复已实现并验证——密网格一律待人工裁切、记录带 `algorithm_version` 且旧记录快照后重算、

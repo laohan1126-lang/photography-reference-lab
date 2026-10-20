@@ -199,7 +199,10 @@ def test_failed_note_open_does_not_navigate_back_out_of_valid_search(tmp_path):
         def snapshot(self):return {'url':'https://www.xiaohongshu.com/search_result?keyword=Example'}
     browser=Missed()
     with pytest.raises(ValueError):browser.receive({'page':'https://www.xiaohongshu.com/explore/'+'a'*24},{'source':'xiaohongshu'})
-    assert [a[0] for a in browser.actions]==['click']
+    assert browser.actions[0][0]=='click'
+    # The detail DOM probe is read-only; what must not happen is a navigation
+    # back out of the still-valid search page after the note failed to open.
+    assert all(action[0] not in {'navigate','open','back'} for action in browser.actions)
 
 
 def test_high_confidence_negative_still_supplements_under_original_quality_contract(tmp_path):

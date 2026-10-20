@@ -640,6 +640,7 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
     store = DerivedStore(folder)
     previous_version = None
     snapshot_path = ""
+    own_children: dict[str, dict] = {}
     existing = store.get(parent_sha)
     if existing is not None:
         integrity = verify_record(folder, existing, parent_sha, source)
@@ -691,6 +692,26 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
         # human decisions, then recompute with the current rules.
         previous_version = str(existing.get("algorithm_version") or "legacy")
         snapshot_path = store.snapshot(parent_sha, existing)
+        # A v1 Job may already have imported its own tiles into the library, so a
+        # rebuilt index lists them as "history". They are this Job's own results,
+        # not external repeats: prove identity through the old record, its parent
+        # binding and the unchanged bytes, then let the current algorithm decide
+        # their status again instead of excluding the Job's own work.
+        from .integrity import sha_matches as _sha_matches
+        derived_root = (folder / "derived").resolve()
+        for child in existing.get("children") or []:
+            if not isinstance(child, dict) or child.get("status") != VALID:
+                continue
+            sha = str(child.get("child_sha") or "")
+            path = Path(str(child.get("path") or ""))
+            if (not sha or str(child.get("parent_sha") or "") != parent_sha
+                    or not _inside(path, derived_root) or not _sha_matches(path, sha)):
+                continue
+            own_children[sha] = child
+        if own_children and history is not None:
+            # Keep the external index honest for everyone else; the reclaimed
+            # tiles stay counted through their own record, never twice.
+            history.exclude(own_children)
 
     raw = source.read_bytes()
     if hashlib.sha256(raw).hexdigest() != parent_sha:
@@ -708,6 +729,7 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
     if previous_version is not None:
         record["previous_algorithm_version"] = previous_version
         record["previous_record_snapshot"] = snapshot_path
+        record["own_previous_children"] = len(own_children)
     children = []
     seen_children: set[str] = set()
     for item in result.get("children", []):
@@ -738,6 +760,12 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
             if known_shas and child_sha in known_shas:
                 child["status"] = DUPLICATE_RUN
                 child["duplicate_of"] = child_sha
+            elif child_sha in own_children:
+                # Same SHA as this Job's own verified older tile: keep the Job's
+                # result identity (and its SHA-keyed human decision); the fresh
+                # algorithm run, not the old verdict, decided the status.
+                child["own_previous_result"] = True
+                child["recovered_from_algorithm_version"] = previous_version
             elif history is not None:
                 try:
                     match = history.consider(target)
