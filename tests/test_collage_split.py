@@ -183,6 +183,33 @@ def test_tampered_original_is_refused(tmp_path):
         collage.process_original(tmp_path, row)
 
 
+def test_white_gutter_grid_is_detected_on_both_axes(tmp_path):
+    """A platform 3x3 grid with white separators has almost no seam gradient.
+
+    A single-axis-only reading (3 vertical strips) would be a wrong crop, even
+    though the tiles are rejected for resolution either way. Both axes must be
+    reported.
+    """
+    tile_w, tile_h, gutter = 352, 464, 12
+    canvas = Image.new("RGB", (tile_w * 3 + gutter * 2, tile_h * 3 + gutter * 2), (250, 250, 250))
+    for row in range(3):
+        for col in range(3):
+            canvas.paste(_textured((tile_w, tile_h), row * 3 + col + 1,
+                                   [(28, 30, 34), (198, 62, 54), (52, 150, 196),
+                                    (240, 214, 70), (86, 88, 208), (236, 138, 58),
+                                    (58, 196, 122), (148, 58, 178), (222, 220, 214)][row * 3 + col]),
+                         (col * (tile_w + gutter), row * (tile_h + gutter)))
+    row = _write_original(tmp_path, canvas)
+    record = collage.process_original(tmp_path, row)
+    assert record["layout"] == "grid_3x3"
+    assert record["status"] == collage.STATUS_LOW_RESOLUTION
+    assert len(record["children"]) == 9
+    assert all(child["status"] == "low_resolution" for child in record["children"])
+    # Cut inside the gutters: no tile may contain the separator line.
+    for child in record["children"]:
+        assert child["size"][0] <= tile_w and child["size"][1] <= tile_h
+
+
 def test_queue_exposes_usable_children_and_routes_decisions(tmp_path, monkeypatch):
     run_root = tmp_path / "runs"
     monkeypatch.setattr(collection_queue, "run_root", lambda: run_root)

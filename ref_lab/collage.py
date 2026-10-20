@@ -52,6 +52,11 @@ MIN_CELL_FRACTION = 0.12       # no sliver tiles
 MAX_AXIS = 4000                # refuse absurd canvases before doing numpy work
 SEAM_SCORE_MIN = 4.0           # boundary gradient / median gradient
 SEAM_AMPLITUDE_MIN = 8.0       # grey levels
+# A complete 3x3 grid is strong evidence on its own: platform grids often have
+# white gutters between panels, so the seam gradient is only a few grey levels.
+# Such a grid is only accepted when BOTH axes show the same periodic structure.
+SEAM_GRID_AMPLITUDE_MIN = 4.5
+SEAM_GRID_SCORE_MIN = 2.0
 # A single-seam split needs either a clearly strong discontinuity or two clearly
 # independent lines; a long structure inside one photograph is neither.
 SEAM_STRONG_AMPLITUDE = 20.0
@@ -61,8 +66,8 @@ SEAM_TOLERANCE_FRAC = 0.020
 # different photographs and are not. This is what separates a real seam from a
 # long vertical structure that merely looks like one.
 SEAM_MAX_CORRELATION = 0.60
-FLAT_BAND_STD = 2.5            # a near-uniform separator/gutter line
-MAX_FLAT_BAND_FRAC = 0.06
+FLAT_BAND_STD = 6.0            # a near-uniform separator/gutter line
+MAX_FLAT_BAND_FRAC = 0.04
 ANALYSIS_MAX_SIDE = 1600       # detection runs on a bounded copy
 
 VALID = "valid"
@@ -112,16 +117,31 @@ def _uniformity(gray: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 def _find_axis(diff: np.ndarray, length: int, *, parts: int,
                score_min: float = SEAM_SCORE_MIN,
                amplitude_min: float = SEAM_AMPLITUDE_MIN,
-               tolerance_frac: float = SEAM_TOLERANCE_FRAC) -> dict | None:
-    """Try one uniform split of ``length`` into ``parts``; return measured seams."""
+               tolerance_frac: float = SEAM_TOLERANCE_FRAC,
+               bands: list[tuple[int, int]] | None = None) -> dict | None:
+    """Try one uniform split of ``length`` into ``parts``; return measured seams.
+
+    A seam is either a measured grey-level discontinuity (two photographs meet
+    directly) or a near-uniform separator band between two panels. The second
+    case is common on platform collages with white gutters, where the seam has
+    almost no gradient because both sides are white; those are still real borders
+    and must not be missed.
+    """
     if parts < 2 or length < parts * 8 or len(diff) < length - 1:
         return None
     expected = [int(round(length * index / parts)) for index in range(1, parts)]
     window = max(3, int(round(length * 0.015)))
     tolerance = max(3, int(round(length * tolerance_frac)))
     baseline = float(np.median(diff)) or 1e-6
+    bands = bands or []
     seams = []
     for want in expected:
+        band = next(((start, end) for start, end in bands
+                     if start - tolerance <= want <= end + tolerance), None)
+        if band is not None and 0 < band[0] < band[1] < length:
+            seams.append({"at": (band[0] + band[1]) // 2, "amplitude": 0.0,
+                          "score": 0.0, "gutter": True, "band": [band[0], band[1]]})
+            continue
         low = max(1, want - window)
         high = min(length - 1, want + window)
         if high <= low:
@@ -134,7 +154,7 @@ def _find_axis(diff: np.ndarray, length: int, *, parts: int,
         if peak < amplitude_min or peak / baseline < score_min:
             return None
         seams.append({"at": found, "amplitude": round(peak, 3),
-                      "score": round(peak / baseline, 3)})
+                      "score": round(peak / baseline, 3), "gutter": False})
     bounds = [0, *[seam["at"] for seam in seams], length]
     sizes = [right - left for left, right in zip(bounds, bounds[1:])]
     if any(size < length * MIN_CELL_FRACTION for size in sizes):
@@ -143,11 +163,13 @@ def _find_axis(diff: np.ndarray, length: int, *, parts: int,
 
 
 def _candidate_parts(diff: np.ndarray, length: int, *, score_min: float,
-                     amplitude_min: float, tolerance_frac: float) -> list[dict]:
+                     amplitude_min: float, tolerance_frac: float,
+                     bands: list[tuple[int, int]] | None = None) -> list[dict]:
     candidates = []
     for parts in range(2, MAX_DETECT_PARTS + 1):
         measured = _find_axis(diff, length, parts=parts, score_min=score_min,
-                             amplitude_min=amplitude_min, tolerance_frac=tolerance_frac)
+                              amplitude_min=amplitude_min, tolerance_frac=tolerance_frac,
+                              bands=bands)
         if measured:
             candidates.append(measured)
     return candidates
@@ -221,10 +243,30 @@ def _accept_axis_candidate(gray: np.ndarray, axis: str, measured: dict,
     """
     if measured["parts"] >= 3:
         return True
+    height, width = gray.shape
     for seam in measured["seams"]:
+        if seam.get("gutter"):
+            # A uniform band only proves a border when photo content is present
+            # on both sides; a bright sky band inside one photo is not a collage.
+            band = seam.get("band") or []
+            if len(band) != 2:
+                return False
+            start, end = band
+            if axis == "rows":
+                before = gray[max(0, start - 12):start]
+                after = gray[end:min(height, end + 12)]
+                before_std = float(before.std()) if before.size else 0.0
+                after_std = float(after.std()) if after.size else 0.0
+            else:
+                before = gray[:, max(0, start - 12):start]
+                after = gray[:, end:min(width, end + 12)]
+                before_std = float(before.std()) if before.size else 0.0
+                after_std = float(after.std()) if after.size else 0.0
+            if min(before_std, after_std) < 6.0:
+                return False
+            continue
         correlation, has_gutter = _seam_is_discontinuous(gray, axis, seam["at"], bands)
         seam["correlation"] = round(correlation, 4)
-        seam["gutter"] = has_gutter
         if has_gutter:
             continue
         if seam["amplitude"] >= SEAM_STRONG_AMPLITUDE:
@@ -296,17 +338,39 @@ def analyze(image: Image.Image) -> dict:
 
     strict_rows = [candidate for candidate in _candidate_parts(
         vertical_diff, height_p, score_min=SEAM_SCORE_MIN, amplitude_min=SEAM_AMPLITUDE_MIN,
-        tolerance_frac=SEAM_TOLERANCE_FRAC) if _accept_axis_candidate(gray, "rows", candidate, row_bands)]
+        tolerance_frac=SEAM_TOLERANCE_FRAC, bands=row_bands)
+        if _accept_axis_candidate(gray, "rows", candidate, row_bands)]
     strict_cols = [candidate for candidate in _candidate_parts(
         horizontal_diff, width_p, score_min=SEAM_SCORE_MIN, amplitude_min=SEAM_AMPLITUDE_MIN,
-        tolerance_frac=SEAM_TOLERANCE_FRAC) if _accept_axis_candidate(gray, "cols", candidate, col_bands)]
+        tolerance_frac=SEAM_TOLERANCE_FRAC, bands=col_bands)
+        if _accept_axis_candidate(gray, "cols", candidate, col_bands)]
     loose_rows = _candidate_parts(vertical_diff, height_p, score_min=2.0, amplitude_min=6.0,
-                                  tolerance_frac=0.03)
+                                  tolerance_frac=0.03, bands=row_bands)
     loose_cols = _candidate_parts(horizontal_diff, width_p, score_min=2.0, amplitude_min=6.0,
-                                  tolerance_frac=0.03)
+                                  tolerance_frac=0.03, bands=col_bands)
+    # Low-contrast grid seams (white gutters) are only trusted when the other
+    # axis independently shows the same periodic layout.
+    grid_rows = [candidate for candidate in _candidate_parts(
+        vertical_diff, height_p, score_min=SEAM_GRID_SCORE_MIN,
+        amplitude_min=SEAM_GRID_AMPLITUDE_MIN, tolerance_frac=SEAM_TOLERANCE_FRAC,
+        bands=row_bands) if candidate["parts"] >= 3]
+    grid_cols = [candidate for candidate in _candidate_parts(
+        horizontal_diff, width_p, score_min=SEAM_GRID_SCORE_MIN,
+        amplitude_min=SEAM_GRID_AMPLITUDE_MIN, tolerance_frac=SEAM_TOLERANCE_FRAC,
+        bands=col_bands) if candidate["parts"] >= 3]
 
     best_rows = max((c["parts"] for c in strict_rows if c["parts"] <= MAX_SPLIT_PARTS), default=1)
     best_cols = max((c["parts"] for c in strict_cols if c["parts"] <= MAX_SPLIT_PARTS), default=1)
+    if best_cols >= 2 and best_rows == 1:
+        supported = [c for c in grid_rows if c["parts"] <= MAX_SPLIT_PARTS]
+        if supported:
+            best_rows = max(c["parts"] for c in supported)
+            strict_rows = strict_rows + supported
+    if best_rows >= 2 and best_cols == 1:
+        supported = [c for c in grid_cols if c["parts"] <= MAX_SPLIT_PARTS]
+        if supported:
+            best_cols = max(c["parts"] for c in supported)
+            strict_cols = strict_cols + supported
     if best_rows == 1 and best_cols == 1:
         # Nothing splittable. A strong multi-seam pattern that is not a regular
         # 1x2..3x3 grid is reported as "needs manual crop" instead of being
@@ -702,3 +766,6 @@ def summarize_records(records: dict[str, dict]) -> dict:
         totals["derived_duplicate"] += sum(1 for child in children
                                            if child.get("status") in {DUPLICATE_RUN, DUPLICATE_HISTORY})
     return totals
+
+
+
