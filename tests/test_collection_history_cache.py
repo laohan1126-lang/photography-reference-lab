@@ -147,12 +147,16 @@ def test_explicit_history_roots_include_parent_and_performance_but_exclude_curre
     received(current, current_photo)
     venv_photo = photo(daily / '.local' / '.venv' / 'old-run' / 'images' / 'venv.png', (10, 220, 120))
     received(daily / '.local' / '.venv' / 'old-run', venv_photo)
+    fixture_photo = photo(daily / '.local' / 'fixtures' / 'fixture-run' / 'images' / 'synthetic.png',
+                          (200, 200, 40))
+    received(daily / '.local' / 'fixtures' / 'fixture-run', fixture_photo)
 
     paths = set(historical_paths(worktree, current, history_roots=[daily, performance]))
     assert parent_photo.resolve() in paths
     assert performance_photo.resolve() in paths
     assert current_photo.resolve() not in paths
     assert venv_photo.resolve() not in paths
+    assert fixture_photo.resolve() not in paths      # synthetic test material stays isolated
 
 
 def test_cache_write_failure_does_not_change_duplicate_results(tmp_path, monkeypatch):

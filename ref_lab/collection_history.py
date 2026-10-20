@@ -69,10 +69,11 @@ def historical_paths(root: Path, current: Path, history_roots=()):
             base=Path(base)
             # Archived batches under ``backups`` stay in duplicate history: moving
             # a diagnostic run aside for evidence must not let its received bytes
-            # be counted as new later.
+            # be counted as new later. Synthetic test fixtures are excluded by
+            # name so generated material never enters the real history scope.
             dirs[:]=[name for name in dirs if name not in {'worktrees','public','baseline','reference-research','reference-images','visual-references','node_modules','__pycache__','.git','restored-library'}
                      and name.casefold() not in {'.venv','venv'}
-                     and not name.casefold().startswith(('test','pytest','browser')) and not _is_link_or_junction(base/name)
+                     and not name.casefold().startswith(('test','pytest','browser','fixture')) and not _is_link_or_junction(base/name)
                      and not (base/name).resolve().is_relative_to(current)]
             if base.resolve().is_relative_to(current) or 'received.json' not in files:continue
             received=json.loads((base/'received.json').read_text('utf8'))
