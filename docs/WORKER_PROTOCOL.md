@@ -1,6 +1,20 @@
 # BrowserSkill + Codex / Antigravity 执行协议
 
+## 快速 Search / 独立 Review（2026-10-20）
+
+新网页入口默认把采集拆成两个独立阶段；下方旧的一体式说明仍保留为历史兼容路径。
+
+- `python tools/collect_verified.py <task_file> <result_file> --search-only`：只用项目已有角色/作品/服装字段生成搜索词，正常浏览授权来源，下载原图后立即写入 `.local/collection-runs/<job_id>/current/received.json`。不得在 Search 阶段调用 NamePlan、ReferenceDiscovery、SourceAssessment、CollectionVision 或 needs_supplement；不得等待官方参照。达到候选目标、时间/详情预算或来源阻断即结束，写 `search-summary.json`。`received.json` 的原图只保存一次。
+- `python tools/collect_verified.py <task_file> <result_file> --review-only [--wait-search]`：只消费已下载原图，使用原 NamePlan、参照研究、严格 accepted、schema3 和完整补证规则；逐图写 `review-audit.json`，只有 accepted 生成 `review-result.zip`。`--wait-search` 仅在“搜图 + AI 审核”模式使用，让 Review 在 Search 运行期间继续消费新候选，但 Search 进程不读取 Review 状态、不等待 Review。
+- 人工决定写入 `human-decisions.json`，优先级高于 AI；审核导入器不会把人工淘汰项写进正式包。阶段状态分别保存在 Job 的 `search_state/search_counts` 与 `review_state/review_counts`；Review 受阻/超时只标记候选，不删除原图。
+- 服务重启后，Search 和 Review 各自按 attempt id、锁、累计预算恢复；已完成审核不重复调用，待核/受阻项可在剩余额度内重试。取消审核不停止搜索；取消搜索不删除候选或已完成审核。
+- 原图路径/SHA、来源页面、搜索词和获得时间随候选保存；历史排重先做路径/SHA 精确匹配，再后台补充感知指纹，Review 在正式准入前用同一历史集合复核。搜索词/标题仍只是发现元数据，不是视觉事实；“候选”不等于“已验证”。
+
 ## 默认路径：网站保存任务，Agent 执行
+
+同一Job的正式控制器状态保存在`.local/collection-runs/<job_id>/current/collector-state.json`，绑定完整项目快照、notes、目标、来源、模型和规则。持久计划每步明确`source/query/language`，实际观察按步骤ID记录`observed/usable/window`；计划不等于已执行。完成必须同时满足准入数量与实际覆盖，来源受阻或语言缺口均保留部分结果。
+
+网页重启后由用户点击“继续本次采集”；启动时不自动调用模型。持久任务包与`result.zip`保留在该库`agent-runs/<job_id>/`。未入库包先补导；已经入库的partial才携带`LAB_COLLECTION_RECOVERY_MODE=continue_imported_partial`及`LAB_COLLECTION_IMPORTED_RESULT_SHA256`继续同一任务，控制器核对旧包SHA与状态，旧ZIP按SHA归档后原子替换。完整结果及耗尽预算复用，取消/新attempt/条件变化拒绝迟到写入；已完成拒绝与通过不重核，人工选择和override不重置。schema3字段不变。
 
 正式Windows“找并核验参考”使用 `tools/collect_verified.py`，由现有任务/进程树/候选包链路执行。它先让现有Antigravity生成发现用多语言名字，再交替尝试授权来源；检查可见纠词与无结果，并逐图核验类型、角色和指定服装。只有通过图进入schema3包和主筛图，错误/未知原字节与核验记录只留本机`.local/collection-runs/`，不再要求主人给错误图打分。未登录或看图失败时明确blocked，无schema2未核验回退。
 
@@ -61,6 +75,16 @@ python -m ref_lab export-job --job JOB_ID --output job.zip
 优先小红书、Pinterest，按角色再评估 Cosplayers Archive、Curecos/WorldCosplay 公开线索、X、Instagram、微博；审美扩展可用 FilmGrab、已有合法权限的 ShotDeck。静态建议不是登录验证，见 [来源评估](SOURCE_ASSESSMENT.md)。每轮 source_checks 记录实际结果，未尝试写 untested，不机械把全部网站跑一遍。
 
 核实中日英角色/作品/服装别名，组合 cosplay / cos / コスプレ / 正片 / 场照 / 摄影 / pose / photography，加动作、情绪、构图关键词。先看少量产出，低产或重复就换词/来源；同套连拍只留确有不同借鉴价值的画面，不下载前 N 张凑数。
+
+### 快速 Search 的名称与相关性边界（2026-10-20）
+
+- 可信名称顺序：项目角色/作品字段 → Identity Context 人工别名 → 人工维护的角色 preset → 用户在本轮任务直接填写的额外别名。不要从模型旧 name-plan、标题或搜索词反推角色别名；不要把“中文角色名 + 英文作品名”当成英文角色名。
+- 每个查询记录 `used_name`、`name_source`、`language`、`work_term` 与 intent。缺少某语言名称时明确记缺口，不自动翻译或臆造。
+- Search 的相关性只是文字路由：`target_named`（可信名称命中）、`target_context`（作品+摄影意图但无名称）、`unconfirmed`（无文字/标题缺失）、`other_character`、`non_photo`。名称命中不等于视觉身份通过；无文字候选保留为“角色相关性未确认”，但受探索预算限制。
+- 目标只按 `target_named` 计数；探索候选不得凑满目标。明显其他角色/非真人摄影内容不下载、不计数，并记录跳过原因。
+- 小红书默认优先“综合”相关性；只有相关性查询没有名称命中时才允许对后续查询有界尝试“最新”，并用可见 DOM 确认当前 active 标签。不得用隐藏 API 或自动反复切换。
+- 快速搜图的“目标”是候选数量，不是摄影准入数量；未达标时区分 `target_reached`、`target_partial`、`relevance_unconfirmed`、预算耗尽和来源阻断。
+- 候选图库的人工保留/淘汰同步到项目 refs，但不改写既有的正式人工决定；`human_keep` 仍不是 AI `accepted`。
 
 三层 `discovery_intent`：
 
@@ -187,6 +211,34 @@ python -m ref_lab import-job --job JOB_ID --input analysis.json
 
 ## 一次委托自动收尾与历史排重（2026-10-19）
 
+### 性能任务版的调度与证据
+
+发现阶段在可见搜索DOM记录封面的实际URL与尺寸。Pinterest单主图Pin的封面字节可以按原历史指纹规则提前排重，保存独立discovery-previews与历史SHA绑定；封面不是候选原图，禁止进入received、视觉准入或schema3。浏览器natural尺寸可能经过srcset密度修正，须与实际解码像素区分并绑定比例；未知、改变或失败的封面继续正常详情。小红书多图帖不能仅凭封面跳过整帖。元数据只排序，目标角色文字和摄影意图优先，缺字/未知卡片保留，不能代替实际原图判断。查询改变摄影意图，避免只交换姓名顺序而重复获取同一批Pin。
+
+小红书先等待正常搜索结果，用公开可见筛选控件选择并重新展开确认“最新”，忽略aria-hidden/极低透明度的同名元素；再移到实际搜索框收起菜单，防止遮挡详情卡片。记录实际sort_state，控件缺失不能宣称已排序；不拼内部排序参数、读内部接口或绕过门槛。只有实际进入详情才navigate-back，点击未打开时保留原搜索页。优先按所选来源的四种摄影意图探索，再按原有界计划尝试下一来源；插画/拼图仍由原视觉规则拒绝，不能因数量不足放宽或省去原补证。
+
+门槛按实际可见页面判断：后台visibility:hidden验证码框架不等于用户已遇验证门槛；可见验证码和真实登录遮挡仍停止来源，全部来源受阻用sources_blocked明确报告，不绕过或替换账号/浏览器。进度登记已派发与待提交候选，不能把队列完成计作准入。
+
+Windows超长CLI输入使用厂商单轮stdin事件而不截断prompt；stdin由已有Job Object监督读取本调用目录的私有文件，原模型、schema、图像SHA、工具权限与parse_agent_stream验证不变。CLI协议错误不可反复重试，真正额度耗尽保持阻断，配额查询URL本身不是额度耗尽证据。
+
+`tools/collect_verified.py`默认两个摄影初判worker，`--vision-workers 1`保留串行对照。浏览器操作仍由主线程独占；队列有界，按原接收顺序提交，在窗口边界等待实际结果后再决定换词/翻页。补证前等待所有在途读取完成，新参照版本不得静默套在旧初判上；需要重新核验时保留被替代的首预测，并计入原调用预算。每prompt拥有独立工作目录/schema，同prompt锁与共享预算锁阻止并发覆盖或超额。退出会取消并清理本轮进程，未提交候选保留明确待核原因。
+
+只读页面在每张正式准入后原子更新，运行中每10秒刷新；最终停止原因和schema3包仍按原协议生成。不能从收到、队列完成或CLI的SUCCESS推断图片已经准入。核验后原图丢失/改变也必须阻断，不能当成来源搜索失败或成功交付。
+
+参照缓存只复用24小时内、同模型与完整要求、同代码契约下封存的原始研究。核对页面HTML、解析证据、角色/作品/版本、图片字节SHA和成功模型回执，重建原来源判断prompt绑定；时效从原证据生成时间计算，不因读取续期。缓存失效走原研究路径，读取后发生变化则明确阻断。热启动仍逐张重新读取所有参照，不把历史模型判断当作当前照片读图。
+
+本轮`timings.jsonl`区分名字计划、参照准备、历史索引、浏览/接收、队列等待、顺序提交等待、CLI启动/首事件/工具事件/完成、重试、首个可用结果及最终导出。模型报告耗时可能包含工具执行，不称为纯推理；总wall time也不能用并行调用耗时相加替代。真实模型小样本、固定回执定时回放和完整真实委托分别报告。
+
 正常collect_verified入口内部执行多轮名字/来源/可见结果窗口，不要求主人或Root逐轮补发任务。每摄影查询最多3窗口，每窗口8个新帖子，全轮最多96帖；仍最多8摄影查询、目标两倍的摄影调用预算和现有总时限。首屏旧图继续有界翻页，无新帖/无有效视觉命中则换名字或来源；达到软目标、预算、搜索计划耗尽或不可恢复阻塞自动保存明确原因和实际数量。CLI临时错误沿用同prompt最多3次；身份判断不因重试或数量需求放宽。永久认证/权限等错误在参照、主动补证和摄影阶段都向外传播，保留首个有效预测与失败记录，不再人工重启来算同一次成功。
 
 采集器本地读取实际正式assets与各历史received记录（包括淘汰/未入库），在图片进入模型前按原字节SHA和保守视觉指纹排除同图/换编码与本批重复。dHash距离≤6且长宽比差≤3%、8×8色彩样本平均差≤8才作疑似重复隔离；这不是角色识别或删图规则，也不保证识别所有大裁切/镜像。原图及重复来源留在本轮images/duplicates.json，不写X。父进程通过LAB_COLLECTION_HISTORY_DIR提供只读原图目录，模型子进程移除此环境信息，不能获得正式库或历史照片。进度在progress.json，结束自动生成schema3包及只读public/index.html，无审美评分要求、不用Root补齐。正常服务按原stop/start入口受控更新父进程代码。
+
+## 本地拼图处理与“实际可用独立照片”（2026-10-20）
+
+快速搜图不再把拼图当成一张可用候选。原图下载成功后立即持久化并显示；独立本地阶段（`ref_lab/collage.py`，无模型、无网络、无新依赖）随后检测规则网格并裁出子图，写入 `derived.json` 与 `derived/<child_sha>.png`（只做像素裁切的无损 PNG，不放大、不补画、不重采样）。
+
+只有边界可测且两侧像素不连续（或灰阶跳变明显 / 有近均匀分隔带）时才自动拆分；规则不可靠时标记 `needs_manual_crop`，不猜边界，也不为此引入图片编辑器。短边 < 480 或面积 < 300000 的子图记为 `low_resolution`：可在候选图库查看，但不算已获得的摄影参考。重复处理同一拼图复用既有记录与文件（`parent_sha` 幂等、`child_sha` 内容寻址）。
+
+数量语义：原图与它的全部子图是**替代关系**，不是相加。Search 目标按“名称命中的实际可用独立照片”计算（单图 1 张；拼图按其合格子图数；低画质/待人工/尚未处理为 0），达标即停、不足继续搜。候选图库、`search-summary.json`、`counts.json` 和项目导入分开记录：已下载原图、名称命中、原始独立单图、拼图有效子图、实际可用独立照片、待人工裁切或相关性未确认。
+
+Review 仍只读 `received.json` 原件，不读取派生图；派生图不进入 schema3 包，也不会覆盖人工保留/淘汰。真实拼图验收与阈值依据见 `docs/tasks/2026-10-20-search-perf-collage.md`。

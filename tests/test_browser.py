@@ -17,7 +17,7 @@ from playwright.sync_api import expect
 from browser_assertions import wait_until
 from ref_lab.api import create_app
 from ref_lab.config import Settings
-from ref_lab.models import CandidateInput, Card, ProjectInput, ReferenceEdit, Source, VisualReview
+from ref_lab.models import CandidateInput, Card, JobInput, ProjectInput, ReferenceEdit, Source, VisualReview
 from conftest import TOKEN, card_data, image_bytes, review_data
 from test_ui_components import advanced, choose, idle, exercise_stable_strip
 from test_personal_library import candidate_zip
@@ -194,11 +194,13 @@ def test_browser_notes_collection_download_import(live_site,browser_page,tmp_pat
     page.locator('#editor').wait_for(state='hidden')
     page.locator('[data-note]').first.click();assert page.evaluate('window.evil') is None
     page.locator('#editor-close').click()
-    page.get_by_role('button',name='采集任务',exact=True).click()
-    page.get_by_role('button',name='＋ 建立采集任务',exact=True).click()
-    page.get_by_label('本轮自由要求').fill('先同角色真人图，再补可迁移动作与电影光影')
-    page.get_by_role('button',name='建立采集任务',exact=True).click()
-    page.locator('#download-task').wait_for();job=library.jobs()[0]
+    # The normal editor now creates two-stage jobs; keep the historical
+    # package/download/import handoff covered with an explicit legacy job on the
+    # project created by this UI flow.
+    new_project=next(p for p in library.projects() if p['character']=='有马加奈')
+    job=library.create_job(new_project['id'],JobInput(kind='collection',notes='先同角色真人图，再补可迁移动作与电影光影'))
+    page.evaluate('id => jobHandoff(id)',job['id'])
+    page.locator('#download-task').wait_for();job=library.job(job['id'])
     assert job['status']=='blocked'
     with page.expect_download() as info: page.locator('#download-task').click()
     job_path=tmp_path/'collection.zip';info.value.save_as(job_path)
@@ -213,7 +215,9 @@ def test_browser_notes_collection_download_import(live_site,browser_page,tmp_pat
     assert library.references(job['project_id'])['total']==1
     ref=library.references(job['project_id'])['items'][0]
     assert ref['decision']=='pending' and ref['review'] is None
-    assert library.job(job['id'])['status']=='succeeded'
+    saved=library.job(job['id'])
+    assert saved['status']=='blocked' and saved['collection_outcome']=='partial'
+    assert saved['last_receipt_reference_ids']==[ref['id']]
 
 
 @pytest.mark.parametrize('auto',[False,True])
@@ -275,8 +279,8 @@ def test_photography_workspace_entrance(live_site, browser_page, width):
     page.reload()
     expect(link).to_be_visible()
     link.click()
-    expect(page).to_have_url(url + '/learning#map')
-    expect(page.locator('#topic-grid a[data-topic]')).to_have_count(10)
+    expect(page).to_have_url(url + '/learning')
+    expect(page.locator('#domain-grid a[data-domain]')).to_have_count(14)
     page.locator('#reference-link').click()
     expect(page.locator('#application')).to_be_visible()
     assert len(page.context.pages) == 1

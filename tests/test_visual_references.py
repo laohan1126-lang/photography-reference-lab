@@ -80,6 +80,10 @@ def test_nested_schema_is_passed_as_a_real_base_file(tmp_path,monkeypatch):
         costume='not_required',confidence='low',kind_evidence=[],identity_evidence=[],costume_evidence=[],reason='Synthetic transport fixture')
     class Process:
         returncode=0
+        def __init__(self):
+            import io
+            self.stdout=io.StringIO(json.dumps({'event':'result','result':{'status':'SUCCESS','structured_output':value}}))
+            self.stderr=io.StringIO('')
         def communicate(self,**kwargs):return json.dumps({'event':'result','result':{'status':'SUCCESS','structured_output':value}}),''
         def poll(self):return 0
         def wait(self,**kwargs):return 0

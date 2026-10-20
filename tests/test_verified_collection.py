@@ -20,11 +20,12 @@ def result(path,project=PROJECT,**changes):
     return CollectionVision(**{**values,**changes})
 
 
-def test_planner_alternates_names_and_sources_without_default_costume():
+def test_planner_respects_source_priority_and_varies_photo_intent_without_default_costume():
     plan=NamePlan(names=['测试角色甲','Example Person','テスト甲'])
     steps=query_steps(PROJECT,plan,['xiaohongshu','pinterest'])
-    assert steps[0]['source']=='xiaohongshu' and steps[1]['source']=='pinterest'
-    assert steps[1]['query']=='Example Person cosplay'
+    assert [s['source'] for s in steps[:2]]==['xiaohongshu','pinterest']
+    assert steps[1]['query']=='Example Person cosplay photography'
+    assert {s['language'] for s in steps[:3]}=={'zh','en','ja'}
     assert any('テスト甲' in s['query'] for s in steps)
     assert len(steps)<=8 and all('制服' not in s['query'] for s in steps)
     assert {s['alias_origin'] for s in steps}=={'agent_discovery_hypothesis'}

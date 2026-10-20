@@ -47,7 +47,9 @@ def read_archive(content: bytes) -> dict[str, bytes]:
         raise ValueError("Invalid ZIP archive") from exc
 
 
-def import_candidates(library: Library, project_id: str, content: bytes, job_id: str = "", *, attempt_id: str = "") -> dict:
+def import_candidates(library: Library, project_id: str, content: bytes, job_id: str = "", *,
+                      attempt_id: str = "", collector_coverage: dict | None = None,
+                      result_sha256: str = "", record_report: bool = True) -> dict:
     files = read_archive(content)
     if "manifest.json" not in files:
         raise ValueError("Candidate ZIP must have manifest.json at its root")
@@ -66,6 +68,8 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
         raise Problem(409, "候选包任务不匹配或已取消")
     if attempt_id and (not job or job.get("active_attempt_id") != attempt_id or job["status"] != "running"):
         raise Problem(409, "采集轮次已过期；不导入图片")
+    if job and job["status"] == "running" and job.get("active_attempt_id") and not attempt_id:
+        raise Problem(409, "采集任务仍由本地执行轮次持有；拒绝无归属导入")
     execution = CollectionReport.model_validate(manifest["execution_report"]) if manifest.get("execution_report") else None
     if manifest["schema_version"] in {2, 3} and (not job_id or not execution):
         raise ValueError("schema_version 2/3 requires job_id and execution_report")
@@ -93,19 +97,28 @@ def import_candidates(library: Library, project_id: str, content: bytes, job_id:
             result = library.add_candidate(project_id, candidate, attempt_id=attempt_id)
             report["created" if result["created"] else "existing"] += 1
             ref = result["reference"]
-            if item.get("preflight"):
+            # A pending Search candidate can already exist before Review finishes.
+            # Its in-process preflight is only a cheap gate, so the later schema3
+            # review preflight must replace an unreviewed/uncertain result (never a
+            # human override, and never a newer formal human decision).
+            upgrade = (not ref.get("preflight")
+                       or ref.get("preflight_status") in {"unreviewed", "uncertain"})
+            if item.get("preflight") and (result["created"] or upgrade) and not ref.get("preflight_override"):
                 validated = PackCandidate.model_validate(item).preflight
                 ref = library.apply_candidate_preflight(
                     ref["id"], validated, ref["revision"],
-                    execution.producer if execution else "legacy-package"
+                    execution.producer if execution else "legacy-package",
+                    job_id=job_id, attempt_id=attempt_id
                 )
             report["reference_ids"].append(ref["id"])
         except (ValueError, KeyError, TypeError, Problem) as exc:
             report["errors"].append({"index": index, "id": item.get("id") if isinstance(item, dict) else None, "error": str(exc)})
-    if job_id and execution:
+    if job_id and execution and record_report:
         if report["errors"]:
             execution = execution.model_copy(update={"status": "blocked", "summary": "部分候选导入失败；" + execution.summary})
-        report["job"] = library.record_collection_report(job_id, execution, current_reference_ids=report["reference_ids"], attempt_id=attempt_id)
+        report["job"] = library.record_collection_report(
+            job_id, execution, current_reference_ids=report["reference_ids"], attempt_id=attempt_id,
+            collector_coverage=collector_coverage, result_sha256=result_sha256)
     return report
 
 

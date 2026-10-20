@@ -294,7 +294,7 @@ with zipfile.ZipFile(sys.argv[2], 'w') as z:
     monkeypatch.setenv("LAB_COLLECTION_TIMEOUT_SECONDS", "10")
 
     result = run_collection_attempt(library, job["id"])
-    assert result["status"] == "succeeded"
+    assert result["status"] == "blocked" and result["collection_outcome"] == "partial"
     assert len(result["imported_ids"]) == 2
     for ident in result["imported_ids"]:
         ref = library.reference(ident)

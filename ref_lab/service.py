@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
+import time
 from pathlib import Path
 from uuid import uuid4
 from typing import Any
@@ -44,6 +46,99 @@ def check_revision(record: dict, expected: int) -> None:
 def ensure_active_project(project: dict) -> None:
     if project.get("archived_at"):
         raise Problem(409, "项目已删除到回收区；请先恢复项目再继续修改")
+
+
+def _valid_sha256(value: object) -> bool:
+    return (isinstance(value, str) and len(value) == 64
+            and all(char in "0123456789abcdef" for char in value))
+
+
+def _collection_report_outcome(job: dict, report: CollectionReport, reference_ids: list[str],
+                               collector_coverage: dict | None = None) -> tuple[str, CollectionReport]:
+    reference_ids = list(dict.fromkeys(reference_ids))
+    gaps = list(report.gaps)
+    target = int(job.get("target_count") or 1)
+    count_ok = len(reference_ids) >= target
+    if reference_ids and not count_ok:
+        gaps.append(f"本轮实际导入 {len(reference_ids)}/{target} 个候选，尚未达到目标数量。")
+    elif not reference_ids:
+        gaps.append("本轮没有可用的已导入候选。")
+
+    required_sources = set(job.get("preferred_sources") or [])
+    usable = {item.source for item in report.source_checks if item.status == "usable"}
+    queried = {item.source for item in report.query_log if item.query.strip()}
+    source_coverage_ok = bool(required_sources) and required_sources == usable == queried
+    if not source_coverage_ok:
+        gaps.append("Job preferred_sources 未全部形成可用来源检查与实际查询覆盖。")
+
+    coverage = collector_coverage if isinstance(collector_coverage, dict) else {}
+
+    def coverage_values(key: str) -> set[str]:
+        value = coverage.get(key)
+        return set(value) if isinstance(value, list) and all(isinstance(item, str) for item in value) else set()
+
+    planned_sources = coverage_values("planned_sources")
+    coverage_usable_sources = coverage_values("usable_sources")
+    coverage_reported_sources = coverage_values("reported_sources")
+    required_languages = coverage_values("required_languages")
+    observed_languages = coverage_values("observed_languages")
+    usable_languages = coverage_values("usable_languages")
+    reported_languages = coverage_values("reported_languages")
+    previous_coverage = job.get("collection_coverage")
+    if not isinstance(previous_coverage, dict):
+        previous_coverage = {}
+    frozen_plan_matches = (not previous_coverage.get("plan_sha256")
+                           or previous_coverage.get("plan_sha256") == coverage.get("plan_sha256"))
+    language_coverage_ok = (
+        coverage.get("job_id") == job.get("id")
+        and planned_sources == required_sources
+        and coverage_usable_sources == usable
+        and coverage_reported_sources == queried
+        and bool(required_languages)
+        and required_languages.issubset(observed_languages)
+        and required_languages.issubset(usable_languages)
+        and required_languages.issubset(reported_languages)
+        and _valid_sha256(coverage.get("binding_sha256"))
+        and _valid_sha256(coverage.get("plan_sha256"))
+        and _valid_sha256(coverage.get("manifest_sha256"))
+        and frozen_plan_matches
+    )
+    if not language_coverage_ok:
+        gaps.append("缺少与当前 Job 和结果绑定的完整冻结计划语言覆盖证据。")
+
+    blocking_gaps = [gap for gap in report.gaps
+                     if gap.strip() != "自动停止原因：soft_target_reached"]
+    complete = (report.status == "completed" and count_ok and source_coverage_ok
+                and language_coverage_ok and not blocking_gaps)
+    if complete:
+        outcome = "complete"
+    elif (report.status == "blocked" and coverage.get("collector_outcome") == "blocked"):
+        outcome = "blocked"
+    else:
+        outcome = "partial" if reference_ids else "blocked"
+    normalized_status = report.status
+    if outcome != "complete" and normalized_status == "completed":
+        normalized_status = "blocked"
+    if outcome == "partial" and report.status == "failed":
+        normalized_status = "blocked"
+        gaps.append("执行报告标记失败；已导入候选只作为部分结果保留。")
+    if outcome == "partial" and normalized_status == "blocked" and not report.gaps:
+        gaps.append("本轮结果未满足完整采集条件。")
+    normalized = report.model_copy(update={
+        "status": normalized_status,
+        "summary": report.summary if (normalized_status == report.status and gaps == report.gaps)
+                   else report.summary + (" 服务端按目标数量、来源检查和查询日志核验为部分结果。"
+                                           if outcome == "partial" else " 服务端未核验到可完成本轮的候选结果。"),
+        "gaps": list(dict.fromkeys(gaps)),
+    })
+    return outcome, normalized
+
+
+def _settle_collection_time(job: dict) -> None:
+    started = job.pop("collection_attempt_started_at", None)
+    if started is not None:
+        spent = float(job.get("collection_elapsed_seconds", 0))
+        job["collection_elapsed_seconds"] = spent + max(0.0, time.time() - float(started))
 
 
 # This one predicate defines effective filtering; historical heuristic JSON stays untouched.
@@ -300,6 +395,8 @@ class Library:
                 raise Problem(409, "Candidate does not belong to an open collection job")
             if attempt_id and (not job or job.get("active_attempt_id") != attempt_id or job["status"] != "running"):
                 raise Problem(409, "采集轮次已取消、结束或被替代；拒绝过期写入")
+            if job and job["status"] == "running" and job.get("active_attempt_id") and not attempt_id:
+                raise Problem(409, "本任务仍由本地采集轮次持有；拒绝无归属候选写入")
             alias = con.execute("SELECT ref_id FROM aliases WHERE project_id=? AND import_key=?",
                                 (project_id, data.import_key)).fetchone() if data.import_key else None
             existing = row_data(con, "refs", alias[0]) if alias else None
@@ -359,6 +456,191 @@ class Library:
                 job["imported_ids"].append(ref["id"])
                 self._save_job(con, job, "collection.imported", {"reference_id": ref["id"]}, actor)
             return {"created": created, "reference": self._decorate(con, ref, project)}
+
+    def _queue_candidate_input(self, job: dict, item: dict) -> CandidateInput:
+        """Build the project candidate from the durable candidate-queue row."""
+        project = job.get("project_snapshot") or {}
+        relevance = item.get("relevance") if isinstance(item.get("relevance"), dict) else {}
+        tier = str(relevance.get("tier") or "unconfirmed")
+        label = str(relevance.get("label") or "角色相关性未确认")
+        source = item.get("source") if isinstance(item.get("source"), dict) else {}
+        character = str(project.get("character") or "")
+        derived = bool(item.get("derived"))
+        parent_sha = str(item.get("parent_sha") or "")
+        crop = item.get("crop") or []
+        index = item.get("child_index") or 0
+        total = item.get("child_total") or 0
+        collage = item.get("collage") if isinstance(item.get("collage"), dict) else {}
+        if derived:
+            title = f"{character} · 拼图子图 {index}/{total}（未视觉核验）"[:400]
+            crop_text = ",".join(str(value) for value in crop) if crop else "未记录"
+            reason = (f"由原图 {parent_sha[:12]} 本地无损裁切第 {index}/{total} 格；"
+                      f"裁切矩形 x,y,w,h={crop_text}；尚未通过视觉审核，不是 AI 通过。")
+        elif collage and str(collage.get("status") or "no_collage") != "no_collage":
+            title = (f"{character} · 拼图原件（本地处理 {collage.get('status', '')}，"
+                     f"可用子图 {collage.get('children_valid', 0)} 张）")[:400]
+            reason = ("该原图被识别为拼图。原图保留可查看，但不与它的子图重复计入"
+                      "“实际可用独立照片”；子图在候选图库中单独选择。")
+        else:
+            title = (character + " · " +
+                     ("名称命中候选（未视觉核验）" if tier == "target_named"
+                      else "角色相关性未确认候选"))[:400]
+            reason = f"快速搜图已下载并保存原图；{label}；尚未通过视觉审核。"
+        return CandidateInput(
+            asset_sha=item["asset_sha"], title=title,
+            source=Source(page_url=str(source.get("page_url") or ""),
+                          image_url=str(source.get("image_url") or ""),
+                          author=str(source.get("author") or ""),
+                          search_query=str(source.get("search_query") or ""),
+                          obtained_as="platform_variant"),
+            job_id=job["id"],
+            discovery_intent="exact_character" if tier == "target_named" else "unknown",
+            discovery_reason=reason,
+            discovery_url=str(item.get("discovery_url") or ""))
+
+    def _sync_queue_decision(self, ref: dict, decision: str) -> str:
+        """Apply one candidate-gallery decision to its project ref.
+
+        Returns ``synced``, ``unchanged`` or ``conflicts``. A formal project human
+        choice (K/I/M/X) is authoritative and is never silently replaced.
+        """
+        current = self.reference(ref["id"])
+        target = "pending" if decision == "clear" else str(decision)
+        if target not in {"pending", "keep", "reject"}:
+            raise ValueError("Unsupported candidate decision")
+        for _ in range(2):
+            previous = str(current.get("decision") or "pending")
+            origin = str(current.get("decision_origin") or "")
+            if origin in {"human_curation", "human"} and previous != "pending" and previous != target:
+                return "conflicts"
+            if target == previous and (target == "pending" or origin == "human_candidate_queue"):
+                return "unchanged"
+            try:
+                self.edit_reference(current["id"], ReferenceEdit(expected_revision=current["revision"],
+                                                                 decision=target),
+                                    origin="human_candidate_queue")
+                return "synced"
+            except Problem as exc:
+                if exc.status != 409:
+                    raise
+                current = self.reference(ref["id"])
+        return "conflicts"
+
+    def import_search_candidates(self, job_id: str, *, sha: str = "") -> dict:
+        """Project durable Search candidates into pending project references.
+
+        This is the single import/sync path used by the Search stage, the Review
+        stage and the candidate-gallery decision endpoint. A human decision stored
+        before the reference existed (decided while Search was still downloading)
+        is applied in the same pass, so a later import cannot downgrade it to
+        ``pending``. Repeated imports are idempotent and never overwrite a formal
+        project human decision.
+        """
+        from . import collection_queue
+        job = self.job(job_id)
+        result = {"created": 0, "existing": 0, "errors": 0, "synced": 0,
+                  "unchanged": 0, "conflicts": 0}
+        if job["status"] == "cancelled":
+            return result
+        attempt_id = str(job.get("active_attempt_id") or "") if job["status"] == "running" else ""
+        for item in collection_queue.snapshot(job_id, limit=500)["items"]:
+            if sha and item["asset_sha"] != sha:
+                continue
+            human = str(item.get("human_decision") or "")
+            try:
+                with self.db.read() as con:
+                    hit = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                                      (job["project_id"], item["asset_sha"])).fetchone()
+                if job["status"] == "succeeded":
+                    # A validated review package is the formal admission step; no
+                    # new pending ref is created after it, but a queue decision on
+                    # an already imported ref is still reconciled.
+                    if hit is not None and human in {"keep", "reject"}:
+                        result[self._sync_queue_decision(self.reference(hit["id"]), human)] += 1
+                    continue
+                if hit is None:
+                    path, raw = collection_queue.original_bytes(job_id, item["asset_sha"])
+                    asset = self.ingest_asset(raw, path.name)
+                    data = self._queue_candidate_input(job, {**item, "asset_sha": asset["id"]})
+                    decision = human if human in {"keep", "reject"} else "pending"
+                    try:
+                        added = self.add_candidate(job["project_id"], data, decision=decision,
+                                                   actor="search", attempt_id=attempt_id)
+                    except sqlite3.IntegrityError:
+                        # A concurrent decision/import created the same
+                        # (project, asset) ref first; reuse it instead of failing.
+                        with self.db.read() as con:
+                            raced = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                                                (job["project_id"], item["asset_sha"])).fetchone()
+                        if raced is None:
+                            raise
+                        result["existing"] += 1
+                        ref = self.reference(raced["id"])
+                    else:
+                        result["created" if added["created"] else "existing"] += 1
+                        ref = added["reference"]
+                else:
+                    result["existing"] += 1
+                    ref = self.reference(hit["id"])
+                if human in {"keep", "reject"}:
+                    result[self._sync_queue_decision(ref, human)] += 1
+            except Problem as exc:
+                if exc.status == 409:
+                    result["conflicts"] += 1
+                else:
+                    result["errors"] += 1
+            except (ValueError, OSError, KeyError, TypeError):
+                result["errors"] += 1
+        return result
+
+    def decide_candidate_human(self, job_id: str, sha: str, decision: str) -> dict:
+        """Apply the candidate-gallery human choice to the real project ref.
+
+        The candidate JSON remains the gallery's source of truth; the project ref
+        is the formal selection. If the ref does not exist yet (Search still
+        running, or before the finished Search imported its candidates), it is
+        created immediately when the job permits, and otherwise reconciled by the
+        next import from the same durable decision. A previous formal human choice
+        is never overwritten. Human keep is recorded as ``human_candidate_queue``
+        and is still distinct from an AI ``accepted`` review.
+        """
+        from . import collection_queue
+        job = self.job(job_id)
+        if job["kind"] != "collection":
+            raise Problem(409, "不是采集任务")
+        snapshot = collection_queue.snapshot(job_id, limit=500)
+        row = next((item for item in snapshot["items"] if item["asset_sha"] == sha), None)
+        if row is None:
+            raise Problem(404, "该图片不在本任务候选队列")
+        target = "pending" if decision == "clear" else decision
+        with self.db.read() as con:
+            found = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                                (job["project_id"], sha)).fetchone()
+            ref = row_data(con, "refs", found["id"]) if found else None
+        if ref is not None:
+            origin = str(ref.get("decision_origin") or "")
+            previous = str(ref.get("decision") or "pending")
+            if origin in {"human_curation", "human"} and previous != "pending" and previous != target:
+                raise Problem(409, "项目里已有正式人工决定，候选图库不会覆盖；请到项目图库中修改")
+        result = collection_queue.decide(job_id, sha, decision)
+        imported = {"created": 0, "existing": 0, "synced": 0, "unchanged": 0,
+                    "conflicts": 0, "errors": 0}
+        if decision in {"keep", "reject"}:
+            imported = self.import_search_candidates(job_id, sha=sha)
+            if job["status"] == "cancelled" and ref is not None:
+                imported[self._sync_queue_decision(ref, decision)] += 1
+        elif ref is not None:
+            imported[self._sync_queue_decision(ref, "clear")] += 1
+        with self.db.read() as con:
+            hit = con.execute("SELECT id FROM refs WHERE project_id=? AND asset_sha=?",
+                              (job["project_id"], sha)).fetchone()
+        result["project_decision"] = self.reference(hit["id"]) if hit else None
+        result["project_sync"] = {key: imported.get(key, 0)
+                                  for key in ("created", "existing", "synced", "unchanged",
+                                              "conflicts", "errors")}
+        if imported.get("conflicts"):
+            result["project_sync"]["detail"] = "项目里已有正式人工决定；候选图库没有覆盖它"
+        return result
 
     def references(self, project_id: str, *, limit: int = 60, offset: int = 0, query: str = "",
                    decision: str = "", state: str = "", lane: str = "", kind: str = "",
@@ -429,7 +711,7 @@ class Library:
             result["detached"] = con.execute("SELECT COUNT(*) FROM refs WHERE project_id=? AND json_extract(data,'$.detached_at') IS NOT NULL", (project_id,)).fetchone()[0]
             return result
 
-    def edit_reference(self, ident: str, data: ReferenceEdit) -> dict:
+    def edit_reference(self, ident: str, data: ReferenceEdit, *, origin: str = "human_curation") -> dict:
         changes = data.model_dump(exclude_none=True, exclude={"expected_revision"})
         with self.db.transaction() as con:
             ref = row_data(con, "refs", ident)
@@ -453,7 +735,7 @@ class Library:
                     raise Problem(422, "审美负反馈只适用于明确淘汰的图片")
                 for field in ("decision", "preference", "borrow"):
                     if field in changes:
-                        ref[field + "_origin"] = "human_curation"
+                        ref[field + "_origin"] = origin
                 if "is_aesthetic_negative" in changes:
                     ref["aesthetic_negative_origin"] = "human_curation"
                 if "rejection_reason" in changes:
@@ -483,14 +765,31 @@ class Library:
                               reject_reason=ref.get("rejection_reason") or "",
                               reference_revision=ref["revision"], project_context=row_data(con, "projects", ref["project_id"]))
 
-    def apply_candidate_preflight(self, ident: str, preflight: CandidatePreflight, revision: int, producer: str) -> dict:
+    def apply_candidate_preflight(self, ident: str, preflight: CandidatePreflight, revision: int, producer: str,
+                                  *, job_id: str = "", attempt_id: str = "") -> dict:
         with self.db.transaction() as con:
             ref = row_data(con, "refs", ident)
             check_revision(ref, revision)
+            job = row_data(con, "jobs", job_id) if job_id else None
+            if attempt_id and job is None:
+                job = row_data(con, "jobs", job_id)
+            if job:
+                if (job["kind"] != "collection" or job["project_id"] != ref["project_id"]
+                        or job["status"] in {"cancelled", "succeeded"}):
+                    raise Problem(409, "采集任务已取消、结束或与候选项目不匹配；拒绝迟到视觉预检")
+                if job["status"] == "running" and not attempt_id:
+                    raise Problem(409, "采集任务正在运行；拒绝无归属视觉预检")
+                if attempt_id and (job["status"] != "running"
+                                   or job.get("active_attempt_id") != attempt_id
+                                   or ident not in job["imported_ids"]):
+                    raise Problem(409, "采集轮次已取消、结束或被替代；拒绝迟到视觉预检")
             if not ref.get("asset_sha"):
                 raise Problem(409, "候选没有可核验的独立图片")
             project = row_data(con, "projects", ref["project_id"])
             ensure_active_project(project)
+            if job and (not isinstance(job.get("project_snapshot"), dict)
+                        or identity_digest(job["project_snapshot"]) != identity_digest(project)):
+                raise Problem(409, "采集任务的冻结角色/服装条件已变化；拒绝套用旧任务视觉预检")
             status = candidate_preflight_status(preflight)
             payload = {**preflight.model_dump(), "asset_sha": ref["asset_sha"], "producer": producer, "created_at": now()}
             payload["project_context"] = identity_digest(project)
@@ -692,6 +991,19 @@ class Library:
                 raise Problem(422, "Collection jobs do not accept reference IDs")
             base = " ".join(x for x in [project["character"], project["work"], project["costume"]] if x)
             plan = [f"{base} cosplay 摄影", f"{base} cos 漫展 姿势", f"{base} コスプレ 写真"]
+            if request.kind == "collection":
+                try:
+                    from .verified_collection import deterministic_plan, query_steps
+                    from .identity import get_identity_context
+                    context = get_identity_context(con, project_id)
+                    name_plan = deterministic_plan(project, identity_context=context,
+                                                   user_aliases=request.search_aliases)
+                    plan = [step["query"] for step in query_steps(project, name_plan,
+                                                                  request.preferred_sources)]
+                except (ImportError, ValueError):
+                    plan = [f"{project['character']} cos 摄影"] if project.get("character") else []
+            else:
+                context = None
             if request.kind == "analysis":
                 for row in con.execute("SELECT data FROM jobs WHERE project_id=? AND kind='analysis' AND status IN ('blocked','queued','running')", (project_id,)):
                     previous = json.loads(row[0])
@@ -702,10 +1014,18 @@ class Library:
                    "project_snapshot": dict(project), "executor": "agent_browserskill" if request.kind == "collection" else "agent",
                    "target_count": request.target_count if request.kind == "collection" else len(ids),
                    "preferred_sources": request.preferred_sources if request.kind == "collection" else [],
+                   "search_aliases": list(request.search_aliases) if request.kind == "collection" else [],
+                   "identity_context": context if request.kind == "collection" else None,
                    "execution_report": None,
                    "queries": plan if request.kind == "collection" else [], "brief": project["brief"],
                    "reference_ids": ids, "snapshots": snapshots, "context": context_digest(project),
                    "imported_ids": [], "completed_ids": [], "created_at": now(), "updated_at": now()}
+            if request.kind == "collection":
+                job.update(collection_outcome="blocked", collection_attempt_count=0, collection_elapsed_seconds=0.0,
+                           collection_mode=request.collection_mode,
+                           search_state="idle", search_counts={"found": 0, "accepted": 0},
+                           review_state="idle", review_counts={"found": 0, "accepted": 0, "rejected": 0,
+                                                                 "blocked": 0, "pending": 0})
             con.execute("INSERT INTO jobs VALUES(?,?,?,?,?)", (job["id"], project_id, request.kind, job["status"], encode(job)))
             self.db.event(con, project_id, job["id"], "job.created", job)
             return job
@@ -739,10 +1059,19 @@ class Library:
             if status not in transitions[job["status"]]:
                 raise Problem(409, f"不允许 {job['status']} → {status}")
             if status == "succeeded":
-                if job["kind"] == "collection" and not job["imported_ids"]:
-                    raise Problem(409, "没有已导入的候选，不能宣称采集成功")
+                if job["kind"] == "collection":
+                    if not job.get("execution_report"):
+                        raise Problem(409, "缺少本轮采集回执，不能宣称采集成功")
+                    report = CollectionReport.model_validate(job["execution_report"])
+                    outcome, _ = _collection_report_outcome(job, report, job.get("last_receipt_reference_ids", []))
+                    if outcome != "complete":
+                        raise Problem(409, "本轮数量或来源查询覆盖不足，不能宣称采集成功")
                 if job["kind"] == "analysis" and set(job["completed_ids"]) != set(job["reference_ids"]):
                     raise Problem(409, "仍有分析条目未完成")
+            if status == "cancelled" and job["kind"] == "collection":
+                _settle_collection_time(job)
+                job.pop("active_attempt_id", None)
+                job.pop("collection_process_owner", None)
             job.update(status=status, detail=detail)
             return self._save_job(con, job, "job.transitioned", {"status": status, "detail": detail}, actor)
 
@@ -1114,7 +1443,8 @@ class Library:
                     "observations": [json.loads(r[0]) for r in con.execute("SELECT data FROM asset_observations WHERE asset_sha=? ORDER BY rowid DESC", (sha,))],
                     "project_uses": [dict(r) for r in con.execute("SELECT id,project_id,decision,json_extract(data,'$.lane') AS lane,json_extract(data,'$.detached_at') AS detached_at FROM refs WHERE asset_sha=?", (sha,))]}
 
-    def start_collection_attempt(self, ident: str, revision: int, attempt_id: str) -> dict:
+    def start_collection_attempt(self, ident: str, revision: int, attempt_id: str, *, owner: dict | None = None,
+                                 timeout: float | None = None) -> dict:
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
             ensure_active_project(row_data(con, "projects", job["project_id"]))
@@ -1122,8 +1452,61 @@ class Library:
             if job["kind"] != "collection" or job["status"] not in {"blocked", "queued", "failed"}:
                 raise Problem(409, "任务不可重复启动；请检查当前状态")
             job.update(status="running", active_attempt_id=attempt_id,
-                       detail="检查本地 Agent 适配器；本轮尚未收到候选")
+                       detail="检查本地 Agent 适配器；本轮尚未收到候选",
+                       collection_attempt_count=int(job.get("collection_attempt_count", 0)) + 1,
+                       collection_attempt_started_at=time.time(),
+                       search_state="running", search_attempt_id=attempt_id,
+                       search_attempt_started_at=time.time(), search_stop_reason="",
+                       collection_outcome=job.get("collection_outcome", "blocked"))
+            if timeout is not None and job.get("search_timeout_seconds") is None:
+                job["search_timeout_seconds"] = float(timeout)
+            if owner:
+                job["collection_process_owner"] = dict(owner)
+            else:
+                job.pop("collection_process_owner", None)
             return self._save_job(con, job, "collection.attempt_started", {"attempt_id": attempt_id}, "worker")
+
+    def resume_collection_attempt(self, ident: str, revision: int, attempt_id: str, *, owner: dict | None = None) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            ensure_active_project(row_data(con, "projects", job["project_id"]))
+            check_revision(job, revision)
+            if (job["kind"] != "collection" or job["status"] not in {"running", "blocked"}
+                    or job.get("active_attempt_id") != attempt_id):
+                raise Problem(409, "原采集轮次已结束或被替代，不能恢复")
+            job.update(status="running", detail="继续同一采集轮次；保留已完成的搜索与候选检查点",
+                       search_state="running", search_attempt_id=attempt_id, search_stop_reason="")
+            if owner:
+                job["collection_process_owner"] = dict(owner)
+            else:
+                job.pop("collection_process_owner", None)
+            return self._save_job(con, job, "collection.attempt_resumed", {"attempt_id": attempt_id}, "worker")
+
+    def set_collection_timeout(self, ident: str, attempt_id: str, seconds: float) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("active_attempt_id") != attempt_id or job["status"] != "running":
+                raise Problem(409, "采集轮次已过期；拒绝修改其时间预算")
+            job.setdefault("collection_timeout_seconds", seconds)
+            return self._save_job(con, job, "collection.timeout_set", {"seconds": job["collection_timeout_seconds"]}, "worker")
+
+    def set_collection_artifacts(self, ident: str, attempt_id: str, paths: dict[str, str]) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("active_attempt_id") != attempt_id or job["status"] != "running":
+                raise Problem(409, "采集轮次已过期；拒绝绑定任务文件")
+            if job.get("collection_artifacts") and job["collection_artifacts"] != paths:
+                raise Problem(409, "本 Job 的任务和结果路径已固定，不能替换恢复检查点")
+            job["collection_artifacts"] = dict(paths)
+            return self._save_job(con, job, "collection.artifacts_bound", {"paths": dict(paths)}, "worker")
+
+    def set_collection_process_owner(self, ident: str, attempt_id: str, owner: dict) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("active_attempt_id") != attempt_id or job["status"] != "running":
+                raise Problem(409, "采集轮次已过期；拒绝登记执行进程")
+            job["collection_process_owner"] = dict(owner)
+            return self._save_job(con, job, "collection.process_owner", dict(owner), "worker")
 
     def finish_collection_attempt(self, ident: str, attempt_id: str, status: str, detail: str, evidence: dict) -> dict:
         """Audit every exit, but never overwrite a cancellation or newer attempt."""
@@ -1136,35 +1519,270 @@ class Library:
                 job.update(status=status, detail=detail)
             payload = {**evidence, "attempt_id": attempt_id, "owns_current_attempt": owns, "status": job["status"]}
             if owns:
+                _settle_collection_time(job)
                 job.pop("active_attempt_id", None)
+                job.pop("collection_process_owner", None)
                 return self._save_job(con, job, "collection.attempt_finished", payload, "worker")
             self.db.event(con, job["project_id"], ident, "collection.attempt_finished", payload, "worker")
             return job
 
+    def set_stage_process_owner(self, ident: str, stage: str, attempt_id: str, owner: dict) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if stage == "review":
+                if job.get("review_attempt_id") != attempt_id or job.get("review_state") != "running":
+                    raise Problem(409, "审核轮次已过期；拒绝登记执行进程")
+                job["review_process_owner"] = dict(owner)
+                return self._save_job(con, job, "collection.review_process_owner", dict(owner), "worker")
+            if job.get("active_attempt_id") != attempt_id or job["status"] != "running":
+                raise Problem(409, "采集轮次已过期；拒绝登记执行进程")
+            job["collection_process_owner"] = dict(owner)
+            return self._save_job(con, job, "collection.process_owner", dict(owner), "worker")
+
+    def update_search_stage(self, ident: str, attempt_id: str, state: str,
+                            summary: dict, detail: str) -> dict:
+        """Record Search independently of Review; never claims visual admission."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            owns = (job.get("search_attempt_id") == attempt_id
+                    and job.get("active_attempt_id") == attempt_id)
+            if not owns and job.get("search_attempt_id") != attempt_id:
+                raise Problem(409, "搜索轮次已过期；拒绝覆盖阶段状态")
+            terminal = state in {"completed", "partial", "blocked", "failed", "cancelled"}
+            job.update(search_state=state, search_summary=dict(summary),
+                       search_stop_reason=str(summary.get("stop_reason", "")),
+                       search_counts=dict(summary.get("counts", {})),
+                       search_detail=detail)
+            found = int((summary.get("counts") or {}).get("found", 0) or 0)
+            if summary.get("target_reached"):
+                job["collection_outcome"] = "complete"
+            elif found:
+                job["collection_outcome"] = "partial"
+            else:
+                job["collection_outcome"] = "blocked"
+            if terminal:
+                job["search_finished_at"] = time.time()
+                elapsed = summary.get("cumulative_elapsed_seconds")
+                if not isinstance(elapsed, (int, float)):
+                    elapsed = summary.get("elapsed_seconds")
+                if isinstance(elapsed, (int, float)) and math.isfinite(float(elapsed)):
+                    # Cumulative across continues: a new target must not refund
+                    # the wall budget already spent on the same job. Never move
+                    # backwards even if the adapter checkpoint only counted its
+                    # own process time.
+                    job["search_elapsed_seconds"] = max(
+                        float(job.get("search_elapsed_seconds", 0.0) or 0.0), float(elapsed))
+                elif job.get("search_attempt_started_at"):
+                    job["search_elapsed_seconds"] = float(job.get("search_elapsed_seconds", 0.0)) + max(
+                        0.0, time.time() - float(job["search_attempt_started_at"]))
+                job.pop("search_attempt_started_at", None)
+                if job.get("active_attempt_id") == attempt_id:
+                    job.pop("active_attempt_id", None)
+                    job.pop("collection_process_owner", None)
+                if job["status"] == "running" and job.get("review_state") != "running":
+                    job["status"] = "blocked"
+                if job.get("review_state") == "running":
+                    job["search_detail"] = detail
+                else:
+                    job["detail"] = detail
+            else:
+                job["detail"] = detail
+            return self._save_job(con, job, "collection.search_stage", {"state": state, "detail": detail}, "worker")
+
+    def start_review_stage(self, ident: str, attempt_id: str, *, owner: dict | None = None,
+                           timeout: float | None = None) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            ensure_active_project(row_data(con, "projects", job["project_id"]))
+            if job["kind"] != "collection":
+                raise Problem(400, "不是采集任务")
+            if job["status"] == "cancelled":
+                raise Problem(409, "已取消的采集任务不能启动审核")
+            if job.get("review_state") == "running":
+                raise Problem(409, "本 Job 的审核阶段仍在运行")
+            if not job.get("search_state"):
+                job["search_state"] = "idle"
+            job.update(review_state="running", review_attempt_id=attempt_id,
+                       review_attempt_started_at=time.time(), review_stop_reason="",
+                       review_detail="正在准备独立审核；候选原图保持可查看。")
+            if timeout is not None and job.get("review_timeout_seconds") is None:
+                job["review_timeout_seconds"] = float(timeout)
+            if owner:
+                job["review_process_owner"] = dict(owner)
+            else:
+                job.pop("review_process_owner", None)
+            if job.get("search_state") != "running" and job["status"] in {"blocked", "failed", "queued"}:
+                job["status"] = "running"
+            return self._save_job(con, job, "collection.review_started", {"attempt_id": attempt_id}, "worker")
+
+    def resume_review_stage(self, ident: str, attempt_id: str, *, owner: dict | None = None) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if (job.get("review_attempt_id") != attempt_id or job.get("review_state") != "running"
+                    or job["status"] == "cancelled"):
+                raise Problem(409, "原审核轮次已结束或被替代，不能恢复")
+            if owner:
+                job["review_process_owner"] = dict(owner)
+            else:
+                job.pop("review_process_owner", None)
+            job["review_detail"] = "继续独立审核；已完成的图片不会重复调用。"
+            return self._save_job(con, job, "collection.review_resumed", {"attempt_id": attempt_id}, "worker")
+
+    def update_review_stage(self, ident: str, attempt_id: str, state: str,
+                            summary: dict, detail: str) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("review_attempt_id") != attempt_id:
+                raise Problem(409, "审核轮次已过期；拒绝覆盖阶段状态")
+            terminal = state in {"completed", "partial", "blocked", "failed", "cancelled"}
+            job.update(review_state=state, review_summary=dict(summary),
+                       review_stop_reason=str(summary.get("stop_reason", "")),
+                       review_counts=dict(summary.get("counts", {})), review_detail=detail)
+            if terminal:
+                job["review_finished_at"] = time.time()
+                elapsed = summary.get("elapsed_seconds")
+                if isinstance(elapsed, (int, float)) and math.isfinite(float(elapsed)):
+                    job["review_elapsed_seconds"] = max(0.0, float(elapsed))
+                elif job.get("review_attempt_started_at"):
+                    job["review_elapsed_seconds"] = float(job.get("review_elapsed_seconds", 0.0)) + max(
+                        0.0, time.time() - float(job["review_attempt_started_at"]))
+                job.pop("review_attempt_started_at", None)
+                job.pop("review_attempt_id", None)
+                job.pop("review_process_owner", None)
+                if job["status"] == "running" and job.get("search_state") != "running":
+                    job["status"] = "blocked"
+                job["detail"] = detail
+            else:
+                job["review_detail"] = detail
+                job["detail"] = detail
+            return self._save_job(con, job, "collection.review_stage", {"state": state, "detail": detail}, "worker")
+
+    def cancel_review_stage(self, ident: str, detail: str = "用户取消审核；已下载候选保留。") -> dict:
+        """Cancel Review only; Search and the candidate queue must keep running."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("review_state") not in {"running", "blocked", "partial", "idle"}:
+                raise Problem(409, "当前审核阶段不可取消")
+            job.update(review_state="cancelled", review_stop_reason="user_cancelled",
+                       review_detail=detail)
+            job.pop("review_attempt_id", None)
+            job.pop("review_process_owner", None)
+            job.pop("review_attempt_started_at", None)
+            if job["status"] == "running" and job.get("search_state") != "running":
+                job["status"] = "blocked"
+            return self._save_job(con, job, "collection.review_cancelled", {"detail": detail}, "human")
+
+    def extend_search(self, ident: str, extra_target: int, detail: str = "") -> dict:
+        """Same job, additional target; originals and decisions are preserved."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            ensure_active_project(row_data(con, "projects", job["project_id"]))
+            if job["kind"] != "collection" or job.get("collection_mode") not in {"search", "search_review"}:
+                raise Problem(409, "只有快速搜图任务可以继续加搜")
+            if job["status"] == "cancelled":
+                raise Problem(409, "已取消的任务不能继续加搜")
+            if job.get("review_state") == "running":
+                raise Problem(409, "审核仍在运行；请先停止审核再扩大搜索目标")
+            base = int(job.get("target_count") or 0)
+            already = int(job.get("search_extra_target") or 0)
+            total = base + already + int(extra_target)
+            if total > 100:
+                raise Problem(422, f"累计目标最多 100 张；当前 {base + already} 张，不能再加 {extra_target} 张")
+            job.update(search_extra_target=already + int(extra_target), search_state="idle",
+                       search_stop_reason="", search_detail=detail or
+                       f"继续加搜：累计目标 {total} 张；已下载候选保留且不会重复计数。")
+            if job["status"] in {"succeeded", "failed"}:
+                job["status"] = "blocked"
+            job.pop("active_attempt_id", None)
+            job.pop("collection_process_owner", None)
+            job.pop("search_attempt_started_at", None)
+            return self._save_job(con, job, "collection.search_extended",
+                                  {"extra_target": int(extra_target), "target_total": total}, "human")
+
+    def cancel_search_stage(self, ident: str, detail: str = "用户取消搜索；已下载候选保留。") -> dict:
+        """Cancel Search without deleting originals or completed reviews."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("search_state") not in {"running", "blocked", "failed"}:
+                raise Problem(409, "当前搜索阶段不可取消")
+            job.update(search_state="cancelled", search_stop_reason="user_cancelled",
+                       search_detail=detail)
+            job.pop("active_attempt_id", None)
+            job.pop("collection_process_owner", None)
+            job.pop("search_attempt_started_at", None)
+            if job["status"] == "running" and job.get("review_state") != "running":
+                job["status"] = "blocked"
+            return self._save_job(con, job, "collection.search_cancelled", {"detail": detail}, "human")
+
+    def record_review_import(self, ident: str, reference_ids: list[str], *, accepted: int,
+                             target: int, result_sha256: str, summary: dict) -> dict:
+        """Formal admission happens only after the review package is validated."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job["kind"] != "collection" or job["status"] == "cancelled":
+                raise Problem(409, "不是可接收审核回执的采集任务")
+            current = list(dict.fromkeys(reference_ids))
+            if not set(current).issubset(job.get("imported_ids", [])):
+                raise Problem(409, "审核回执包含未导入本任务的条目")
+            all_ids = list(dict.fromkeys([*job.get("review_imported_ids", []), *current]))
+            job["review_imported_ids"] = all_ids
+            job["last_receipt_reference_ids"] = list(dict.fromkeys([*job.get("last_receipt_reference_ids", []), *current]))
+            if result_sha256:
+                job["last_review_result_sha256"] = result_sha256
+            complete = accepted >= int(target or 1)
+            job["collection_outcome"] = "complete" if complete else ("partial" if accepted else "blocked")
+            if job["status"] != "cancelled":
+                job["status"] = "succeeded" if complete else "blocked"
+            job["detail"] = (f"独立审核回执已导入：通过 {accepted}/{target} 张；"
+                             f"候选与审核阶段分别记录，未通过原图仍保留在候选队列。")
+            return self._save_job(con, job, "collection.review_imported",
+                                  {"reference_ids": current, "accepted": accepted, "target": target,
+                                   "result_sha256": result_sha256}, "agent")
+
     def record_collection_report(self, ident: str, report: CollectionReport, *,
-                                 current_reference_ids: list[str] | None = None, attempt_id: str = "") -> dict:
+                                 current_reference_ids: list[str] | None = None, attempt_id: str = "",
+                                 collector_coverage: dict | None = None, result_sha256: str = "") -> dict:
+        if result_sha256 and not _valid_sha256(result_sha256):
+            raise Problem(422, "采集 ZIP 回执 SHA256 格式无效")
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
             if job["kind"] != "collection" or job["status"] == "cancelled":
                 raise Problem(409, "不是可接收回执的采集任务")
             if attempt_id and (job.get("active_attempt_id") != attempt_id or job["status"] != "running"):
                 raise Problem(409, "采集轮次已过期；拒绝覆盖回执")
+            if job["status"] == "running" and job.get("active_attempt_id") and not attempt_id:
+                raise Problem(409, "采集任务仍由本地执行轮次持有；拒绝外部回执")
             current_ids = list(dict.fromkeys(current_reference_ids or []))
             if not set(current_ids).issubset(job["imported_ids"]):
                 raise Problem(409, "本轮回执包含未导入本任务的条目")
             if job["status"] == "succeeded":
                 if job.get("execution_report") == report.model_dump(): return job
                 raise Problem(409, "任务已完成，不能覆盖旧执行回执")
+            outcome, report = _collection_report_outcome(job, report, current_ids, collector_coverage)
+            status = "succeeded" if outcome == "complete" else "failed" if report.status == "failed" else "blocked"
+            same_coverage = (collector_coverage is None
+                             or job.get("collection_coverage") == collector_coverage)
+            same_result = (not result_sha256
+                           or job.get("last_imported_result_sha256") == result_sha256)
+            if (job.get("execution_report") == report.model_dump()
+                    and job.get("last_receipt_reference_ids", []) == current_ids
+                    and job.get("collection_outcome") == outcome and job["status"] == status
+                    and same_coverage and same_result):
+                return job
             job["execution_report"] = report.model_dump()
-            status = {"completed": "succeeded", "blocked": "blocked", "failed": "failed"}[report.status]
-            if status == "succeeded" and not current_ids:
-                status = "blocked"
-            # An agent's prose is retained as a report, not presented as image verification.
             detail = (f"本包接收 {len(current_ids)} 个独立候选（含已存在图片）；未核验角色或摄影质量。"
                       if current_ids else "本次没有有效候选回执；不沿用历史导入数量判定成功。")
+            if outcome != "complete":
+                detail += f" 当前结果：{outcome}。"
             job.update(status=status, detail=detail + report.summary,
-                       last_receipt_reference_ids=current_ids)
-            evidence = {"report": report.model_dump(), "reference_ids": current_ids, "attempt_id": attempt_id}
+                       last_receipt_reference_ids=current_ids, collection_outcome=outcome)
+            if collector_coverage is not None:
+                job["collection_coverage"] = collector_coverage
+            if result_sha256:
+                job["last_imported_result_sha256"] = result_sha256
+            evidence = {"report": report.model_dump(), "reference_ids": current_ids,
+                        "attempt_id": attempt_id, "result_sha256": result_sha256,
+                        "coverage_plan_sha256": (collector_coverage or {}).get("plan_sha256", "")}
             return self._save_job(con, job, "collection.reported", evidence, "agent")
 
     def identity_context(self, project_id: str) -> dict:

@@ -12,19 +12,21 @@ from collections import defaultdict, deque
 from urllib.parse import urlsplit
 from fastapi import FastAPI, File, Form, Query, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import ValidationError
 from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import __version__
 from .config import Settings
+from .collection_queue import original_bytes as candidate_original, snapshot as candidate_snapshot
 from .learning_preview import STATIC_FILES as LEARNING_STATIC_FILES, preview_router
 from .learning_state import router as learning_state_router
 from .action_directing_media import ACTION_DIRECTING_SOURCE_IMAGE_CSP
 from .learning_media import SOURCE_IMAGE_CSP
 from .export import build_job_pack, build_pack, build_contact_board
 from .imports import import_candidates, import_notion, import_analyses as import_analysis_results
-from .models import (AnalysisImport, AnalysisResult, CandidateInput, Card, CardInput, JobInput, JobResult,
+from .models import (AnalysisImport, AnalysisResult, CandidateDecisionInput, CandidateInput, Card, CardInput, JobInput, JobResult,
+                     CollectionContinueInput,
                      NoteEdit, NoteInput, PackInput, ProjectEdit, ProjectInput, ReferenceEdit, ReflectionInput,
                      RevisionInput, ReviewInput, Source, Strict, VisualReview, InspirationInput, InspirationEdit, InspirationUse, AcceptanceInput, CollectionReport,
                      CandidatePreflightInput, PreflightOverrideInput,
@@ -473,8 +475,27 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     @app.post("/api/notes", status_code=201)
     def create_global_note(data: NoteInput): return library.add_note(None, data)
 
+    def job_view(job: dict) -> dict:
+        if job.get("kind") != "collection":
+            return job
+        from .agent_collection import collection_can_resume, review_can_resume
+        mode = job.get("collection_mode", "verified")
+        search_counts = job.get("search_counts") or {}
+        review_counts = job.get("review_counts") or {}
+        can_review = (mode != "verified"
+                      and job.get("search_state") in {"completed", "partial", "blocked"}
+                      and int(search_counts.get("found", 0) or 0) > 0
+                      and job.get("review_state") in {None, "idle", "completed", "partial", "blocked", "cancelled"})
+        return {**job, "can_resume": collection_can_resume(library, job),
+                "search_target_total": int(job.get("target_count") or 0) + int(job.get("search_extra_target") or 0),
+                "can_resume_search": (mode != "verified" and job.get("search_state") in {"running", "blocked", "failed"}
+                                      and collection_can_resume(library, job)),
+                "can_resume_review": (mode != "verified" and review_can_resume(library, job)),
+                "can_start_review": can_review,
+                "is_split_mode": mode != "verified"}
+
     @app.get("/api/jobs")
-    def all_jobs(): return library.jobs()
+    def all_jobs(): return [job_view(job) for job in library.jobs()]
 
     @app.post("/api/jobs/{job_id}/report")
     def collection_report(job_id: str, data: CollectionReport): return library.record_collection_report(job_id, data)
@@ -516,10 +537,10 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     def create_job(project_id: str, data: JobInput): return library.create_job(project_id, data)
 
     @app.get("/api/projects/{project_id}/jobs")
-    def jobs(project_id: str): return library.jobs(project_id)
+    def jobs(project_id: str): return [job_view(job) for job in library.jobs(project_id)]
 
     @app.get("/api/jobs/{job_id}")
-    def job(job_id: str): return library.job(job_id)
+    def job(job_id: str): return job_view(library.job(job_id))
 
     @app.get("/api/jobs/{job_id}/bundle")
     def bundle(job_id: str): return library.job_bundle(job_id)
@@ -537,13 +558,87 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
             analyzer = AntigravityAnalyzer()
             return run_analysis_job(library, job_id, analyzer)
         elif job["kind"] == "collection":
-            from .collector import run_browser_collection_job
-            return run_browser_collection_job(library, job_id)
+            if job.get("collection_mode", "verified") != "verified":
+                from .collection_stages import start_job
+                return job_view(start_job(library, job_id))
+            from .agent_collection import run_collection_attempt
+            return run_collection_attempt(library, job_id)
         raise Problem(400, f"未知任务类型: {job['kind']}")
 
     @app.post("/api/jobs/{job_id}/status")
     def job_status(job_id: str, data: JobResult):
         return library.transition_job(job_id, data.status, data.expected_revision, data.detail)
+
+    @app.post("/api/jobs/{job_id}/start")
+    def start_split_job(job_id: str):
+        job = library.job(job_id)
+        if job["kind"] != "collection" or job.get("collection_mode", "verified") == "verified":
+            raise Problem(409, "该任务不是快速搜图/搜图加审核模式")
+        from .collection_stages import start_job
+        return job_view(start_job(library, job_id))
+
+    @app.post("/api/jobs/{job_id}/search")
+    def start_split_search(job_id: str):
+        job = library.job(job_id)
+        if job["kind"] != "collection" or job.get("collection_mode", "verified") == "verified":
+            raise Problem(409, "该任务不是快速搜图模式")
+        from .collection_stages import launch_search
+        return job_view(launch_search(library, job_id))
+
+    @app.post("/api/jobs/{job_id}/search/continue")
+    def continue_split_search(job_id: str, data: CollectionContinueInput):
+        job = library.job(job_id)
+        if job["kind"] != "collection" or job.get("collection_mode", "verified") == "verified":
+            raise Problem(409, "该任务不是快速搜图模式")
+        library.extend_search(job_id, data.extra_target)
+        from .collection_stages import launch_search
+        return job_view(launch_search(library, job_id))
+
+    @app.post("/api/jobs/{job_id}/review")
+    def start_split_review(job_id: str):
+        job = library.job(job_id)
+        if job["kind"] != "collection" or job.get("collection_mode", "verified") == "verified":
+            raise Problem(409, "该任务不是快速搜图模式")
+        from .collection_stages import launch_review
+        return job_view(launch_review(library, job_id))
+
+    @app.post("/api/jobs/{job_id}/review/cancel")
+    def cancel_split_review(job_id: str):
+        job = library.job(job_id)
+        if job["kind"] != "collection":
+            raise Problem(409, "不是采集任务")
+        return job_view(library.cancel_review_stage(job_id))
+
+    @app.post("/api/jobs/{job_id}/search/cancel")
+    def cancel_split_search(job_id: str):
+        job = library.job(job_id)
+        if job["kind"] != "collection":
+            raise Problem(409, "不是采集任务")
+        return job_view(library.cancel_search_stage(job_id))
+
+    @app.get("/api/jobs/{job_id}/candidates")
+    def job_candidates(job_id: str, offset: int = Query(0, ge=0), limit: int = Query(200, ge=1, le=500)):
+        job = library.job(job_id)
+        if job["kind"] != "collection":
+            raise Problem(409, "不是采集任务")
+        return {**candidate_snapshot(job_id, offset=offset, limit=limit), "job": job_view(job)}
+
+    @app.get("/api/jobs/{job_id}/candidates/{sha}/original")
+    def job_candidate_original(job_id: str, sha: str):
+        job = library.job(job_id)
+        if job["kind"] != "collection":
+            raise Problem(409, "不是采集任务")
+        path, raw = candidate_original(job_id, sha)
+        media = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+                 ".webp": "image/webp", ".avif": "image/avif"}.get(path.suffix.lower(), "application/octet-stream")
+        return Response(content=raw, media_type=media, headers={"Cache-Control": "no-store"})
+
+    @app.post("/api/jobs/{job_id}/candidates/{sha}/decision")
+    def job_candidate_decision(job_id: str, sha: str, data: CandidateDecisionInput):
+        job = library.job(job_id)
+        if job["kind"] != "collection":
+            raise Problem(409, "不是采集任务")
+        return library.decide_candidate_human(job_id, sha, data.decision)
 
     @app.get("/api/projects/{project_id}/screening-sessions/current")
     def current_screening_session(project_id: str):

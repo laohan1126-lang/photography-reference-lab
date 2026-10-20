@@ -1021,3 +1021,17 @@ details>summary { cursor:pointer }
 @media(prefers-reduced-motion:reduce) {
   * { transition:none!important; scroll-behavior:auto!important }
 }
+
+/* Search / Review candidate queue */
+.candidate-counts { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px }
+.candidate-counts span { border:1px solid var(--line); background:var(--panel,#f7f5ef); border-radius:999px; padding:5px 10px; font-size:12px; color:var(--muted) }
+.candidate-counts strong { color:var(--ink); font-size:15px; margin-right:3px }
+.candidate-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; max-height:62vh; overflow:auto; padding:4px 2px 18px }
+.candidate-card { border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel,#f7f5ef); display:flex; flex-direction:column; min-width:0 }
+.candidate-image { display:block; background:#e9e6de; aspect-ratio:3/4; overflow:hidden }
+.candidate-image img { width:100%; height:100%; object-fit:cover; display:block }
+.candidate-body { padding:9px 10px 11px; display:flex; flex-direction:column; gap:5px; min-width:0 }
+.candidate-body p { margin:0; font-size:12px; line-height:1.45; overflow-wrap:anywhere }
+.candidate-body .compact-row { flex-wrap:wrap; gap:6px; margin-top:auto }
+.candidate-body .badge { white-space:normal }
+@media(max-width:720px){ .candidate-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:56vh } }

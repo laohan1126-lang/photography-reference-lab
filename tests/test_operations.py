@@ -77,11 +77,22 @@ def test_ten_thousand_reference_index_and_project_isolation(client, library, pro
     assert library.references(project['id'], query='合成规模记录 09999')['total'] == 1
 
 
-def test_closeout_rejects_secrets_and_escape():
+def test_closeout_path_check_delegates_to_publisher_git_ops(monkeypatch):
+    import sys
+    import types
+
+    calls = []
+    allowed = {'README.md', '.env.example'}
+    git_ops = types.ModuleType('git_ops')
+    git_ops.safe_path = lambda root, path: calls.append((root, path)) or path in allowed
+    monkeypatch.setitem(sys.modules, 'git_ops', git_ops)
     spec = importlib.util.spec_from_file_location('finish_task', Path(__file__).resolve().parents[1]/'tools/finish_task.py')
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    for path in ('.env', '.env.production', '.local/access-token', '../outside', '.git/config', 'x.sqlite3'):
+    paths = ('.env', '.env.production', '.local/access-token', '../outside', '.git/config', 'x.sqlite3')
+    for path in paths:
         with pytest.raises(ValueError): module.check_path(path)
     assert module.check_path('README.md') == 'README.md'
     assert module.check_path('.env.example') == '.env.example'
+    expected_root = Path(module.__file__).resolve().parents[1]
+    assert calls == [(expected_root, path) for path in (*paths, 'README.md', '.env.example')]
