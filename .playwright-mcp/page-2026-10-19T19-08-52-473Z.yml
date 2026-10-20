@@ -1,0 +1,110 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - link "参考实验室首页" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: R.
+        - generic [ref=e6]:
+          - text: 参考实验室
+          - generic [ref=e7]: REFERENCE LAB
+      - navigation "摄影工作区" [ref=e8]:
+        - generic [ref=e9]: 拍摄参考
+        - link "摄影学习" [ref=e10] [cursor=pointer]:
+          - /url: /learning
+          - text: 摄影学习
+          - generic [ref=e11]: UI 原型
+      - generic [ref=e12]:
+        - generic [ref=e13]: 拍摄项目
+        - button "新建角色项目" [active] [ref=e15] [cursor=pointer]: ＋
+      - generic [ref=e16]:
+        - text: 搜索项目
+        - searchbox "搜索项目" [ref=e17]
+      - generic [ref=e18]: 当前、置顶与最近使用 · 1 个项目
+      - navigation "角色项目" [ref=e19]:
+        - generic [ref=e80]:
+          - button "西 西木野真姬 Love Live!" [ref=e81] [cursor=pointer]:
+            - generic [ref=e82]: 西
+            - generic [ref=e83]:
+              - strong [ref=e84]: 西木野真姬
+              - generic [ref=e85]: Love Live!
+          - button "置顶 西木野真姬" [ref=e86] [cursor=pointer]: ☆
+      - button "全部项目" [ref=e21] [cursor=pointer]
+      - navigation "我的资料" [ref=e22]:
+        - button "图库 · 跨项目找图" [ref=e23] [cursor=pointer]
+        - button "◌ 待筛摄影参考" [ref=e24] [cursor=pointer]
+        - button "♡ 我的审美库" [ref=e25] [cursor=pointer]
+        - button "审美画像" [ref=e26] [cursor=pointer]
+        - button "采集任务" [ref=e27] [cursor=pointer]
+        - button "摄影笔记" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]:
+        - strong [ref=e31]: PRIVATE WORKSPACE
+        - paragraph [ref=e32]: 审美由你决定。图片事实与 AI 推测分开保存。
+    - main [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]: 摄影 / 私人参考库
+        - generic [ref=e36]: 已连接本地数据源
+      - generic [ref=e37]:
+        - generic [ref=e87]:
+          - generic [ref=e88]: MY SHOOTING PROJECT
+          - heading "西木野真姬" [level=1] [ref=e89]
+          - paragraph [ref=e90]: 快速搜图 15 张，真人 cosplay 人像摄影参考；由人工审核。
+        - generic [ref=e91]:
+          - button "找一批参考" [ref=e92] [cursor=pointer]
+          - button "导入参考" [ref=e93] [cursor=pointer]
+          - group [ref=e94]:
+            - generic "项目设置与导出" [ref=e95] [cursor=pointer]
+      - generic "项目统计" [ref=e96]:
+        - generic [ref=e97]:
+          - strong [ref=e98]: "0"
+          - generic [ref=e99]: 候选流
+        - generic [ref=e100]:
+          - strong [ref=e101]: "0"
+          - generic [ref=e102]: 待挑选
+        - generic [ref=e103]:
+          - strong [ref=e104]: "0"
+          - generic [ref=e105]: 预检过滤
+        - generic [ref=e106]:
+          - strong [ref=e107]: "0"
+          - generic [ref=e108]: 角色精选
+        - generic [ref=e109]:
+          - strong [ref=e110]: "0"
+          - generic [ref=e111]: 现场卡
+      - navigation "工作区视图" [ref=e112]:
+        - button "挑参考" [ref=e113] [cursor=pointer]
+        - button "角色精选" [ref=e114] [cursor=pointer]
+        - button "现场卡" [ref=e115] [cursor=pointer]
+        - button "已过滤候选" [ref=e116] [cursor=pointer]
+        - button "已淘汰 / 恢复" [ref=e117] [cursor=pointer]
+      - generic [ref=e44]:
+        - generic [ref=e118]:
+          - textbox "搜索参考" [ref=e119]:
+            - /placeholder: 搜索标题、作者、审美反馈
+          - combobox "选择状态" [ref=e120] [cursor=pointer]:
+            - option "全部未淘汰" [selected]
+            - option "未选择"
+            - option "已保留"
+            - option "待定"
+            - option "已淘汰"
+          - group [ref=e121]:
+            - generic "图片类型" [ref=e122] [cursor=pointer]
+            - option "全部图片类型" [selected]
+            - option "尚未分类"
+            - option "真人 cosplay"
+            - option "普通真人摄影"
+            - option "角色插画"
+            - option "器材图"
+            - option "场地图"
+            - option "拼图"
+            - option "AI 生成概念"
+          - button "结束本轮筛选并总结" [ref=e123] [cursor=pointer]
+          - button "已选 0 · 批量/沟通板" [disabled] [ref=e124]
+          - generic [ref=e125]: K 角色参考 / I 通用灵感 / M 待定 / X 淘汰
+        - generic [ref=e127]:
+          - generic [ref=e128]: R.
+          - heading "没有匹配的候选" [level=2] [ref=e129]
+          - paragraph [ref=e130]: 可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。
+      - generic [ref=e54]:
+        - generic [ref=e55]: 先选择，再分析。未知不等于通过。
+        - button "查看人工淘汰理由" [ref=e56] [cursor=pointer]
+        - generic [ref=e57]: v0.3.0
+  - status [ref=e131]: 角色项目已保存

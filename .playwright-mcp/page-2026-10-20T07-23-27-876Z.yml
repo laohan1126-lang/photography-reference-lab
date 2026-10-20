@@ -1,0 +1,118 @@
+- generic [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - complementary [ref=f2e3]:
+      - link "参考实验室首页" [ref=f2e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f2e5]: R.
+        - generic [ref=f2e6]:
+          - text: 参考实验室
+          - generic [ref=f2e7]: REFERENCE LAB
+      - navigation "摄影工作区" [ref=f2e8]:
+        - generic [ref=f2e9]: 拍摄参考
+        - link "摄影学习" [ref=f2e10] [cursor=pointer]:
+          - /url: /learning
+          - text: 摄影学习
+          - generic [ref=f2e11]: UI 原型
+      - generic [ref=f2e12]:
+        - generic [ref=f2e13]: 拍摄项目
+        - button "新建角色项目" [ref=f2e15] [cursor=pointer]: ＋
+      - generic [ref=f2e16]:
+        - text: 搜索项目
+        - searchbox "搜索项目" [ref=f2e17]
+      - generic [ref=f2e18]: 当前、置顶与最近使用 · 1 个项目
+      - navigation "角色项目" [ref=f2e19]:
+        - generic [ref=f2e20]:
+          - button "渡 渡边曜 Love Live! Sunshine!!" [ref=f2e21] [cursor=pointer]:
+            - generic [ref=f2e22]: 渡
+            - generic [ref=f2e23]:
+              - strong [ref=f2e24]: 渡边曜
+              - generic [ref=f2e25]: Love Live! Sunshine!!
+          - button "置顶 渡边曜" [ref=f2e26] [cursor=pointer]: ☆
+      - button "全部项目" [ref=f2e27] [cursor=pointer]
+      - navigation "我的资料" [ref=f2e28]:
+        - button "图库 · 跨项目找图" [ref=f2e29] [cursor=pointer]
+        - button "◌ 待筛摄影参考" [ref=f2e30] [cursor=pointer]
+        - button "♡ 我的审美库" [ref=f2e31] [cursor=pointer]
+        - button "审美画像" [ref=f2e32] [cursor=pointer]
+        - button "采集任务" [ref=f2e33] [cursor=pointer]
+        - button "摄影笔记" [ref=f2e34] [cursor=pointer]
+      - generic [ref=f2e35]:
+        - strong [ref=f2e37]: PRIVATE WORKSPACE
+        - paragraph [ref=f2e38]: 审美由你决定。图片事实与 AI 推测分开保存。
+    - main [ref=f2e39]:
+      - generic [ref=f2e40]:
+        - generic [ref=f2e41]: 摄影 / 私人参考库
+        - generic [ref=f2e42]: 已连接本地数据源
+      - generic [ref=f2e44]:
+        - generic [ref=f2e45]: AGENT WORKBENCH
+        - heading "采集任务" [level=1] [ref=f2e46]
+        - paragraph [ref=f2e47]: 网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。
+      - generic [ref=f2e48]:
+        - generic [ref=f2e49]: 快速搜图先下载并展示候选，不等待官方参照调查或视觉模型；AI 审核独立运行。搜索状态与审核状态分别记录，审核失败不会删除已下载候选。
+        - generic [ref=f2e50]:
+          - button "＋ 建立搜图任务" [ref=f2e51] [cursor=pointer]
+          - button "刷新结果" [ref=f2e52] [cursor=pointer]
+        - generic [ref=f2e54]:
+          - generic [ref=f2e55]: R.
+          - heading "从一轮具体需求开始" [level=2] [ref=f2e56]
+          - paragraph [ref=f2e57]: 任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。
+      - generic [ref=f2e58]:
+        - generic [ref=f2e59]: 先选择，再分析。未知不等于通过。
+        - button "查看人工淘汰理由" [ref=f2e60] [cursor=pointer]
+        - generic [ref=f2e61]: v0.3.0
+  - dialog [ref=f2e62]:
+    - generic [ref=f2e63]:
+      - heading "候选图库 · 先看原图，再审核" [level=2] [ref=f2e81]
+      - button "关闭对话框" [active] [ref=f2e65] [cursor=pointer]: ×
+    - generic [ref=f2e66]:
+      - status [ref=f2e82]:
+        - paragraph [ref=f2e83]:
+          - strong [ref=f2e84]: 搜索
+          - text: ：搜索中
+        - paragraph [ref=f2e85]:
+          - strong [ref=f2e86]: 审核
+          - text: ：未开始
+        - paragraph [ref=f2e87]: “实际可用独立照片”= 名称命中的单图 + 拼图拆出的合格子图；拼图原件与它的子图不重复计数，低画质子图仍可查看但不算已获得的参考。名称命中不等于视觉身份通过；人工保留与 AI 通过是两种证据。
+      - generic [ref=f2e88]:
+        - generic [ref=f2e89]:
+          - strong [ref=f2e90]: "0"
+          - text: 已下载原图
+        - generic [ref=f2e91]:
+          - strong [ref=f2e92]: "0"
+          - text: 角色名称命中
+        - generic [ref=f2e93]:
+          - strong [ref=f2e94]: "0"
+          - text: 原始独立单图
+        - generic [ref=f2e95]:
+          - strong [ref=f2e96]: "0"
+          - text: 拼图有效子图
+        - generic [ref=f2e97]:
+          - strong [ref=f2e98]: "0"
+          - text: 实际可用独立照片
+        - generic [ref=f2e99]:
+          - strong [ref=f2e100]: "0"
+          - text: 其中名称命中
+        - generic [ref=f2e101]:
+          - strong [ref=f2e102]: "0"
+          - text: 待人工裁切/未确认
+        - generic [ref=f2e103]:
+          - strong [ref=f2e104]: "0"
+          - text: 已通过
+        - generic [ref=f2e105]:
+          - strong [ref=f2e106]: "0"
+          - text: 审核拒绝
+        - generic [ref=f2e107]:
+          - strong [ref=f2e108]: "0"
+          - text: 尚待审核
+        - generic [ref=f2e109]:
+          - strong [ref=f2e110]: "0"
+          - text: 审核受阻
+      - generic [ref=f2e111]:
+        - button "搜索完成后可启动 AI 审核" [disabled] [ref=f2e112]
+        - button "停止搜索（保留已下载）" [ref=f2e113] [cursor=pointer]
+        - button "在项目中查看候选" [disabled] [ref=f2e114]
+        - button "刷新" [ref=f2e115] [cursor=pointer]
+      - generic [ref=f2e117]:
+        - generic [ref=f2e118]: R.
+        - heading "还没有下载到候选" [level=2] [ref=f2e119]
+        - paragraph [ref=f2e120]: 搜索正在尝试；这里只显示已经成功保存的真实原图。登录、验证或来源受阻时会保留已下载部分。

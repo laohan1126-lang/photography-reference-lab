@@ -1,0 +1,82 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - link "参考实验室首页" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: R.
+        - generic [ref=e6]:
+          - text: 参考实验室
+          - generic [ref=e7]: REFERENCE LAB
+      - navigation "摄影工作区" [ref=e8]:
+        - generic [ref=e9]: 拍摄参考
+        - link "摄影学习" [ref=e10] [cursor=pointer]:
+          - /url: /learning
+          - text: 摄影学习
+          - generic [ref=e11]: UI 原型
+      - generic [ref=e12]:
+        - generic [ref=e13]: 拍摄项目
+        - button "新建角色项目" [ref=e15] [cursor=pointer]: ＋
+      - generic [ref=e16]:
+        - text: 搜索项目
+        - searchbox "搜索项目" [ref=e17]
+      - generic [ref=e18]: 当前、置顶与最近使用 · 0 个项目
+      - navigation "角色项目" [ref=e19]:
+        - generic [ref=e20]: 没有匹配的项目。
+      - button "全部项目" [ref=e21] [cursor=pointer]
+      - navigation "我的资料" [ref=e22]:
+        - button "图库 · 跨项目找图" [ref=e23] [cursor=pointer]
+        - button "◌ 待筛摄影参考" [ref=e24] [cursor=pointer]
+        - button "♡ 我的审美库" [ref=e25] [cursor=pointer]
+        - button "审美画像" [ref=e26] [cursor=pointer]
+        - button "采集任务" [ref=e27] [cursor=pointer]
+        - button "摄影笔记" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]:
+        - strong [ref=e31]: PRIVATE WORKSPACE
+        - paragraph [ref=e32]: 审美由你决定。图片事实与 AI 推测分开保存。
+    - main [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]: 摄影 / 私人参考库
+        - generic [ref=e36]: 已连接本地数据源
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]: MY INSPIRATION LIBRARY
+          - heading "我的审美库" [level=1] [ref=e40]
+          - paragraph [ref=e41]: 不必属于某个角色。收藏值得反复看的动作、光线、色彩与画面。
+        - button "＋ 收藏独立图片" [ref=e43] [cursor=pointer]
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - textbox "搜索参考" [ref=e46]:
+            - /placeholder: 搜索标题、作者、审美反馈
+          - button "已移除收藏" [ref=e47] [cursor=pointer]
+          - generic [ref=e48]: 独立收藏 · 可引用到多个项目
+        - generic [ref=e50]:
+          - generic [ref=e51]: R.
+          - heading "这里留给长期喜欢的画面" [level=2] [ref=e52]
+          - paragraph [ref=e53]: 可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。
+      - generic [ref=e54]:
+        - generic [ref=e55]: 先选择，再分析。未知不等于通过。
+        - button "查看人工淘汰理由" [ref=e56] [cursor=pointer]
+        - generic [ref=e57]: v0.3.0
+  - dialog [ref=e58]:
+    - generic [ref=e59]:
+      - heading "新建角色项目" [level=2] [ref=e60]
+      - button "关闭对话框" [active] [ref=e61] [cursor=pointer]: ×
+    - generic [ref=e63]:
+      - paragraph [ref=e64]: 只有角色名是必填。额外要求直接写成自然语言，不需要套固定分类。修改要求会让旧资料卡重新等待核对。
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - text: 角色名 *
+          - textbox "角色名 *" [ref=e67]
+        - generic [ref=e68]:
+          - text: 出自作品（选填）
+          - textbox "出自作品（选填）" [ref=e69]
+        - generic [ref=e70]:
+          - text: 服装／皮肤版本（选填）
+          - textbox "服装／皮肤版本（选填）" [ref=e71]
+        - generic [ref=e73]:
+          - text: 补充要求
+          - textbox "补充要求" [ref=e74]:
+            - /placeholder: 例如：漫展拍摄，想多看站姿和回眸，不要复杂布景；要自然，但保留角色的疏离感。
+        - group [ref=e76]:
+          - generic "我的器材与拍摄条件" [ref=e77] [cursor=pointer]
+      - button "建立项目" [ref=e79] [cursor=pointer]

@@ -1,0 +1,89 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - complementary [ref=f1e3]:
+      - link "参考实验室首页" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e5]: R.
+        - generic [ref=f1e6]:
+          - text: 参考实验室
+          - generic [ref=f1e7]: REFERENCE LAB
+      - navigation "摄影工作区" [ref=f1e8]:
+        - generic [ref=f1e9]: 拍摄参考
+        - link "摄影学习" [ref=f1e10] [cursor=pointer]:
+          - /url: /learning
+          - text: 摄影学习
+          - generic [ref=f1e11]: UI 原型
+      - generic [ref=f1e12]:
+        - generic [ref=f1e13]: 拍摄项目
+        - button "新建角色项目" [ref=f1e15] [cursor=pointer]: ＋
+      - generic [ref=f1e16]:
+        - text: 搜索项目
+        - searchbox "搜索项目" [ref=f1e17]
+      - generic [ref=f1e18]: 当前、置顶与最近使用 · 1 个项目
+      - navigation "角色项目" [ref=f1e19]:
+        - generic [ref=f1e20]:
+          - button "渡 渡边曜 Love Live! Sunshine!!" [ref=f1e21] [cursor=pointer]:
+            - generic [ref=f1e22]: 渡
+            - generic [ref=f1e23]:
+              - strong [ref=f1e24]: 渡边曜
+              - generic [ref=f1e25]: Love Live! Sunshine!!
+          - button "置顶 渡边曜" [ref=f1e26] [cursor=pointer]: ☆
+      - button "全部项目" [ref=f1e27] [cursor=pointer]
+      - navigation "我的资料" [ref=f1e28]:
+        - button "图库 · 跨项目找图" [ref=f1e29] [cursor=pointer]
+        - button "◌ 待筛摄影参考" [ref=f1e30] [cursor=pointer]
+        - button "♡ 我的审美库" [ref=f1e31] [cursor=pointer]
+        - button "审美画像" [ref=f1e32] [cursor=pointer]
+        - button "采集任务" [ref=f1e33] [cursor=pointer]
+        - button "摄影笔记" [ref=f1e34] [cursor=pointer]
+      - generic [ref=f1e35]:
+        - strong [ref=f1e37]: PRIVATE WORKSPACE
+        - paragraph [ref=f1e38]: 审美由你决定。图片事实与 AI 推测分开保存。
+    - main [ref=f1e39]:
+      - generic [ref=f1e40]:
+        - generic [ref=f1e41]: 摄影 / 私人参考库
+        - generic [ref=f1e42]: 已连接本地数据源
+      - generic [ref=f1e44]:
+        - generic [ref=f1e45]: AGENT WORKBENCH
+        - heading "采集任务" [level=1] [ref=f1e46]
+        - paragraph [ref=f1e47]: 网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。
+      - generic [ref=f1e48]:
+        - generic [ref=f1e49]: 快速搜图先下载并展示候选，不等待官方参照调查或视觉模型；AI 审核独立运行。搜索状态与审核状态分别记录，审核失败不会删除已下载候选。
+        - generic [ref=f1e50]:
+          - button "＋ 建立搜图任务" [ref=f1e51] [cursor=pointer]
+          - button "刷新结果" [ref=f1e52] [cursor=pointer]
+        - generic [ref=f1e54]:
+          - generic [ref=f1e55]: R.
+          - heading "从一轮具体需求开始" [level=2] [ref=f1e56]
+          - paragraph [ref=f1e57]: 任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。
+      - generic [ref=f1e58]:
+        - generic [ref=f1e59]: 先选择，再分析。未知不等于通过。
+        - button "查看人工淘汰理由" [ref=f1e60] [cursor=pointer]
+        - generic [ref=f1e61]: v0.3.0
+  - dialog [ref=f1e62]:
+    - generic [ref=f1e63]:
+      - heading "快速搜图，还是同时 AI 审核？" [level=2] [ref=f1e64]
+      - button "关闭对话框" [active] [ref=f1e65] [cursor=pointer]: ×
+    - generic [ref=f1e67]:
+      - generic [ref=f1e68]:
+        - text: 拍摄项目
+        - combobox "拍摄项目" [ref=f1e69] [cursor=pointer]:
+          - option "渡边曜" [selected]
+      - generic [ref=f1e70]:
+        - text: 运行方式
+        - combobox "运行方式" [ref=f1e71] [cursor=pointer]:
+          - option "快速搜图：先拿原图，稍后人工或 AI 审核" [selected]
+          - option "搜图 + AI 审核：搜索不等待审核"
+      - generic [ref=f1e72]:
+        - text: 本轮自由要求
+        - textbox "本轮自由要求" [ref=f1e73]:
+          - /placeholder: 例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。
+      - generic [ref=f1e74]:
+        - text: 期望候选数量（质量优先，不凑数）
+        - spinbutton "期望候选数量（质量优先，不凑数）" [ref=f1e75]: "30"
+      - generic [ref=f1e76]:
+        - text: 额外检索别名（选填，中/日/英，逗号分隔）
+        - textbox "额外检索别名（选填，中/日/英，逗号分隔）" [ref=f1e77]:
+          - /placeholder: 例如：Maki Nishikino, 西木野真姫
+      - paragraph [ref=f1e78]: 默认建议 30 张；单轮最多 100 张，超过请分批继续加搜。快速搜图不调用名称/参照/视觉模型，不做官方资料考证；只使用项目名称、人工维护别名和你在这里补充的别名。原图下载成功后立即出现在候选图库，未命中角色名称的图片会明确标记“角色相关性未确认”，不会凑满目标。AI 审核独立运行，参照调查、身份核验和完整补证仍按原严格门槛执行。
+      - button "开始搜图" [ref=f1e80] [cursor=pointer]

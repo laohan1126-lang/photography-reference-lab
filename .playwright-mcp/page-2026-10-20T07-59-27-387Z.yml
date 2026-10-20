@@ -1,0 +1,469 @@
+- generic [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - complementary [ref=f3e3]:
+      - link "参考实验室首页" [ref=f3e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f3e5]: R.
+        - generic [ref=f3e6]:
+          - text: 参考实验室
+          - generic [ref=f3e7]: REFERENCE LAB
+      - navigation "摄影工作区" [ref=f3e8]:
+        - generic [ref=f3e9]: 拍摄参考
+        - link "摄影学习" [ref=f3e10] [cursor=pointer]:
+          - /url: /learning
+          - text: 摄影学习
+          - generic [ref=f3e11]: UI 原型
+      - generic [ref=f3e12]:
+        - generic [ref=f3e13]: 拍摄项目
+        - button "新建角色项目" [ref=f3e15] [cursor=pointer]: ＋
+      - generic [ref=f3e16]:
+        - text: 搜索项目
+        - searchbox "搜索项目" [ref=f3e17]
+      - generic [ref=f3e18]: 当前、置顶与最近使用 · 1 个项目
+      - navigation "角色项目" [ref=f3e19]:
+        - generic [ref=f3e20]:
+          - button "渡 渡边曜 Love Live! Sunshine!!" [ref=f3e21] [cursor=pointer]:
+            - generic [ref=f3e22]: 渡
+            - generic [ref=f3e23]:
+              - strong [ref=f3e24]: 渡边曜
+              - generic [ref=f3e25]: Love Live! Sunshine!!
+          - button "置顶 渡边曜" [ref=f3e26] [cursor=pointer]: ☆
+      - button "全部项目" [ref=f3e27] [cursor=pointer]
+      - navigation "我的资料" [ref=f3e28]:
+        - button "图库 · 跨项目找图" [ref=f3e29] [cursor=pointer]
+        - button "◌ 待筛摄影参考" [ref=f3e30] [cursor=pointer]
+        - button "♡ 我的审美库" [ref=f3e31] [cursor=pointer]
+        - button "审美画像" [ref=f3e32] [cursor=pointer]
+        - button "采集任务" [ref=f3e33] [cursor=pointer]
+        - button "摄影笔记" [ref=f3e34] [cursor=pointer]
+      - generic [ref=f3e35]:
+        - strong [ref=f3e37]: PRIVATE WORKSPACE
+        - paragraph [ref=f3e38]: 审美由你决定。图片事实与 AI 推测分开保存。
+    - main [ref=f3e39]:
+      - generic [ref=f3e40]:
+        - generic [ref=f3e41]: 摄影 / 私人参考库
+        - generic [ref=f3e42]: 已连接本地数据源
+      - generic [ref=f3e44]:
+        - generic [ref=f3e45]: AGENT WORKBENCH
+        - heading "采集任务" [level=1] [ref=f3e46]
+        - paragraph [ref=f3e47]: 网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。
+      - generic [ref=f3e48]:
+        - generic [ref=f3e49]: 快速搜图先下载并展示候选，不等待官方参照调查或视觉模型；AI 审核独立运行。搜索状态与审核状态分别记录，审核失败不会删除已下载候选。
+        - generic [ref=f3e50]:
+          - button "＋ 建立搜图任务" [ref=f3e51] [cursor=pointer]
+          - button "刷新结果" [ref=f3e52] [cursor=pointer]
+        - article [ref=f3e54]:
+          - generic [ref=f3e55]:
+            - generic [ref=f3e56]: 搜图
+            - generic [ref=f3e57]: 搜索 搜索完成
+            - generic [ref=f3e58]: 审核 未开始
+          - heading "渡边曜" [level=3] [ref=f3e59]
+          - paragraph [ref=f3e60]: 已找到 20 · 角色名称命中 17 · 未确认 3 · AI通过 0 / 目标 15 · 搜索 搜索完成 · 审核 未开始
+          - generic [ref=f3e61]: 2026-10-20 07:23
+          - generic [ref=f3e62]:
+            - button "候选图库" [ref=f3e63] [cursor=pointer]
+            - button "启动AI审核" [ref=f3e64] [cursor=pointer]
+            - button "继续加搜" [ref=f3e65] [cursor=pointer]
+            - button "任务与结果" [ref=f3e66] [cursor=pointer]
+            - button "挑这批图片" [ref=f3e67] [cursor=pointer]
+            - button "取消" [ref=f3e68] [cursor=pointer]
+          - group [ref=f3e69]:
+            - generic "要求、来源检查与缺口" [ref=f3e70] [cursor=pointer]
+      - generic [ref=f3e71]:
+        - generic [ref=f3e72]: 先选择，再分析。未知不等于通过。
+        - button "查看人工淘汰理由" [ref=f3e73] [cursor=pointer]
+        - generic [ref=f3e74]: v0.3.0
+  - dialog [ref=f3e75]:
+    - generic [ref=f3e76]:
+      - heading "候选图库 · 先看原图，再审核" [level=2] [ref=f3e77]
+      - button "关闭对话框" [active] [ref=f3e78] [cursor=pointer]: ×
+    - generic [ref=f3e79]:
+      - status [ref=f3e80]:
+        - paragraph [ref=f3e81]:
+          - strong [ref=f3e82]: 搜索
+          - text: ：搜索完成 · target_reached · 已下载 20 张 · 角色名称命中 17 张 · 探索未确认 3 张 · 拼图 1（拆出有效子图 0，低画质拒绝 3）
+        - paragraph [ref=f3e83]:
+          - strong [ref=f3e84]: 审核
+          - text: ：未开始
+        - paragraph [ref=f3e85]: “实际可用独立照片”= 名称命中的单图 + 拼图拆出的合格子图；拼图原件与它的子图不重复计数，低画质子图仍可查看但不算已获得的参考。名称命中不等于视觉身份通过；人工保留与 AI 通过是两种证据。
+      - generic [ref=f3e86]:
+        - generic [ref=f3e87]:
+          - strong [ref=f3e88]: "20"
+          - text: 已下载原图
+        - generic [ref=f3e89]:
+          - strong [ref=f3e90]: "17"
+          - text: 角色名称命中
+        - generic [ref=f3e91]:
+          - strong [ref=f3e92]: "19"
+          - text: 原始独立单图
+        - generic [ref=f3e93]:
+          - strong [ref=f3e94]: "0"
+          - text: 拼图有效子图
+        - generic [ref=f3e95]:
+          - strong [ref=f3e96]: "19"
+          - text: 实际可用独立照片
+        - generic [ref=f3e97]:
+          - strong [ref=f3e98]: "16"
+          - text: 其中名称命中
+        - generic [ref=f3e99]:
+          - strong [ref=f3e100]: "4"
+          - text: 待人工裁切/未确认
+        - generic [ref=f3e101]:
+          - strong [ref=f3e102]: "0"
+          - text: 已通过
+        - generic [ref=f3e103]:
+          - strong [ref=f3e104]: "0"
+          - text: 审核拒绝
+        - generic [ref=f3e105]:
+          - strong [ref=f3e106]: "20"
+          - text: 尚待审核
+        - generic [ref=f3e107]:
+          - strong [ref=f3e108]: "0"
+          - text: 审核受阻
+      - generic [ref=f3e109]:
+        - button "启动 AI 审核（独立于搜索）" [ref=f3e110] [cursor=pointer]
+        - button "继续加搜" [ref=f3e111] [cursor=pointer]
+        - button "在项目中查看候选" [ref=f3e112] [cursor=pointer]
+        - button "刷新" [ref=f3e113] [cursor=pointer]
+      - generic [ref=f3e114]:
+        - article [ref=f3e115]:
+          - link [ref=f3e116] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/a134700bf6ee8c786d7f4567accd9e3650d33c5347611fb177acbd54b97fa924/original
+            - img "候选原图 1" [ref=f3e117]
+          - generic [ref=f3e118]:
+            - generic [ref=f3e119]:
+              - generic [ref=f3e120]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e121]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e122]: 渡辺曜 Love Live! Sunshine!! cos 摄影
+            - paragraph [ref=f3e123]: 作者未记录 · 1080×1581
+            - generic [ref=f3e124]:
+              - link "打开原图" [ref=f3e125] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/a134700bf6ee8c786d7f4567accd9e3650d33c5347611fb177acbd54b97fa924/original
+              - link "原帖" [ref=f3e126] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6aa384780000000026017313
+              - button "人工保留" [ref=f3e127] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e128] [cursor=pointer]
+        - article [ref=f3e129]:
+          - link [ref=f3e130] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/cecb3b71a0d201fe601972c8adfbf54d349f9706c5cc56511443869b35d0d574/original
+            - img "候选原图 2" [ref=f3e131]
+          - generic [ref=f3e132]:
+            - generic [ref=f3e133]:
+              - generic [ref=f3e134]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e135]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e136]: 渡辺曜 Love Live! Sunshine!! cos 摄影
+            - paragraph [ref=f3e137]: 作者未记录 · 1918×1080
+            - generic [ref=f3e138]:
+              - link "打开原图" [ref=f3e139] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/cecb3b71a0d201fe601972c8adfbf54d349f9706c5cc56511443869b35d0d574/original
+              - link "原帖" [ref=f3e140] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6aa384780000000026017313
+              - button "人工保留" [ref=f3e141] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e142] [cursor=pointer]
+        - article [ref=f3e143]:
+          - link [ref=f3e144] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/5fb465268e93325d24e3b5b72072348afc3d3a5298efbfaea252a379c025ba68/original
+            - img "候选原图 3" [ref=f3e145]
+          - generic [ref=f3e146]:
+            - generic [ref=f3e147]:
+              - generic [ref=f3e148]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e149]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e150]: 渡辺曜 Love Live! Sunshine!! cos 摄影
+            - paragraph [ref=f3e151]: 作者未记录 · 1620×1080
+            - generic [ref=f3e152]:
+              - link "打开原图" [ref=f3e153] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/5fb465268e93325d24e3b5b72072348afc3d3a5298efbfaea252a379c025ba68/original
+              - link "原帖" [ref=f3e154] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6aa384780000000026017313
+              - button "人工保留" [ref=f3e155] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e156] [cursor=pointer]
+        - article [ref=f3e157]:
+          - link [ref=f3e158] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/003af877b3cf8eaa448fd35f8073ad44e14142935c59c9d09563472b8fcc4ba1/original
+            - img "候选原图 4" [ref=f3e159]
+          - generic [ref=f3e160]:
+            - generic [ref=f3e161]:
+              - generic [ref=f3e162]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e163]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e164]: 渡辺曜 Love Live! Sunshine!! cos 摄影
+            - paragraph [ref=f3e165]: 作者未记录 · 1080×1620
+            - generic [ref=f3e166]:
+              - link "打开原图" [ref=f3e167] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/003af877b3cf8eaa448fd35f8073ad44e14142935c59c9d09563472b8fcc4ba1/original
+              - link "原帖" [ref=f3e168] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6acae7db0000000015013494
+              - button "人工保留" [ref=f3e169] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e170] [cursor=pointer]
+        - article [ref=f3e171]:
+          - link [ref=f3e172] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/e9c869ccdeffeb8450e1cf750c1e27021c18db712fac200ca985df6775aa1364/original
+            - img "候选原图 5" [ref=f3e173]
+          - generic [ref=f3e174]:
+            - generic [ref=f3e175]:
+              - generic [ref=f3e176]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e177]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e178]: 渡辺曜 Love Live! Sunshine!! cos 摄影
+            - paragraph [ref=f3e179]: 作者未记录 · 1080×1289
+            - generic [ref=f3e180]:
+              - link "打开原图" [ref=f3e181] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/e9c869ccdeffeb8450e1cf750c1e27021c18db712fac200ca985df6775aa1364/original
+              - link "原帖" [ref=f3e182] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69e10e03000000001f0067e9
+              - button "人工保留" [ref=f3e183] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e184] [cursor=pointer]
+        - article [ref=f3e185]:
+          - link [ref=f3e186] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/d0af01b65f91aa1d697a92b697a1c7949aff41c2c919d761ee2ef3d4b7e24f71/original
+            - img "候选原图 6" [ref=f3e187]
+          - generic [ref=f3e188]:
+            - generic [ref=f3e189]:
+              - generic [ref=f3e190]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e191]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e192]: 渡辺曜 Love Live! Sunshine!! cos 摄影
+            - paragraph [ref=f3e193]: 作者未记录 · 1080×1355
+            - generic [ref=f3e194]:
+              - link "打开原图" [ref=f3e195] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/d0af01b65f91aa1d697a92b697a1c7949aff41c2c919d761ee2ef3d4b7e24f71/original
+              - link "原帖" [ref=f3e196] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69e10e03000000001f0067e9
+              - button "人工保留" [ref=f3e197] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e198] [cursor=pointer]
+        - article [ref=f3e199]:
+          - link [ref=f3e200] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/1c6de980f9b490bc449bea3a073b494f17d6759ed0bd8890e3d9261788f0da9f/original
+            - img "候选原图 7" [ref=f3e201]
+          - generic [ref=f3e202]:
+            - generic [ref=f3e203]:
+              - generic [ref=f3e204]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e205]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e206]: 渡辺曜 Love Live! Sunshine!! cos 摄影
+            - paragraph [ref=f3e207]: 作者未记录 · 1080×1560
+            - generic [ref=f3e208]:
+              - link "打开原图" [ref=f3e209] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/1c6de980f9b490bc449bea3a073b494f17d6759ed0bd8890e3d9261788f0da9f/original
+              - link "原帖" [ref=f3e210] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69e10e03000000001f0067e9
+              - button "人工保留" [ref=f3e211] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e212] [cursor=pointer]
+        - article [ref=f3e213]:
+          - link [ref=f3e214] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/d9caf32577116c987f2b68ecc6007b226e9cf62df95875582703b1ef60c8e9a8/original
+            - img "候选原图 8" [ref=f3e215]
+          - generic [ref=f3e216]:
+            - generic [ref=f3e217]:
+              - generic [ref=f3e218]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e219]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e220]: You Watanabe Love Live! Sunshine!! cosplay photography
+            - paragraph [ref=f3e221]: 作者未记录 · 1080×2028
+            - generic [ref=f3e222]:
+              - link "打开原图" [ref=f3e223] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/d9caf32577116c987f2b68ecc6007b226e9cf62df95875582703b1ef60c8e9a8/original
+              - link "原帖" [ref=f3e224] [cursor=pointer]:
+                - /url: https://www.pinterest.com/pin/603975000033871788/
+              - button "人工保留" [ref=f3e225] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e226] [cursor=pointer]
+        - article [ref=f3e227]:
+          - link [ref=f3e228] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/354107d04e8b081649a6d5d721d4f65b67caf6e0437f9cf38c52921e7320e610/original
+            - img "候选原图 9" [ref=f3e229]
+          - generic [ref=f3e230]:
+            - generic [ref=f3e231]:
+              - generic [ref=f3e232]: 待审核
+              - generic "没有可用的角色文字证据；保留探索，不冒充已确认目标。" [ref=f3e233]: 角色相关性未确认
+            - paragraph [ref=f3e234]: You Watanabe Love Live! Sunshine!! cosplay photography
+            - paragraph [ref=f3e235]: 作者未记录 · 642×960
+            - generic [ref=f3e236]:
+              - link "打开原图" [ref=f3e237] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/354107d04e8b081649a6d5d721d4f65b67caf6e0437f9cf38c52921e7320e610/original
+              - link "原帖" [ref=f3e238] [cursor=pointer]:
+                - /url: https://www.pinterest.com/pin/599189925392705659/
+              - button "人工保留" [ref=f3e239] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e240] [cursor=pointer]
+        - article [ref=f3e241]:
+          - link [ref=f3e242] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/461d3f2dc93dcbe9fb35630690eea33a04dd53a1f64b5ec2761b0aac27628f21/original
+            - img "候选原图 10" [ref=f3e243]
+          - generic [ref=f3e244]:
+            - generic [ref=f3e245]:
+              - generic [ref=f3e246]: 待审核
+              - generic "没有可用的角色文字证据；保留探索，不冒充已确认目标。" [ref=f3e247]: 角色相关性未确认
+            - paragraph [ref=f3e248]: You Watanabe Love Live! Sunshine!! cosplay photography
+            - paragraph [ref=f3e249]: 作者未记录 · 650×975
+            - generic [ref=f3e250]:
+              - link "打开原图" [ref=f3e251] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/461d3f2dc93dcbe9fb35630690eea33a04dd53a1f64b5ec2761b0aac27628f21/original
+              - link "原帖" [ref=f3e252] [cursor=pointer]:
+                - /url: https://www.pinterest.com/pin/618400592558853757/
+              - button "人工保留" [ref=f3e253] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e254] [cursor=pointer]
+        - article [ref=f3e255]:
+          - link [ref=f3e256] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/d02d31bad8bcd102f4e4e146f70fead80cbd0480f3e40565dfefa25efb1d5513/original
+            - img "候选原图 11" [ref=f3e257]
+          - generic [ref=f3e258]:
+            - generic [ref=f3e259]:
+              - generic [ref=f3e260]: 待审核
+              - generic "没有可用的角色文字证据；保留探索，不冒充已确认目标。" [ref=f3e261]: 角色相关性未确认
+            - paragraph [ref=f3e262]: You Watanabe Love Live! Sunshine!! cosplay photography
+            - paragraph [ref=f3e263]: 作者未记录 · 736×1103
+            - generic [ref=f3e264]:
+              - link "打开原图" [ref=f3e265] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/d02d31bad8bcd102f4e4e146f70fead80cbd0480f3e40565dfefa25efb1d5513/original
+              - link "原帖" [ref=f3e266] [cursor=pointer]:
+                - /url: https://www.pinterest.com/pin/635500197424735291/
+              - button "人工保留" [ref=f3e267] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e268] [cursor=pointer]
+        - article [ref=f3e269]:
+          - link [ref=f3e270] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/b7ad2eeccb529483ddafa79d536b8e29ea3df0dfea773c2ad0d07335ce63c68e/original
+            - img "候选原图 12" [ref=f3e271]
+          - generic [ref=f3e272]:
+            - generic [ref=f3e273]:
+              - generic [ref=f3e274]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e275]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e276]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e277]: 作者未记录 · 1080×1623
+            - generic [ref=f3e278]:
+              - link "打开原图" [ref=f3e279] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/b7ad2eeccb529483ddafa79d536b8e29ea3df0dfea773c2ad0d07335ce63c68e/original
+              - link "原帖" [ref=f3e280] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69ea5ee90000000019025c00
+              - button "人工保留" [ref=f3e281] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e282] [cursor=pointer]
+        - article [ref=f3e283]:
+          - link [ref=f3e284] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/dc9b95b5a14f3a8e233117431a4df3c79eb11c6e8ad0674cfc8536e4a178ec69/original
+            - img "候选原图 13" [ref=f3e285]
+          - generic [ref=f3e286]:
+            - generic [ref=f3e287]:
+              - generic [ref=f3e288]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e289]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e290]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e291]: 作者未记录 · 1080×1623
+            - generic [ref=f3e292]:
+              - link "打开原图" [ref=f3e293] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/dc9b95b5a14f3a8e233117431a4df3c79eb11c6e8ad0674cfc8536e4a178ec69/original
+              - link "原帖" [ref=f3e294] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69ea5ee90000000019025c00
+              - button "人工保留" [ref=f3e295] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e296] [cursor=pointer]
+        - article [ref=f3e297]:
+          - link [ref=f3e298] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/84ec3553a6f762572195e4b0429a33f0215022afbf73ed0d6b91f8dff3ac81ce/original
+            - img "候选原图 14" [ref=f3e299]
+          - generic [ref=f3e300]:
+            - generic [ref=f3e301]:
+              - generic [ref=f3e302]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e303]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e304]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e305]: 作者未记录 · 1080×1623
+            - generic [ref=f3e306]:
+              - link "打开原图" [ref=f3e307] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/84ec3553a6f762572195e4b0429a33f0215022afbf73ed0d6b91f8dff3ac81ce/original
+              - link "原帖" [ref=f3e308] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69ea5ee90000000019025c00
+              - button "人工保留" [ref=f3e309] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e310] [cursor=pointer]
+        - article [ref=f3e311]:
+          - link [ref=f3e312] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/27b738b8d327e8e4496c530086fffa039e38671b1c5261b9b8f8607519bda050/original
+            - img "候选原图 15" [ref=f3e313]
+          - generic [ref=f3e314]:
+            - generic [ref=f3e315]:
+              - generic [ref=f3e316]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e317]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e318]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e319]: 作者未记录 · 1080×1440
+            - paragraph [ref=f3e320]: 本地拼图处理：grid_3x3 · low_resolution · 子图 0/9 张可用。原图与子图不重复计入可用照片。
+            - generic [ref=f3e321]:
+              - link "打开原图" [ref=f3e322] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/27b738b8d327e8e4496c530086fffa039e38671b1c5261b9b8f8607519bda050/original
+              - link "原帖" [ref=f3e323] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6790e074000000001800d7b6
+              - button "人工保留" [ref=f3e324] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e325] [cursor=pointer]
+        - article [ref=f3e326]:
+          - link [ref=f3e327] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/ccaa6f8b6d21d702690fe2c849fd40f8dc9fe1dafd8aa4596af39cda7b810817/original
+            - img "候选原图 16" [ref=f3e328]
+          - generic [ref=f3e329]:
+            - generic [ref=f3e330]:
+              - generic [ref=f3e331]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e332]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e333]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e334]: 作者未记录 · 1080×1619
+            - generic [ref=f3e335]:
+              - link "打开原图" [ref=f3e336] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/ccaa6f8b6d21d702690fe2c849fd40f8dc9fe1dafd8aa4596af39cda7b810817/original
+              - link "原帖" [ref=f3e337] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6790e074000000001800d7b6
+              - button "人工保留" [ref=f3e338] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e339] [cursor=pointer]
+        - article [ref=f3e340]:
+          - link [ref=f3e341] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/e3c0e1a5372986dcd10d3ef35fde2a2c20c16c2e7d96b1573cb60d122a2cfa28/original
+            - img "候选原图 17" [ref=f3e342]
+          - generic [ref=f3e343]:
+            - generic [ref=f3e344]:
+              - generic [ref=f3e345]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e346]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e347]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e348]: 作者未记录 · 1080×1619
+            - generic [ref=f3e349]:
+              - link "打开原图" [ref=f3e350] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/e3c0e1a5372986dcd10d3ef35fde2a2c20c16c2e7d96b1573cb60d122a2cfa28/original
+              - link "原帖" [ref=f3e351] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6790e074000000001800d7b6
+              - button "人工保留" [ref=f3e352] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e353] [cursor=pointer]
+        - article [ref=f3e354]:
+          - link [ref=f3e355] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/0df4c3391c6ab32244d34d1290c3502d82e108c5444d68d0199fa9ff210db471/original
+            - img "候选原图 18" [ref=f3e356]
+          - generic [ref=f3e357]:
+            - generic [ref=f3e358]:
+              - generic [ref=f3e359]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e360]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e361]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e362]: 作者未记录 · 1080×1620
+            - generic [ref=f3e363]:
+              - link "打开原图" [ref=f3e364] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/0df4c3391c6ab32244d34d1290c3502d82e108c5444d68d0199fa9ff210db471/original
+              - link "原帖" [ref=f3e365] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a0872a6000000003701cadf
+              - button "人工保留" [ref=f3e366] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e367] [cursor=pointer]
+        - article [ref=f3e368]:
+          - link [ref=f3e369] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/fe09c9878735c01e76ee96875dab428f99e43e2b9791d987369ced6ffa27046b/original
+            - img "候选原图 19" [ref=f3e370]
+          - generic [ref=f3e371]:
+            - generic [ref=f3e372]:
+              - generic [ref=f3e373]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e374]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e375]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e376]: 作者未记录 · 1080×1440
+            - generic [ref=f3e377]:
+              - link "打开原图" [ref=f3e378] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/fe09c9878735c01e76ee96875dab428f99e43e2b9791d987369ced6ffa27046b/original
+              - link "原帖" [ref=f3e379] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a0872a6000000003701cadf
+              - button "人工保留" [ref=f3e380] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e381] [cursor=pointer]
+        - article [ref=f3e382]:
+          - link [ref=f3e383] [cursor=pointer]:
+            - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/67d2454e21b17bb713eb678fb795441dbbd58708c62a3f004e8c17c208d15a58/original
+            - img "候选原图 20" [ref=f3e384]
+          - generic [ref=f3e385]:
+            - generic [ref=f3e386]:
+              - generic [ref=f3e387]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=f3e388]: 名称命中 · 未视觉核验
+            - paragraph [ref=f3e389]: 渡辺 曜 cos 棚拍
+            - paragraph [ref=f3e390]: 作者未记录 · 1080×1620
+            - generic [ref=f3e391]:
+              - link "打开原图" [ref=f3e392] [cursor=pointer]:
+                - /url: /api/jobs/b0b445c193f04d2e8a8c49abfb95d7a8/candidates/67d2454e21b17bb713eb678fb795441dbbd58708c62a3f004e8c17c208d15a58/original
+              - link "原帖" [ref=f3e393] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a0872a6000000003701cadf
+              - button "人工保留" [ref=f3e394] [cursor=pointer]
+              - button "人工淘汰" [ref=f3e395] [cursor=pointer]

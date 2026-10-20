@@ -1,0 +1,55 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - link "参考实验室首页" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e5]: R.
+      - generic [ref=e6]:
+        - text: 参考实验室
+        - generic [ref=e7]: REFERENCE LAB
+    - navigation "摄影工作区" [ref=e8]:
+      - generic [ref=e9]: 拍摄参考
+      - link "摄影学习" [ref=e10] [cursor=pointer]:
+        - /url: /learning
+        - text: 摄影学习
+        - generic [ref=e11]: UI 原型
+    - generic [ref=e12]:
+      - generic [ref=e13]: 拍摄项目
+      - button "新建角色项目" [ref=e15] [cursor=pointer]: ＋
+    - generic [ref=e16]:
+      - text: 搜索项目
+      - searchbox "搜索项目" [ref=e17]
+    - generic [ref=e18]: 当前、置顶与最近使用 · 0 个项目
+    - navigation "角色项目" [ref=e19]:
+      - generic [ref=e58]: 没有匹配的项目。
+    - button "全部项目" [ref=e21] [cursor=pointer]
+    - navigation "我的资料" [ref=e22]:
+      - button "图库 · 跨项目找图" [ref=e23] [cursor=pointer]
+      - button "◌ 待筛摄影参考" [ref=e24] [cursor=pointer]
+      - button "♡ 我的审美库" [ref=e25] [cursor=pointer]
+      - button "审美画像" [ref=e26] [cursor=pointer]
+      - button "采集任务" [ref=e27] [cursor=pointer]
+      - button "摄影笔记" [ref=e28] [cursor=pointer]
+    - generic [ref=e29]:
+      - strong [ref=e31]: PRIVATE WORKSPACE
+      - paragraph [ref=e32]: 审美由你决定。图片事实与 AI 推测分开保存。
+  - main [ref=e33]:
+    - generic [ref=e34]:
+      - generic [ref=e35]: 摄影 / 私人参考库
+      - generic [ref=e36]: 已连接本地数据源
+    - generic [ref=e59]:
+      - generic [ref=e60]: AGENT WORKBENCH
+      - heading "采集任务" [level=1] [ref=e61]
+      - paragraph [ref=e62]: 网站保存要求与结果；Codex / Antigravity 使用 BrowserSkill 执行。
+    - generic [ref=e44]:
+      - generic [ref=e63]: 快速搜图先下载并展示候选，不等待官方参照调查或视觉模型；AI 审核独立运行。搜索状态与审核状态分别记录，审核失败不会删除已下载候选。
+      - generic [ref=e64]:
+        - button "＋ 建立搜图任务" [active] [ref=e65] [cursor=pointer]
+        - button "刷新结果" [ref=e66] [cursor=pointer]
+      - generic [ref=e68]:
+        - generic [ref=e69]: R.
+        - heading "从一轮具体需求开始" [level=2] [ref=e70]
+        - paragraph [ref=e71]: 任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。
+    - generic [ref=e54]:
+      - generic [ref=e55]: 先选择，再分析。未知不等于通过。
+      - button "查看人工淘汰理由" [ref=e56] [cursor=pointer]
+      - generic [ref=e57]: v0.3.0

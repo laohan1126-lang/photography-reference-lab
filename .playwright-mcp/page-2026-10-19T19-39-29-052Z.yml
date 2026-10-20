@@ -1,0 +1,456 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - link "参考实验室首页" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: R.
+        - generic [ref=e6]:
+          - text: 参考实验室
+          - generic [ref=e7]: REFERENCE LAB
+      - navigation "摄影工作区" [ref=e8]:
+        - generic [ref=e9]: 拍摄参考
+        - link "摄影学习" [ref=e10] [cursor=pointer]:
+          - /url: /learning
+          - text: 摄影学习
+          - generic [ref=e11]: UI 原型
+      - generic [ref=e12]:
+        - generic [ref=e13]: 拍摄项目
+        - button "新建角色项目" [ref=e15] [cursor=pointer]: ＋
+      - generic [ref=e16]:
+        - text: 搜索项目
+        - searchbox "搜索项目" [ref=e17]
+      - generic [ref=e18]: 当前、置顶与最近使用 · 1 个项目
+      - navigation "角色项目" [ref=e19]:
+        - generic [ref=e80]:
+          - button "西 西木野真姬 Love Live!" [ref=e81] [cursor=pointer]:
+            - generic [ref=e82]: 西
+            - generic [ref=e83]:
+              - strong [ref=e84]: 西木野真姬
+              - generic [ref=e85]: Love Live!
+          - button "置顶 西木野真姬" [ref=e86] [cursor=pointer]: ☆
+      - button "全部项目" [ref=e21] [cursor=pointer]
+      - navigation "我的资料" [ref=e22]:
+        - button "图库 · 跨项目找图" [ref=e23] [cursor=pointer]
+        - button "◌ 待筛摄影参考" [ref=e24] [cursor=pointer]
+        - button "♡ 我的审美库" [ref=e25] [cursor=pointer]
+        - button "审美画像" [ref=e26] [cursor=pointer]
+        - button "采集任务" [ref=e27] [cursor=pointer]
+        - button "摄影笔记" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]:
+        - strong [ref=e31]: PRIVATE WORKSPACE
+        - paragraph [ref=e32]: 审美由你决定。图片事实与 AI 推测分开保存。
+    - main [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]: 摄影 / 私人参考库
+        - generic [ref=e36]: 已连接本地数据源
+      - generic [ref=e37]:
+        - generic [ref=e87]:
+          - generic [ref=e88]: MY SHOOTING PROJECT
+          - heading "西木野真姬" [level=1] [ref=e89]
+          - paragraph [ref=e90]: 快速搜图 15 张，真人 cosplay 人像摄影参考；由人工审核。
+        - generic [ref=e91]:
+          - button "找一批参考" [ref=e92] [cursor=pointer]
+          - button "导入参考" [ref=e93] [cursor=pointer]
+          - group [ref=e94]:
+            - generic "项目设置与导出" [ref=e95] [cursor=pointer]
+      - generic "项目统计" [ref=e96]:
+        - generic [ref=e97]:
+          - strong [ref=e98]: "0"
+          - generic [ref=e99]: 候选流
+        - generic [ref=e100]:
+          - strong [ref=e101]: "0"
+          - generic [ref=e102]: 待挑选
+        - generic [ref=e103]:
+          - strong [ref=e104]: "0"
+          - generic [ref=e105]: 预检过滤
+        - generic [ref=e106]:
+          - strong [ref=e107]: "0"
+          - generic [ref=e108]: 角色精选
+        - generic [ref=e109]:
+          - strong [ref=e110]: "0"
+          - generic [ref=e111]: 现场卡
+      - navigation "工作区视图" [ref=e112]:
+        - button "挑参考" [ref=e113] [cursor=pointer]
+        - button "角色精选" [ref=e114] [cursor=pointer]
+        - button "现场卡" [ref=e115] [cursor=pointer]
+        - button "已过滤候选" [ref=e116] [cursor=pointer]
+        - button "已淘汰 / 恢复" [ref=e117] [cursor=pointer]
+      - generic [ref=e44]:
+        - generic [ref=e118]:
+          - textbox "搜索参考" [ref=e119]:
+            - /placeholder: 搜索标题、作者、审美反馈
+          - combobox "选择状态" [ref=e120] [cursor=pointer]:
+            - option "全部未淘汰" [selected]
+            - option "未选择"
+            - option "已保留"
+            - option "待定"
+            - option "已淘汰"
+          - group [ref=e121]:
+            - generic "图片类型" [ref=e122] [cursor=pointer]
+            - option "全部图片类型" [selected]
+            - option "尚未分类"
+            - option "真人 cosplay"
+            - option "普通真人摄影"
+            - option "角色插画"
+            - option "器材图"
+            - option "场地图"
+            - option "拼图"
+            - option "AI 生成概念"
+          - button "结束本轮筛选并总结" [ref=e123] [cursor=pointer]
+          - button "已选 0 · 批量/沟通板" [disabled] [ref=e124]
+          - generic [ref=e125]: K 角色参考 / I 通用灵感 / M 待定 / X 淘汰
+        - generic [ref=e127]:
+          - generic [ref=e128]: R.
+          - heading "没有匹配的候选" [level=2] [ref=e129]
+          - paragraph [ref=e130]: 可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。
+      - generic [ref=e54]:
+        - generic [ref=e55]: 先选择，再分析。未知不等于通过。
+        - button "查看人工淘汰理由" [ref=e56] [cursor=pointer]
+        - generic [ref=e57]: v0.3.0
+  - dialog [ref=e58]:
+    - generic [ref=e59]:
+      - heading "候选图库 · 先看原图，再审核" [level=2] [ref=e147]
+      - button "关闭对话框" [ref=e61] [cursor=pointer]: ×
+    - generic [ref=e62]:
+      - status [ref=e148]:
+        - paragraph [ref=e1272]:
+          - strong [ref=e1273]: 搜索
+          - text: ：搜索完成 · target_reached · 已下载 18 张 · 角色名称命中 15 张 · 探索未确认 3 张
+        - paragraph [ref=e1274]:
+          - strong [ref=e1275]: 审核
+          - text: ：已取消
+        - paragraph [ref=e1276]: “角色名称命中”只是发现文字线索，仍需逐图视觉核验；“相关性未确认”是保留给你看的探索候选，不会计入目标。人工保留与 AI 通过是两种证据。
+      - generic [ref=e1277]:
+        - generic [ref=e1278]:
+          - strong [ref=e1279]: "18"
+          - text: 已找到候选
+        - generic [ref=e1280]:
+          - strong [ref=e1281]: "15"
+          - text: 角色名称命中
+        - generic [ref=e1282]:
+          - strong [ref=e1283]: "3"
+          - text: 相关性未确认
+        - generic [ref=e1284]:
+          - strong [ref=e1285]: "0"
+          - text: 已通过
+        - generic [ref=e1286]:
+          - strong [ref=e1287]: "0"
+          - text: 审核拒绝
+        - generic [ref=e1288]:
+          - strong [ref=e1289]: "18"
+          - text: 尚待审核
+        - generic [ref=e1290]:
+          - strong [ref=e1291]: "0"
+          - text: 审核受阻
+      - generic [ref=e169]:
+        - button "启动 AI 审核（独立于搜索）" [ref=e1019] [cursor=pointer]
+        - button "继续加搜" [ref=e200] [cursor=pointer]
+        - button "在项目中查看候选" [ref=e172] [cursor=pointer]
+        - button "刷新" [ref=e173] [cursor=pointer]
+      - generic [ref=e174]:
+        - article [ref=e1292]:
+          - link [ref=e1293] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/1d09123a2f50cc66d81ffbb999b9ae1600c81f490c6e9c8c98d2ad79a91125ce/original
+            - img "候选原图 1" [ref=e1294]
+          - generic [ref=e1295]:
+            - generic [ref=e1296]:
+              - generic [ref=e1297]: 待审核
+              - generic "没有可用的角色文字证据；保留探索，不冒充已确认目标。" [ref=e1298]: 角色相关性未确认
+            - paragraph [ref=e1299]: 西木野真姬 Love Live! cos 摄影
+            - paragraph [ref=e1300]: 作者未记录 · 1080×1620
+            - generic [ref=e1301]:
+              - link "打开原图" [ref=e1302] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/1d09123a2f50cc66d81ffbb999b9ae1600c81f490c6e9c8c98d2ad79a91125ce/original
+              - link "原帖" [ref=e1303] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6ad5a11a00000000270363c3
+              - button "人工保留" [ref=e1304] [cursor=pointer]
+              - button "人工淘汰" [ref=e1305] [cursor=pointer]
+        - article [ref=e1306]:
+          - link [ref=e1307] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/e41a99b2e5dd549eb7e8d7c0e0ae01003d4a3cc54cf80f6ddefc72af2257a4ec/original
+            - img "候选原图 2" [ref=e1308]
+          - generic [ref=e1309]:
+            - generic [ref=e1310]:
+              - generic [ref=e1311]: 待审核
+              - generic "没有可用的角色文字证据；保留探索，不冒充已确认目标。" [ref=e1312]: 角色相关性未确认
+            - paragraph [ref=e1313]: 西木野真姬 Love Live! cos 摄影
+            - paragraph [ref=e1314]: 作者未记录 · 1080×1440
+            - generic [ref=e1315]:
+              - link "打开原图" [ref=e1316] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/e41a99b2e5dd549eb7e8d7c0e0ae01003d4a3cc54cf80f6ddefc72af2257a4ec/original
+              - link "原帖" [ref=e1317] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6ad5a11a00000000270363c3
+              - button "人工保留" [ref=e1318] [cursor=pointer]
+              - button "人工淘汰" [ref=e1319] [cursor=pointer]
+        - article [ref=e1320]:
+          - link [ref=e1321] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/aedefc600d98a7f896979f28c0cdf3440c1a78765d44e00ecf492361b68bc914/original
+            - img "候选原图 3" [ref=e1322]
+          - generic [ref=e1323]:
+            - generic [ref=e1324]:
+              - generic [ref=e1325]: 待审核
+              - generic "没有可用的角色文字证据；保留探索，不冒充已确认目标。" [ref=e1326]: 角色相关性未确认
+            - paragraph [ref=e1327]: 西木野真姬 Love Live! cos 摄影
+            - paragraph [ref=e1328]: 作者未记录 · 1080×1620
+            - generic [ref=e1329]:
+              - link "打开原图" [ref=e1330] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/aedefc600d98a7f896979f28c0cdf3440c1a78765d44e00ecf492361b68bc914/original
+              - link "原帖" [ref=e1331] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6ad5a11a00000000270363c3
+              - button "人工保留" [ref=e1332] [cursor=pointer]
+              - button "人工淘汰" [ref=e1333] [cursor=pointer]
+        - article [ref=e1334]:
+          - link [ref=e1335] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/b44d25cf55499eefd564d1dad1729f63e48f25ddd5da7feca43ceb8fb6ca8d12/original
+            - img "候选原图 4" [ref=e1336]
+          - generic [ref=e1337]:
+            - generic [ref=e1338]:
+              - generic [ref=e1339]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1340]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1341]: Maki Nishikino Love Live! cosplay photography
+            - paragraph [ref=e1342]: 作者未记录 · 1200×1800
+            - generic [ref=e1343]:
+              - link "打开原图" [ref=e1344] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/b44d25cf55499eefd564d1dad1729f63e48f25ddd5da7feca43ceb8fb6ca8d12/original
+              - link "原帖" [ref=e1345] [cursor=pointer]:
+                - /url: https://www.pinterest.com/pin/1012747034943152535/
+              - button "人工保留" [ref=e1346] [cursor=pointer]
+              - button "人工淘汰" [ref=e1347] [cursor=pointer]
+        - article [ref=e1348]:
+          - link [ref=e1349] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/d055f1b5ecebf0aa70978da94f8a9cf0c9d514e843eb1c34d1e6ca85bbf50175/original
+            - img "候选原图 5" [ref=e1350]
+          - generic [ref=e1351]:
+            - generic [ref=e1352]:
+              - generic [ref=e1353]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1354]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1355]: Maki Nishikino Love Live! cosplay photography
+            - paragraph [ref=e1356]: 作者未记录 · 641×960
+            - generic [ref=e1357]:
+              - link "打开原图" [ref=e1358] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/d055f1b5ecebf0aa70978da94f8a9cf0c9d514e843eb1c34d1e6ca85bbf50175/original
+              - link "原帖" [ref=e1359] [cursor=pointer]:
+                - /url: https://www.pinterest.com/pin/389279961516518032/
+              - button "人工保留" [ref=e1360] [cursor=pointer]
+              - button "人工淘汰" [ref=e1361] [cursor=pointer]
+        - article [ref=e1362]:
+          - link [ref=e1363] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/dfa6b0b95554730de898d787177b495e4306240f1b0e174bb47bd6d8a9e77d4b/original
+            - img "候选原图 6" [ref=e1364]
+          - generic [ref=e1365]:
+            - generic [ref=e1366]:
+              - generic [ref=e1367]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1368]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1369]: Maki Nishikino Love Live! cosplay photography
+            - paragraph [ref=e1370]: 作者未记录 · 560×840
+            - generic [ref=e1371]:
+              - link "打开原图" [ref=e1372] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/dfa6b0b95554730de898d787177b495e4306240f1b0e174bb47bd6d8a9e77d4b/original
+              - link "原帖" [ref=e1373] [cursor=pointer]:
+                - /url: https://www.pinterest.com/pin/510243832796771510/
+              - button "人工保留" [ref=e1374] [cursor=pointer]
+              - button "人工淘汰" [ref=e1375] [cursor=pointer]
+        - article [ref=e1376]:
+          - link [ref=e1377] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/a92e28b53d647ca27df704606adeec1df6bd9627413d457fc696a1c5bea47cd4/original
+            - img "候选原图 7" [ref=e1378]
+          - generic [ref=e1379]:
+            - generic [ref=e1380]:
+              - generic [ref=e1381]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1382]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1383]: 西木野真姫 cos 场照
+            - paragraph [ref=e1384]: 作者未记录 · 1080×1620
+            - generic [ref=e1385]:
+              - link "打开原图" [ref=e1386] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/a92e28b53d647ca27df704606adeec1df6bd9627413d457fc696a1c5bea47cd4/original
+              - link "原帖" [ref=e1387] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a0af67c0000000038037872
+              - button "人工保留" [ref=e1388] [cursor=pointer]
+              - button "人工淘汰" [ref=e1389] [cursor=pointer]
+        - article [ref=e1390]:
+          - link [ref=e1391] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/93c88b356e49ff236615245dfc393bd58e0b98e77e1b12928aa110d02cc59c3f/original
+            - img "候选原图 8" [ref=e1392]
+          - generic [ref=e1393]:
+            - generic [ref=e1394]:
+              - generic [ref=e1395]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1396]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1397]: 西木野真姫 cos 场照
+            - paragraph [ref=e1398]: 作者未记录 · 1080×1440
+            - generic [ref=e1399]:
+              - link "打开原图" [ref=e1400] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/93c88b356e49ff236615245dfc393bd58e0b98e77e1b12928aa110d02cc59c3f/original
+              - link "原帖" [ref=e1401] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a0af67c0000000038037872
+              - button "人工保留" [ref=e1402] [cursor=pointer]
+              - button "人工淘汰" [ref=e1403] [cursor=pointer]
+        - article [ref=e1404]:
+          - link [ref=e1405] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/b8e9ff2ef1b5167b6246f4cc728b8c78ddfb195ab6120766dbf65d746a3b6b2a/original
+            - img "候选原图 9" [ref=e1406]
+          - generic [ref=e1407]:
+            - generic [ref=e1408]:
+              - generic [ref=e1409]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1410]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1411]: 西木野真姫 cos 场照
+            - paragraph [ref=e1412]: 作者未记录 · 1080×1620
+            - generic [ref=e1413]:
+              - link "打开原图" [ref=e1414] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/b8e9ff2ef1b5167b6246f4cc728b8c78ddfb195ab6120766dbf65d746a3b6b2a/original
+              - link "原帖" [ref=e1415] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a0af67c0000000038037872
+              - button "人工保留" [ref=e1416] [cursor=pointer]
+              - button "人工淘汰" [ref=e1417] [cursor=pointer]
+        - article [ref=e1418]:
+          - link [ref=e1419] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/2d5493b3461ca5adc0b4e5ebc78776dbcd4121ade0c869548f0b5098c41572cf/original
+            - img "候选原图 10" [ref=e1420]
+          - generic [ref=e1421]:
+            - generic [ref=e1422]:
+              - generic [ref=e1423]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1424]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1425]: 西木野真姫 cos 场照
+            - paragraph [ref=e1426]: 作者未记录 · 1080×1440
+            - generic [ref=e1427]:
+              - link "打开原图" [ref=e1428] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/2d5493b3461ca5adc0b4e5ebc78776dbcd4121ade0c869548f0b5098c41572cf/original
+              - link "原帖" [ref=e1429] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69e7240a0000000023026027
+              - button "人工保留" [ref=e1430] [cursor=pointer]
+              - button "人工淘汰" [ref=e1431] [cursor=pointer]
+        - article [ref=e1432]:
+          - link [ref=e1433] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/01e8e7673bf099ebe51d17a9f34168de684d43f4f5628210fcc19649bfcc3d22/original
+            - img "候选原图 11" [ref=e1434]
+          - generic [ref=e1435]:
+            - generic [ref=e1436]:
+              - generic [ref=e1437]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1438]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1439]: 西木野真姫 cos 场照
+            - paragraph [ref=e1440]: 作者未记录 · 1080×1440
+            - generic [ref=e1441]:
+              - link "打开原图" [ref=e1442] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/01e8e7673bf099ebe51d17a9f34168de684d43f4f5628210fcc19649bfcc3d22/original
+              - link "原帖" [ref=e1443] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/69d233f4000000001b02063f
+              - button "人工保留" [ref=e1444] [cursor=pointer]
+              - button "人工淘汰" [ref=e1445] [cursor=pointer]
+        - article [ref=e1446]:
+          - link [ref=e1447] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/47f02060f97f667cf5e553eb23d78286f23a519b38af76f89d9abc3eb3376e6d/original
+            - img "候选原图 12" [ref=e1448]
+          - generic [ref=e1449]:
+            - generic [ref=e1450]:
+              - generic [ref=e1451]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1452]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1453]: 西木野真姫 cos 场照
+            - paragraph [ref=e1454]: 作者未记录 · 1080×1440
+            - generic [ref=e1455]:
+              - link "打开原图" [ref=e1456] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/47f02060f97f667cf5e553eb23d78286f23a519b38af76f89d9abc3eb3376e6d/original
+              - link "原帖" [ref=e1457] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a657ebf000000000503bb25
+              - button "人工保留" [ref=e1458] [cursor=pointer]
+              - button "人工淘汰" [ref=e1459] [cursor=pointer]
+        - article [ref=e1460]:
+          - link [ref=e1461] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/28de0b2933b9840e5d071e937efdf7696895d77d524fd306203b790b9667a27b/original
+            - img "候选原图 13" [ref=e1462]
+          - generic [ref=e1463]:
+            - generic [ref=e1464]:
+              - generic [ref=e1465]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1466]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1467]: 西木野真姫 cos 场照
+            - paragraph [ref=e1468]: 作者未记录 · 1080×1920
+            - generic [ref=e1469]:
+              - link "打开原图" [ref=e1470] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/28de0b2933b9840e5d071e937efdf7696895d77d524fd306203b790b9667a27b/original
+              - link "原帖" [ref=e1471] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/694a97ee000000001e00230b
+              - button "人工保留" [ref=e1472] [cursor=pointer]
+              - button "人工淘汰" [ref=e1473] [cursor=pointer]
+        - article [ref=e1474]:
+          - link [ref=e1475] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/4a1670a075e1af0fc0f12ee8ce39d9eee4c3cd47e5b465c7d16e3c9afe1c2944/original
+            - img "候选原图 14" [ref=e1476]
+          - generic [ref=e1477]:
+            - generic [ref=e1478]:
+              - generic [ref=e1479]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1480]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1481]: 西木野真姫 cos 场照
+            - paragraph [ref=e1482]: 作者未记录 · 1620×1080
+            - generic [ref=e1483]:
+              - link "打开原图" [ref=e1484] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/4a1670a075e1af0fc0f12ee8ce39d9eee4c3cd47e5b465c7d16e3c9afe1c2944/original
+              - link "原帖" [ref=e1485] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/694a97ee000000001e00230b
+              - button "人工保留" [ref=e1486] [cursor=pointer]
+              - button "人工淘汰" [ref=e1487] [cursor=pointer]
+        - article [ref=e1488]:
+          - link [ref=e1489] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/52e75a5e39310aa24d0308f3bb208c20e0df1c02117deb378b19dbac0751a921/original
+            - img "候选原图 15" [ref=e1490]
+          - generic [ref=e1491]:
+            - generic [ref=e1492]:
+              - generic [ref=e1493]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1494]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1495]: 西木野真姫 cos 场照
+            - paragraph [ref=e1496]: 作者未记录 · 1620×1080
+            - generic [ref=e1497]:
+              - link "打开原图" [ref=e1498] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/52e75a5e39310aa24d0308f3bb208c20e0df1c02117deb378b19dbac0751a921/original
+              - link "原帖" [ref=e1499] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/694a97ee000000001e00230b
+              - button "人工保留" [ref=e1500] [cursor=pointer]
+              - button "人工淘汰" [ref=e1501] [cursor=pointer]
+        - article [ref=e1502]:
+          - link [ref=e1503] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/a54bf56edd5ea898589ce65313e0173b1c70581604d28be804fb038016f201b0/original
+            - img "候选原图 16" [ref=e1504]
+          - generic [ref=e1505]:
+            - generic [ref=e1506]:
+              - generic [ref=e1507]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1508]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1509]: 西木野真姫 cos 场照
+            - paragraph [ref=e1510]: 作者未记录 · 1439×1080
+            - generic [ref=e1511]:
+              - link "打开原图" [ref=e1512] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/a54bf56edd5ea898589ce65313e0173b1c70581604d28be804fb038016f201b0/original
+              - link "原帖" [ref=e1513] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a6f0b0a000000003300ba20
+              - button "人工保留" [ref=e1514] [cursor=pointer]
+              - button "人工淘汰" [ref=e1515] [cursor=pointer]
+        - article [ref=e1516]:
+          - link [ref=e1517] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/5c3e360680e617d7c2607e1b97fb42c519771b1ae233afb3856bc55420eaed40/original
+            - img "候选原图 17" [ref=e1518]
+          - generic [ref=e1519]:
+            - generic [ref=e1520]:
+              - generic [ref=e1521]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1522]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1523]: 西木野真姫 cos 场照
+            - paragraph [ref=e1524]: 作者未记录 · 1080×1439
+            - generic [ref=e1525]:
+              - link "打开原图" [ref=e1526] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/5c3e360680e617d7c2607e1b97fb42c519771b1ae233afb3856bc55420eaed40/original
+              - link "原帖" [ref=e1527] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a6f0b0a000000003300ba20
+              - button "人工保留" [ref=e1528] [cursor=pointer]
+              - button "人工淘汰" [ref=e1529] [cursor=pointer]
+        - article [ref=e1530]:
+          - link [ref=e1531] [cursor=pointer]:
+            - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/45fed820710a2f1ffdf4b73fab58cfeec6ef11f72460d53bd5b2e77c881f6119/original
+            - img "候选原图 18" [ref=e1532]
+          - generic [ref=e1533]:
+            - generic [ref=e1534]:
+              - generic [ref=e1535]: 待审核
+              - generic "文字名称命中不等于视觉身份通过" [ref=e1536]: 名称命中 · 未视觉核验
+            - paragraph [ref=e1537]: 西木野真姫 cos 场照
+            - paragraph [ref=e1538]: 作者未记录 · 1080×1439
+            - generic [ref=e1539]:
+              - link "打开原图" [ref=e1540] [cursor=pointer]:
+                - /url: /api/jobs/bedd28c47ee5483caba160057673fbd8/candidates/45fed820710a2f1ffdf4b73fab58cfeec6ef11f72460d53bd5b2e77c881f6119/original
+              - link "原帖" [ref=e1541] [cursor=pointer]:
+                - /url: https://www.xiaohongshu.com/explore/6a6f0b0a000000003300ba20
+              - button "人工保留" [ref=e1542] [cursor=pointer]
+              - button "人工淘汰" [ref=e1543] [cursor=pointer]
