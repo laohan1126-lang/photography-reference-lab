@@ -222,4 +222,27 @@
   未达目标的原因是搜索计划耗尽、平台可见文本以简体“渡边曜”为主而冻结别名只有日文“渡辺曜/
   渡辺 曜/You Watanabe”，名称命中偏少。保留全部成果，不换 Job、不改口径、不重置预算。
 
+## 发布、最终状态与保护核对
+
+- 远端（`origin` = github.com/laohan1126-lang/photography-reference-lab）核对：
+  `main = faf6696c98ac1e31f8832a0275c62bfe50e0bb60`；
+  `codex/learning-loop-v1-20261018 = faf6696…`；
+  `codex/search-integration-merge-20261021 = faf6696…`；
+  `codex/search-integration-20261021 = 0c87a68788f7d9b1f7ff425a6f5d47c4dc2fab83`
+  （修复分支内容：`7c0773c` + 阶段 A 两个提交 + fixtures 隔离）。
+- 运行中的服务由 `scripts/launch.ps1` 记录 `code_revision = 2c85c07…`（partial 回执修复），
+  与 `main` HEAD 的差异**只有** `docs/tasks/` 两个文件；`git diff --quiet <running> main -- ref_lab tools web`
+  为 0，服务端与采集适配器均来自主目录同一 checkout（`tools/collect_verified.py`）。
+- 本轮未使用 Publisher：这是 DSH 的 manual host 会话，没有“编辑前”的宿主生命周期基线；在实现完成后
+  补建基线正是上一轮审计判定不合规的做法，因此按用户“不补建晚基线”的要求改为经复核的 Git 提交，
+  并核对远端 SHA。旧失败事务回执与归档原样保留，未改写成成功历史；Notion 未写入。
+  `delivery: {git: true, notion: false}`。
+- 资料库保护（相对切换前备份快照的表计数）：只增不删——assets 1177→1182、refs 937→942、
+  preflights 1153→1158、discoveries 1147→1152、projects 25→26、jobs 70→71、events 3257→3273；
+  其余 12 张表完全不变（含 aliases 1103、inspirations 23、study_candidates 238、
+  library_annotations 57、screening_sessions 8）。`/learning` 入口 200。
+- 回退：见上节（旧提交 `3284cf1` + 备份 ZIP + `stop.bat`/`start.bat`）。运行中新产生的 5 张结果
+  在 `.local/collection-runs/927b54a7…/` 与 `data/`，回退前先另存。
+
+
 
