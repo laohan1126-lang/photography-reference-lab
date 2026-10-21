@@ -1,9 +1,11 @@
 # 当前任务
 
-- 本轮：[BrowserSkill独立审计](2026-10-21-browserskill-independent-audit.md)，原AGY提交2385adf不能据7项替身测试判定可靠；修复执行边界，真实BrowserSkill读页仍阻塞。
-- 当前修复分支：`codex/browserskill-independent-audit-20261021`；日用仍77216b4，main172b296，未合并/部署。本轮不写正式库，不调用模型。
-- 下一步按[AGY Goal loop](2026-10-21-browserskill-next-goal-loop.md)定位实际RPC故障、验证自有会话恢复，再以主项目真实30张与重启保持验收；未达标不得宣称Goal完成。
-- Git交付结果以本轮Publisher回执为准；Notion明确不授权。本轮工程验证完成不代表平台采集通过。
+- 本轮：[BrowserSkill 实机恢复与西木野真姬30张交付维护任务](2026-10-21-browserskill-live-recovery.md)
+- 分支：`codex/browserskill-live-recovery-20261021`（基线 `d843bee0ac1d3c4cd4223d92f732c6856e70acb0`），工作树 `.local/worktrees/browserskill-live-recovery-20261021/root`。
+- 状态：**Goal 保持未完成（UNCOMPLETED）**。实机审计完成：Edge 155.0.4283.62 下扩展 0.3.3.0 在 Agent Window 调用 `chrome.debugger.attach` 时被 Edge 挂起/需人工交互，导致 RPC 12s 超时；Loop 2 故障回归全量通过（26+99+1 passed）；未获主项目部署授权不推日用；未达成真实 30 张真人交付（0/30），按契约保持未完成。
+
+- 前序审计：[BrowserSkill独立审计](2026-10-21-browserskill-independent-audit.md)，原AGY提交2385adf不能据7项替身测试判定可靠；修复执行边界，真实BrowserSkill读页仍阻塞。
+- 前序修复分支：`codex/browserskill-independent-audit-20261021`；日用仍77216b4，main172b296，未合并/部署。本轮不写正式库，不调用模型。
 
 - 本轮任务：[摄影参考库 BrowserSkill 采集故障识别与有界恢复](2026-10-21-browserskill-collection-recovery.md)
 - 分支：`codex/browserskill-collection-recovery-20261021`（基线 `172b296f1616befcfc62cda11a083d390d973eb7`），工作树 `.local/worktrees/browserskill-collection-recovery-20261021/root`。
