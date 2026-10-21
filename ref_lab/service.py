@@ -1,6 +1,7 @@
 """Application use cases shared by the API, migration CLI, and local workers."""
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import sqlite3
@@ -976,6 +977,87 @@ class Library:
             return [{**dict(r), "data": json.loads(r["data"])} for r in con.execute(
                 "SELECT * FROM events WHERE project_id=? AND id>? ORDER BY id DESC LIMIT ?", (project_id, after, limit))]
 
+    def _create_auto_goal(self, con: sqlite3.Connection, project: dict, request: JobInput) -> str:
+        goal_id = f"auto-{project['id'][:8]}-{int(time.time())}"
+        started_at = time.time()
+        target = request.target_count or 30
+
+        try:
+            from .verified_collection import deterministic_plan
+            from .identity import get_identity_context
+            context = get_identity_context(con, project["id"])
+            name_plan = deterministic_plan(project, identity_context=context, user_aliases=request.search_aliases)
+            names = [r["name"] for r in name_plan.name_records]
+        except Exception:
+            names = [project.get("character", "")]
+            if request.search_aliases:
+                names.extend(request.search_aliases)
+        names = [n for n in dict.fromkeys(names) if n]
+
+        items = []
+        rows = con.execute("SELECT id, data FROM assets").fetchall()
+        for aid, djson in rows:
+            try:
+                adata = json.loads(djson)
+                items.append({"sha": aid, "bytes": adata.get("bytes", 0)})
+            except Exception:
+                items.append({"sha": aid})
+
+        runs_dir = Path(__file__).resolve().parents[1] / ".local" / "collection-runs"
+        if runs_dir.is_dir():
+            for rec in runs_dir.glob("*/current/received.json"):
+                try:
+                    recs = json.loads(rec.read_text("utf8"))
+                    records = recs.get("candidates", []) if isinstance(recs, dict) else recs
+                    for r in records:
+                        if r.get("asset_sha"):
+                            items.append({"sha": r["asset_sha"], "path": r.get("original_path")})
+                except Exception:
+                    pass
+            for der in runs_dir.glob("*/current/derived.json"):
+                try:
+                    der_data = json.loads(der.read_text("utf8"))
+                    for parent_sha, prec in der_data.get("items", {}).items():
+                        for child in prec.get("children", []):
+                            if child.get("child_sha"):
+                                items.append({"sha": child["child_sha"], "path": child.get("path")})
+                except Exception:
+                    pass
+
+        unique_shas = sorted({item["sha"] for item in items if item.get("sha")})
+        deduped_items = []
+        seen_shas = set()
+        for item in items:
+            sha = item.get("sha")
+            if sha and sha not in seen_shas:
+                seen_shas.add(sha)
+                deduped_items.append(item)
+
+        baseline = {
+            "goal_id": goal_id,
+            "target": target,
+            "started_at": started_at,
+            "items": deduped_items
+        }
+        baseline_bytes = json.dumps(baseline, ensure_ascii=False).encode("utf8")
+        baseline_sha = hashlib.sha256(baseline_bytes).hexdigest()
+
+        goal_dir = Path(__file__).resolve().parents[1] / ".local" / "goals" / goal_id
+        goal_dir.mkdir(parents=True, exist_ok=True)
+        (goal_dir / "baseline.json").write_bytes(baseline_bytes)
+
+        goal_data = {
+            "goal_id": goal_id,
+            "target": target,
+            "started_at": started_at,
+            "names": names,
+            "work": project.get("work", ""),
+            "baseline_sha": baseline_sha,
+            "baseline_shas": unique_shas
+        }
+        (goal_dir / "goal.json").write_text(json.dumps(goal_data, ensure_ascii=False, indent=2), encoding="utf8")
+        return goal_id
+
     def create_job(self, project_id: str, request: JobInput) -> dict:
         with self.db.transaction() as con:
             project = row_data(con, "projects", project_id)
@@ -1033,6 +1115,9 @@ class Library:
                             or project.get('work', '') != goal.get('work', '')):
                         raise Problem(422, "本项目名称、作品或目标数与持续目标不一致")
                     job['goal_id'] = request.goal_id
+                else:
+                    auto_goal_id = self._create_auto_goal(con, project, request)
+                    job['goal_id'] = auto_goal_id
                 job.update(collection_outcome="blocked", collection_attempt_count=0, collection_elapsed_seconds=0.0,
                            collection_mode=request.collection_mode,
                            search_state="idle", search_counts={"found": 0, "accepted": 0},
@@ -1697,13 +1782,25 @@ class Library:
                 raise Problem(409, "只有快速搜图任务可以继续加搜")
             if job["status"] == "cancelled":
                 raise Problem(409, "已取消的任务不能继续加搜")
+            from .agent_collection import _process_owner_active
+            if job.get("search_state") == "running" and _process_owner_active(job.get("collection_process_owner")):
+                raise Problem(409, "搜索仍在运行；请先停止搜索再扩大搜索目标")
             if job.get("review_state") == "running":
                 raise Problem(409, "审核仍在运行；请先停止审核再扩大搜索目标")
             base = int(job.get("target_count") or 0)
             already = int(job.get("search_extra_target") or 0)
-            if job.get('goal_id'):
-                raise Problem(409, "持续Goal目标固定；请使用继续补足，额外目标应另建任务")
             total = base + already + int(extra_target)
+            if job.get('goal_id'):
+                if not job.get('goal_id', '').startswith('auto-'):
+                    raise Problem(409, "持续Goal目标固定；请使用继续补足，额外目标应另建任务")
+                try:
+                    goal_file = Path(__file__).resolve().parents[1] / '.local/goals' / job['goal_id'] / 'goal.json'
+                    if goal_file.is_file():
+                        gdata = json.loads(goal_file.read_text('utf8'))
+                        gdata['target'] = total
+                        goal_file.write_text(json.dumps(gdata, ensure_ascii=False, indent=2), encoding='utf8')
+                except Exception:
+                    pass
             if total > 100:
                 raise Problem(422, f"累计目标最多 100 张；当前 {base + already} 张，不能再加 {extra_target} 张")
             job.update(search_extra_target=already + int(extra_target), search_state="idle",
@@ -1726,8 +1823,12 @@ class Library:
         with self.db.transaction() as con:
             job = row_data(con, 'jobs', ident)
             ensure_active_project(row_data(con, 'projects', job['project_id']))
+            from .agent_collection import _process_owner_active
+            search_active = (job.get('search_state') == 'running' and
+                             _process_owner_active(job.get('collection_process_owner')))
+            search_ok = job.get('search_state') in {'completed', 'partial', 'blocked', 'failed', 'cancelled'} or not search_active
             if (job.get('collection_mode') not in {'search', 'search_review'}
-                    or job.get('search_state') not in {'completed', 'partial', 'blocked', 'failed', 'cancelled'}
+                    or not search_ok
                     or job.get('review_state') == 'running' or job['status'] == 'cancelled'):
                 raise Problem(409, "当前任务不可继续补足")
             previous = float(job.get('search_timeout_seconds') or 900)
@@ -1735,6 +1836,9 @@ class Library:
                        search_timeout_seconds=previous + additional_seconds,
                        search_resume_generation=int(job.get('search_resume_generation', 0)) + 1,
                        search_detail=f"继续补足原目标；新增预算{additional_seconds}秒，历史时间与成果保留。")
+            job.pop("active_attempt_id", None)
+            job.pop("collection_process_owner", None)
+            job.pop("search_attempt_started_at", None)
             return self._save_job(con, job, 'collection.search_replenished',
                 {'additional_seconds': additional_seconds, 'cumulative_budget': previous + additional_seconds,
                  'target': int(job.get('target_count') or 0) + int(job.get('search_extra_target') or 0)}, 'human')

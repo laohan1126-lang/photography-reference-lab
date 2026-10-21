@@ -103,7 +103,16 @@ class PhotoTypeWorker:
                 data['calls'].append(entry.copy())
                 data['items'][sha] = entry
                 write_json(self.folder/'photo-types.json', data)
-                result = self.analyzer.classify(raw, sha, self.stop)
+                result = None
+                for attempt in range(2):
+                    try:
+                        result = self.analyzer.classify(raw, sha, self.stop)
+                        break
+                    except ClassificationUnavailable:
+                        if attempt == 0 and not self.stop.is_set():
+                            time.sleep(1.0)
+                            continue
+                        raise
                 receipt = dict(getattr(self.analyzer, 'last_receipt', {}))
                 entry.update(receipt, result=result.model_dump(mode='json'))
                 if not (entry.get('status') == 'succeeded' and entry.get('read_evidence')):

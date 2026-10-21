@@ -303,13 +303,14 @@ class ImageHistory:
         with self._lock:
             if sha in self.known_shas:return {'duplicate_of':sha,'reason':'same_bytes'}
             records=list(self.records.values())
-        if sha in {other['asset_sha'] for other in records}:return {'duplicate_of':sha,'reason':'same_bytes'}
+        if sha in {other.get('asset_sha') for other in records if isinstance(other,dict)}:return {'duplicate_of':sha,'reason':'same_bytes'}
         sample=bytes.fromhex(value['sample'])
         for other in records:
+            if not _valid_cache_value(other):continue
             if abs(value['ratio']/other['ratio']-1)>.03 or hamming_distance(value['dhash'],other['dhash'])>6:continue
             # Preserve originals; quarantine only close composition AND colour matches.
             difference=sum(abs(a-b) for a,b in zip(sample,bytes.fromhex(other['sample'])))/len(sample)
-            if difference<=8:return {'duplicate_of':other['asset_sha'],'reason':'near_duplicate'}
+            if difference<=8:return {'duplicate_of':other.get('asset_sha',sha),'reason':'near_duplicate'}
         return None
 
     def consider(self,path):

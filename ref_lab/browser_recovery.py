@@ -152,53 +152,38 @@ def classify_bsk_error(action: str, returncode: int, stdout: str, stderr: str) -
     message = str(parsed.get("message") or parsed.get("hint") or "")
     lower_comb = combined.lower()
 
-    if (raw_code in ("selector_not_found", "element_not_found", "element_not_interactable")
-            or "selector did not match" in lower_comb
-            or "did not match any element" in lower_comb
-            or "element not found" in lower_comb):
-        return DetailItemError("当前页面元素不可用", code=raw_code or "selector_not_found", details=message or combined[:200])
-
-    if (raw_code in ("challenge", "captcha", "blocked", "http_403", "http_429", "rate_limited")
+    # 1. Platform restrictions: 403, 429, captcha, challenge, rate limit, login
+    if (raw_code in ("challenge", "captcha", "blocked", "http_403", "http_429", "rate_limited", "login_required")
+            or "login_required" in lower_comb or "需要登录" in combined
             or re.search(r"\b(?:403|429|captcha|challenge|rate.limit)\b", lower_comb)):
-        return PlatformRestrictionError("来源需要验证或暂时限制访问", restriction="blocked", details=combined[:400])
+        restriction = "login_required" if ("login" in lower_comb or "登录" in combined) else "blocked"
+        return PlatformRestrictionError("来源需要验证或暂时限制访问", restriction=restriction, details=combined[:400])
 
-    # Check for session dead / not registered / stopped
+    # 2. Daemon disconnected / process crashed / connection refused
     if (
-        raw_code in ("session_stopped", "session_not_found")
-        or "session not registered or already stopped" in lower_comb
-        or "session is dead" in lower_comb
-        or "invalid session" in lower_comb
-    ):
-        return BrowserInfrastructureError(
-            "浏览器会话已失效或未注册",
-            action=action,
-            code="session_not_found",
-            details=message or "session not registered or already stopped",
-            is_session_dead=True,
-            raw_output=str(sanitize_diagnostics(combined))[:400],
-        )
-
-    # Check for daemon disconnected / not running / connection refused
-    if (
-        "connection refused" in lower_comb
+        raw_code in ("browser_disconnected", "daemon_unreachable", "daemon_disconnected")
+        or "connection refused" in lower_comb
         or "failed to connect to daemon" in lower_comb
         or "daemon is not running" in lower_comb
         or "broken pipe" in lower_comb
         or "connection reset" in lower_comb
         or "no browser connected" in lower_comb
-        or raw_code in ("browser_disconnected", "daemon_unreachable")
+        or "browser has been closed" in lower_comb
+        or "target closed" in lower_comb
+        or "browser process died" in lower_comb
     ):
+        code = "daemon_disconnected" if ("daemon" in lower_comb or "connection" in lower_comb or "pipe" in lower_comb) else "browser_closed"
         return BrowserInfrastructureError(
             "BrowserSkill 守护进程或浏览器断开连接",
             action=action,
-            code="daemon_disconnected",
+            code=code,
             details=message or "daemon disconnected or unreachable",
             is_daemon_down=True,
             raw_output=str(sanitize_diagnostics(combined))[:400],
         )
 
-    # Check for timeout
-    if "timed out" in lower_comb or "timeoutexpired" in lower_comb or raw_code == "timeout":
+    # 3. Timeout
+    if raw_code == "timeout" or "timed out" in lower_comb or "timeoutexpired" in lower_comb:
         return BrowserInfrastructureError(
             "BrowserSkill 命令执行或导航超时",
             action=action,
@@ -208,22 +193,35 @@ def classify_bsk_error(action: str, returncode: int, stdout: str, stderr: str) -
             raw_output=str(sanitize_diagnostics(combined))[:400],
         )
 
-    # Check for browser closed / crashed
-    if (
-        "browser has been closed" in lower_comb
-        or "target closed" in lower_comb
-        or "browser process died" in lower_comb
-    ):
+    # 4. Session dead / not registered / stopped (normalized in session context)
+    is_session_action = action in ("session", "navigate", "evaluate", "screenshot", "click", "hover", "wheel")
+    is_session_dead = (
+        raw_code in ("session_stopped", "session_not_found")
+        or (raw_code == "not_found" and (is_session_action or "session" in lower_comb or "registered" in lower_comb))
+        or "session is not registered" in lower_comb
+        or "session not registered or already stopped" in lower_comb
+        or "session is dead" in lower_comb
+        or "invalid session" in lower_comb
+        or "requested resource does not exist" in lower_comb
+    )
+    if is_session_dead:
         return BrowserInfrastructureError(
-            "浏览器进程意外关闭",
+            "浏览器会话已失效或未注册",
             action=action,
-            code="browser_closed",
-            details=message or "browser process terminated",
-            is_daemon_down=True,
+            code="session_not_found",
+            details=message or "session not registered or already stopped",
+            is_session_dead=True,
             raw_output=str(sanitize_diagnostics(combined))[:400],
         )
 
-    # Check for native input ready
+    # 5. Item-level DOM / selector errors (DetailItemError)
+    if (raw_code in ("selector_not_found", "element_not_found", "element_not_interactable")
+            or "selector did not match" in lower_comb
+            or "did not match any element" in lower_comb
+            or "element not found" in lower_comb):
+        return DetailItemError("当前页面元素不可用", code=raw_code or "selector_not_found", details=message or combined[:200])
+
+    # 6. Check for native input ready
     if "did not become ready for native input" in combined:
         return BrowserInfrastructureError(
             "浏览器页面元素未能就绪进行交互",
@@ -231,14 +229,6 @@ def classify_bsk_error(action: str, returncode: int, stdout: str, stderr: str) -
             code="native_input_not_ready",
             details="did not become ready for native input",
             raw_output=str(sanitize_diagnostics(combined))[:400],
-        )
-
-    # Platform restriction keywords in response
-    if "login_required" in lower_comb or "需要登录" in combined:
-        return PlatformRestrictionError(
-            "页面需要登录方可访问",
-            restriction="login_required",
-            details=combined[:200],
         )
 
     # Fallback infrastructure error

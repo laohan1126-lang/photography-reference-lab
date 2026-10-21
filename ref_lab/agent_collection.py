@@ -504,10 +504,16 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
         if lock_file is not None:
             options["pass_fds"] = (lock_file.fileno(),)
     library.set_stage_process_owner(job_id, stage, attempt_id, _owner_record(os.getpid(), phase="launching"))
+    stdout_path = directory / f"{stage}.stdout.log"
+    stderr_path = directory / f"{stage}.stderr.log"
+    stdout_file = open(stdout_path, "ab")
+    stderr_file = open(stderr_path, "ab")
     try:
         process = subprocess.Popen(command, cwd=directory, env=env, stdin=subprocess.DEVNULL,
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False, **options)
+                                   stdout=stdout_file, stderr=stderr_file, shell=False, **options)
     finally:
+        stdout_file.close()
+        stderr_file.close()
         if os.name == "nt" and lock_file is not None:
             os.set_inheritable(lock_file.fileno(), False)
     try:

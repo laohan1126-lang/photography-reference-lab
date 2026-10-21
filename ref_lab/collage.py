@@ -66,7 +66,7 @@ SEAM_GRID_SCORE_MIN = 2.0
 # A single-seam split needs either a clearly strong discontinuity or two clearly
 # independent lines; a long structure inside one photograph is neither.
 SEAM_STRONG_AMPLITUDE = 20.0
-SEAM_TOLERANCE_FRAC = 0.020
+SEAM_TOLERANCE_FRAC = 0.027
 # Two adjacent pixel lines inside one photograph are strongly correlated even
 # across a hard edge (a door frame, a horizon). Two panels of a collage come from
 # different photographs and are not. This is what separates a real seam from a
@@ -148,8 +148,8 @@ def _find_axis(diff: np.ndarray, length: int, *, parts: int,
     if parts < 2 or length < parts * 8 or len(diff) < length - 1:
         return None
     expected = [int(round(length * index / parts)) for index in range(1, parts)]
-    window = max(3, int(round(length * 0.015)))
     tolerance = max(3, int(round(length * tolerance_frac)))
+    window = max(tolerance, max(3, int(round(length * 0.015))))
     baseline = float(np.median(diff)) or 1e-6
     bands = bands or []
     seams = []

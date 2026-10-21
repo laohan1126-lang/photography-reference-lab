@@ -5,6 +5,7 @@ import hashlib
 import io
 import os
 import tempfile
+import time
 import warnings
 from pathlib import Path
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -22,7 +23,14 @@ def atomic_write(path: Path, data: bytes) -> None:
             stream.write(data)
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        for attempt in range(10):
+            try:
+                os.replace(temporary, path)
+                break
+            except (PermissionError, OSError):
+                if attempt == 9:
+                    raise
+                time.sleep(0.05)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)

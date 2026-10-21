@@ -46,9 +46,10 @@ def _artifacts(library: Library, job_id: str) -> tuple[Path, Path, Path]:
             source = collection_queue.ROOT/'.local/goals'/goal_id/'goal.json'
             goal = json.loads(source.read_text('utf8'))
             existing = collection_queue.read_json(folder/'goal.json', None)
-            if existing is not None and existing != goal:
+            if existing is not None and existing.get('baseline_sha') != goal.get('baseline_sha'):
                 raise Problem(409, 'Goal历史基线发生变化；拒绝覆盖')
-            collection_queue.write_json(folder/'goal.json', goal)
+            if existing is None or existing.get('target') != goal.get('target'):
+                collection_queue.write_json(folder/'goal.json', goal)
     return folder, task_dir, task_file
 
 

@@ -361,7 +361,8 @@ class Browser:
             if self.session:
                 try:self.command('session','stop',self.session,'--json',timeout=6)
                 except BrowserInfrastructureError as exc:
-                    if exc.code!='session_not_found':return False
+                    if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
+                        return False
                 self.session=None
             self._start_session(timeout=12)
             # Session creation alone does not prove that the extension can read a page.
@@ -646,8 +647,13 @@ class Browser:
                     raise BrowserInfrastructureError('会话请求清理尚未确认',action='session',code='cleanup_pending')
                 self.start_request=None;self.session=None
             if self.session:
-                self.command('session','stop',self.session,timeout=10)
-                self.session=None
+                try:
+                    self.command('session','stop',self.session,timeout=10)
+                except BrowserInfrastructureError as exc:
+                    if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
+                        raise
+                finally:
+                    self.session=None
             save(self.folder/'browser-session.json',{'browser_id':self.browser_id,'state':'closed'})
         finally:self.deadline=old_deadline
 
@@ -1304,6 +1310,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         blocked=True;stop_reason='cancelled';interrupted=True
         raise
     except BaseException:
+        import traceback
+        try:(folder/'collector-error.log').write_text(traceback.format_exc(),'utf8')
+        except Exception:pass
         blocked=True;stop_reason='internal_error';interrupted=True
         raise
     finally:
@@ -1981,11 +1990,15 @@ def _history_for_search(folder):
         # The frozen baseline is fully decoded before the first Goal search;
         # delayed background indexing cannot admit an old re-encoding.
         with history._lock:
+            from ref_lab.collection_history import _valid_cache_value
             for item in baseline['items']:
                 history.known_shas.add(item['sha'])
-                if item.get('fingerprint'):
+                if item.get('fingerprint') and _valid_cache_value(item['fingerprint']):
                     history.records[item['sha']]=item['fingerprint']
-            history.records.update(supplement)
+            if isinstance(supplement, dict):
+                for k, v in supplement.items():
+                    if _valid_cache_value(v):
+                        history.records[k] = v
             history.known_count=len(history.known_shas)
     return history
 

@@ -483,7 +483,16 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         mode = job.get("collection_mode", "verified")
         search_counts = job.get("search_counts") or {}
         if job.get('goal_id'):
-            search_counts={**search_counts, **candidate_snapshot(job['id'],limit=1)['counts']}
+            try:
+                disk = candidate_snapshot(job['id'], limit=1)['counts']
+                search_counts = {**disk, **search_counts}
+                for k in ('usable_named', 'type_pending', 'type_rejected', 'goal_excluded'):
+                    if disk.get(k) is not None:
+                        search_counts[k] = disk[k]
+                if disk.get('found'):
+                    search_counts['found'] = disk['found']
+            except Exception:
+                pass
         review_counts = job.get("review_counts") or {}
         can_review = (mode != "verified" and job.get('status') != 'cancelled'
                       and job.get("search_state") in {"completed", "partial", "blocked", "failed", "cancelled"}

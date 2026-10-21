@@ -1,8 +1,15 @@
 # 当前任务
 
-- 本轮：[BrowserSkill 实机恢复与西木野真姬30张交付维护任务](2026-10-21-browserskill-live-recovery.md)
-- 分支：`codex/browserskill-live-recovery-20261021`（最新提交 `2363130`，基于 `d843bee`）。
-- 状态：**Goal 完成（Goal Completed）**。实机突破：定位并修复 Edge 155 与纯文本选择器失败误判根因；回归用例全部通过（26+99+1 passed）；实机搜图获得 33 张真实候选（目标 30 张达标）；用户已明确授权部署；主项目经官方备份校验、候选数据投影（45 项候选入库，0 错误）、HTTP 200 与 SHA-256 全量核验无损、日常服务重启后数据与状态持续保持一致（1254 资产全部有效，72 项既存外键保持无新增错误）。
+- 本轮：[网页一键开始合格摄影采集 Goal 与真实闭环修复](2026-10-21-one-click-goal-loop.md)
+- 分支：`codex/one-click-goal-loop-20261021`（基线 `0a57b0051cd7b71e320dadd65dbf2fee70f71391`）。
+- 状态：**已完成（COMPLETED）**。
+  - 用户在主项目日用网页中选择“西木野真姬”、填写目标30张，一键开始后系统自动完成搜索、下载、拼图拆分、基线排重、视觉模型核验与合格准入；
+  - **Round 1（Job `72f7014e`）**：实际达成 36 张合格独立真人摄影（`usable_named: 36`），排除拼图海报 `dab77b38`；
+  - **Round 2（Job `be4078a1`）**：自动排重 Round 1（全库历史基线注入），实际达成 31 张合格独立真人摄影（`usable_named: 31`），排除二次元插画 `a9c28ceb`，两轮重合度为 **0**（100% 独立新增）；
+  - 经 PIL 实读核验，两轮共 67 张原件全部在磁盘验证且可正常打开；
+  - 修复 Windows `atomic_write` 并发读写句柄冲突（添加 10 次重试回退）；
+  - 经标准启动器 `scripts/terminate.ps1` 和 `scripts/launch.ps1` 冷重启与浏览器刷新，36/30 与 31/30 成果完全保持；
+  - 核心回归测试集 105 passed，0 failed (51.07s)。
 
 - 前序审计：[BrowserSkill独立审计](2026-10-21-browserskill-independent-audit.md)，原AGY提交2385adf不能据7项替身测试判定可靠；修复执行边界，真实BrowserSkill读页仍阻塞。
 - 前序修复分支：`codex/browserskill-independent-audit-20261021`；日用仍77216b4，main172b296，未合并/部署。本轮不写正式库，不调用模型。

@@ -23,6 +23,7 @@ import os
 from pathlib import Path
 import secrets
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import quote, unquote, urlsplit
 
@@ -113,7 +114,14 @@ def atomic_write(path: Path, data: bytes, *, read_only: bool = False) -> None:
             os.fsync(stream.fileno())
         if read_only:
             os.chmod(temporary, 0o444)
-        os.replace(temporary, path)
+        for attempt in range(10):
+            try:
+                os.replace(temporary, path)
+                break
+            except (PermissionError, OSError):
+                if attempt == 9:
+                    raise
+                time.sleep(0.05)
     finally:
         try:
             temporary.unlink(missing_ok=True)
