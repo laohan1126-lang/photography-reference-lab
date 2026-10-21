@@ -9,6 +9,28 @@ from ref_lab.models import JobInput
 from test_ui_components import component_factory  # reuse the explicitly labelled bridge
 
 
+def test_browser_recovery_details_are_visible_without_claiming_completion(
+        component_factory,library,project,tmp_path,monkeypatch):
+    from ref_lab import collection_queue
+    from ref_lab.browser_recovery import sanitize_diagnostics
+    monkeypatch.setattr(collection_queue,"run_directory",lambda _:tmp_path)
+    job=library.create_job(project["id"],JobInput(kind="collection",collection_mode="search",target_count=30))
+    error=sanitize_diagnostics({"action":"navigate","code":"timeout","details":"Authorization: Bearer fake-private","result":"failed"})
+    collection_queue.write_json(tmp_path/"progress.json",{"phase":"browser_recovering","browser_errors":[error]})
+    page=component_factory()
+    page.evaluate("id=>openCandidateQueue(id,{autoStart:false})",job["id"])
+    expect(page.locator("#cq-status")).to_contain_text("正在恢复浏览器连接")
+    assert "fake-private" not in page.locator("#cq-status").inner_text()
+    collection_queue.write_json(tmp_path/"progress.json",{"phase":"finished"})
+    collection_queue.write_json(tmp_path/"search-summary.json",
+                                {"status":"blocked","stop_reason":"browser_unavailable","browser_errors":[error]})
+    page.evaluate("id=>openCandidateQueue(id,{autoStart:false})",job["id"])
+    expect(page.locator("#cq-status")).to_contain_text("浏览器连接失败，尚未完成搜索")
+    expect(page.locator("#cq-status")).to_contain_text("navigate")
+    expect(page.locator("#cq-status")).to_contain_text("timeout")
+    assert "搜索完成" not in page.locator("#cq-status").inner_text()
+
+
 def test_http200_blocked_stays_visible_with_recovery(component_factory, library, project, monkeypatch):
     monkeypatch.delenv('LAB_COLLECTION_COMMAND', raising=False)
     job = library.create_job(project['id'], JobInput(kind='collection'))

@@ -84,7 +84,7 @@ def after_visual_sample(states: list[str]) -> str:
 
 
 def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit: int = 3,
-                 errors: list | None = None, timing=None) -> list[dict]:
+                 errors: list | None = None, timing=None, command=None) -> list[dict]:
     """Read only currently rendered note DOM. No bootstrap state, cookies or API.
 
     A single unusable slide must not discard slides already received from the
@@ -97,9 +97,12 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
     def span(name):
         return timing.span(name) if timing is not None else nullcontext()
     with span('detail_locate'):
-        result = subprocess.run([bsk,'evaluate','--session',session,'--json',XHS_NOTE_JS],
+        if command is not None:
+            envelope = json.loads(command('evaluate','--session',session,'--json',XHS_NOTE_JS,timeout=30))
+        else:
+            result = subprocess.run([bsk,'evaluate','--session',session,'--json',XHS_NOTE_JS],
                                 capture_output=True,text=True,encoding='utf8',timeout=30,check=True)
-        envelope = json.loads(result.stdout)
+            envelope = json.loads(result.stdout)
         data = envelope.get('value', {})
         if envelope.get('ok') is not True or not isinstance(data,dict) or data.get('error'):
             raise ValueError('Note unavailable or login required')

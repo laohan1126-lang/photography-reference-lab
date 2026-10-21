@@ -741,7 +741,7 @@ def _pinterest_pin_id(url: str) -> str:
 
 
 def fetch_pinterest_detail_metadata(
-    bsk_bin: str, session_id: str, page_url: str, env: dict[str, str], timing=None
+    bsk_bin: str, session_id: str, page_url: str, env: dict[str, str], timing=None, command=None
 ) -> dict:
     """Resolve a visible Pin to its actual primary image without rewriting URLs.
 
@@ -757,22 +757,30 @@ def fetch_pinterest_detail_metadata(
         return {}
     try:
         with span("detail_navigate"):
-            navigated = subprocess.run(
-                [bsk_bin, "navigate", page_url, "--session", session_id,
-                 "--wait-until", "domcontentloaded", "--timeout", "25s"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30,
-            )
+            if command is not None:
+                command("navigate",page_url,"--session",session_id,
+                        "--wait-until","domcontentloaded","--timeout","25s",timeout=30)
+                navigated = None
+            else:
+                navigated = subprocess.run(
+                    [bsk_bin, "navigate", page_url, "--session", session_id,
+                     "--wait-until", "domcontentloaded", "--timeout", "25s"],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30,
+                )
         if getattr(navigated, "returncode", 0) != 0:
             return {}
         for attempt in range(3):
             if attempt:
                 time.sleep(1)
             with span("detail_dom_wait"):
-                completed = subprocess.run(
-                    [bsk_bin, "evaluate", "--session", session_id, "--json", PINTEREST_DETAIL_JS],
-                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=15,
-                )
-                payload = json.loads(completed.stdout)
+                if command is not None:
+                    payload = json.loads(command("evaluate","--session",session_id,"--json",PINTEREST_DETAIL_JS,timeout=15))
+                else:
+                    completed = subprocess.run(
+                        [bsk_bin, "evaluate", "--session", session_id, "--json", PINTEREST_DETAIL_JS],
+                        capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=15,
+                    )
+                    payload = json.loads(completed.stdout)
             if not isinstance(payload, dict) or payload.get("ok") is False:
                 return {}
             data = payload.get("value", {})
@@ -790,6 +798,7 @@ def fetch_pinterest_detail_metadata(
                     return {}
                 return data
     except (OSError, ValueError, subprocess.SubprocessError):
+        if command is not None:raise
         return {}
     return {}
 

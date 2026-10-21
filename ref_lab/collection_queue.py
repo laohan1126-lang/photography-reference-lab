@@ -173,6 +173,11 @@ def _human_items(folder: Path) -> dict[str, dict]:
 
 def _search_summary(folder: Path) -> dict:
     summary = read_json(folder / "search-summary.json", {})
+    progress = read_json(folder / "progress.json", {})
+    if not isinstance(progress,dict):progress={}
+    if progress.get("phase") == "browser_recovering":
+        return {"status":"running","stop_reason":"","phase":"browser_recovering",
+                "browser_errors":progress.get("browser_errors",[])}
     if isinstance(summary, dict) and summary:
         return summary
     state = read_json(folder / "collector-state.json", {})
@@ -185,6 +190,7 @@ def _search_summary(folder: Path) -> dict:
             "stop_reason": state.get("search_stop_reason", ""),
             "found": len(state.get("received", [])),
             "phase": state.get("phase", ""),
+            "browser_errors": read_json(folder / "browser-errors.json", [])[-20:],
         }
     return {}
 

@@ -1108,6 +1108,7 @@ const stopReasonLabels = {
     target_reached:'达成目标',
     soft_target_reached:'达到探索目标',
     search_plan_exhausted:'计划搜索耗尽',
+    search_incomplete:'部分页面未能读取，搜索尚未完成',
     browser_unavailable:'浏览器连接失败，尚未完成搜索',
     sources_blocked:'搜索来源受限（需登录或验证码）',
     time_budget_exhausted:'搜索时间预算耗尽',
@@ -1148,8 +1149,13 @@ function renderCandidateQueue(jobId,data,projectId){
     const reviewState=review.status||data.job?.review_state||'idle';
     const status=$('cq-status'),countsNode=$('cq-counts'),grid=$('cq-grid');
     if(!status||!grid)return;
+    const browserError=(data.progress?.browser_errors||search.browser_errors||[]).filter(e=>e.result!=='recovered').at(-1);
+    const browserMessage=search.phase==='browser_recovering'
+        ? '正在恢复浏览器连接，保留当前查询和已下载图片'
+        : (browserError ? `最近记录的浏览器故障：${browserError.action||'未知'} · ${browserError.code||'未知'} · ${browserError.details||''}` : '');
     status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(stopReasonWord(search.stop_reason)):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(stopReasonWord(review.stop_reason)):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 本目标新增、来源完整、去重且通过画质门槛，并有实际读图证据的真人摄影按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
     if(countsNode)countsNode.outerHTML=candidateCountsMarkup(counts);
+    if(browserMessage)status.innerHTML+=`<p class="form-help">${esc(browserMessage)}</p>`;
     const start=$('cq-start-review');
     if(start){
         const running=reviewState==='running';

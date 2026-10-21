@@ -200,7 +200,7 @@ def test_pinterest_navigation_is_recorded_once_and_dom_separately(tmp_path, monk
     timing = CollectionTiming(tmp_path)
     browser.timing = timing
 
-    def fake_fetch(bsk, session, page, env, timing=None):
+    def fake_fetch(bsk, session, page, env, timing=None, command=None):
         with timing.span("detail_navigate"):
             pass
         with timing.span("detail_dom_wait"):

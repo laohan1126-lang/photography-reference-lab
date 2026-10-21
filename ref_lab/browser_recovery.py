@@ -9,24 +9,20 @@ Disambiguates between:
 from __future__ import annotations
 
 import json
-import os
 import re
+import subprocess
 from typing import Any
 
-_TOKEN_PATTERNS = [
-    re.compile(r'(?i)(token|key|secret|password|auth|authorization|credential)[=:\s"]+([A-Za-z0-9_-]{8,})'),
-    re.compile(r'(?i)cookie:\s*([^;\r\n]+)'),
-    re.compile(r'(?i)(?:https?://[^/?#]+)\?[^#\s]*?(token|auth|key|secret)=([A-Za-z0-9_-]+)'),
-]
-_PATH_HOME_PATTERN = re.compile(r'(?i)[a-z]:\\users\\[^\\]+')
+_SECRET_HEADER = re.compile(r"""(?im)\b(?:cookie|set-cookie|authorization|proxy-authorization)["']?\s*:\s*[^\r\n]+""")
+_SECRET_VALUE = re.compile(r"""(?i)([\w-]*(?:token|key|secret|password|auth|credential)[\w-]*["']?\s*[=:]\s*["']?)[^\s"'&;,}]+""")
+_PATH_HOME_PATTERN = re.compile(r'(?i)[a-z]:[\\/]+users[\\/]+[^\\/\s]+')
 
 
 def sanitize_diagnostics(value: Any) -> Any:
     """Strip cookies, tokens, credentials, and user home paths from diagnostic data."""
     if isinstance(value, str):
-        text = value
-        for pattern in _TOKEN_PATTERNS:
-            text = pattern.sub(r'\1=[REDACTED]', text)
+        text = _SECRET_HEADER.sub('[REDACTED HEADER]', value)
+        text = _SECRET_VALUE.sub(r'\1[REDACTED]', text)
         text = _PATH_HOME_PATTERN.sub('~', text)
         return text
     elif isinstance(value, dict):
@@ -61,8 +57,8 @@ class BrowserError(ValueError):
         self.action = action
         self.code = code
         self.category = category
-        self.details = details
-        self.raw_output = raw_output
+        self.details = sanitize_diagnostics(details)
+        self.raw_output = sanitize_diagnostics(raw_output)
 
 
 class BrowserInfrastructureError(BrowserError):
@@ -156,11 +152,17 @@ def classify_bsk_error(action: str, returncode: int, stdout: str, stderr: str) -
     message = str(parsed.get("message") or parsed.get("hint") or "")
     lower_comb = combined.lower()
 
+    if raw_code in ("selector_not_found", "element_not_found", "element_not_interactable"):
+        return DetailItemError("当前页面元素不可用",code=raw_code,details=message)
+
+    if (raw_code in ("challenge", "captcha", "blocked", "http_403", "http_429", "rate_limited")
+            or re.search(r"\b(?:403|429|captcha|challenge|rate.limit)\b", lower_comb)):
+        return PlatformRestrictionError("来源需要验证或暂时限制访问", restriction="blocked", details=combined[:400])
+
     # Check for session dead / not registered / stopped
     if (
-        raw_code in ("not_found", "session_stopped", "session_not_found")
+        raw_code in ("session_stopped", "session_not_found")
         or "session not registered or already stopped" in lower_comb
-        or "requested resource does not exist" in lower_comb
         or "session is dead" in lower_comb
         or "invalid session" in lower_comb
     ):
@@ -251,7 +253,7 @@ def is_infrastructure_error(exc: BaseException) -> bool:
     """Determine whether an exception represents a browser infrastructure failure."""
     if isinstance(exc, BrowserInfrastructureError):
         return True
-    if isinstance(exc, (OSError, subprocess.SubprocessError)):
+    if isinstance(exc, subprocess.SubprocessError):
         return True
     text = str(exc)
     if text.startswith("BrowserSkill:"):
@@ -259,19 +261,5 @@ def is_infrastructure_error(exc: BaseException) -> bool:
         # Non-infrastructure codes (e.g. login / platform)
         if code in ("login_required", "challenge", "blocked"):
             return False
-        return True
-    if any(
-        kw in text.lower()
-        for kw in (
-            "session not registered",
-            "connection refused",
-            "daemon",
-            "timed out",
-            "timeoutexpired",
-            "broken pipe",
-            "action_failed",
-            "target closed",
-        )
-    ):
         return True
     return False

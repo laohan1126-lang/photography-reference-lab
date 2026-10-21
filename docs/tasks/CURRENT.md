@@ -1,5 +1,10 @@
 # 当前任务
 
+- 本轮：[BrowserSkill独立审计](2026-10-21-browserskill-independent-audit.md)，原AGY提交2385adf不能据7项替身测试判定可靠；修复执行边界，真实BrowserSkill读页仍阻塞。
+- 当前修复分支：`codex/browserskill-independent-audit-20261021`；日用仍77216b4，main172b296，未合并/部署。本轮不写正式库，不调用模型。
+- 下一步按[AGY Goal loop](2026-10-21-browserskill-next-goal-loop.md)定位实际RPC故障、验证自有会话恢复，再以主项目真实30张与重启保持验收；未达标不得宣称Goal完成。
+- Git交付结果以本轮Publisher回执为准；Notion明确不授权。本轮工程验证完成不代表平台采集通过。
+
 - 本轮任务：[摄影参考库 BrowserSkill 采集故障识别与有界恢复](2026-10-21-browserskill-collection-recovery.md)
 - 分支：`codex/browserskill-collection-recovery-20261021`（基线 `172b296f1616befcfc62cda11a083d390d973eb7`），工作树 `.local/worktrees/browserskill-collection-recovery-20261021/root`。
 - 目标：建立采集故障闭环（识别基础设施/平台受限/内容空/单图错误，实现有界恢复与优雅停止，修复查询状态机与诊断脱敏），消除无读取却宣布 `search_plan_exhausted` 的缺陷。

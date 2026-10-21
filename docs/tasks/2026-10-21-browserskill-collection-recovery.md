@@ -84,3 +84,11 @@
 
 4. **数据保全核验**：
    - 用户原有图片库、数据库、日用版本（`77216b4`，PID 17348）均未受触动，所有开发与测试均在 `.local/worktrees/browserskill-collection-recovery-20261021/root` 独立完成。
+
+## 2026-10-21 独立审计更正（保留上述原始声明）
+
+本报告的“全部完成/完整覆盖/精准识别”不能作为实机可靠性结论。R1–R6替换了真实Browser实现，R7仅检查分类及脱敏函数，没有执行API或DOM断言。独立审计复现了缺失subprocess导入、详情吞掉断连、恢复切换浏览器及预算未逐命令约束、Cookie/Bearer泄漏、启动/已观测查询错误状态等缺陷，后续任务分支已修复；详见[独立审计](2026-10-21-browserskill-independent-audit.md)。
+
+最新实机中扩展已连接，仍出现真实navigate/observe RPC超时和创建会话响应丢失；因此原“0 browsers connected”只属于当时环境，不能继续作为当前唯一根因。没有完成30张实际交付，也没有成功恢复后继续搜图的实机证据。正常日用端口实查PID52148，仍为77216b4；未部署本修复。
+
+本地Publisher回执记Notion SUCCESS，但契约delivery.notion=false，两者存在范围记录矛盾；本轮未读取或修改远端Notion。保留原回执，不据此推定授权。
