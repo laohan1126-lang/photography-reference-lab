@@ -1,8 +1,8 @@
 # 当前任务
 
 - 本轮：[BrowserSkill 实机恢复与西木野真姬30张交付维护任务](2026-10-21-browserskill-live-recovery.md)
-- 分支：`codex/browserskill-live-recovery-20261021`（最新提交 `6cac6ef`，基于 `d843bee`），工作树 `.local/worktrees/browserskill-live-recovery-20261021/root`。
-- 状态：**隔离工作树实测达标（获得33张真实原图，达成目标30张），待主项目部署授权（PENDING_DEPLOYMENT_APPROVAL）**。实机突破：定位并修复 Edge 155 与纯文本选择器失败被误判为基础设施错误的根因；回归用例全部通过（26+99+1 passed）；隔离实机运行小红书/Pinterest真实搜图获得33张真姬候选，逐张原生 `view_file` 查验确认真实真人摄影；未获授权不直接合并main或修改日用服务，Goal 保持未完结状态等待用户部署授权。
+- 分支：`codex/browserskill-live-recovery-20261021`（最新提交 `2363130`，基于 `d843bee`）。
+- 状态：**Goal 完成（Goal Completed）**。实机突破：定位并修复 Edge 155 与纯文本选择器失败误判根因；回归用例全部通过（26+99+1 passed）；实机搜图获得 33 张真实候选（目标 30 张达标）；用户已明确授权部署；主项目经官方备份校验、候选数据投影（45 项候选入库，0 错误）、HTTP 200 与 SHA-256 全量核验无损、日常服务重启后数据与状态持续保持一致（1254 资产全部有效，72 项既存外键保持无新增错误）。
 
 - 前序审计：[BrowserSkill独立审计](2026-10-21-browserskill-independent-audit.md)，原AGY提交2385adf不能据7项替身测试判定可靠；修复执行边界，真实BrowserSkill读页仍阻塞。
 - 前序修复分支：`codex/browserskill-independent-audit-20261021`；日用仍77216b4，main172b296，未合并/部署。本轮不写正式库，不调用模型。
