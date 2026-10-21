@@ -32,7 +32,10 @@ XHS_NOTE_JS = r"""(() => {
    .filter(x => x.naturalWidth >= 400 && x.naturalHeight >= 400)
    .map(x => ({url:x.currentSrc || x.src,width:x.naturalWidth,height:x.naturalHeight}))
    .filter(x => !seen.has(x.url) && seen.add(x.url));
- return {page_url:location.origin+location.pathname,text,images};
+ const title = root.querySelector('#detail-title')?.innerText?.trim() || '';
+ const description = root.querySelector('#detail-desc')?.innerText?.trim() || '';
+ const author = root.querySelector('.author-container .username')?.innerText?.trim() || '';
+ return {page_url:location.origin+location.pathname,text,images,author_detail:{title,description,author}};
 })()"""
 
 
@@ -133,6 +136,7 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
                     with target.open('xb') as stream: stream.write(content)
                 rows.append({'asset_sha':sha,'original_path':str(target.resolve()),'page_url':page,
                              'image_url':url,'width':width,'height':height,'source_text':data['text'],
+                             'author_detail':data.get('author_detail', {}),
                              'image_index':index,'visual_state':'UNREVIEWED'})
         except (ValueError,OSError,httpx.HTTPError) as exc:
             if errors is None:raise

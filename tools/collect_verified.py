@@ -494,6 +494,7 @@ class Browser:
             elif hashlib.sha256(path.read_bytes()).hexdigest()!=sha:raise ValueError('Immutable image conflict')
             return [{'asset_sha':sha,'original_path':str(path.resolve()),'page_url':page,'image_url':url,
                      'source_text':detail.get('title','')+'\n'+detail.get('desc',''),'width':width,'height':height,
+                     'author_detail':{'title':detail.get('title',''),'description':detail.get('desc','')},
                      'preview_bytes_reused':reused}]
         finally:
             # Restore the same search page; do not start another query or inspect a related feed.
@@ -657,10 +658,15 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     timing=getattr(agent,'timing',None) or CollectionTiming(folder)
     if hasattr(browser,'timing'):browser.timing=timing
     collage_worker=None
+    type_worker=None
     collage_closed=False
     if search_only:
         from ref_lab.collage import CollageWorker
-        collage_worker=CollageWorker(folder,history=history,known_shas=seen)
+        if (folder/'goal.json').exists():
+            from ref_lab.photo_types import PhotoTypeWorker
+            type_worker=PhotoTypeWorker(folder,limit=agent.candidate_limit)
+        collage_worker=CollageWorker(folder,history=history,known_shas=seen,
+                                     on_record=type_worker.enqueue if type_worker else None)
         # A resumed run must finish local processing for originals received before
         # the interruption; already-completed records are reused, not reprocessed.
         for existing in list(received):
@@ -679,10 +685,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         """The one count used by the stop condition, summary and counts.json."""
         from ref_lab.collage import DerivedStore
         from ref_lab.collection_counts import compute
-        try:
-            stat=(folder/'derived.json').stat();key=(len(received),stat.st_size,stat.st_mtime_ns)
-        except OSError:
-            key=(len(received),0,0)
+        stamps=[]
+        for filename in ('derived.json','photo-types.json'):
+            try:
+                stat=(folder/filename).stat();stamps.append((stat.st_size,stat.st_mtime_ns))
+            except OSError:stamps.append((0,0))
+        key=(len(received),tuple(stamps),tuple(is_confirmed(r) for r in received))
         if force or canonical_cache['key']!=key or canonical_cache['value'] is None:
             canonical_cache['value']=compute(folder,received,DerivedStore(folder).items())
             canonical_cache['key']=key
@@ -895,9 +903,15 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             skipped['other_character']+=1;pages.add(page_key);continue
                         if search_only and relevance['tier']=='non_photo':
                             skipped['non_photo']+=1;pages.add(page_key);continue
-                        if (search_only and relevance['tier'] in ('target_context','unconfirmed')
-                                and exploration()>=exploration_limit(target)):
-                            skipped['exploration_budget']+=1;pages.add(page_key);continue
+                        if search_only and relevance['tier'] in ('target_context','unconfirmed'):
+                            source_rows=[r for r in received if urlsplit(r.get('page_url','')).hostname==parsed.hostname]
+                            query_rows=[r for r in source_rows if r.get('search_query')==query]
+                            if (exploration()>=exploration_limit(target)
+                                    or exploration_count(source_rows)>=max(1,(exploration_limit(target)+len(sources)-1)//len(sources))
+                                    or exploration_count(query_rows)>=1):
+                                skipped['exploration_budget']+=1
+                                state.setdefault('deferred_cards',{})[page_key]={'reason':'exploration_budget','source':source,'query':query,'card':card}
+                                continue
                         if history is not None and hasattr(browser,'check_duplicate'):
                             with timing.span('discovery_preview'):duplicate=browser.check_duplicate(card,history)
                             if duplicate:
@@ -914,8 +928,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         except SourceBlocked:
                             checks[source]={'source':source,'status':'blocked','detail':'已停止受登录/验证限制的来源，尝试其他授权来源。'}
                             reason='login_or_challenge';break
-                        except ValueError:
-                            pages.add(page_key);reason='detail_unavailable';checkpoint();continue
+                        except ValueError as exc:
+                            state.setdefault('operation_errors',[]).append({'action':'detail','page':page_key,
+                                'code':type(exc).__name__,'attempt':page_attempts[page_key],'result':'retry_pending'})
+                            reason='detail_unavailable';checkpoint();continue
                         new_download_errors=getattr(browser,'download_errors',[])
                         if new_download_errors:
                             received_errors.extend(new_download_errors)
@@ -926,6 +942,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 while pending and (len(pending)>=workers or len(candidates)+len(pending)>=target):finish_one()
                             sha=row['asset_sha']
                             if sha in seen:
+                                if search_only and sha in by_sha:
+                                    from ref_lab.search_relevance import associate_detail
+                                    updated=associate_detail(card,row,names=name_records,work_terms=work_terms,other_terms=other_terms)
+                                    existing=by_sha[sha]
+                                    existing.setdefault('discovery_evidence_history',[]).append(updated)
+                                    if updated['tier']=='target_named':existing['relevance']=updated
+                                    save(folder/'received.json',received)
                                 duplicates.append({'asset_sha':sha,'page_url':row['page_url'],'duplicate_of':sha,'reason':'same_bytes_this_run'});continue
                             if search_only:
                                 if confirmed()>=target or per_note>=3:break
@@ -948,9 +971,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 if duplicate:
                                     duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate})
                                     save(folder/'duplicates.json',duplicates);checkpoint();continue
+                            from ref_lab.search_relevance import associate_detail
+                            detail_relevance=associate_detail(card,row,names=name_records,work_terms=work_terms,other_terms=other_terms)
                             row={**row,'search_query':query,'discovery_url':snapshot['url'],
-                                 'acquired_at':time.time(),'relevance':relevance}
+                                 'acquired_at':time.time(),'relevance':detail_relevance if search_only else relevance}
                             received.append(row);attempted+=1;per_note+=1
+                            by_sha[sha]=row
                             if search_only and first_usable is None:
                                 first_usable=time.monotonic()-started
                                 timing.event('first_received',asset_sha=sha)
@@ -975,6 +1001,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     if len(received)>window_before and len(candidates)==kept_before and not search_only:
                         reason='no_verified_match_change_name_or_source';break
                     if search_only:
+                        if type_worker is not None:
+                            collage_worker.drain(timeout=3)
+                            type_worker.drain(timeout=min(60,max(0,getattr(agent,'deadline',time.monotonic())-time.monotonic()-30)))
                         if confirmed()>=target:
                             reason='target_reached';break
                         if confirmed()>confirmed_before:
@@ -993,12 +1022,17 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     if pass_index<len(steps) and not coverage(steps,searches,sources)['explored']:
                         reason='bounded_breadth_next_query';break
             except AgentUnavailable:raise
-            except (ValueError,OSError,subprocess.SubprocessError,httpx.HTTPError):
+            except (ValueError,OSError,subprocess.SubprocessError,httpx.HTTPError) as exc:
                 reason='source_or_detail_failed_change_source'
+                search['retry_count']=int(search.get('retry_count',0))+1
+                state.setdefault('operation_errors',[]).append({'action':'search_or_more','source':source,
+                    'query':query,'code':type(exc).__name__,'attempt':search['retry_count'],'result':'retry_pending'})
                 if not search_only:drain()
             finally:
                 search['stop_reason']=reason or 'agent_blocked'
-                if sys.exc_info()[0] is None:search['done']=reason!='bounded_breadth_next_query'
+                if sys.exc_info()[0] is None:
+                    retryable=reason in ('source_or_detail_failed_change_source','detail_unavailable','search_return_unconfirmed_change_query')
+                    search['done']=(not retryable and reason!='bounded_breadth_next_query') or int(search.get('retry_count',0))>=2
                 entry={'source':source,'query':query,
                        'kept':(sum(r.get('search_query')==query for r in received) if search_only
                                else sum(c['source']['search_query']==query for c in candidates)),
@@ -1030,6 +1064,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             deadline=getattr(agent,'deadline',float('inf'))
             collage_worker.close(timeout=max(1.0,min(30.0,deadline-time.monotonic())))
             collage_closed=True
+        if type_worker is not None:
+            type_worker.close(timeout=max(0,min(180,getattr(agent,'deadline',time.monotonic())-time.monotonic()-5)))
         if not search_only and hasattr(agent,'cache_references'):agent.cache_references(project)
         if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
             stop_reason='sources_blocked';blocked=True
