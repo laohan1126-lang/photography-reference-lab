@@ -152,8 +152,11 @@ def classify_bsk_error(action: str, returncode: int, stdout: str, stderr: str) -
     message = str(parsed.get("message") or parsed.get("hint") or "")
     lower_comb = combined.lower()
 
-    if raw_code in ("selector_not_found", "element_not_found", "element_not_interactable"):
-        return DetailItemError("当前页面元素不可用",code=raw_code,details=message)
+    if (raw_code in ("selector_not_found", "element_not_found", "element_not_interactable")
+            or "selector did not match" in lower_comb
+            or "did not match any element" in lower_comb
+            or "element not found" in lower_comb):
+        return DetailItemError("当前页面元素不可用", code=raw_code or "selector_not_found", details=message or combined[:200])
 
     if (raw_code in ("challenge", "captcha", "blocked", "http_403", "http_429", "rate_limited")
             or re.search(r"\b(?:403|429|captcha|challenge|rate.limit)\b", lower_comb)):

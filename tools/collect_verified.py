@@ -547,7 +547,13 @@ class Browser:
                 if not match:return []
                 note=match.group(1)
                 with self._span('detail_click',source=source):
-                    self.command('click','--selector',f'a.cover[href*="{note}"]','--session',self.session)
+                    try:
+                        self.command('click','--selector',f'a.cover[href*="{note}"]','--session',self.session)
+                    except DetailItemError:
+                        try:
+                            self.command('click','--selector',f'a[href*="{note}"]','--session',self.session)
+                        except DetailItemError:
+                            return []
                 with self._span('detail_dom_wait',source=source):
                     probe=self._probe_detail()
                 entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',
@@ -1102,6 +1108,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         except PlatformRestrictionError:
                             checks[source]={'source':source,'status':'blocked','detail':'来源需要登录或验证'}
                             reason='login_or_challenge';break
+                        except DetailItemError as exc:
+                            state.setdefault('operation_errors',[]).append({'action':'detail','page':page_key,
+                                'code':exc.code,'attempt':page_attempts[page_key],'result':'skip_card'})
+                            continue
                         except ValueError as exc:
                             if is_infrastructure_error(exc):
                                 page_attempts[page_key]-=1
