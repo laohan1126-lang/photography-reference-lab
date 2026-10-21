@@ -152,7 +152,8 @@ def test_api_runner_imports_real_controller_state_contract(client,library,projec
     from test_verified_collection import result
     task=library.create_job(project['id'],JobInput(kind='collection',target_count=1))
     class Agent(AntigravityCollectionAgent):
-        def plan(self,project):return NamePlan(names=[project['character'],'Example Person','テスト甲'])
+        def plan(self,project):return NamePlan(names=[project['character'],'Example Person','テスト甲'],
+            name_records=[{'name':project['character'],'language':'zh','source':'synthetic trusted record'}])
         def prepare(self,project,plan):
             path=self.folder/'reference-images/ref.png';path.parent.mkdir(exist_ok=True)
             path.write_bytes(image_bytes(70,(320,480)))

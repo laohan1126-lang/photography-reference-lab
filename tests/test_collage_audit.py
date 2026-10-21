@@ -69,7 +69,7 @@ def test_dense_grid_is_for_manual_cropping_and_counts_nothing(tmp_path, rows, co
     assert record["reason"] == reason
     assert record["children"] == []
     counts = compute(folder, [row], {row["asset_sha"]: record})
-    assert counts["usable_independent"] == 0
+    assert counts["independent_candidates"] == 0
     assert counts["awaiting_manual"] == 1
 
 
@@ -114,7 +114,7 @@ def test_read_only_view_reports_outdated_record_without_migrating(tmp_path, monk
     monkeypatch.setattr(collection_queue, "run_root", lambda: tmp_path / "runs")
     snapshot = collection_queue.snapshot("job-audit", limit=20)
     assert snapshot["counts"]["outdated_records"] == 1
-    assert snapshot["counts"]["usable_independent"] == 0
+    assert snapshot["counts"]["independent_candidates"] == 0
     assert [item for item in snapshot["items"] if item["derived"]] == []
     assert any(item["collage"] and item["collage"]["outdated"] for item in snapshot["items"])
     assert (folder / "derived.json").read_bytes() == before
@@ -132,7 +132,7 @@ def test_corrupt_child_is_kept_and_excluded_from_counts(tmp_path):
     assert any(item["status"] == collage.CORRUPT for item in again["children"])
     counts = compute(folder, [row], {row["asset_sha"]: again})
     assert counts["derived_valid"] == 1                     # the intact sibling
-    assert counts["usable_independent"] == 1
+    assert counts["independent_candidates"] == 1
     assert counts["integrity_failures"] == 1                # anomaly visible
     assert counts["awaiting_manual"] == 1
 
@@ -156,7 +156,7 @@ def test_changed_original_marks_failed_and_preserves_bytes(tmp_path):
     assert again["status"] == collage.STATUS_FAILED
     assert original.read_bytes() == b"replaced-original"
     counts = compute(folder, [row], {row["asset_sha"]: again})
-    assert counts["usable_independent"] == 0
+    assert counts["independent_candidates"] == 0
     assert counts["integrity_failures"] == 1
 
 
@@ -245,8 +245,8 @@ def test_one_named_collage_with_two_tiles_counts_two_photos(tmp_path):
     assert counts["target_confirmed"] == 1
     assert counts["original_singles"] == 0
     assert counts["derived_valid"] == 2
-    assert counts["usable_independent"] == 2
-    assert counts["usable_named"] == 2
+    assert counts["independent_candidates"] == 2
+    assert counts["named_candidates"] == 2
     assert counts["awaiting_manual"] == 0
 
 
@@ -267,7 +267,7 @@ def test_duplicate_tile_across_parents_counts_once(tmp_path):
     known = {child["child_sha"] for child in record1["children"]}
     record2 = collage.process_original(folder, row2, known_shas=known)
     counts = compute(folder, [row1, row2], {row1["asset_sha"]: record1, row2["asset_sha"]: record2})
-    assert counts["usable_independent"] == 3
+    assert counts["independent_candidates"] == 3
     assert counts["derived_valid"] == 3
     assert len({child["child_sha"] for record in (record1, record2)
                 for child in record["children"] if child["status"] == collage.VALID}) == 3
@@ -280,8 +280,8 @@ def test_human_keep_does_not_change_acquisition_counts(tmp_path, monkeypatch):
     before = collection_queue.snapshot("job-audit", limit=20)["counts"]
     collection_queue.decide("job-audit", record["children"][0]["child_sha"], "keep")
     after = collection_queue.snapshot("job-audit", limit=20)["counts"]
-    assert after["usable_independent"] == before["usable_independent"]
-    assert after["usable_named"] == before["usable_named"]
+    assert after["independent_candidates"] == before["independent_candidates"]
+    assert after["named_candidates"] == before["named_candidates"]
     assert after["human_keep"] == 1
 
 

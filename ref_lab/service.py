@@ -462,6 +462,8 @@ class Library:
         project = job.get("project_snapshot") or {}
         relevance = item.get("relevance") if isinstance(item.get("relevance"), dict) else {}
         tier = str(relevance.get("tier") or "unconfirmed")
+        from .search_relevance import is_confirmed
+        named = item.get('name_associated', is_confirmed(item))
         label = str(relevance.get("label") or "角色相关性未确认")
         source = item.get("source") if isinstance(item.get("source"), dict) else {}
         character = str(project.get("character") or "")
@@ -483,7 +485,7 @@ class Library:
                       "“实际可用独立照片”；子图在候选图库中单独选择。")
         else:
             title = (character + " · " +
-                     ("名称命中候选（未视觉核验）" if tier == "target_named"
+                     ("名称命中候选（未视觉核验）" if named
                       else "角色相关性未确认候选"))[:400]
             reason = f"快速搜图已下载并保存原图；{label}；尚未通过视觉审核。"
         return CandidateInput(
@@ -494,7 +496,7 @@ class Library:
                           search_query=str(source.get("search_query") or ""),
                           obtained_as="platform_variant"),
             job_id=job["id"],
-            discovery_intent="exact_character" if tier == "target_named" else "unknown",
+            discovery_intent="exact_character" if named else "unknown",
             discovery_reason=reason,
             discovery_url=str(item.get("discovery_url") or ""))
 
@@ -1021,6 +1023,16 @@ class Library:
                    "reference_ids": ids, "snapshots": snapshots, "context": context_digest(project),
                    "imported_ids": [], "completed_ids": [], "created_at": now(), "updated_at": now()}
             if request.kind == "collection":
+                if request.goal_id:
+                    goal_path = Path(__file__).resolve().parents[1]/'.local/goals'/request.goal_id/'goal.json'
+                    if not goal_path.is_file() or goal_path.is_symlink():
+                        raise Problem(422, "持续目标不存在；请先建立历史基线")
+                    goal = json.loads(goal_path.read_text('utf8'))
+                    if (int(goal.get('target', 0)) != request.target_count
+                            or project['character'] not in goal.get('names', [])
+                            or project.get('work', '') != goal.get('work', '')):
+                        raise Problem(422, "本项目名称、作品或目标数与持续目标不一致")
+                    job['goal_id'] = request.goal_id
                 job.update(collection_outcome="blocked", collection_attempt_count=0, collection_elapsed_seconds=0.0,
                            collection_mode=request.collection_mode,
                            search_state="idle", search_counts={"found": 0, "accepted": 0},
@@ -1562,6 +1574,9 @@ class Library:
                 job["collection_outcome"] = "blocked"
             if terminal:
                 job["search_finished_at"] = time.time()
+                accounted=float(job.get('search_elapsed_seconds',0) or 0)
+                if job.get('search_attempt_started_at'):
+                    accounted+=max(0.,job['search_finished_at']-float(job['search_attempt_started_at']))
                 elapsed = summary.get("cumulative_elapsed_seconds")
                 if not isinstance(elapsed, (int, float)):
                     elapsed = summary.get("elapsed_seconds")
@@ -1571,10 +1586,11 @@ class Library:
                     # backwards even if the adapter checkpoint only counted its
                     # own process time.
                     job["search_elapsed_seconds"] = max(
-                        float(job.get("search_elapsed_seconds", 0.0) or 0.0), float(elapsed))
-                elif job.get("search_attempt_started_at"):
-                    job["search_elapsed_seconds"] = float(job.get("search_elapsed_seconds", 0.0)) + max(
-                        0.0, time.time() - float(job["search_attempt_started_at"]))
+                        accounted, float(elapsed))
+                else:
+                    job['search_elapsed_seconds']=accounted
+                job['search_summary']['cumulative_elapsed_seconds']=job['search_elapsed_seconds']
+                _settle_collection_time(job)
                 job.pop("search_attempt_started_at", None)
                 if job.get("active_attempt_id") == attempt_id:
                     job.pop("active_attempt_id", None)
@@ -1685,10 +1701,14 @@ class Library:
                 raise Problem(409, "审核仍在运行；请先停止审核再扩大搜索目标")
             base = int(job.get("target_count") or 0)
             already = int(job.get("search_extra_target") or 0)
+            if job.get('goal_id'):
+                raise Problem(409, "持续Goal目标固定；请使用继续补足，额外目标应另建任务")
             total = base + already + int(extra_target)
             if total > 100:
                 raise Problem(422, f"累计目标最多 100 张；当前 {base + already} 张，不能再加 {extra_target} 张")
             job.update(search_extra_target=already + int(extra_target), search_state="idle",
+                       search_timeout_seconds=float(job.get('search_timeout_seconds') or 900)+900,
+                       search_resume_generation=int(job.get('search_resume_generation',0))+1,
                        search_stop_reason="", search_detail=detail or
                        f"继续加搜：累计目标 {total} 张；已下载候选保留且不会重复计数。")
             if job["status"] in {"succeeded", "failed"}:
@@ -1699,6 +1719,26 @@ class Library:
             return self._save_job(con, job, "collection.search_extended",
                                   {"extra_target": int(extra_target), "target_total": total}, "human")
 
+    def replenish_search(self, ident: str, additional_seconds: int = 900) -> dict:
+        """Add an explicit attempt budget while retaining the original target."""
+        if not 60 <= additional_seconds <= 900:
+            raise Problem(422, "单次新增预算应为60至900秒")
+        with self.db.transaction() as con:
+            job = row_data(con, 'jobs', ident)
+            ensure_active_project(row_data(con, 'projects', job['project_id']))
+            if (job.get('collection_mode') not in {'search', 'search_review'}
+                    or job.get('search_state') not in {'completed', 'partial', 'blocked', 'failed', 'cancelled'}
+                    or job.get('review_state') == 'running' or job['status'] == 'cancelled'):
+                raise Problem(409, "当前任务不可继续补足")
+            previous = float(job.get('search_timeout_seconds') or 900)
+            job.update(search_state='idle', search_stop_reason='', status='blocked',
+                       search_timeout_seconds=previous + additional_seconds,
+                       search_resume_generation=int(job.get('search_resume_generation', 0)) + 1,
+                       search_detail=f"继续补足原目标；新增预算{additional_seconds}秒，历史时间与成果保留。")
+            return self._save_job(con, job, 'collection.search_replenished',
+                {'additional_seconds': additional_seconds, 'cumulative_budget': previous + additional_seconds,
+                 'target': int(job.get('target_count') or 0) + int(job.get('search_extra_target') or 0)}, 'human')
+
     def cancel_search_stage(self, ident: str, detail: str = "用户取消搜索；已下载候选保留。") -> dict:
         """Cancel Search without deleting originals or completed reviews."""
         with self.db.transaction() as con:
@@ -1707,6 +1747,10 @@ class Library:
                 raise Problem(409, "当前搜索阶段不可取消")
             job.update(search_state="cancelled", search_stop_reason="user_cancelled",
                        search_detail=detail)
+            if job.get('search_attempt_started_at'):
+                job['search_elapsed_seconds']=float(job.get('search_elapsed_seconds',0) or 0)+max(
+                    0.,time.time()-float(job['search_attempt_started_at']))
+            _settle_collection_time(job)
             job.pop("active_attempt_id", None)
             job.pop("collection_process_owner", None)
             job.pop("search_attempt_started_at", None)

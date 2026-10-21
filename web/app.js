@@ -1115,7 +1115,7 @@ function candidateCountsMarkup(counts){
         +cell(c.target_confirmed,'角色名称命中')
         +cell(c.original_singles,'原始独立单图')
         +cell(c.derived_valid,'拼图有效子图')
-        +cell(c.usable_independent,'实际可用独立照片')
+        +cell(c.independent_candidates,'独立候选')+cell(c.type_pending,'类型待确认')+cell(c.type_rejected,'类型未通过')+cell(c.usable_independent,'实际可用独立照片')
         +cell(c.usable_named,'其中名称命中')
         +cell(c.awaiting_manual,'待人工裁切/未确认')
         +cell(c.outdated_records,'记录待更新')
@@ -1133,30 +1133,31 @@ function renderCandidateQueue(jobId,data,projectId){
     const reviewState=review.status||data.job?.review_state||'idle';
     const status=$('cq-status'),countsNode=$('cq-counts'),grid=$('cq-grid');
     if(!status||!grid)return;
-    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 探索或名称命中的独立单图与拼图合格子图按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
+    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 本目标新增、来源完整、去重且通过画质门槛，并有实际读图证据的真人摄影按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
     if(countsNode)countsNode.outerHTML=candidateCountsMarkup(counts);
     const start=$('cq-start-review');
     if(start){
         const running=reviewState==='running';
-        const canStart=!running&&['completed','partial','blocked'].includes(searchState)&&(counts.pending||counts.blocked||reviewState==='idle');
+        const canStart=!running&&['completed','partial','blocked','failed','cancelled'].includes(searchState)&&(counts.pending||counts.blocked||reviewState==='idle');
         start.disabled=!canStart;
         start.textContent=running?'AI 审核进行中…':(canStart?(counts.blocked&&!counts.pending?'重试受阻审核':'启动 AI 审核（独立于搜索）'):'搜索完成后可启动 AI 审核');
     }
     const openProject=$('cq-open-project');
-    if(openProject)openProject.disabled=!(counts.found>0&&['completed','blocked'].includes(searchState));
+    if(openProject)openProject.disabled=!(counts.found>0&&['completed','partial','blocked','failed','cancelled'].includes(searchState));
     const cancelReview=$('cq-cancel-review');
     if(cancelReview)cancelReview.hidden=reviewState!=='running';
     const continueSearch=$('cq-continue-search');
-    if(continueSearch){continueSearch.hidden=searchState==='running';continueSearch.disabled=!['completed','partial','blocked'].includes(searchState);}
+    if(continueSearch){continueSearch.hidden=searchState==='running';continueSearch.disabled=data.job?.status==='cancelled'||!['completed','partial','blocked','failed','cancelled'].includes(searchState);}
     const cancelSearch=$('cq-cancel-search');
     if(cancelSearch)cancelSearch.hidden=searchState!=='running';
     const items=data.items||[];
     grid.innerHTML=items.map((item,index)=>{
         const label=candidateStatusLabels[item.status]||item.status;
         const rel=item.relevance||{};
-        const relevanceBadge=rel.tier&&rel.tier!=='target_named'
+        const relevanceBadge=rel.tier&&!item.name_associated
             ?`<span class="badge" title="${esc(rel.reason||'')}">${esc(rel.label||'角色相关性未确认')}</span>`
             :`<span class="badge" title="文字名称命中不等于视觉身份通过">名称命中 · 未视觉核验</span>`;
+        const type=item.photo_type||{}; const typeLabel=item.photo_audit?.status==='duplicate'?'同照片重复版本 · 不计新增':item.goal_qualified?'本目标合格摄影':type.status==='succeeded'?(type.result?.kind||'类型未知'):'类型待确认';
         const review=item.review?`<p class="form-help">${esc(item.review.identity?('角色 '+item.review.identity):'')}${item.review.costume?' · 服装 '+esc(item.review.costume):''}${item.review.confidence?' · '+esc(item.review.confidence):''}</p>${item.review.reason?`<p>${esc(item.review.reason)}</p>`:''}`:'';
         const error=item.review_error?`<p class="error-text">${esc(item.review_error)}</p>`:'';
         const derived=item.derived?`<span class="badge" title="由原拼图本地无损裁切生成；不是 AI 通过">拼图子图 ${esc(item.child_index||'?')}/${esc(item.child_total||'?')}</span>`:'';
@@ -1182,7 +1183,7 @@ function renderCandidateQueue(jobId,data,projectId){
             ?`<p class="form-help">裁切 x${esc(item.crop[0])} y${esc(item.crop[1])} · ${esc(item.crop[2])}×${esc(item.crop[3])} · 清晰度 ${esc(item.quality?.sharpness??'—')}</p>`:'';
         return `<article class="candidate-card" data-sha="${esc(item.asset_sha)}">
           <a class="candidate-image" href="${esc(item.original_url)}" target="_blank" rel="noreferrer"><img loading="lazy" src="${esc(item.original_url)}" alt="候选原图 ${index+1}"></a>
-          <div class="candidate-body"><div class="compact-row"><span class="badge">${esc(label)}</span>${relevanceBadge}${derived}${item.human_decision?`<span class="badge">人工决定优先</span>`:''}</div>
+          <div class="candidate-body"><div class="compact-row"><span class="badge">${esc(label)}</span>${relevanceBadge}<span class="badge" title="${esc(type.result?.evidence||type.error||'尚无实际读图证据')}">${esc(typeLabel)}</span>${derived}${item.human_decision?`<span class="badge">人工决定优先</span>`:''}</div>
           <p>${esc(item.source.search_query||'来源搜索词未记录')}</p>
           <p class="form-help">${esc(item.source.author||'作者未记录')} · ${item.width&&item.height?esc(item.width+'×'+item.height):'尺寸未记录'}</p>${collageInfo}${crop}${review}${error}
           <div class="compact-row"><a href="${esc(item.original_url)}" target="_blank" rel="noreferrer">${item.derived?'打开子图':'打开原图'}</a><a href="${esc(item.source.page_url)}" target="_blank" rel="noreferrer">原帖</a><button data-decision="keep" class="quiet">人工保留</button><button data-decision="reject" class="quiet">人工淘汰</button>${item.human_decision?'<button data-decision="clear" class="quiet">撤销人工决定</button>':''}</div></div>
@@ -1234,16 +1235,16 @@ async function openCandidateQueue(jobId,{autoStart=true}={}){
         try{job=await api(`/api/jobs/${jobId}`);}catch(error){}
     }
     const projectId=job?.project_id||'';
-    modal('候选图库 · 先看原图，再审核',`<p id="cq-status" class="notice" role="status">正在读取候选队列…</p>${candidateCountsMarkup({})}<div class="compact-row"><button id="cq-start-review" class="primary">启动 AI 审核（独立于搜索）</button><button id="cq-cancel-review" class="quiet" hidden>取消 AI 审核（不影响搜索）</button><button id="cq-continue-search" class="quiet">继续加搜</button><button id="cq-cancel-search" class="quiet" hidden>停止搜索（保留已下载）</button><button id="cq-open-project" class="quiet">在项目中查看候选</button><button id="cq-refresh" class="quiet">刷新</button></div><div id="cq-grid" class="candidate-grid"></div>`);
+    modal('候选图库 · 先看原图，再审核',`<p id="cq-status" class="notice" role="status">正在读取候选队列…</p>${candidateCountsMarkup({})}<div class="compact-row"><button id="cq-start-review" class="primary">启动 AI 审核（独立于搜索）</button><button id="cq-cancel-review" class="quiet" hidden>取消 AI 审核（不影响搜索）</button><button id="cq-continue-search" class="quiet">${job.goal_id?`继续补足 ${job.target_count} 张 · 追加900秒`:'补足原目标 / 额外加搜'}</button><button id="cq-cancel-search" class="quiet" hidden>停止搜索（保留已下载）</button><button id="cq-open-project" class="quiet">在项目中查看候选</button>${job.goal_id?`<a href="/api/jobs/${jobId}/goal-results" target="_blank" rel="noreferrer">本Goal摄影成果</a>`:''}<button id="cq-refresh" class="quiet">刷新</button></div><div id="cq-grid" class="candidate-grid"></div>`);
     $('cq-refresh').onclick=()=>refreshCandidateQueue(jobId,projectId).catch(showError);
     $('cq-cancel-search').onclick=async()=>{
         try{await api(`/api/jobs/${jobId}/search/cancel`,{method:'POST'});toast('已停止搜索；已下载候选和人工决定保留');await refreshCandidateQueue(jobId,projectId);}catch(error){showError(error);}
     };
     $('cq-continue-search').onclick=async()=>{
-        const raw=prompt('再增加多少张候选？（累计目标最多 100 张）','10');
+        const raw=job.goal_id?'0':prompt('继续补足原目标请输入 0；额外新增请输入数量。本次追加最多 900 秒，保留累计历史。','0');
         if(raw===null)return;
         const extra=Number(raw);
-        if(!Number.isInteger(extra)||extra<1){showError(new Error('请输入 1–100 的整数'));return;}
+        if(!Number.isInteger(extra)||extra<0){showError(new Error('请输入 0–100 的整数'));return;}
         try{await api(`/api/jobs/${jobId}/search/continue`,{method:'POST',body:{extra_target:extra}});toast('已继续加搜；已有候选不会重复下载或计数');await refreshCandidateQueue(jobId,projectId);}catch(error){showError(error);}
     };
     $('cq-cancel-review').onclick=async()=>{
@@ -1254,10 +1255,10 @@ async function openCandidateQueue(jobId,{autoStart=true}={}){
 }
 function collectionEditor(projectId=state.project?.id) {
     if(!state.projects.length){projectEditor();return;}
-    const root=modal('快速搜图，还是同时 AI 审核？',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${select('运行方式','collection_mode',{search:'快速搜图：先拿原图，稍后人工或 AI 审核',search_review:'搜图 + AI 审核：搜索不等待审核'},'search')}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('期望候选数量（质量优先，不凑数）','target_count',30,'number','min="1" max="100" required')}${label('额外检索别名（选填，中/日/英，逗号分隔）','search_aliases','','text','maxlength="600" placeholder="例如：Maki Nishikino, 西木野真姫"')}<p class="form-help">默认建议 30 张；单轮最多 100 张，超过请分批继续加搜。快速搜图不调用名称/参照/视觉模型，不做官方资料考证；只使用项目名称、人工维护别名和你在这里补充的别名。原图下载成功后立即出现在候选图库，未命中角色名称的图片会明确标记“角色相关性未确认”，不会凑满目标。AI 审核独立运行，参照调查、身份核验和完整补证仍按原严格门槛执行。</p><div class="form-actions"><button type="submit" class="primary">开始搜图</button></div></form>`);
+    const root=modal('快速搜图，还是同时 AI 审核？',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${select('运行方式','collection_mode',{search:'快速搜图：先拿原图，稍后人工或 AI 审核',search_review:'搜图 + AI 审核：搜索不等待审核'},'search')}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('持续目标编号（选填）','goal_id','','text','maxlength="100"')}${label('期望候选数量（质量优先，不凑数）','target_count',30,'number','min="1" max="100" required')}${label('额外检索别名（选填，中/日/英，逗号分隔）','search_aliases','','text','maxlength="600" placeholder="例如：Maki Nishikino, 西木野真姫"')}<p class="form-help">默认建议 30 张；单轮最多 100 张，超过请分批继续加搜。持续目标会逐张调用现有模型确认图片类型；原件先展示，未知类型不计达标。搜索不做官方身份考证；只使用项目名称、人工维护别名和你在这里补充的别名。原图下载成功后立即出现在候选图库，未命中角色名称的图片会明确标记“角色相关性未确认”，不会凑满目标。AI 审核独立运行，参照调查、身份核验和完整补证仍按原严格门槛执行。</p><div class="form-actions"><button type="submit" class="primary">开始搜图</button></div></form>`);
     formSubmit(root,async data=>{
         const aliases=String(data.search_aliases||'').split(/[,，;；\n]+/).map(x=>x.trim()).filter(Boolean).slice(0,12);
-        const job=await api(`/api/projects/${data.project_id}/jobs`,{method:'POST',body:{kind:'collection',notes:data.notes,target_count:Number(data.target_count),search_aliases:aliases,collection_mode:data.collection_mode}});
+        const job=await api(`/api/projects/${data.project_id}/jobs`,{method:'POST',body:{kind:'collection',notes:data.notes,target_count:Number(data.target_count),goal_id:data.goal_id||'',search_aliases:aliases,collection_mode:data.collection_mode}});
         closeModal();
         await openCandidateQueue(job.id,{autoStart:true});
     });
@@ -1268,8 +1269,8 @@ async function renderJobs() {
     $('view').innerHTML=`<div class="notice">快速搜图先下载并展示候选，不等待官方参照调查或视觉模型；AI 审核独立运行。搜索状态与审核状态分别记录，审核失败不会删除已下载候选。</div><div class="toolbar"><button id="create-collection" class="primary">＋ 建立搜图任务</button><button id="refresh-jobs">刷新结果</button></div><div class="job-grid">${jobs.map(j=>{
         const split=Boolean(j.is_split_mode),sc=j.search_counts||{},rc=j.review_counts||{};
         const totalTarget=(j.target_count||0)+(j.search_extra_target||0);
-        const stageLine=split?`已找到 ${sc.found||0} · 角色名称命中 ${sc.target_confirmed||0} · 未确认 ${sc.exploration||0} · AI通过 ${rc.accepted||0} / 目标 ${totalTarget} · 搜索 ${stageWords(j.search_state,searchStageLabels)} · 审核 ${stageWords(j.review_state,reviewStageLabels)}`:`本轮 ${j.last_receipt_reference_ids?.length||0} / ${totalTarget} · 累计导入 ${j.imported_ids.length}`;
-        const queueButtons=split?`<button data-action="queue">候选图库</button>${j.can_start_review?'<button data-action="start-review" class="quiet">启动AI审核</button>':''}${['completed','partial','blocked'].includes(j.search_state)?'<button data-action="continue-search" class="quiet">继续加搜</button>':''}`:'';
+        const stageLine=j.goal_id?`目标合格摄影 ${sc.usable_named||0} / ${totalTarget} · 已保存候选 ${sc.found||0} · 类型待确认 ${sc.type_pending||0} · 类型未通过 ${sc.type_rejected||0} · 搜索 ${stageWords(j.search_state,searchStageLabels)}`:split?`已找到 ${sc.found||0} · 角色名称命中 ${sc.target_confirmed||0} · 未确认 ${sc.exploration||0} · AI通过 ${rc.accepted||0} / 目标 ${totalTarget} · 搜索 ${stageWords(j.search_state,searchStageLabels)} · 审核 ${stageWords(j.review_state,reviewStageLabels)}`:`本轮 ${j.last_receipt_reference_ids?.length||0} / ${totalTarget} · 累计导入 ${j.imported_ids.length}`;
+        const queueButtons=split?`<button data-action="queue">候选图库</button>${j.can_start_review?'<button data-action="start-review" class="quiet">启动AI审核</button>':''}${j.status!=='cancelled'&&['completed','partial','blocked','failed','cancelled'].includes(j.search_state)?`<button data-action="continue-search" class="quiet">${j.goal_id?`继续补足 ${j.target_count} 张 · 追加900秒`:'补足原目标 / 额外加搜'}</button>`:''}`:'';
         return `<article class="job-card" data-job="${j.id}"><div class="compact-row">${badge(j.kind==='collection'?'搜图':'制卡')}${split?badge('搜索 '+stageWords(j.search_state,searchStageLabels)):badge(statuses[j.status],j.status)}${split?badge('审核 '+stageWords(j.review_state,reviewStageLabels)):(j.kind==='collection'&&j.collection_outcome?badge({complete:'目标已达',partial:'部分完成',blocked:'待恢复'}[j.collection_outcome]):'')}</div><h3>${esc(j.project_snapshot?.character||state.projects.find(p=>p.id===j.project_id)?.character||'历史项目')}</h3><p>${esc(split?stageLine:j.detail)}</p>${split?'':`<p>${stageLine}</p>`}<small>${esc(j.created_at.slice(0,16).replace('T',' '))}</small><div class="compact-row">${queueButtons}${split?'<button data-action="handoff" class="quiet">任务与结果</button>':`<button data-action="handoff">${j.kind==='collection'&&j.can_resume&&j.collection_attempt_count?'继续本次采集':'任务与结果'}</button>`}${j.kind==='collection'&&j.imported_ids.length?'<button data-action="candidates">挑这批图片</button>':''}${j.kind==='analysis'&&j.reference_ids.length?'<button data-action="reference">查看这张参考</button>':''}${!['succeeded','cancelled'].includes(j.status)?'<button data-action="cancel" class="quiet">取消</button>':''}</div><details><summary>要求、来源检查与缺口</summary><pre>${esc(JSON.stringify({project:j.project_snapshot,notes:j.notes,report:j.execution_report,search:j.search_summary,review:j.review_summary},null,2))}</pre></details></article>`;
     }).join('')||empty('从一轮具体需求开始','任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。')}</div>`;
     $('create-collection').onclick=()=>collectionEditor();$('refresh-jobs').onclick=()=>renderJobs().catch(showError);
@@ -1279,8 +1280,8 @@ async function renderJobs() {
         if(n.dataset.action==='queue')return openCandidateQueue(job.id,{autoStart:false});
         if(n.dataset.action==='start-review'){await api(`/api/jobs/${job.id}/review`,{method:'POST'});toast('独立 AI 审核已启动');return openCandidateQueue(job.id,{autoStart:false});}
         if(n.dataset.action==='continue-search'){
-            const raw=prompt('再增加多少张候选？（累计目标最多 100 张）','10');if(raw===null)return;
-            const extra=Number(raw);if(!Number.isInteger(extra)||extra<1){showError(new Error('请输入 1–100 的整数'));return;}
+            const raw=job.goal_id?'0':prompt('继续补足原目标请输入 0；额外新增请输入数量。本次追加最多 900 秒，保留累计历史。','0');if(raw===null)return;
+            const extra=Number(raw);if(!Number.isInteger(extra)||extra<0){showError(new Error('请输入 0–100 的整数'));return;}
             await api(`/api/jobs/${job.id}/search/continue`,{method:'POST',body:{extra_target:extra}});
             toast('已继续加搜；已有候选不会重复下载或计数');return renderJobs();
         }

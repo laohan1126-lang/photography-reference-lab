@@ -46,6 +46,12 @@ $config = [ordered]@{
     data_dir = $resolved
     port = $Port
 }
+if (Test-Path $script:WindowsRuntimeConfigPath) {
+    $previous = Get-Content -LiteralPath $script:WindowsRuntimeConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    foreach ($key in @('history_roots', 'auto_classify', 'search_timeout_seconds')) {
+        if ($null -ne $previous.$key) { $config[$key] = $previous.$key }
+    }
+}
 $config | ConvertTo-Json | Set-Content -LiteralPath $script:WindowsRuntimeConfigPath -Encoding UTF8
 
 Write-Host "[OK] Windows runtime configured." -ForegroundColor Green

@@ -44,7 +44,7 @@ TIER_LABELS = {
     "target_context": "作品线索 · 角色相关性未确认",
     "unconfirmed": "角色相关性未确认",
     "other_character": "疑似其他角色",
-    "non_photo": "非真人摄影内容",
+    "non_photo": "文字提示非摄影（待看图）",
 }
 
 
@@ -135,7 +135,7 @@ def classify_card(card: dict, *, names: Iterable = (), work_terms: Iterable = ()
             "target_context": "可见文字命中作品与摄影意图，但未命中角色名称。",
             "unconfirmed": "没有可用的角色文字证据；保留探索，不冒充已确认目标。",
             "other_character": "可见文字明确指向其他角色；不作为目标角色候选。",
-            "non_photo": "可见文字明确为非真人摄影内容；不作为摄影候选。",
+            "non_photo": "可见文字含非摄影提示；仅作检索线索，图片类型仍需实际看图。",
         }[tier],
     }
 
@@ -147,7 +147,10 @@ def exploration_limit(target: int) -> int:
 
 
 def is_confirmed(row: dict) -> bool:
-    return str((row.get("relevance") or {}).get("tier") or "") == "target_named"
+    relevance = row.get('relevance') or {}
+    # Name association and image type are separate; only actual vision admits photography.
+    return relevance.get('tier') == 'target_named' or (relevance.get('tier') == 'non_photo'
+        and bool(relevance.get('name_hits')) and not relevance.get('explicit_other_marker'))
 
 
 def confirmed_count(rows: Iterable[dict]) -> int:
@@ -167,9 +170,25 @@ def associate_detail(card, row, *, names=(), work_terms=(), other_terms=()):
     detail_evidence = {k: detail[k] for k in ('title', 'description', 'author') if k in detail}
     card_result = classify_card(card_evidence, names=names, work_terms=work_terms, other_terms=other_terms)
     detail_result = classify_card(detail_evidence, names=names, work_terms=work_terms, other_terms=other_terms)
-    result = detail_result if detail_result['text_present'] else card_result
+    result = (detail_result if detail_result['tier'] in {'target_named', 'other_character', 'non_photo'}
+              or (detail_result['text_present'] and card_result['tier'] != 'target_named') else card_result)
     return {**result, 'card': {'evidence': card_evidence, 'relevance': card_result},
             'detail': {'evidence': detail_evidence, 'relevance': detail_result}}
+
+
+def query_feedback(*, cards, named, duplicates, received, rejected, detail_failures, blocked=False):
+    if blocked:
+        return {'reason':'platform_blocked','action':'stop_source'}
+    if detail_failures:
+        return {'reason':'detail_failure','action':'bounded_retry'}
+    if duplicates and duplicates >= received:
+        return {'reason':'history_duplicate_high','action':'change_photography_intent'}
+    if rejected and not received:
+        return {'reason':'non_photographic_high','action':'change_photography_intent'}
+    if cards and not named:
+        return {'reason':'name_coverage_insufficient','action':'next_trusted_name'}
+    return {'reason':'candidates_received' if received else 'no_new_results',
+            'action':'continue' if received else 'next_query'}
 
 
 def relevance_counts(rows: Iterable[dict]) -> dict:
@@ -178,6 +197,6 @@ def relevance_counts(rows: Iterable[dict]) -> dict:
     for row in rows:
         tier = str((row.get("relevance") or {}).get("tier") or "unconfirmed")
         counts[tier if tier in counts else "unconfirmed"] += 1
-    counts["confirmed"] = counts["target_named"]
+    counts["confirmed"] = confirmed_count(rows)
     counts["exploration"] = counts["target_context"] + counts["unconfirmed"]
     return counts

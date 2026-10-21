@@ -255,7 +255,7 @@ def _plan_name_records(project: dict, plan: NamePlan) -> list[dict]:
     return records[:16]
 
 
-def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]:
+def query_steps(project: dict, plan: NamePlan, sources: list[str], *, intent_offset: int = 0) -> list[dict]:
     records = _plan_name_records(project, plan)
     if not records:
         raise ValueError("Name plan has no usable trusted name")
@@ -301,7 +301,8 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]
                 parts.append(work)
             if costume:
                 parts.append(costume)
-            parts.append(intents[source][index])
+            intent=intents[source][(index+intent_offset)%len(intents[source])]
+            parts.append(intent)
             query = " ".join(part for part in parts if part).strip()
             if len(query) > 240:
                 query = query[:240].rstrip()
@@ -313,7 +314,7 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str]) -> list[dict]
                 "source": source, "query": query, "language": record["language"],
                 "used_name": record["name"], "name_source": record["source"],
                 "alias_origin": "agent_discovery_hypothesis", "work_term": work,
-                "intent": intents[source][index],
+                "intent": intent,
             })
         pools[source] = pool
     # Interleave platforms so neither source waits for all queries of the other.

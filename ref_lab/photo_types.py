@@ -29,12 +29,22 @@ def verified_photo(item, sha):
             and bool(result.get("evidence")))
 
 
+def receipt_intact(folder, item):
+    """A claimed read is reusable only while its original stream still verifies."""
+    from .integrity import sha_matches
+    if not isinstance(item, dict):
+        return False
+    path = Path(str(item.get('stream_path') or ''))
+    return (not path.is_symlink() and path.resolve().is_relative_to((Path(folder)/'type-evidence').resolve())
+            and sha_matches(path, str(item.get('stream_sha') or '')))
+
+
 class PhotoTypeWorker:
     """One bounded consumer, receiving only this run's actual split records."""
 
     def __init__(self, folder, *, analyzer=None, limit=45):
         self.folder = Path(folder)
-        self.analyzer = analyzer or AntigravityClassifier()
+        self.analyzer = analyzer or AntigravityClassifier(evidence_dir=self.folder/'type-evidence')
         self.limit = limit
         self.stop = threading.Event()
         self.pending = queue.Queue()
@@ -70,7 +80,8 @@ class PhotoTypeWorker:
                 break
             data = read_json(self.folder/'photo-types.json', {"version": 1, "items": {}, "calls": []})
             previous = data['items'].get(sha, {})
-            if previous.get('status') == 'succeeded' and previous.get('asset_sha') == sha:
+            if (previous.get('status') == 'succeeded' and previous.get('asset_sha') == sha
+                    and receipt_intact(self.folder, previous)):
                 continue
             if len(data['calls']) >= self.limit:
                 self.blocked = True
@@ -98,6 +109,7 @@ class PhotoTypeWorker:
                 if not (entry.get('status') == 'succeeded' and entry.get('read_evidence')):
                     raise ValueError('missing_actual_read_receipt')
             except Exception as exc:
+                entry.update(getattr(self.analyzer, 'last_receipt', {}))
                 entry.update(status='blocked' if isinstance(exc, ClassificationUnavailable) else 'failed',
                              error=type(exc).__name__, finished_at=time.time())
                 if isinstance(exc, ClassificationUnavailable):

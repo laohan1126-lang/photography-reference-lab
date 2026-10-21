@@ -231,8 +231,8 @@ def test_queue_exposes_usable_children_and_routes_decisions(tmp_path, monkeypatc
     assert counts["collages"] == 1
     assert counts["derived_valid"] == 2
     # Two usable tiles + the non-collage original; the collage parent is excluded.
-    assert counts["usable_independent"] == 3
-    assert counts["usable_named"] == 3
+    assert counts["independent_candidates"] == 3
+    assert counts["named_candidates"] == 3
     children = [item for item in snapshot["items"] if item["derived"]]
     assert len(children) == 2
     child = children[0]

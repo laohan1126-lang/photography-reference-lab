@@ -30,6 +30,21 @@ function Get-ReferenceLabRuntimeConfig {
         if (-not $env:LAB_PORT -and $stored.port) {
             $port = [int]$stored.port
         }
+        if ($null -ne $stored.history_roots -and -not $env:LAB_COLLECTION_HISTORY_ROOTS) {
+            $roots = @($stored.history_roots | ForEach-Object { Resolve-ReferenceLabPath $_ })
+            foreach ($root in $roots) {
+                if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw "History root unavailable: $root" }
+            }
+            $env:LAB_COLLECTION_HISTORY_ROOTS = ConvertTo-Json -InputObject $roots -Compress
+        }
+        if ($null -ne $stored.auto_classify -and -not $env:LAB_AUTO_CLASSIFY) {
+            $env:LAB_AUTO_CLASSIFY = if ($stored.auto_classify) { '1' } else { '0' }
+        }
+        if ($null -ne $stored.search_timeout_seconds -and -not $env:LAB_SEARCH_TIMEOUT_SECONDS) {
+            $budget = [int]$stored.search_timeout_seconds
+            if ($budget -lt 60 -or $budget -gt 900) { throw 'search_timeout_seconds must be 60..900.' }
+            $env:LAB_SEARCH_TIMEOUT_SECONDS = [string]$budget
+        }
     }
 
     if ($env:LAB_PORT) {

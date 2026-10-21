@@ -129,7 +129,8 @@ def test_photo_query_plan_changes_intent_instead_of_only_reversing_name():
 
 
 def test_sources_get_early_coverage_and_keep_distinct_native_photo_intents():
-    steps=query_steps(PROJECT,NamePlan(names=[PROJECT['character'],'Example Person','テスト甲']),['xiaohongshu','pinterest'])
+    steps=query_steps(PROJECT,NamePlan(names=[PROJECT['character'],'Example Person','テスト甲'],
+        name_records=[{'name':PROJECT['character'],'language':'zh','source':'synthetic trusted record'}]),['xiaohongshu','pinterest'])
     assert [s['source'] for s in steps[:2]]==['xiaohongshu','pinterest']
     assert {s['language'] for s in steps[:3]}=={'zh','en','ja'}
     native=[s for s in steps if s['source']=='xiaohongshu']

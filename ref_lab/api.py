@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hmac
+import html
 import json
 import os
 import time
@@ -12,7 +13,7 @@ from collections import defaultdict, deque
 from urllib.parse import urlsplit
 from fastapi import FastAPI, File, Form, Query, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response, HTMLResponse
 from pydantic import ValidationError
 from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -481,12 +482,14 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         from .agent_collection import collection_can_resume, review_can_resume
         mode = job.get("collection_mode", "verified")
         search_counts = job.get("search_counts") or {}
+        if job.get('goal_id'):
+            search_counts={**search_counts, **candidate_snapshot(job['id'],limit=1)['counts']}
         review_counts = job.get("review_counts") or {}
-        can_review = (mode != "verified"
-                      and job.get("search_state") in {"completed", "partial", "blocked"}
+        can_review = (mode != "verified" and job.get('status') != 'cancelled'
+                      and job.get("search_state") in {"completed", "partial", "blocked", "failed", "cancelled"}
                       and int(search_counts.get("found", 0) or 0) > 0
                       and job.get("review_state") in {None, "idle", "completed", "partial", "blocked", "cancelled"})
-        return {**job, "can_resume": collection_can_resume(library, job),
+        return {**job, "search_counts":search_counts, "can_resume": collection_can_resume(library, job),
                 "search_target_total": int(job.get("target_count") or 0) + int(job.get("search_extra_target") or 0),
                 "can_resume_search": (mode != "verified" and job.get("search_state") in {"running", "blocked", "failed"}
                                       and collection_can_resume(library, job)),
@@ -590,7 +593,10 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         job = library.job(job_id)
         if job["kind"] != "collection" or job.get("collection_mode", "verified") == "verified":
             raise Problem(409, "该任务不是快速搜图模式")
-        library.extend_search(job_id, data.extra_target)
+        if data.extra_target:
+            library.extend_search(job_id, data.extra_target)
+        else:
+            library.replenish_search(job_id, data.additional_seconds)
         from .collection_stages import launch_search
         return job_view(launch_search(library, job_id))
 
@@ -622,6 +628,27 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         if job["kind"] != "collection":
             raise Problem(409, "不是采集任务")
         return {**candidate_snapshot(job_id, offset=offset, limit=limit), "job": job_view(job)}
+
+    @app.get('/api/jobs/{job_id}/goal-results', response_class=HTMLResponse)
+    def goal_results(job_id: str):
+        job = library.job(job_id)
+        if not job.get('goal_id'):
+            raise Problem(409, '本任务未关联持续Goal')
+        snapshot = candidate_snapshot(job_id, limit=500)
+        items = [item for item in snapshot['items'] if item['goal_qualified']]
+        parts = []
+        for item in items:
+            evidence = html.escape(json.dumps({'sha':item['asset_sha'], 'source':item['source'],
+                'name_association':item['goal_name_evidence'], 'classification':item['photo_type'],
+                'parent_sha':item.get('parent_sha'), 'crop':item.get('crop'),
+                'width':item.get('width'), 'height':item.get('height')}, ensure_ascii=False, indent=2))
+            parts.append(f'<article><h2>{len(parts)+1}</h2><img src="{html.escape(item["original_url"], quote=True)}" alt="摄影参考 {len(parts)+1}"><details><summary>原件、来源、名称与读图证据</summary><pre>{evidence}</pre></details></article>')
+        count = snapshot['counts']['usable_named']
+        return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Goal摄影成果</title>'
+            '<style>body{max-width:960px;margin:auto;padding:24px;font:16px/1.7 system-ui}img{max-width:100%;max-height:85vh}pre{white-space:pre-wrap;overflow-wrap:anywhere}article{margin:32px 0}</style>'
+            f'<h1>{html.escape(job["goal_id"])} · {count}/{job["target_count"]}</h1>'
+            '<p>本Goal新增、去重、画质通过且有实际读图证据的真人摄影；名称关联仅为文字证据。人工选择和现场卡验收独立。</p>'
+            + (''.join(parts) or '<p>尚无合格成果；已下载候选保留在任务候选图库。</p>') + '</html>')
 
     @app.get("/api/jobs/{job_id}/candidates/{sha}/original")
     def job_candidate_original(job_id: str, sha: str):

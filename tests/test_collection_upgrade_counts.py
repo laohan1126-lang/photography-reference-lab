@@ -105,8 +105,8 @@ def test_legacy_job_upgrade_keeps_its_own_already_imported_tiles(tmp_path):
     assert [child["child_sha"] for child in again["children"]] == old_shas
     assert [child["status"] for child in again["children"]] == [collage.VALID, collage.VALID]
     counts = compute(folder, [row], _records(folder))
-    assert counts["usable_independent"] == 2
-    assert counts["usable_named"] == 2
+    assert counts["independent_candidates"] == 2
+    assert counts["named_candidates"] == 2
     assert counts["derived_duplicate"] == 0
     # Old files, old decision and the migration snapshot survive.
     for sha in old_shas:
@@ -135,8 +135,8 @@ def test_legacy_upgrade_still_excludes_external_history_tiles(tmp_path):
     assert statuses.count(collage.DUPLICATE_HISTORY) == 1
     assert statuses.count(collage.VALID) == 1
     counts = compute(folder, [row], _records(folder))
-    assert counts["usable_independent"] == 1
-    assert counts["usable_named"] == 1          # external history adds no usable photo
+    assert counts["independent_candidates"] == 1
+    assert counts["named_candidates"] == 1          # external history adds no usable photo
 
 
 def test_restore_then_second_collage_sharing_a_tile_counts_three(tmp_path):
@@ -154,9 +154,9 @@ def test_restore_then_second_collage_sharing_a_tile_counts_three(tmp_path):
         record_ac = collage.process_original(folder, row_ac, history=history)
     finally:
         history.close()
-    assert [child["status"] for child in record_ac["children"]].count(collage.DUPLICATE_HISTORY) == 1
+    assert [child["status"] for child in record_ac["children"]].count(collage.DUPLICATE_RUN) == 1
     counts = compute(folder, [row_ab, row_ac], _records(folder))
-    assert counts["usable_independent"] == 3
+    assert counts["independent_candidates"] == 3
     assert counts["derived_valid"] == 3
 
 
@@ -185,10 +185,10 @@ def test_name_hit_is_aggregated_by_unique_photo_not_by_parent_order(tmp_path):
     first = compute(folder, [row_ab, row_ac], records)
     second = compute(folder, [row_ac, row_ab], records)
     for counts in (first, second):
-        assert counts["usable_independent"] == 3
-        assert counts["usable_named"] == 2
+        assert counts["independent_candidates"] == 3
+        assert counts["named_candidates"] == 2
         assert counts["awaiting_manual"] == first["awaiting_manual"]
-    assert first["usable_named"] == second["usable_named"] == 2
+    assert first["named_candidates"] == second["named_candidates"] == 2
 
 
 def test_name_hit_does_not_count_an_external_history_tile(tmp_path):
@@ -207,8 +207,8 @@ def test_name_hit_does_not_count_an_external_history_tile(tmp_path):
         history.close()
     assert [child["status"] for child in record["children"]].count(collage.DUPLICATE_HISTORY) == 1
     counts = compute(folder, [row], _records(folder))
-    assert counts["usable_independent"] == 1
-    assert counts["usable_named"] == 1
+    assert counts["independent_candidates"] == 1
+    assert counts["named_candidates"] == 1
     assert counts["derived_duplicate"] == 1
 
 
@@ -226,8 +226,8 @@ def test_partial_quality_keeps_the_valid_sibling_and_one_pending_original(tmp_pa
     assert record["status"] == collage.STATUS_SPLIT_PARTIAL
 
     counts = compute(folder, [row], _records(folder))
-    assert counts["usable_independent"] == 1
-    assert counts["usable_named"] == 1
+    assert counts["independent_candidates"] == 1
+    assert counts["named_candidates"] == 1
     assert counts["awaiting_manual"] == 1
     assert counts["derived_rejected"] == 1
     valid = [child for child in record["children"] if child["status"] == collage.VALID][0]
@@ -252,7 +252,7 @@ def test_duplicate_only_tiles_are_not_a_quality_problem(tmp_path):
         collage.DUPLICATE_HISTORY, collage.DUPLICATE_HISTORY]
     assert record["status"] == collage.STATUS_DUPLICATE
     counts = compute(folder, [row], _records(folder))
-    assert counts["usable_independent"] == 0
+    assert counts["independent_candidates"] == 0
     assert counts["derived_duplicate"] == 2
     assert counts["awaiting_manual"] == 0
 

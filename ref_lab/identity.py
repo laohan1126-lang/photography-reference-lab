@@ -213,12 +213,14 @@ def build_identity_context(
         }
 
     # For general characters, avoid hallucinating visual facts
-    aliases_zh = [character] if character else []
+    aliases = {language: [] for language in ('zh','ja','en','unknown')}
+    if character:
+        aliases[_name_language(character)] = [character]
     return {
         "id": f"ic_{uuid4().hex[:12]}",
         "version": 1,
         "canonical_name": character,
-        "aliases": {"zh": aliases_zh, "ja": [], "en": []},
+        "aliases": aliases,
         "work": work,
         "costume": costume,
         "visual_identifiers": [brief] if brief else ["视觉识别依据待补充；请核对官方设定"],
@@ -287,6 +289,11 @@ def trusted_alias_records(character: str, identity_context: dict[str, Any] | Non
             records.append({"name": text, "language": language, "source": source})
 
     context_aliases = (identity_context or {}).get("aliases") or {}
+    if ((identity_context or {}).get('reference_provenance') == '用户项目输入'
+            and (identity_context or {}).get('uncertainties') == ['暂无官方人设对比数据，需人工核对']
+            and context_aliases == {'zh':[character], 'ja':[], 'en':[]}):
+        # Legacy general defaults assigned every Han-only input to zh without language evidence.
+        context_aliases = {'unknown':[character]}
     add(character, _name_language(character), "project_character")
     for language in ("zh", "ja", "en"):
         for name in context_aliases.get(language) or ():
@@ -300,7 +307,7 @@ def trusted_alias_records(character: str, identity_context: dict[str, Any] | Non
     for record in records:
         for source in (context_aliases, (preset or {}).get('aliases', {})):
             language = next((lang for lang, aliases in source.items()
-                             if record['name'] in aliases), None)
+                             if lang in {'zh','ja','en'} and record['name'] in aliases), None)
             if language:
                 record['language'] = language
                 break

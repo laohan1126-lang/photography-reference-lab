@@ -179,6 +179,7 @@ save_evidence(folder/'research-result.json',research.report())
 
 @pytest.mark.parametrize('source',['xiaohongshu','pinterest'])
 def test_available_alias_languages_still_get_opportunity_with_one_selected_platform(source):
-    steps=worker.query_steps(PROJECT,NamePlan(names=['测试角色甲','Example Person','テスト甲']),[source])
+    steps=worker.query_steps(PROJECT,NamePlan(names=['测试角色甲','Example Person','テスト甲'],
+        name_records=[{'name':'测试角色甲','language':'zh','source':'synthetic trusted record'}]),[source])
     assert {s['source'] for s in steps}=={source}
     assert {s['language'] for s in steps}=={'zh','en','ja'}

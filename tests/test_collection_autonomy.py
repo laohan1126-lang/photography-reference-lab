@@ -134,7 +134,7 @@ def test_browser_navigation_has_one_retry_but_click_is_not_repeated(tmp_path,mon
     calls=[]
     def command(args,**kwargs):
         calls.append(args)
-        return SimpleNamespace(returncode=1 if len(calls)%2 else 0,stdout='ok')
+        return SimpleNamespace(returncode=1 if len(calls)%2 else 0,stdout='ok',stderr='')
     monkeypatch.setattr(worker.subprocess,'run',command);monkeypatch.setattr(worker.time,'sleep',lambda _:None)
     browser=worker.Browser(tmp_path);browser.bsk='fixture-bsk'
     assert browser.command('navigate','https://example.org')=='ok' and len(calls)==2

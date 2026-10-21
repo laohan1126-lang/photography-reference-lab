@@ -181,6 +181,44 @@ def test_image_read_receipt_and_schema_are_required(tmp_path):
         parse_vision_stream(json.dumps(opened)+"\n"+json.dumps(done), path)
 
 
+def test_classifier_selects_native_view_file_agent(monkeypatch, tmp_path):
+    """Synthetic transport check for the live default-agent tool mismatch."""
+    import hashlib
+    import io
+    import threading
+    from pathlib import Path
+    from PIL import Image
+    from ref_lab import classification, agent_collection
+    raw = io.BytesIO()
+    Image.new('RGB', (80, 80), 'blue').save(raw, 'PNG')
+    image = raw.getvalue()
+    sha = hashlib.sha256(image).hexdigest()
+    monkeypatch.setattr(classification, 'find_antigravity_cli', lambda: 'synthetic-cli')
+    monkeypatch.setattr(classification, 'antigravity_environment', lambda: {})
+    monkeypatch.setattr(agent_collection, 'stop_process_tree', lambda process: None)
+    def launch(command, **kwargs):
+        agent_name = command[command.index('--agent') + 1]
+        folder = Path(kwargs['cwd'])
+        definition = (folder/'.agents/agents'/f'{agent_name}.md').read_text('utf8')
+        assert '  - view_file' in definition and 'subagent: false' in definition
+        opened = {'step_update': {'tool_name': 'view_file', 'state': 'DONE',
+            'tool_info': {'parameters': {'AbsolutePath': str(folder/'image.jpg')}}}}
+        result = ClassificationResult(asset_sha=sha, kind='illustration', evidence='Synthetic pixels only')
+        final = {'event': 'result', 'result': {'status': 'SUCCESS', 'response': result.model_dump_json(),
+                                             'usage': {'total_tokens': 7}}}
+        kwargs['stdout'].write(json.dumps(opened)+'\n'+json.dumps(final)+'\n')
+        kwargs['stdout'].flush()
+        class Finished:
+            returncode = 0
+            def poll(self): return 0
+        return Finished()
+    monkeypatch.setattr(classification.subprocess, 'Popen', launch)
+    analyzer = classification.AntigravityClassifier(evidence_dir=tmp_path/'streams')
+    assert analyzer.classify(image, sha, threading.Event()).kind == 'illustration'
+    assert analyzer.last_receipt['read_evidence']['tool'] == 'view_file'
+    assert analyzer.last_receipt['tokens'] == 7
+
+
 def test_late_failure_does_not_overwrite_new_attempt(client, project, library):
     keep(client, add_reference(client, project))
     q = queue(library)

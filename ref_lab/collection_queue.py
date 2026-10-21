@@ -357,6 +357,25 @@ def snapshot(job_id: str, *, offset: int = 0, limit: int = 200) -> dict:
         for child in children.get(row["asset_sha"], []):
             items.append(_item(child, None, humans.get(child["asset_sha"]), job_id))
     overall = counts(items, folder=folder, rows=rows, records=records)
+    types = read_json(folder/'photo-types.json', {}).get('items', {})
+    photo_audit = read_json(folder/'photo-audit.json', {}).get('items', {})
+    associations = {}
+    from .search_relevance import is_confirmed
+    for row in rows:
+        if not is_confirmed(row):
+            continue
+        shas = [row['asset_sha'], *[child.get('child_sha') for child in
+                records.get(row['asset_sha'], {}).get('children', [])
+                if child.get('status') in {'valid', 'duplicate_run'}]]
+        for sha in shas:
+            associations.setdefault(sha, []).append({'page_url':row.get('page_url'),
+                'relevance':row['relevance']})
+    for item in items:
+        item['photo_type'] = types.get(item['asset_sha'], {'status':'pending'})
+        item['photo_audit'] = photo_audit.get(item['asset_sha'])
+        item['goal_qualified'] = item['asset_sha'] in overall['goal_shas']
+        item['goal_name_evidence'] = associations.get(item['asset_sha'], [])
+        item['name_associated'] = bool(item['goal_name_evidence'])
     offset = max(0, int(offset))
     limit = min(500, max(1, int(limit)))
     return {

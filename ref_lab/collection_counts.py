@@ -79,7 +79,7 @@ def compute(folder, rows, records, *, named=None) -> dict:
     from .search_relevance import is_confirmed
     folder = Path(folder)
     from .collection_checkpoint import read_json
-    from .photo_types import verified_photo
+    from .photo_types import verified_photo, receipt_intact
     classifications = read_json(folder / 'photo-types.json', {}).get('items', {})
     goal = read_json(folder / 'goal.json', {})
     baseline = set(goal.get('baseline_shas', []))
@@ -104,6 +104,8 @@ def compute(folder, rows, records, *, named=None) -> dict:
     # through either parent still applies to that photo. Parent order therefore
     # cannot change ``usable_named``.
     usable: set[str] = set()
+    provenance: set[str] = set()
+    old_parents: set[str] = set()
     named_associations: set[str] = set()
     valid_tiles: set[str] = set()
     seen_originals: set[str] = set()
@@ -115,6 +117,15 @@ def compute(folder, rows, records, *, named=None) -> dict:
             continue
         seen_originals.add(sha)
         counts["found"] += 1
+        if goal and (not isinstance(row.get('acquired_at'), (float, int))
+                     or row['acquired_at'] < float(goal['started_at'])):
+            old_parents.add(sha)
+        from urllib.parse import urlsplit
+        source_ok = all(urlsplit(str(row.get(key) or '')).scheme == 'https'
+                        and bool(urlsplit(str(row.get(key) or '')).hostname)
+                        for key in ('page_url', 'image_url'))
+        if source_ok:
+            provenance.add(sha)
         tier = str((row.get("relevance") or {}).get("tier") or "unconfirmed")
         named_row = bool(predicate(row))
         if named_row:
@@ -190,6 +201,8 @@ def compute(folder, rows, records, *, named=None) -> dict:
                     valid_tiles.add(child_sha)
                     if quality_ok(child['path']):
                         usable.add(child_sha)
+                        if source_ok:
+                            provenance.add(child_sha)
             only_duplicates = bool(children) and all(
                 child.get("status") in {collage.DUPLICATE_RUN, collage.DUPLICATE_HISTORY}
                 for child in children)
@@ -203,19 +216,32 @@ def compute(folder, rows, records, *, named=None) -> dict:
     counts["derived_valid"] = len(valid_tiles)
     counts['independent_candidates'] = len(usable)
     counts['named_candidates'] = len(usable & named_associations)
-    excluded = usable & baseline
+    excluded = usable & (baseline | old_parents)
     # A new crop of an old parent is still historical material.
     for row in rows or ():
-        if row.get('asset_sha') in baseline:
+        if row.get('asset_sha') in baseline | old_parents:
             excluded.update(c.get('child_sha') for c in records.get(row['asset_sha'], {}).get('children', []))
     counts['goal_excluded'] = len(usable & excluded)
     usable -= excluded
     counts['type_pending'] = sum(not classifications.get(sha) or
         classifications[sha].get('status') != 'succeeded' or
         classifications[sha].get('result', {}).get('kind') == 'unknown' for sha in usable)
-    photographic = {sha for sha in usable if verified_photo(classifications.get(sha), sha)}
+    photographic = {sha for sha in usable & provenance
+                    if verified_photo(classifications.get(sha), sha)
+                    and receipt_intact(folder, classifications[sha])}
     counts['type_rejected'] = len(usable - photographic) - counts['type_pending']
-    usable = photographic
+    audit = read_json(folder / 'photo-audit.json', {}).get('items', {})
+    duplicates = {sha: item['duplicate_of'] for sha, item in audit.items()
+                  if isinstance(item, dict) and item.get('asset_sha') == sha
+                  and item.get('status') == 'duplicate' and item.get('producer')
+                  and item.get('evidence') and sha in photographic
+                  and item.get('duplicate_of') in photographic and item['duplicate_of'] != sha}
+    for sha, original in duplicates.items():
+        if sha in named_associations:
+            named_associations.add(original)
+    counts['photo_duplicates'] = len(duplicates)
+    usable = photographic - duplicates.keys()
     counts["usable_independent"] = len(usable)
     counts["usable_named"] = len(usable & named_associations)
+    counts['goal_shas'] = sorted(usable & named_associations)
     return counts

@@ -21,7 +21,8 @@ def result(path,project=PROJECT,**changes):
 
 
 def test_planner_respects_source_priority_and_varies_photo_intent_without_default_costume():
-    plan=NamePlan(names=['测试角色甲','Example Person','テスト甲'])
+    plan=NamePlan(names=['测试角色甲','Example Person','テスト甲'],
+        name_records=[{'name':'测试角色甲','language':'zh','source':'synthetic trusted record'}])
     steps=query_steps(PROJECT,plan,['xiaohongshu','pinterest'])
     assert [s['source'] for s in steps[:2]]==['xiaohongshu','pinterest']
     assert steps[1]['query']=='Example Person cosplay photography'

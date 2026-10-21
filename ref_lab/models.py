@@ -229,10 +229,12 @@ class JobInput(Strict):
     # 'verified' keeps the historical one-pass pipeline for compatibility.
     # Search modes persist candidates before any visual review.
     collection_mode: Literal["verified", "search", "search_review"] = "verified"
+    goal_id: str = Field(default="", max_length=100, pattern=r"^[A-Za-z0-9_-]*$")
 
 
 class CollectionContinueInput(Strict):
-    extra_target: int = Field(ge=1, le=100)
+    extra_target: int = Field(default=0, ge=0, le=100)
+    additional_seconds: int = Field(default=900, ge=60, le=900)
 
 
 class CandidateDecisionInput(Strict):

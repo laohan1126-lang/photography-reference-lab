@@ -32,11 +32,15 @@ JOB_ID = "continue-regression"
 def _photo(folder: Path, seed: int, page_url: str) -> dict:
     path = folder / "images" / f"continue-{seed}.png"
     path.parent.mkdir(parents=True, exist_ok=True)
-    Image.new("RGB", (320, 480), (40 + seed * 7, 90, 150)).save(path, format="PNG")
+    from tests.test_collage_split import _textured
+    _textured((800,600),seed,(40+seed*7,90,150)).save(path,format="PNG")
     raw = path.read_bytes()
-    return {"asset_sha": hashlib.sha256(raw).hexdigest(), "original_path": str(path.resolve()),
+    row = {"asset_sha": hashlib.sha256(raw).hexdigest(), "original_path": str(path.resolve()),
             "page_url": page_url, "image_url": f"https://i.pinimg.com/736x/continue-{seed}.jpg",
-            "source_text": "西木野真姬 cosplay 摄影", "width": 320, "height": 480}
+            "source_text": "西木野真姬 cosplay 摄影", "width": 800, "height": 600}
+    from tests.photo_type_fixture import synthetic_type
+    synthetic_type(folder,row)  # Explicit mocked type evidence, not visual accuracy.
+    return row
 
 
 class Browser:

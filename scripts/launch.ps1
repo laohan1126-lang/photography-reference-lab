@@ -195,7 +195,7 @@ if ($session.no_auth) {
 Write-Host "  Stop     : double-click stop.bat" -ForegroundColor Gray
 Write-Host "================================================================" -ForegroundColor Cyan
 
-if (-not $NoWait -and [Environment]::UserInteractive) {
+if (-not $NoWait -and [Environment]::UserInteractive -and -not [Console]::IsInputRedirected) {
     Write-Host ""
     Write-Host "Close this window or press any key; the backend remains managed by stop.bat." -ForegroundColor Gray
     try {

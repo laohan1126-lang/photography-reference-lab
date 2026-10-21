@@ -99,12 +99,16 @@ def test_explicit_other_character_is_not_a_target_candidate():
 def _fake_photo(folder: Path, seed: int) -> dict:
     path = folder / "images" / f"seed-{seed}.png"
     path.parent.mkdir(parents=True, exist_ok=True)
-    Image.new("RGB", (320, 480), (40 + seed, 80, 120)).save(path, format="PNG")
+    from tests.test_collage_split import _textured
+    _textured((800,600),seed,(40+seed,80,120)).save(path, format="PNG")
     raw = path.read_bytes()
-    return {"asset_sha": hashlib.sha256(raw).hexdigest(), "original_path": str(path.resolve()),
+    row = {"asset_sha": hashlib.sha256(raw).hexdigest(), "original_path": str(path.resolve()),
             "page_url": f"https://www.pinterest.com/pin/{seed}/",
             "image_url": f"https://i.pinimg.com/736x/seed-{seed}.jpg",
-            "source_text": "", "width": 320, "height": 480}
+            "source_text": "", "width": 800, "height": 600}
+    from tests.photo_type_fixture import synthetic_type
+    synthetic_type(folder,row)  # Mocked type admission; tests only search/restart behavior.
+    return row
 
 
 def test_four_generic_pins_do_not_reach_target_or_lie_about_completion(tmp_path):

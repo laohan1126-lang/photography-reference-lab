@@ -41,6 +41,14 @@ def _artifacts(library: Library, job_id: str) -> tuple[Path, Path, Path]:
     task_file = task_dir / "AGENT_TASK.md"
     with _ARTIFACT_LOCK:
         _prepare_task(library, job_id, task_dir, task_file)
+        goal_id = library.job(job_id).get('goal_id')
+        if goal_id:
+            source = collection_queue.ROOT/'.local/goals'/goal_id/'goal.json'
+            goal = json.loads(source.read_text('utf8'))
+            existing = collection_queue.read_json(folder/'goal.json', None)
+            if existing is not None and existing != goal:
+                raise Problem(409, 'Goal历史基线发生变化；拒绝覆盖')
+            collection_queue.write_json(folder/'goal.json', goal)
     return folder, task_dir, task_file
 
 

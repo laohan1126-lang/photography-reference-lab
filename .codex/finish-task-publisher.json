@@ -9,11 +9,15 @@
     "allow_unrelated_pre_staged": false
   },
   "notion": {
-    "required": true,
+    "required": false,
     "mode": "api_page",
     "parent_page_id": "ae097fef82124ccaa8deda1a84e33564",
     "token_env": "NOTION_TOKEN",
     "timeout": 20
   },
-  "checks": []
+  "checks": [],
+  "delivery": {
+    "git": true,
+    "notion": false
+  }
 }

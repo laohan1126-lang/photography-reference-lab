@@ -70,6 +70,8 @@ def test_xhs_receive_attributes_click_dom_wait_and_return(tmp_path, monkeypatch)
     browser.command = command
     browser._probe_detail = lambda: {"url": page, "login_required": False,
                                      "challenge": False, "not_found": False}
+    browser.snapshot = lambda: {'url':'https://www.xiaohongshu.com/search_result',
+                               'cards':[{'page':page}]}
     monkeypatch.setattr(collect_verified, "capture_note",
                         lambda *args, **kwargs: [{"asset_sha": "a" * 64}])
     timing = CollectionTiming(tmp_path)
@@ -127,12 +129,12 @@ def test_search_target_counts_independent_named_photos_not_downloads(tmp_path):
     assert counts["target_confirmed"] == 3            # originals only
     assert counts["original_singles"] == 2            # named + exploration singles
     assert counts["derived_valid"] == 2               # the 2-panel collage
-    assert counts["usable_independent"] == 4          # 2 singles + 2 tiles
-    assert counts["usable_named"] == 3                # named single + 2 tiles
+    assert counts["independent_candidates"] == 4          # 2 singles + 2 tiles
+    assert counts["named_candidates"] == 3                # named single + 2 tiles
     assert counts["awaiting_manual"] == 2             # exploration relevance + low-res collage
     # An original not yet processed is not guessed as one photo.
     pending = _write_original(folder, _textured((700, 1000), 3, (60, 90, 60)), name="pending.png")
     pending["relevance"] = {"tier": "target_named"}
-    assert compute(folder, [*rows, pending], records)["usable_named"] == 3
+    assert compute(folder, [*rows, pending], records)["named_candidates"] == 3
     assert compute(folder, [*rows, pending], records)["unprocessed"] == 1
     assert collage.count_summary(STATUS_SPLIT_OK, records[split_row["asset_sha"]]["children"])["independent"] == 2

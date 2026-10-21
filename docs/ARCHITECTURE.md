@@ -22,6 +22,8 @@
 
 ## Search / Review 解耦（2026-10-20）
 
+2026-10-21 持续Goal补充：`photo_types.py` 是本批候选的单消费者类型确认，复用 `AntigravityClassifier` 和严格 `parse_vision_stream`；不运行全库 discover，不改人工选择、身份preflight或现场卡。`photo-types.json` 保存SHA、生产者、状态、原流SHA/路径、实际读图依据和真实调用消耗；重启核对原件、派生文件与流后复用。`collection_counts.compute` 的 `independent_candidates/named_candidates` 保留结构候选含义；`usable_independent/usable_named/goal_shas` 只包含历史基线外、来源完整、通过相同画质门槛且实际读图确认为真人摄影的集合。停止、队列、回执、Goal成果页共用它。`photo-audit.json`保存逐张实际查看后发现的同照片不同版本负证据，绑定两个SHA、生产者与依据；统一集合排除重复，保留原件和人工选择，队列标出重复版本。卡片与作者详情证据分别保存，详情关联回流；子图归属从持久记录恢复。`goal_id` 绑定本地不可变历史基线，补足次数和新增时间预算独立于固定target；`partial`可访问已有候选。正常runtime配置恢复历史根、分类范围及预算，禁止仅依赖临时环境。
+
 采集任务可显式选择 `collection_mode=search`（快速搜图）或 `search_review`（搜图 + 独立 AI 审核）。历史 `verified` 一体式模式保留给旧任务和回归，不作为新网页入口。
 
 ### 数据流
@@ -41,7 +43,7 @@
 私有运行目录仍为 `.local/collection-runs/<job_id>/current/`：
 
 - `received.json`：已下载原图、来源 URL、搜索词、页面、尺寸、SHA、获得时间。原图只保存一次，Review 读取同一路径/SHA。
-- `search-summary.json`：`status=completed|blocked|failed|cancelled`、`stop_reason`、`counts.found/duplicates/errors`、首图秒数、耗时、模型调用与 Token。
+- `search-summary.json`：`status=completed|partial|blocked|failed|cancelled`、`stop_reason`、`counts.found/duplicates/errors`、首图秒数、耗时、模型调用与 Token。
 - `review-audit.json`：按 SHA 保存 `accepted|rejected|blocked|duplicate|reviewing`、模型判断、参照 SHA、错误和 attempt 次数；重启不重复调用已完成项，受阻项可在剩余额度内重试。
 - `review-summary.json`：AI 通过与拒绝/受阻/待审数量、停止原因、模型调用与 Token。
 - `human-decisions.json`：人工 `keep|reject`，独立于 AI 判断。

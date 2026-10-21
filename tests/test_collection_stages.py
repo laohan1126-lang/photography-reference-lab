@@ -261,7 +261,8 @@ def test_search_only_cli_writes_summary_without_a_model_budget_or_result_zip(tmp
     monkeypatch.setattr(sys, "argv", ["collect_verified.py", str(task_dir / "AGENT_TASK.md"), str(run / "result.zip"), "--search-only"])
     worker.main()
     summary = json.loads((run / "search-summary.json").read_text("utf8"))
-    assert summary["status"] == "completed" and summary["counts"]["found"] == 1
+    assert summary["status"] == "partial" and summary["counts"]["found"] == 1
+    assert summary["counts"]["usable_named"] == 0  # no actual type observation
     assert summary["model_calls"] == 0
     assert not (run / "runtime-budget.json").exists()
     assert not (run / "result.zip").exists()
