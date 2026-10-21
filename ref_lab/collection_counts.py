@@ -28,11 +28,28 @@ failures never silently count as a single photograph.
 from __future__ import annotations
 
 from pathlib import Path
+from functools import lru_cache
 
 from . import collage
 from .integrity import sha_matches
 
 EXPLORATION_TIERS = {"target_context", "unconfirmed"}
+
+
+@lru_cache(maxsize=1024)
+def _quality(path, size, mtime):
+    from PIL import Image, ImageOps
+    with Image.open(path) as image:
+        return collage._tile_quality(ImageOps.exif_transpose(image))["status"] == collage.VALID
+
+
+def quality_ok(path):
+    try:
+        path = Path(path)
+        stat = path.stat()
+        return _quality(str(path), stat.st_size, stat.st_mtime_ns)
+    except (OSError, ValueError):
+        return False
 
 
 def _original_ok(folder: Path, row: dict) -> bool:
@@ -61,6 +78,11 @@ def compute(folder, rows, records, *, named=None) -> dict:
     """
     from .search_relevance import is_confirmed
     folder = Path(folder)
+    from .collection_checkpoint import read_json
+    from .photo_types import verified_photo
+    classifications = read_json(folder / 'photo-types.json', {}).get('items', {})
+    goal = read_json(folder / 'goal.json', {})
+    baseline = set(goal.get('baseline_shas', []))
     predicate = named or is_confirmed
     counts = {
         "found": 0, "target_confirmed": 0, "exploration": 0,
@@ -72,6 +94,8 @@ def compute(folder, rows, records, *, named=None) -> dict:
         "collage_duplicate": 0, "collage_failed": 0,
         "derived_total": 0, "derived_rejected": 0, "derived_duplicate": 0,
         "outdated_records": 0, "unprocessed": 0, "integrity_failures": 0,
+        "independent_candidates": 0, "named_candidates": 0, "type_pending": 0,
+        "type_rejected": 0, "goal_excluded": 0,
     }
     records = records if isinstance(records, dict) else {}
     # Photo uniqueness and name-hit discovery are aggregated separately, then
@@ -134,7 +158,8 @@ def compute(folder, rows, records, *, named=None) -> dict:
             if child.get("status") in {collage.DUPLICATE_RUN, collage.DUPLICATE_HISTORY})
         if status == collage.STATUS_NO_COLLAGE:
             counts["original_singles"] += 1
-            usable.add(sha)
+            if quality_ok(row['original_path']):
+                usable.add(sha)
         else:
             counts["collages"] += 1
             if status == collage.STATUS_SPLIT_OK:
@@ -163,7 +188,8 @@ def compute(folder, rows, records, *, named=None) -> dict:
                     if not child_sha or child_sha in valid_tiles:
                         continue
                     valid_tiles.add(child_sha)
-                    usable.add(child_sha)
+                    if quality_ok(child['path']):
+                        usable.add(child_sha)
             only_duplicates = bool(children) and all(
                 child.get("status") in {collage.DUPLICATE_RUN, collage.DUPLICATE_HISTORY}
                 for child in children)
@@ -175,6 +201,21 @@ def compute(folder, rows, records, *, named=None) -> dict:
         if unresolved:
             counts["awaiting_manual"] += 1
     counts["derived_valid"] = len(valid_tiles)
+    counts['independent_candidates'] = len(usable)
+    counts['named_candidates'] = len(usable & named_associations)
+    excluded = usable & baseline
+    # A new crop of an old parent is still historical material.
+    for row in rows or ():
+        if row.get('asset_sha') in baseline:
+            excluded.update(c.get('child_sha') for c in records.get(row['asset_sha'], {}).get('children', []))
+    counts['goal_excluded'] = len(usable & excluded)
+    usable -= excluded
+    counts['type_pending'] = sum(not classifications.get(sha) or
+        classifications[sha].get('status') != 'succeeded' or
+        classifications[sha].get('result', {}).get('kind') == 'unknown' for sha in usable)
+    photographic = {sha for sha in usable if verified_photo(classifications.get(sha), sha)}
+    counts['type_rejected'] = len(usable - photographic) - counts['type_pending']
+    usable = photographic
     counts["usable_independent"] = len(usable)
     counts["usable_named"] = len(usable & named_associations)
     return counts

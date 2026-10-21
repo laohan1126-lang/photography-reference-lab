@@ -638,6 +638,14 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
     if source.is_symlink() or not source.resolve().is_relative_to(images_root) or not source.is_file():
         raise CollageError("original_outside_run")
     store = DerivedStore(folder)
+    # Reconstruct ownership from durable records, never from process cache age.
+    from .integrity import sha_matches as _own_sha_matches
+    own_result_shas = {str(child.get('child_sha'))
+        for parent, saved in store.items().items() if record_is_current(saved)
+        for child in saved.get('children', [])
+        if child.get('status') == VALID and child.get('parent_sha') == parent
+        and _inside(Path(child.get('path', '')), folder/'derived')
+        and _own_sha_matches(Path(child['path']), child.get('child_sha', ''))}
     previous_version = None
     snapshot_path = ""
     own_children: dict[str, dict] = {}
@@ -757,7 +765,7 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
             child["status"] = DUPLICATE_RUN
             child["duplicate_of"] = child_sha
         elif child["status"] == VALID:
-            if known_shas and child_sha in known_shas:
+            if child_sha in own_result_shas or (known_shas and child_sha in known_shas):
                 child["status"] = DUPLICATE_RUN
                 child["duplicate_of"] = child_sha
             elif child_sha in own_children:

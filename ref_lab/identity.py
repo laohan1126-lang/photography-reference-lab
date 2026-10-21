@@ -17,6 +17,15 @@ IdentityContext = dict[str, Any]
 
 # Grounded presets for live acceptance cases to ensure zero hallucination
 CANONICAL_PRESETS: dict[str, dict[str, Any]] = {
+    "渡边曜": {
+        "canonical_name": "渡边曜",
+        "aliases": {"zh": ["渡边曜"], "ja": ["渡辺曜", "渡辺 曜"],
+                    "en": ["You Watanabe", "Watanabe You"]},
+        "work": "Love Live! Sunshine!!", "costume": "",
+        "visual_identifiers": [], "common_confusions": [],
+        "uncertainties": ["名称仅用于文字关联，不证明视觉身份或服装版本。"],
+        "reference_provenance": "用户2026-10-21明确名称；既有渡边曜搜图任务与主项目失败根因报告记录的中日英文名称及姓名顺序。",
+    },
     "王昭君": {
         "canonical_name": "王昭君",
         "aliases": {
@@ -253,7 +262,12 @@ def get_identity_context(con: sqlite3.Connection, project_id: str | None = None,
 def preset_for_character(character: str) -> dict[str, Any] | None:
     """Return a manually curated preset, if the project name matches one."""
     key = normalize_character_key(character or "")
-    return CANONICAL_PRESETS.get(key)
+    direct = CANONICAL_PRESETS.get(key)
+    if direct:
+        return direct
+    return next((preset for preset in CANONICAL_PRESETS.values()
+                 if any(normalize_character_key(alias) == key
+                        for aliases in preset.get('aliases', {}).values() for alias in aliases)), None)
 
 
 def trusted_alias_records(character: str, identity_context: dict[str, Any] | None = None) -> list[dict[str, str]]:
@@ -282,6 +296,14 @@ def trusted_alias_records(character: str, identity_context: dict[str, Any] | Non
         for language in ("zh", "ja", "en"):
             for name in (preset.get("aliases") or {}).get(language) or ():
                 add(name, language, "canonical_preset")
+    # Trusted language declarations override the ambiguous Han-only heuristic.
+    for record in records:
+        for source in (context_aliases, (preset or {}).get('aliases', {})):
+            language = next((lang for lang, aliases in source.items()
+                             if record['name'] in aliases), None)
+            if language:
+                record['language'] = language
+                break
     return records
 
 
@@ -291,7 +313,7 @@ def _name_language(name: str) -> str:
         return "ja"
     if text.isascii():
         return "en"
-    return "zh"
+    return "unknown"
 
 
 def list_identity_contexts(con: sqlite3.Connection, project_id: str) -> list[dict[str, Any]]:

@@ -155,8 +155,21 @@ def confirmed_count(rows: Iterable[dict]) -> int:
 
 
 def exploration_count(rows: Iterable[dict]) -> int:
-    return sum(1 for row in rows if str((row.get("relevance") or {}).get("tier") or "") in
-               {"target_context", "unconfirmed"})
+    return len({row.get('page_url') or row.get('asset_sha') for row in rows
+                if str((row.get("relevance") or {}).get("tier") or "") in
+                {"target_context", "unconfirmed"}})
+
+
+def associate_detail(card, row, *, names=(), work_terms=(), other_terms=()):
+    """Keep card and author-only detail evidence, and re-evaluate new evidence."""
+    card_evidence = {k: card[k] for k in ('page', 'text', 'title', 'description') if k in card}
+    detail = row.get('author_detail') or {}
+    detail_evidence = {k: detail[k] for k in ('title', 'description', 'author') if k in detail}
+    card_result = classify_card(card_evidence, names=names, work_terms=work_terms, other_terms=other_terms)
+    detail_result = classify_card(detail_evidence, names=names, work_terms=work_terms, other_terms=other_terms)
+    result = detail_result if detail_result['text_present'] else card_result
+    return {**result, 'card': {'evidence': card_evidence, 'relevance': card_result},
+            'detail': {'evidence': detail_evidence, 'relevance': detail_result}}
 
 
 def relevance_counts(rows: Iterable[dict]) -> dict:

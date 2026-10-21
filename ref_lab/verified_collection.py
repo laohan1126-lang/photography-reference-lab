@@ -226,7 +226,7 @@ def _name_language(name: str) -> str:
         return "ja"
     if text.isascii():
         return "en"
-    return "zh"
+    return "unknown"
 
 
 def _plan_name_records(project: dict, plan: NamePlan) -> list[dict]:

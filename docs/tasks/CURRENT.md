@@ -1,5 +1,9 @@
 # 当前任务
 
+- 本轮 Goal：[渡边曜新增15张真人摄影](2026-10-21-goal-photo15.md)，**进行中，0/15**。
+- 分支 `codex/goal-photo15-20261021`，真实基线 `1c0aadf`；编辑前 Publisher 事务已建立，Git-only。
+- 下一步：完整历史基线→失败回归→准入/名称/探索/恢复/正常配置修复→部署实跑→固定15与冷启动验收。此前任务和失败结论原样保留，不以其测试/提交认定本Goal完成。
+
 - 本轮任务：[第二轮审计修复、主项目整合与主项目真实搜图验收](2026-10-21-search-integration.md)
 - 分支：`codex/search-integration-20261021`（基线 `7c0773c5a85c51defd082fb86d787953462d74b6`），工作树
   `.local/worktrees/search-integration-20261021/root`。

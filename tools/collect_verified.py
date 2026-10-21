@@ -371,6 +371,8 @@ class Browser:
                 snapshot={**self.snapshot(),**state}
         if step['source']=='xiaohongshu' and 'sort_state' not in snapshot:
             snapshot['sort_state']='default_control_unavailable'
+        if snapshot.get('cards') and not snapshot.get('login_required') and not snapshot.get('challenge'):
+            self.return_failed=False
         return snapshot
 
     def _apply_sort(self,sort):

@@ -52,7 +52,8 @@ def parse_vision_stream(text, image_path):
             step = event.get("step_update", {})
             if step.get("tool_name") == "view_file" and step.get("state") == "DONE":
                 actual = step.get("tool_info", {}).get("parameters", {}).get("AbsolutePath", "")
-                if actual and os.path.normcase(str(Path(actual).resolve())) == expected and not step.get("error"):
+                if (actual and os.path.normcase(str(Path(actual).resolve())) == expected
+                        and not step.get("error") and not (step.get("tool_info") or {}).get("error")):
                     opened = True
             if event.get("event") == "result":
                 result = event.get("result")
@@ -78,6 +79,10 @@ class AntigravityClassifier:
 
     def classify(self, image_bytes, sha, stop):
         from .agent_collection import stop_process_tree
+        self.last_receipt = {"asset_sha": sha, "producer": self.producer_name,
+                             "status": "running", "started_at": time.time(), "tokens": None}
+        if hashlib.sha256(image_bytes).hexdigest() != sha:
+            raise ProviderError("原件SHA不匹配；未调用模型")
         cli = find_antigravity_cli()
         if not cli:
             raise ClassificationUnavailable("未找到 Antigravity CLI；安装并登录后点击重试")
@@ -130,9 +135,18 @@ asset_sha 必须原样返回 {sha}。
                     if process.returncode != 0:
                         raise ClassificationUnavailable("Antigravity 未完成分类；请检查登录、权限和网络后重试")
                     output.seek(0)
-                    result = parse_vision_stream(output.read(), path)
+                    stream = output.read()
+                    result = parse_vision_stream(stream, path)
                     if result.asset_sha != sha:
                         raise ProviderError("模型结果与图片不匹配；未保存，请重试")
+                    events = [json.loads(line) for line in stream.splitlines()]
+                    final = next(e["result"] for e in reversed(events) if e.get("event") == "result")
+                    usage = final.get("usage") or {}
+                    self.last_receipt.update(status="succeeded", finished_at=time.time(),
+                        tokens=usage.get("total_tokens"), usage=usage,
+                        read_evidence={"tool": "view_file", "state": "DONE", "asset_sha": sha,
+                                       "path": str(path), "preview_sha": hashlib.sha256(path.read_bytes()).hexdigest()},
+                        result_status=final.get("status"))
                     return result
                 finally:
                     stop_process_tree(process)
