@@ -1104,9 +1104,24 @@ async function jobHandoff(jobId) {
 const candidateStatusLabels = {pending:'待审核',reviewing:'审核中',accepted:'AI 通过',rejected:'AI 拒绝',blocked:'审核受阻',human_keep:'人工保留',human_reject:'人工淘汰'};
 const searchStageLabels = {idle:'未开始',queued:'排队中',running:'搜索中',completed:'搜索完成',partial:'部分完成',blocked:'搜索受阻',failed:'搜索失败',cancelled:'已取消'};
 const reviewStageLabels = {idle:'未开始',running:'审核中',completed:'审核完成',partial:'部分完成',blocked:'审核受阻',cancelled:'已取消'};
+const stopReasonLabels = {
+    target_reached:'达成目标',
+    soft_target_reached:'达到探索目标',
+    search_plan_exhausted:'计划搜索耗尽',
+    browser_unavailable:'浏览器连接失败，尚未完成搜索',
+    sources_blocked:'搜索来源受限（需登录或验证码）',
+    time_budget_exhausted:'搜索时间预算耗尽',
+    detail_budget_exhausted:'详情页读取预算耗尽',
+    candidate_budget_exhausted:'候选处理上限',
+    relevance_unconfirmed:'未找到足够角色名称命中图片',
+    target_partial:'部分完成目标',
+    cancelled:'已取消',
+    review_timeout:'审核超时'
+};
 let candidateQueueTimer = null;
 function stopCandidateQueuePolling(){if(candidateQueueTimer){clearInterval(candidateQueueTimer);candidateQueueTimer=null;}}
 function stageWords(state,labels){return labels[state]||state||'未知';}
+function stopReasonWord(reason){return stopReasonLabels[reason]||reason||'';}
 function candidateCountsMarkup(counts){
     const c=counts||{};
     const cell=(value,label)=>`<span><strong>${value||0}</strong> ${label}</span>`;
@@ -1133,7 +1148,7 @@ function renderCandidateQueue(jobId,data,projectId){
     const reviewState=review.status||data.job?.review_state||'idle';
     const status=$('cq-status'),countsNode=$('cq-counts'),grid=$('cq-grid');
     if(!status||!grid)return;
-    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(search.stop_reason):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(review.stop_reason):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 本目标新增、来源完整、去重且通过画质门槛，并有实际读图证据的真人摄影按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
+    status.innerHTML=`<p><strong>搜索</strong>：${esc(stageWords(searchState,searchStageLabels))}${search.stop_reason?' · '+esc(stopReasonWord(search.stop_reason)):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(stageWords(reviewState,reviewStageLabels))}${review.stop_reason?' · '+esc(stopReasonWord(review.stop_reason)):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 本目标新增、来源完整、去重且通过画质门槛，并有实际读图证据的真人摄影按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
     if(countsNode)countsNode.outerHTML=candidateCountsMarkup(counts);
     const start=$('cq-start-review');
     if(start){

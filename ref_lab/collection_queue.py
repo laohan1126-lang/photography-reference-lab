@@ -177,8 +177,11 @@ def _search_summary(folder: Path) -> dict:
         return summary
     state = read_json(folder / "collector-state.json", {})
     if isinstance(state, dict) and state:
+        status = "completed" if state.get("search_complete") else (
+            "blocked" if state.get("search_stop_reason") in ("browser_unavailable", "sources_blocked") else "running"
+        )
         return {
-            "status": "completed" if state.get("search_complete") else "running",
+            "status": status,
             "stop_reason": state.get("search_stop_reason", ""),
             "found": len(state.get("received", [])),
             "phase": state.get("phase", ""),

@@ -36,6 +36,10 @@ from ref_lab.search_relevance import (classify_card, confirmed_count, exploratio
                                       exploration_limit, is_confirmed, relevance_counts)
 from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
 from tools.exact_recall import assess_search,capture_note,save
+from ref_lab.browser_recovery import (
+    BrowserError, BrowserInfrastructureError, PlatformRestrictionError,
+    DetailItemError, sanitize_diagnostics, classify_bsk_error, is_infrastructure_error
+)
 
 MAX_QUERIES=8
 MAX_IMAGES=200
@@ -311,8 +315,12 @@ DETAIL_PROBE_JS=r"""(() => {
 class Browser:
     supports_sort=True
     def __init__(self,folder:Path):
-        self.folder=folder;self.session=None;self.bsk=None;self.env={**os.environ,'BSK_AUTO_START':'0'}
+        self.folder=folder;self.session=None;self.bsk=None;self.browser_id=None
+        self.env={**os.environ,'BSK_AUTO_START':'0'}
         self.timing=None;self.preview=None;self.preview_reused=0
+        self.recovery_attempts=0;self.max_recovery_attempts=2
+        self.recovery_budget_seconds=60.0;self.recovery_start_time=None
+        self.last_successful_page=None;self.last_successful_at=None
 
     def _span(self,name,**fields):
         timing=getattr(self,'timing',None)
@@ -322,8 +330,76 @@ class Browser:
         """Cheap binding/login/404 check for a just-opened detail page."""
         data=json.loads(self.command('evaluate','--session',self.session,'--json',DETAIL_PROBE_JS))
         if data.get('ok') is not True or not isinstance(data.get('value'),dict):
-            raise ValueError('Detail page read failed')
+            raise DetailItemError('Detail page read failed',code='detail_read_failed')
         return data['value']
+
+    def can_recover(self)->bool:
+        if self.recovery_attempts>=self.max_recovery_attempts:
+            return False
+        if self.recovery_start_time is not None:
+            if time.time()-self.recovery_start_time>self.recovery_budget_seconds:
+                return False
+        return True
+
+    def recover(self,step=None)->bool:
+        """Attempt bounded session/connection recovery without disturbing other tasks."""
+        if not self.can_recover():
+            return False
+        self.recovery_attempts+=1
+        if self.recovery_start_time is None:
+            self.recovery_start_time=time.time()
+        if self.session and self.bsk:
+            try:
+                subprocess.run(
+                    [self.bsk,'session','stop',self.session,'--json'],
+                    capture_output=True,text=True,encoding='utf8',env=self.env,timeout=6
+                )
+            except Exception:
+                pass
+            self.session=None
+        bsk,browser=select_browserskill(self.env)
+        if not bsk or not browser:
+            time.sleep(1.5)
+            bsk,browser=select_browserskill(self.env)
+        if not bsk or not browser:
+            errors=collection_queue.read_json(self.folder/'browser-errors.json',[])
+            errors.append({
+                'action':'session_recover','category':'infrastructure',
+                'code':'browser_unavailable','attempt':self.recovery_attempts,
+                'result':'failed','at':time.time()
+            })
+            save(self.folder/'browser-errors.json',errors)
+            return False
+        self.bsk=bsk;self.browser_id=browser
+        try:
+            res=subprocess.run(
+                [self.bsk,'session','start','--browser',browser,'--no-focus','--json'],
+                capture_output=True,text=True,encoding='utf8',env=self.env,timeout=12
+            )
+            if res.returncode!=0:
+                errors=collection_queue.read_json(self.folder/'browser-errors.json',[])
+                errors.append({
+                    'action':'session_recover','category':'infrastructure',
+                    'code':'session_start_failed','attempt':self.recovery_attempts,
+                    'result':'failed','at':time.time()
+                })
+                save(self.folder/'browser-errors.json',errors)
+                return False
+            data=json.loads(res.stdout or '{}')
+            self.session=data.get('session_id')
+            if not self.session:
+                return False
+            errors=collection_queue.read_json(self.folder/'browser-errors.json',[])
+            errors.append({
+                'action':'session_recover','category':'infrastructure',
+                'code':'session_recreated','attempt':self.recovery_attempts,
+                'result':'recovered','recovered':True,
+                'new_session':str(self.session)[:12],'at':time.time()
+            })
+            save(self.folder/'browser-errors.json',errors)
+            return True
+        except Exception:
+            return False
 
     def command(self,*args,timeout=35):
         # History back can already have happened on timeout; repeating it leaves the search.
@@ -332,31 +408,46 @@ class Browser:
             try:
                 result=subprocess.run([self.bsk,*args],capture_output=True,text=True,encoding='utf8',errors='replace',env=self.env,timeout=timeout)
                 if result.returncode:
-                    try:code=str(json.loads(result.stdout or result.stderr).get('code') or 'action_failed')
-                    except (ValueError,TypeError,AttributeError):code='action_failed'
-                    if 'did not become ready for native input' in result.stderr:
-                        code='native_input_not_ready'
-                    code=code if re.fullmatch(r'[A-Za-z0-9_-]{1,80}',code) else 'action_failed'
+                    err=classify_bsk_error(args[0],result.returncode,result.stdout,result.stderr)
                     errors=collection_queue.read_json(self.folder/'browser-errors.json',[])
-                    errors.append({'action':args[0],'code':code,'attempt':attempt+1,
-                                   'result':'failed','at':time.time()})
+                    errors.append({
+                        'action':args[0],'category':err.category,'code':err.code,
+                        'details':str(sanitize_diagnostics(err.details))[:200],
+                        'attempt':attempt+1,'result':'failed','at':time.time()
+                    })
                     save(self.folder/'browser-errors.json',errors)
-                    raise ValueError('BrowserSkill:'+code)
+                    raise err
                 return result.stdout
-            except (ValueError,subprocess.TimeoutExpired):
+            except subprocess.TimeoutExpired:
+                err=BrowserInfrastructureError('BrowserSkill command timed out',action=args[0],code='timeout',is_timeout=True)
+                errors=collection_queue.read_json(self.folder/'browser-errors.json',[])
+                errors.append({
+                    'action':args[0],'category':'infrastructure','code':'timeout',
+                    'details':f'timeout after {timeout}s','attempt':attempt+1,
+                    'result':'failed','at':time.time()
+                })
+                save(self.folder/'browser-errors.json',errors)
+                if attempt+1==attempts:raise err
+                time.sleep(1)
+            except BrowserError:
+                if attempt+1==attempts:raise
+                time.sleep(1)
+            except ValueError:
                 if attempt+1==attempts:raise
                 time.sleep(1)
 
     def start(self):
         self.bsk,browser=select_browserskill(self.env)
         if not self.bsk or not browser:raise AgentUnavailable('没有可用的已连接BrowserSkill浏览器；未安装或重启共享服务。')
+        self.browser_id=browser
         data=json.loads(self.command('session','start','--browser',browser,'--no-focus','--json'))
         self.session=data.get('session_id')
         if not self.session:raise AgentUnavailable('无法创建本轮独立浏览器会话。')
 
     def snapshot(self):
         data=json.loads(self.command('evaluate','--session',self.session,'--json',SEARCH_JS))
-        if data.get('ok') is not True:raise ValueError('Visible page read failed')
+        if data.get('ok') is not True:
+            raise BrowserInfrastructureError('Visible page read failed',action='evaluate',code='evaluate_failed')
         return data['value']
 
     def search(self,step,sort='relevance'):
@@ -383,6 +474,8 @@ class Browser:
             snapshot['sort_state']='default_control_unavailable'
         if snapshot.get('cards') and not snapshot.get('login_required') and not snapshot.get('challenge'):
             self.return_failed=False
+        self.last_successful_page=url
+        self.last_successful_at=time.time()
         return snapshot
 
     def _apply_sort(self,sort):
@@ -633,7 +726,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         resume_generation=int(job.get('search_resume_generation',0))
         replenishing=resume_generation>int(state.get('search_resume_generation',0))
         if state.get('search_complete') and summary_exists and not extra_target and not replenishing:
-            return saved_summary,{}
+            if saved_summary.get('stop_reason') in ('browser_unavailable','sources_blocked') and len(received)<target:
+                state['search_complete']=False
+            else:
+                return saved_summary,{}
         if extra_target or replenishing:
             # Same job, additional target. The local dicts are the objects that
             # ``checkpoint`` persists, so every reset must mutate them in place:
@@ -883,14 +979,19 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             drain();checkpoint()
         with timing.span('browser_start'):browser.start()
         latest_fallback_sources=set()
-        for pass_index in range(2*min(len(steps),MAX_QUERIES)):
-            step_index=pass_index%min(len(steps),MAX_QUERIES);step=steps[step_index]
+        total_steps=min(len(steps),MAX_QUERIES)
+        max_passes=2*total_steps
+        pass_index=0
+        while pass_index<max_passes:
+            step_index=pass_index%total_steps;step=steps[step_index]
             source=step['source'];query=step['query']
             search=searches.setdefault(str(step_index),{'source':source,'query':query,'language':step.get('language','unknown'),
                                                       'observed':False,'usable':False,'window':0,'done':False,
                                                       'sort_mode':'relevance'})
-            if search.get('done'):continue
-            if checks.get(source,{}).get('status') in ('login_required','blocked'):continue
+            if search.get('done'):
+                pass_index+=1;continue
+            if checks.get(source,{}).get('status') in ('login_required','blocked'):
+                pass_index+=1;continue
             if source=='xiaohongshu' and source in latest_fallback_sources and not search.get('latest_fallback_used'):
                 search['sort_mode']='latest';search['latest_fallback_used']=True
             sort_mode=search.get('sort_mode','relevance')
@@ -899,6 +1000,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             kept=0;reason='';before=len(candidates)
             feedback_before={'duplicates':len(duplicates),'received':len(received),
                              'rejected':canonical_counts().get('type_rejected',0),'details':len(state.get('operation_errors',[]))}
+            should_advance=True
             try:
                 restored_window=search.get('window',0)
                 for window in range(restored_window,MAX_WINDOWS):
@@ -1088,12 +1190,44 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         reason='bounded_breadth_next_query';break
             except AgentUnavailable:raise
             except (ValueError,OSError,subprocess.SubprocessError,httpx.HTTPError) as exc:
-                reason='source_or_detail_failed_change_source'
-                search['retry_count']=int(search.get('retry_count',0))+1
-                state.setdefault('operation_errors',[]).append({'action':'search_or_more','source':source,
-                    'query':query,'code':type(exc).__name__,'attempt':search['retry_count'],'result':'retry_pending'})
-                if not search_only:drain()
+                if is_infrastructure_error(exc):
+                    recovered=False
+                    if hasattr(browser,'can_recover') and browser.can_recover():
+                        try:recovered=browser.recover(step)
+                        except Exception:recovered=False
+                    if recovered:
+                        reason='browser_recovered'
+                        errors=collection_queue.read_json(folder/'browser-errors.json',[])
+                        errors.append({
+                            'action':'browser_recovery','category':'infrastructure',
+                            'code':getattr(exc,'code',type(exc).__name__),
+                            'result':'recovered','recovered':True,'at':time.time()
+                        })
+                        save(folder/'browser-errors.json',errors)
+                        state.setdefault('operation_errors',[]).append({
+                            'action':'browser_recovery','source':source,'query':query,
+                            'code':getattr(exc,'code',type(exc).__name__),'result':'recovered','at':time.time()
+                        })
+                        should_advance=False
+                    else:
+                        reason='browser_unavailable'
+                        stop_reason='browser_unavailable'
+                        blocked=True
+                        state.setdefault('operation_errors',[]).append({
+                            'action':'browser_infrastructure','source':source,'query':query,
+                            'code':getattr(exc,'code',type(exc).__name__),'result':'failed_unrecoverable','at':time.time()
+                        })
+                        if not search_only:drain()
+                        break
+                else:
+                    reason='source_or_detail_failed_change_source'
+                    search['retry_count']=int(search.get('retry_count',0))+1
+                    state.setdefault('operation_errors',[]).append({'action':'search_or_more','source':source,
+                        'query':query,'code':type(exc).__name__,'attempt':search['retry_count'],'result':'retry_pending'})
+                    if not search_only:drain()
             finally:
+                if should_advance:
+                    pass_index+=1
                 search['stop_reason']=reason or 'agent_blocked'
                 from ref_lab.search_relevance import query_feedback
                 search['feedback']=query_feedback(cards=len((search.get('snapshot') or {}).get('cards',[])),
@@ -1103,10 +1237,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     detail_failures=len(state.get('operation_errors',[]))-feedback_before['details'],
                     blocked=reason=='login_or_challenge')
                 if sys.exc_info()[0] is None:
-                    retryable=reason in ('source_or_detail_failed_change_source','detail_unavailable','search_return_unconfirmed_change_query')
-                    search['done']=(not retryable and reason!='bounded_breadth_next_query') or int(search.get('retry_count',0))>=2
-                    if any(c.get('query')==query for c in state.get('deferred_cards',{}).values()):
+                    if not search.get('observed'):
                         search['done']=False
+                    else:
+                        retryable=reason in ('source_or_detail_failed_change_source','detail_unavailable','search_return_unconfirmed_change_query','browser_recovered')
+                        search['done']=(not retryable and reason!='bounded_breadth_next_query') or int(search.get('retry_count',0))>=2
+                        if any(c.get('query')==query for c in state.get('deferred_cards',{}).values()):
+                            search['done']=False
                 entry={'source':source,'query':query,
                        'kept':(sum(r.get('search_query')==query for r in received) if search_only
                                else sum(c['source']['search_query']==query for c in candidates)),
@@ -1143,7 +1280,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if not search_only and hasattr(agent,'cache_references'):agent.cache_references(project)
         if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
             stop_reason='sources_blocked';blocked=True
-        stop_reason=stop_reason or limit_reason() or 'search_plan_exhausted'
+        stop_reason=stop_reason or limit_reason()
+        if not stop_reason:
+            if searches and not any(s.get('observed') for s in searches.values()):
+                stop_reason='browser_unavailable';blocked=True
+            else:
+                stop_reason='search_plan_exhausted'
         confirmed_total=canonical_counts(force=True)['target_progress'] if search_only else len(candidates)
         if search_only and not interrupted:
             if stop_reason=='target_reached' and confirmed_total<target:
@@ -1157,10 +1299,15 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 status='cancelled'
             elif confirmed_total>=target:
                 status='completed'
+            elif stop_reason=='browser_unavailable':
+                status='partial' if received else 'blocked'
+            elif stop_reason=='sources_blocked':
+                status='partial' if received else 'blocked'
             elif received:
                 status='partial'
             else:
                 status='blocked'
+            state['outcome']=status
             attempt_elapsed=time.monotonic()-started
             if isinstance(job.get('search_attempt_started_at'),(int,float)):
                 attempt_elapsed=max(attempt_elapsed,time.time()-job['search_attempt_started_at'])
@@ -1195,7 +1342,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'history_known':getattr(history,'known_count',getattr(history,'initial_count',0)),
                                               'history_errors':len(getattr(history,'errors',[])),
                                               'source_blocked':any(c.get('status') in ('blocked','login_required') for c in checks.values())})
-            state.update(search_complete=True,search_summary=summary,search_stop_reason=stop_reason,
+            is_search_complete=(status=='completed') or (stop_reason in ('target_reached','soft_target_reached','search_plan_exhausted'))
+            state.update(search_complete=is_search_complete,search_summary=summary,search_stop_reason=stop_reason,
                          phase='search_finished',first_usable=first_usable,elapsed_seconds_total=elapsed_total)
             try:browser.close()
             except (ValueError,OSError,subprocess.SubprocessError):
@@ -1612,7 +1760,7 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
              'first_received_seconds':(round(first_received-started,3)
                                        if isinstance(first_received,(int,float)) else None),
              'elapsed_seconds':round(time.monotonic()-started,3),
-             'finished_at':time.time(),'queries':queries,'source_checks':list(checks.values()),
+             'finished_at':time.time(),'queries':queries,'checks':checks,'source_checks':list(checks.values()),
              'searches':searches,'errors':list(errors)[:20],
              'model_calls':calls,'tokens':tokens,'attempts_with_usage':with_usage,
              'counts_source':'ref_lab.collection_counts.compute',

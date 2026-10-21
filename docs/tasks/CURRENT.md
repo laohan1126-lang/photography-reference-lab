@@ -1,5 +1,12 @@
 # 当前任务
 
+- 本轮任务：[摄影参考库 BrowserSkill 采集故障识别与有界恢复](2026-10-21-browserskill-collection-recovery.md)
+- 分支：`codex/browserskill-collection-recovery-20261021`（基线 `172b296f1616befcfc62cda11a083d390d973eb7`），工作树 `.local/worktrees/browserskill-collection-recovery-20261021/root`。
+- 目标：建立采集故障闭环（识别基础设施/平台受限/内容空/单图错误，实现有界恢复与优雅停止，修复查询状态机与诊断脱敏），消除无读取却宣布 `search_plan_exhausted` 的缺陷。
+- 最终检查点：已完成。R1~R7 七项回归测试全部通过（`tests/test_browserskill_recovery.py` 7 passed）；相关采集测试全量通过（20 passed + 9 passed）；错误诊断已脱敏；UI/API 已对齐真实失败语义；外部真实环境经 `bsk doctor` 审计探测确认无连接浏览器，如实记录外部环境阻塞，未进行虚假联调宣称；历史数据与日用进程完全隔离保全。待封存 manifest 并推送任务分支。
+
+## 前序检查点（保留）
+
 - 独立验收：[Photo15 独立验收与有限优化](2026-10-21-goal-photo15-independent-audit.md)，验证完成，Git-only交付以本轮Publisher回执为准。原15张成果独立PASS；修复普通搜图目标、失败模型原流/用量及模型配置传递，123项相关用例通过（122+修正测试状态码后的1项复测）；历史发现1584路径一致，局部耗时下降。CONDITIONAL：修复仅任务分支，未合并main、部署或重新联网搜图；日用仍77216b4。
 
 ## 前轮 Goal（保留）
