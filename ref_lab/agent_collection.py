@@ -79,7 +79,7 @@ def stage_timeout_seconds(stage: str, target_count: int = 12) -> float:
         default = min(3600, max(900, int(target_count) * 120 + 600))
         name = "LAB_REVIEW_TIMEOUT_SECONDS"
     else:
-        default = min(1800, max(300, int(target_count) * 90 + 180))
+        default = min(3600, max(900, int(target_count) * 60 + 900))
         name = "LAB_SEARCH_TIMEOUT_SECONDS"
     try:
         seconds = float(os.environ.get(name, str(default)))
@@ -251,19 +251,12 @@ def _refresh_task_job(library: Library, job_id: str, task_dir: Path) -> None:
     at its previous target. Only this one file is refreshed, atomically; the
     project snapshot, rules and image assignment stay frozen.
     """
-    try:
-        bundle = library.job_bundle(job_id)
-    except (Problem, OSError, ValueError, KeyError, TypeError):
-        # Keep the existing package; the stage reports its own failure honestly.
-        return
+    bundle = library.job_bundle(job_id)
     target = task_dir / "job.json"
     payload = json.dumps(bundle, ensure_ascii=False, default=str, sort_keys=True).encode("utf8")
-    try:
-        if target.is_file() and target.read_bytes() == payload:
-            return
-        atomic_write(target, payload)
-    except OSError:
+    if target.is_file() and target.read_bytes() == payload:
         return
+    atomic_write(target, payload)
 
 
 def _prepare_task(library: Library, job_id: str, task_dir: Path, task_file: Path) -> None:

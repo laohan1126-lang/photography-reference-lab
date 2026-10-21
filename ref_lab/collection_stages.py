@@ -45,6 +45,16 @@ def _artifacts(library: Library, job_id: str) -> tuple[Path, Path, Path]:
         if goal_id:
             source = collection_queue.ROOT/'.local/goals'/goal_id/'goal.json'
             goal = json.loads(source.read_text('utf8'))
+            baseline = source.with_name('baseline.json').read_bytes()
+            if hashlib.sha256(baseline).hexdigest() != goal.get('baseline_sha'):
+                raise Problem(409, 'Goal历史基线完整性失败；未启动')
+            from .storage import atomic_write
+            atomic_write(folder/'baseline.json', baseline)
+            from .collection_history import goal_baseline
+            goal_baseline(folder, goal)
+            target = int(library.job(job_id).get('target_count') or 0) + int(library.job(job_id).get('search_extra_target') or 0)
+            if goal.get('target') != target:
+                raise Problem(409, 'Goal与数据库目标不一致；未启动')
             existing = collection_queue.read_json(folder/'goal.json', None)
             if existing is not None and existing.get('baseline_sha') != goal.get('baseline_sha'):
                 raise Problem(409, 'Goal历史基线发生变化；拒绝覆盖')
@@ -219,7 +229,8 @@ def run_search_stage(library: Library, job_id: str, attempt_id: str) -> dict:
         try:
             argv = _command(job, task_dir, task_file, result_file, "search")
         except AttemptStop as exc:
-            summary = _summary_blocked(job_id, exc.code, exc.detail, target=target)
+            summary = _summary_blocked(job_id, 'time_budget_exhausted' if exc.code == 'process_timeout' else exc.code,
+                                           exc.detail, target=target)
             return library.update_search_stage(job_id, attempt_id, "blocked", summary, exc.detail)
         try:
             code = run_process(library, job_id, attempt_id, argv, task_dir, remaining, lock.file, stage="search")
@@ -230,7 +241,8 @@ def run_search_stage(library: Library, job_id: str, attempt_id: str) -> dict:
                 return library.job(job_id)
             summary = read_json(folder / "search-summary.json", {})
             if not isinstance(summary, dict) or summary.get("status") not in {"completed", "partial", "blocked", "failed", "cancelled"}:
-                summary = _summary_blocked(job_id, exc.code, exc.detail, target=target)
+                summary = _summary_blocked(job_id, 'time_budget_exhausted' if exc.code == 'process_timeout' else exc.code,
+                                           exc.detail, target=target)
             result = library.update_search_stage(job_id, attempt_id, "blocked", summary, exc.detail)
             _import_search(library, job_id)
             return result

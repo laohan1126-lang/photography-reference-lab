@@ -42,7 +42,7 @@ function Get-ReferenceLabRuntimeConfig {
         }
         if ($null -ne $stored.search_timeout_seconds -and -not $env:LAB_SEARCH_TIMEOUT_SECONDS) {
             $budget = [int]$stored.search_timeout_seconds
-            if ($budget -lt 60 -or $budget -gt 900) { throw 'search_timeout_seconds must be 60..900.' }
+            if ($budget -lt 60 -or $budget -gt 3600) { throw 'search_timeout_seconds must be 60..3600.' }
             $env:LAB_SEARCH_TIMEOUT_SECONDS = [string]$budget
         }
     }
@@ -109,7 +109,10 @@ function Get-ReferenceLabPython {
 function Assert-ReferenceLabPythonMatchesRepo {
     param([Parameter(Mandatory = $true)][string]$Python)
 
-    $loaded = (& $Python -c "import pathlib, ref_lab; print(pathlib.Path(ref_lab.__file__).resolve())" 2>$null | Select-Object -Last 1)
+    Push-Location $script:RepoRoot
+    try {
+        $loaded = (& $Python -c "import pathlib, ref_lab; print(pathlib.Path(ref_lab.__file__).resolve())" 2>$null | Select-Object -Last 1)
+    } finally { Pop-Location }
     if ($LASTEXITCODE -ne 0 -or -not $loaded) {
         throw "The Windows virtual environment cannot import ref_lab. Run .\install.ps1 again."
     }
@@ -163,8 +166,12 @@ function Get-ReferenceLabRuntimeInfo {
 }
 
 function Assert-ReferenceLabRuntimeIdentity {
-    param($Runtime, $Config, [int]$ExpectedPid)
+    param($Runtime, $Config, [int]$ExpectedPid, [string]$ExpectedRevision, [string]$ExpectedDigest)
 
+    if (($ExpectedRevision -and $Runtime.code_revision -ne $ExpectedRevision) -or
+        ($ExpectedDigest -and $Runtime.code_digest -ne $ExpectedDigest)) {
+        throw "Running server code differs from the frozen launcher implementation."
+    }
     if (-not $Runtime -or [int]$Runtime.pid -ne $ExpectedPid -or
         [System.IO.Path]::GetFullPath([string]$Runtime.source) -ne (Join-Path $Config.RepoRoot "ref_lab\api.py") -or
         [System.IO.Path]::GetFullPath([string]$Runtime.data_dir) -ne $Config.DataDir -or

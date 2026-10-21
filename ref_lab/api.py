@@ -48,6 +48,10 @@ class MaintenanceInput(Strict):
 
 def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     settings = settings or Settings.from_env()
+    from .collection_checkpoint import implementation_digest
+    code_digest = implementation_digest()
+    if os.environ.get('LAB_CODE_DIGEST') and os.environ['LAB_CODE_DIGEST'] != code_digest:
+        raise ValueError('Runtime source changed after launcher verification')
     library = Library(settings)
     @asynccontextmanager
     async def lifespan(app):
@@ -140,6 +144,7 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         with library.db.read() as con:
             database = next(r[2] for r in con.execute("PRAGMA database_list") if r[1] == "main")
             return {"pid": os.getpid(), "source": str(Path(__file__).resolve()),
+                    "code_revision": os.environ.get('LAB_CODE_REVISION', ''), "code_digest": code_digest,
                     "database": database, "data_dir": str(settings.data_dir.resolve()),
                     "schema": con.execute("PRAGMA user_version").fetchone()[0],
                     "maintenance": maintenance_file.exists(),
@@ -204,8 +209,10 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
 
     @app.get("/api/capabilities")
     def capabilities():
+        from .agent_collection import stage_timeout_seconds
         return {"collection": "agent_browserskill_package", "analysis": "agent_package",
                 "independent_api_required": False,
+                "search_budgets": {n: stage_timeout_seconds('search', n) for n in range(1, 101)},
                 "collection_adapter_configured": bool(os.environ.get("LAB_COLLECTION_COMMAND", "").strip()),
                 "collection_adapter_verified": False,
                 "notion": "markdown_csv_import_and_optional_task_sync", "offline": "downloadable_zip",
@@ -485,14 +492,10 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         if job.get('goal_id'):
             try:
                 disk = candidate_snapshot(job['id'], limit=1)['counts']
-                search_counts = {**disk, **search_counts}
-                for k in ('usable_named', 'type_pending', 'type_rejected', 'goal_excluded'):
-                    if disk.get(k) is not None:
-                        search_counts[k] = disk[k]
-                if disk.get('found'):
-                    search_counts['found'] = disk['found']
+                search_counts = {**search_counts, **disk}
             except Exception:
-                pass
+                search_counts = {**search_counts, 'usable_named':0, 'usable_independent':0,
+                                 'goal_shas':[], 'verification_error':'evidence_unavailable'}
         review_counts = job.get("review_counts") or {}
         can_review = (mode != "verified" and job.get('status') != 'cancelled'
                       and job.get("search_state") in {"completed", "partial", "blocked", "failed", "cancelled"}
@@ -645,13 +648,30 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
             raise Problem(409, '本任务未关联持续Goal')
         snapshot = candidate_snapshot(job_id, limit=500)
         items = [item for item in snapshot['items'] if item['goal_qualified']]
+        previous = set((job.get('search_counts') or {}).get('goal_shas', []))
+        historical = [item for item in snapshot['items'] if not item['goal_qualified'] and item['asset_sha'] in previous]
+        # Old tiles can leave the candidate queue after an algorithm upgrade;
+        # their imported originals still belong to the historical results.
+        from .integrity import sha_matches
+        for sha in sorted(previous - {item['asset_sha'] for item in snapshot['items']}):
+            try:
+                asset = library.asset(sha)
+                if not sha_matches(library.assets.path(asset), sha):
+                    continue
+            except (Problem, OSError):
+                continue
+            historical.append({'asset_sha':sha, 'source':None, 'goal_name_evidence':None,
+                               'photo_type':{'status':'historical_receipt_pending'},
+                               'original_url':f'/api/assets/{sha}/original'})
         parts = []
-        for item in items:
+        for index, item in enumerate([*items, *historical], 1):
+            if index == len(items) + 1 and historical:
+                parts.append('<h2>历史准入记录 · 当前待复核，不计当前合格数</h2>')
             evidence = html.escape(json.dumps({'sha':item['asset_sha'], 'source':item['source'],
                 'name_association':item['goal_name_evidence'], 'classification':item['photo_type'],
                 'parent_sha':item.get('parent_sha'), 'crop':item.get('crop'),
                 'width':item.get('width'), 'height':item.get('height')}, ensure_ascii=False, indent=2))
-            parts.append(f'<article><h2>{len(parts)+1}</h2><img src="{html.escape(item["original_url"], quote=True)}" alt="摄影参考 {len(parts)+1}"><details><summary>原件、来源、名称与读图证据</summary><pre>{evidence}</pre></details></article>')
+            parts.append(f'<article><h2>{index}</h2><img src="{html.escape(item["original_url"], quote=True)}" alt="摄影参考 {index}"><details><summary>原件、来源、名称与读图证据</summary><pre>{evidence}</pre></details></article>')
         count = snapshot['counts']['usable_named']
         return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Goal摄影成果</title>'
             '<style>body{max-width:960px;margin:auto;padding:24px;font:16px/1.7 system-ui}img{max-width:100%;max-height:85vh}pre{white-space:pre-wrap;overflow-wrap:anywhere}article{margin:32px 0}</style>'

@@ -101,11 +101,16 @@ def test_collection_editor_offers_two_modes_and_opens_live_candidate_queue(
     page.get_by_role('button', name='＋ 建立搜图任务', exact=True).click()
     mode = page.get_by_label('运行方式', exact=True)
     assert mode.locator('option').count() == 2
-    assert '快速搜图' in mode.locator('option').nth(0).inner_text()
+    assert mode.locator('option').nth(0).get_attribute('value') == 'search'
+    expect(page.locator('#collection-budget')).to_contain_text('2700')
+    expect(page.locator('#collection-budget')).to_contain_text('60 次')
     assert '搜图 + AI 审核' in mode.locator('option').nth(1).inner_text()
-    target = page.get_by_label('期望候选数量（质量优先，不凑数）', exact=True)
+    target = page.get_by_label('期望目标数量（合格真人摄影，质量优先，不凑数）', exact=True)
     assert target.input_value() == '30'
     assert target.get_attribute('max') == '100'
+    target.fill('15')
+    expect(page.locator('#collection-budget')).to_contain_text('1800')
+    target.fill('30')
     mode.select_option('search_review')
     page.get_by_role('button', name='开始搜图', exact=True).click()
     page.locator('#cq-grid').wait_for(state='attached')

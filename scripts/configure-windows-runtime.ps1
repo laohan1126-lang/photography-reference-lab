@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$DataDir,
     [ValidateRange(1, 65535)][int]$Port = 18765,
-    [switch]$InitializeEmpty
+    [switch]$InitializeEmpty,
+    [ValidateRange(60, 3600)][int]$SearchTimeoutSeconds
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,6 +53,7 @@ if (Test-Path $script:WindowsRuntimeConfigPath) {
         if ($null -ne $previous.$key) { $config[$key] = $previous.$key }
     }
 }
+if ($PSBoundParameters.ContainsKey('SearchTimeoutSeconds')) { $config.search_timeout_seconds = $SearchTimeoutSeconds }
 $config | ConvertTo-Json | Set-Content -LiteralPath $script:WindowsRuntimeConfigPath -Encoding UTF8
 
 Write-Host "[OK] Windows runtime configured." -ForegroundColor Green

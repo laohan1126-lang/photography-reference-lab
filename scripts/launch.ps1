@@ -16,6 +16,11 @@ $python = Get-ReferenceLabPython
 Assert-ReferenceLabPythonMatchesRepo -Python $python
 
 $revision = Get-ReferenceLabRevision -RepoRoot $config.RepoRoot
+Push-Location $config.RepoRoot
+try {
+    $codeDigest = & $python -B -c 'from ref_lab.collection_checkpoint import implementation_digest; print(implementation_digest())'
+    if ($LASTEXITCODE -ne 0 -or -not $codeDigest) { throw "Cannot freeze runtime implementation." }
+} finally { Pop-Location }
 
 $adapter = Join-Path $config.RepoRoot "tools\collect_verified.py"
 if (-not (Test-Path $adapter)) {
@@ -74,13 +79,15 @@ if ($alreadyHealthy) {
     if ($record.code_revision -ne $revision) {
         throw "The managed server was started at another Git revision. Stop it with stop.bat, then start this revision."
     }
-    Assert-ReferenceLabRuntimeIdentity -Runtime (Get-ReferenceLabRuntimeInfo -Config $config) -Config $config -ExpectedPid $managedProcess.Id
+    Assert-ReferenceLabRuntimeIdentity -Runtime (Get-ReferenceLabRuntimeInfo -Config $config) -Config $config -ExpectedPid $managedProcess.Id -ExpectedRevision $revision -ExpectedDigest $codeDigest
     Write-Host "[*] Windows reference-lab service is already running (PID $($record.pid))." -ForegroundColor Green
 } else {
     if ($managedProcess) {
         throw "Managed Windows process PID $($record.pid) exists but health check failed. Run stop.bat, inspect $stderrLog, then start again."
     }
 
+    $env:LAB_CODE_REVISION = $revision
+    $env:LAB_CODE_DIGEST = $codeDigest
     $env:LAB_DATA_DIR = $config.DataDir
     $env:LAB_PUBLIC_ORIGIN = $url
     $env:LAB_COLLECTION_COMMAND = (@(
@@ -116,6 +123,7 @@ with open(sys.argv[3], 'ab') as out, open(sys.argv[4], 'ab') as err:
         python = $python
         adapter = $adapter
         code_revision = $revision
+        code_digest = $codeDigest
         started_at = $process.StartTime.ToUniversalTime().ToString("o")
         process_start_ticks = [string]$process.StartTime.ToUniversalTime().Ticks
         process_path = $process.Path
@@ -137,7 +145,7 @@ with open(sys.argv[3], 'ab') as out, open(sys.argv[4], 'ab') as err:
                     $serverParent = (Get-CimInstance Win32_Process -Filter "ProcessId = $($serverProcess.Id)" -ErrorAction Stop).ParentProcessId
                     if ($serverParent -ne $process.Id) { throw "Endpoint belongs to a process we did not start." }
                 }
-                Assert-ReferenceLabRuntimeIdentity -Runtime $runtime -Config $config -ExpectedPid $serverProcess.Id
+                Assert-ReferenceLabRuntimeIdentity -Runtime $runtime -Config $config -ExpectedPid $serverProcess.Id -ExpectedRevision $revision -ExpectedDigest $codeDigest
                 $record.pid = $serverProcess.Id
                 $record.started_at = $serverProcess.StartTime.ToUniversalTime().ToString("o")
                 $record.process_start_ticks = [string]$serverProcess.StartTime.ToUniversalTime().Ticks

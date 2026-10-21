@@ -128,7 +128,7 @@ def test_reference_phase_does_not_hide_permanent_model_failure(tmp_path,monkeypa
     assert len(calls)==1
 
 
-def test_browser_navigation_has_one_retry_but_click_is_not_repeated(tmp_path,monkeypatch):
+def test_browser_command_leaves_recovery_to_controller_without_replay(tmp_path,monkeypatch):
     import pytest
     from types import SimpleNamespace
     calls=[]
@@ -137,6 +137,8 @@ def test_browser_navigation_has_one_retry_but_click_is_not_repeated(tmp_path,mon
         return SimpleNamespace(returncode=1 if len(calls)%2 else 0,stdout='ok',stderr='')
     monkeypatch.setattr(worker.subprocess,'run',command);monkeypatch.setattr(worker.time,'sleep',lambda _:None)
     browser=worker.Browser(tmp_path);browser.bsk='fixture-bsk'
+    with pytest.raises(worker.BrowserInfrastructureError):browser.command('navigate','https://example.org')
+    assert len(calls)==1
     assert browser.command('navigate','https://example.org')=='ok' and len(calls)==2
     with pytest.raises(ValueError):browser.command('click','@e1')
     assert len(calls)==3

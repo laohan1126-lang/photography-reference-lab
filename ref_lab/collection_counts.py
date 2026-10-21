@@ -230,6 +230,19 @@ def compute(folder, rows, records, *, named=None) -> dict:
                     if verified_photo(classifications.get(sha), sha)
                     and receipt_intact(folder, classifications[sha])}
     counts['type_rejected'] = len(usable - photographic) - counts['type_pending']
+    if goal:
+        from .collection_history import FINGERPRINT_ALGORITHM_VERSION, goal_baseline
+        try:
+            goal_baseline(folder, goal)
+            checked = {sha for sha in photographic
+                       if classifications[sha].get('history_check') == {
+                           'state':'clear', 'baseline_sha':goal['baseline_sha'],
+                           'algorithm_version':FINGERPRINT_ALGORITHM_VERSION}
+                       and classifications[sha].get('result', {}).get('kind') == 'cosplay_photo'}
+        except (OSError, ValueError, KeyError, TypeError):
+            checked = set()
+        counts['history_pending'] = len(photographic - checked)
+        photographic = checked
     audit = read_json(folder / 'photo-audit.json', {}).get('items', {})
     duplicates = {sha: item['duplicate_of'] for sha, item in audit.items()
                   if isinstance(item, dict) and item.get('asset_sha') == sha

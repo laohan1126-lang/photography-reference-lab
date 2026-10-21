@@ -10,6 +10,15 @@ from uuid import uuid4
 from .policy import digest
 
 
+def implementation_digest():
+    root=Path(__file__).resolve().parents[1]
+    paths=[*root.joinpath('ref_lab').glob('*.py'), *root.joinpath('scripts').glob('*.ps1')]
+    paths.extend(root/name for name in ('tools/collect_verified.py','tools/collect_adapter.py',
+                                       'tools/exact_recall.py','tools/learning_v1_human.py',
+                                       'web/app.js','web/index.html','start.bat','stop.bat') if (root/name).is_file())
+    return digest({str(path.relative_to(root)):hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(paths)})
+
+
 def rule_contract():
     root=Path(__file__).resolve().parent
     selected={

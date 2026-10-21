@@ -54,7 +54,7 @@ def test_historical_valid_child_enters_the_history_index(tmp_path, monkeypatch):
     assert Path(row["original_path"]).resolve() in paths
 
 
-def test_historical_outdated_child_is_not_indexed(tmp_path, monkeypatch):
+def test_historical_intact_outdated_child_still_prevents_repeating_old_photo(tmp_path, monkeypatch):
     root, local, data, run = _history_root(tmp_path)
     row = _write_original(run, _collage(2, 1, tile=(800, 600)))
     (run / "received.json").write_text(json.dumps([row]), "utf8")
@@ -65,7 +65,7 @@ def test_historical_outdated_child_is_not_indexed(tmp_path, monkeypatch):
     path.write_text(json.dumps(data_json), "utf8")
     monkeypatch.setenv("LAB_DATA_DIR", str(data))
     paths = collection_history.historical_paths(root, local / "current-job")
-    assert Path(record["children"][0]["path"]).resolve() not in paths
+    assert Path(record["children"][0]["path"]).resolve() in paths
 
 
 def test_historical_corrupt_child_cannot_prove_no_repeat(tmp_path, monkeypatch):
@@ -75,7 +75,7 @@ def test_historical_corrupt_child_cannot_prove_no_repeat(tmp_path, monkeypatch):
     record = collage.process_original(run, row)
     Path(record["children"][0]["path"]).write_bytes(b"damaged")
     monkeypatch.setenv("LAB_DATA_DIR", str(data))
-    with pytest.raises(ValueError, match="Historical derived tile SHA changed"):
+    with pytest.raises(ValueError, match="Historical image SHA changed"):
         collection_history.historical_paths(root, local / "current-job")
 
 

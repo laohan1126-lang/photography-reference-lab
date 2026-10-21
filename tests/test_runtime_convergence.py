@@ -117,7 +117,7 @@ def powershell(code, *, env=None, shell=None):
     if os.name != "nt" or not POWERSHELL:
         pytest.skip("Native Windows PowerShell runtime regressions")
     encoded = base64.b64encode(code.encode("utf-16-le")).decode("ascii")
-    completed = subprocess.run([shell or POWERSHELL, "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
+    completed = subprocess.run([shell or POWERSHELL, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded],
                                env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
     assert completed.returncode == 0, completed.stdout + completed.stderr
     return completed.stdout
@@ -281,11 +281,12 @@ def test_default_launcher_checks_connected_browser_and_keeps_failure_status(tmp_
     code += r"""
 $fakeStart=[datetime]'2026-01-01T00:00:00Z'
 $fakeProcess=[pscustomobject]@{Id=12345; Path='D:/synthetic/python.exe'; StartTime=$fakeStart}
-$fakeRuntime=[pscustomobject]@{pid=12345; source=(Join-Path $script:RepoRoot 'ref_lab/api.py'); data_dir=$script:FakeConfig.DataDir; database=(Join-Path $script:FakeConfig.DataDir 'library.sqlite3')}
+$fakeRuntime=[pscustomobject]@{pid=12345; code_revision=(Get-ReferenceLabRevision -RepoRoot $script:RepoRoot); code_digest='synthetic-digest'; source=(Join-Path $script:RepoRoot 'ref_lab/api.py'); data_dir=$script:FakeConfig.DataDir; database=(Join-Path $script:FakeConfig.DataDir 'library.sqlite3')}
 $fakeRecord=[pscustomobject]@{pid=12345; repo_root=$script:RepoRoot; data_dir=$script:FakeConfig.DataDir; port=18765; process_path=$fakeProcess.Path; process_start_ticks=[string]$fakeStart.ToUniversalTime().Ticks; code_revision=(Get-ReferenceLabRevision -RepoRoot $script:RepoRoot)}
 $fakeRecord | ConvertTo-Json | Set-Content -LiteralPath (Get-ReferenceLabPidFile) -Encoding UTF8
 function Get-ReferenceLabRuntimeConfig { return $script:FakeConfig }
-function Get-ReferenceLabPython { return 'D:/synthetic/python.exe' }
+function Get-ReferenceLabPython { return 'Invoke-SyntheticPython' }
+function Invoke-SyntheticPython { $global:LASTEXITCODE=0; return 'synthetic-digest' }
 function Assert-ReferenceLabPythonMatchesRepo { }
 function Get-Process { param($Id,$Name,$ErrorAction) if (-not $Name) { return $fakeProcess } }
 function Get-ReferenceLabRuntimeInfo { param($Config,$Origin) if ($Origin) { return [pscustomobject]@{pid=99999} }; return $fakeRuntime }

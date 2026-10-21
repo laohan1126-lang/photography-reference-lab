@@ -17,5 +17,5 @@ def synthetic_type(folder, row, kind='cosplay_photo'):
     data['items'][sha]={'asset_sha':sha,'status':'succeeded','producer':'synthetic-fixture',
         'result_status':'SUCCESS','result':result,'stream_path':str(path),
         'stream_sha':hashlib.sha256(path.read_bytes()).hexdigest(),
-        'read_evidence':{'tool':'view_file','state':'DONE','asset_sha':sha,'preview_sha':sha}}
+        'read_evidence':{'tool':'view_file','state':'DONE','asset_sha':sha,'preview_sha':sha,'path':row['original_path']}}
     write_json(Path(folder)/'photo-types.json',data)

@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import sqlite3
 import time
 from pathlib import Path
@@ -978,7 +979,7 @@ class Library:
                 "SELECT * FROM events WHERE project_id=? AND id>? ORDER BY id DESC LIMIT ?", (project_id, after, limit))]
 
     def _create_auto_goal(self, con: sqlite3.Connection, project: dict, request: JobInput) -> str:
-        goal_id = f"auto-{project['id'][:8]}-{int(time.time())}"
+        goal_id = f"auto-{fresh_id()}"
         started_at = time.time()
         target = request.target_count or 30
 
@@ -994,56 +995,45 @@ class Library:
                 names.extend(request.search_aliases)
         names = [n for n in dict.fromkeys(names) if n]
 
+        from .collection_history import ImageHistory, historical_paths, FINGERPRINT_ALGORITHM_VERSION
+        root = Path(__file__).resolve().parents[1]
+        history_roots = [Path(path) for path in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS', '[]'))]
+        paths = set(historical_paths(root, root/'.local/goals'/goal_id, history_roots=history_roots))
+        for aid, djson in con.execute("SELECT id, data FROM assets"):
+            asset = json.loads(djson)
+            if asset.get('storage_status') == 'purged':
+                continue
+            path = self.assets.path(asset).resolve()
+            if hashlib.sha256(path.read_bytes()).hexdigest() != aid:
+                raise Problem(409, '历史原件SHA损坏；未建立Goal')
+            paths.add(path)
+        try:
+            history = ImageHistory(sorted(paths), cache_path=root/'.local/history-fingerprints.json')
+        except (OSError, ValueError) as exc:
+            raise Problem(409, '历史图片指纹未完整建立；未建立Goal') from exc
+        if not history.ready or history.errors:
+            raise Problem(409, '历史图片指纹未完整建立；未建立Goal')
         items = []
-        rows = con.execute("SELECT id, data FROM assets").fetchall()
-        for aid, djson in rows:
-            try:
-                adata = json.loads(djson)
-                items.append({"sha": aid, "bytes": adata.get("bytes", 0)})
-            except Exception:
-                items.append({"sha": aid})
-
-        runs_dir = Path(__file__).resolve().parents[1] / ".local" / "collection-runs"
-        if runs_dir.is_dir():
-            for rec in runs_dir.glob("*/current/received.json"):
-                try:
-                    recs = json.loads(rec.read_text("utf8"))
-                    records = recs.get("candidates", []) if isinstance(recs, dict) else recs
-                    for r in records:
-                        if r.get("asset_sha"):
-                            items.append({"sha": r["asset_sha"], "path": r.get("original_path")})
-                except Exception:
-                    pass
-            for der in runs_dir.glob("*/current/derived.json"):
-                try:
-                    der_data = json.loads(der.read_text("utf8"))
-                    for parent_sha, prec in der_data.get("items", {}).items():
-                        for child in prec.get("children", []):
-                            if child.get("child_sha"):
-                                items.append({"sha": child["child_sha"], "path": child.get("path")})
-                except Exception:
-                    pass
-
-        unique_shas = sorted({item["sha"] for item in items if item.get("sha")})
-        deduped_items = []
-        seen_shas = set()
-        for item in items:
-            sha = item.get("sha")
-            if sha and sha not in seen_shas:
-                seen_shas.add(sha)
-                deduped_items.append(item)
+        for sha, fp in sorted(history.records.items()):
+            path = Path(fp['path'])
+            actual = hashlib.sha256(path.read_bytes()).hexdigest()
+            if actual != sha:
+                raise Problem(409, "历史图片或指纹绑定损坏；未建立Goal")
+            items.append({'sha':sha, 'path':str(path), 'fingerprint':fp})
+        unique_shas = sorted(history.records)
 
         baseline = {
             "goal_id": goal_id,
             "target": target,
             "started_at": started_at,
-            "items": deduped_items
+            "items": items,
+            "fingerprint_algorithm_version": FINGERPRINT_ALGORITHM_VERSION
         }
         baseline_bytes = json.dumps(baseline, ensure_ascii=False).encode("utf8")
         baseline_sha = hashlib.sha256(baseline_bytes).hexdigest()
 
         goal_dir = Path(__file__).resolve().parents[1] / ".local" / "goals" / goal_id
-        goal_dir.mkdir(parents=True, exist_ok=True)
+        goal_dir.mkdir(parents=True, exist_ok=False)
         (goal_dir / "baseline.json").write_bytes(baseline_bytes)
 
         goal_data = {
@@ -1116,9 +1106,12 @@ class Library:
                         raise Problem(422, "本项目名称、作品或目标数与持续目标不一致")
                     job['goal_id'] = request.goal_id
                 else:
+                    setup_started = time.monotonic()
                     auto_goal_id = self._create_auto_goal(con, project, request)
                     job['goal_id'] = auto_goal_id
-                job.update(collection_outcome="blocked", collection_attempt_count=0, collection_elapsed_seconds=0.0,
+                    job['search_elapsed_seconds'] = time.monotonic() - setup_started
+                job.update(collection_outcome="blocked", collection_attempt_count=0,
+                           collection_elapsed_seconds=job.get("search_elapsed_seconds", 0.0),
                            collection_mode=request.collection_mode,
                            search_state="idle", search_counts={"found": 0, "accepted": 0},
                            review_state="idle", review_counts={"found": 0, "accepted": 0, "rejected": 0,
@@ -1775,46 +1768,77 @@ class Library:
 
     def extend_search(self, ident: str, extra_target: int, detail: str = "") -> dict:
         """Same job, additional target; originals and decisions are preserved."""
-        with self.db.transaction() as con:
-            job = row_data(con, "jobs", ident)
-            ensure_active_project(row_data(con, "projects", job["project_id"]))
-            if job["kind"] != "collection" or job.get("collection_mode") not in {"search", "search_review"}:
-                raise Problem(409, "只有快速搜图任务可以继续加搜")
-            if job["status"] == "cancelled":
-                raise Problem(409, "已取消的任务不能继续加搜")
-            from .agent_collection import _process_owner_active
-            if job.get("search_state") == "running" and _process_owner_active(job.get("collection_process_owner")):
-                raise Problem(409, "搜索仍在运行；请先停止搜索再扩大搜索目标")
-            if job.get("review_state") == "running":
-                raise Problem(409, "审核仍在运行；请先停止审核再扩大搜索目标")
-            base = int(job.get("target_count") or 0)
-            already = int(job.get("search_extra_target") or 0)
-            total = base + already + int(extra_target)
-            if job.get('goal_id'):
-                if not job.get('goal_id', '').startswith('auto-'):
-                    raise Problem(409, "持续Goal目标固定；请使用继续补足，额外目标应另建任务")
-                try:
-                    goal_file = Path(__file__).resolve().parents[1] / '.local/goals' / job['goal_id'] / 'goal.json'
-                    if goal_file.is_file():
-                        gdata = json.loads(goal_file.read_text('utf8'))
-                        gdata['target'] = total
-                        goal_file.write_text(json.dumps(gdata, ensure_ascii=False, indent=2), encoding='utf8')
-                except Exception:
-                    pass
-            if total > 100:
-                raise Problem(422, f"累计目标最多 100 张；当前 {base + already} 张，不能再加 {extra_target} 张")
-            job.update(search_extra_target=already + int(extra_target), search_state="idle",
-                       search_timeout_seconds=float(job.get('search_timeout_seconds') or 900)+900,
-                       search_resume_generation=int(job.get('search_resume_generation',0))+1,
-                       search_stop_reason="", search_detail=detail or
-                       f"继续加搜：累计目标 {total} 张；已下载候选保留且不会重复计数。")
-            if job["status"] in {"succeeded", "failed"}:
-                job["status"] = "blocked"
-            job.pop("active_attempt_id", None)
-            job.pop("collection_process_owner", None)
-            job.pop("search_attempt_started_at", None)
-            return self._save_job(con, job, "collection.search_extended",
-                                  {"extra_target": int(extra_target), "target_total": total}, "human")
+        if type(extra_target) is not int or extra_target < 1:
+            raise Problem(422, "加搜数量须为正整数")
+        changed = []
+        try:
+            with self.db.transaction() as con:
+                job = row_data(con, "jobs", ident)
+                ensure_active_project(row_data(con, "projects", job["project_id"]))
+                if job["kind"] != "collection" or job.get("collection_mode") not in {"search", "search_review"}:
+                    raise Problem(409, "只有快速搜图任务可以继续加搜")
+                if job["status"] == "cancelled":
+                    raise Problem(409, "已取消的任务不能继续加搜")
+                from .agent_collection import _process_owner_active
+                if job.get("search_state") == "running" and _process_owner_active(job.get("collection_process_owner")):
+                    raise Problem(409, "搜索仍在运行；请先停止搜索再扩大搜索目标")
+                if job.get("review_state") == "running":
+                    raise Problem(409, "审核仍在运行；请先停止审核再扩大搜索目标")
+                base = int(job.get("target_count") or 0)
+                already = int(job.get("search_extra_target") or 0)
+                total = base + already + int(extra_target)
+                if total > 100:
+                    raise Problem(422, f"累计目标最多 100 张；当前 {base + already} 张，不能再加 {extra_target} 张")
+                updates = []
+                if job.get('goal_id'):
+                    if not job['goal_id'].startswith('auto-'):
+                        raise Problem(409, "持续Goal目标固定；请使用继续补足，额外目标应另建任务")
+                    root = Path(__file__).resolve().parents[1]
+                    goal_file = root/'.local/goals'/job['goal_id']/'goal.json'
+                    before = goal_file.read_bytes()
+                    goal = json.loads(before)
+                    if goal.get('goal_id') != job['goal_id'] or goal.get('target') != base + already:
+                        raise Problem(409, "Goal目标与数据库不一致；拒绝覆盖")
+                    goal['target'] = total
+                    updates.append((goal_file, before, goal))
+                    run_goal = root/'.local/collection-runs'/ident/'current/goal.json'
+                    if run_goal.exists():
+                        run_before = run_goal.read_bytes()
+                        existing = json.loads(run_before)
+                        if existing.get('baseline_sha') != goal.get('baseline_sha'):
+                            raise Problem(409, "运行Goal历史基线不一致；拒绝覆盖")
+                        updates.append((run_goal, run_before, goal))
+                job.update(search_extra_target=already + int(extra_target), search_state="idle",
+                           search_timeout_seconds=float(job.get('search_timeout_seconds') or 900)+900,
+                           search_resume_generation=int(job.get('search_resume_generation',0))+1,
+                           search_stop_reason="", search_detail=detail or
+                           f"继续加搜：累计目标 {total} 张；已下载候选保留且不会重复计数。")
+                if job["status"] in {"succeeded", "failed"}:
+                    job["status"] = "blocked"
+                job.pop("active_attempt_id", None)
+                job.pop("collection_process_owner", None)
+                job.pop("search_attempt_started_at", None)
+                saved = self._save_job(con, job, "collection.search_extended",
+                                       {"extra_target": extra_target, "target_total": total}, "human")
+                task_job = Path(__file__).resolve().parents[1]/'.local/collection-runs'/ident/'current/task/job.json'
+                if task_job.exists():
+                    before = task_job.read_bytes()
+                    bundle = json.loads(before)
+                    if bundle.get('job', {}).get('id') != ident:
+                        raise Problem(409, "运行任务包绑定不一致；拒绝覆盖")
+                    from .acquisition import acquisition_contract, agent_instructions
+                    bundle.update(job=saved, acquisition=acquisition_contract(saved), agent_instructions=agent_instructions(saved))
+                    updates.append((task_job, before, bundle))
+                from .storage import atomic_write
+                for path, before, payload in updates:
+                    atomic_write(path, json.dumps(payload, ensure_ascii=False, indent=2).encode('utf8'))
+                    changed.append((path, before))
+        except BaseException:
+            from .storage import atomic_write
+            for path, before in reversed(changed):
+                atomic_write(path, before)
+            raise
+        return saved
 
     def replenish_search(self, ident: str, additional_seconds: int = 900) -> dict:
         """Add an explicit attempt budget while retaining the original target."""

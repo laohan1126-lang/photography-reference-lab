@@ -39,7 +39,7 @@ from .storage import atomic_write
 # another version are never reused as an effective result: they may be
 # snapshotted and recomputed by an explicit processing operation, but a read-only
 # view reports them as pending update instead of silently counting them.
-ALGORITHM_VERSION = 2
+ALGORITHM_VERSION = 3
 
 # A tile smaller than this is not delivered as an independent photography
 # reference (the 1080x1440 nine-grid case: 360x480).
@@ -83,6 +83,7 @@ BLANK_TILE = "blank_tile"
 ODD_ASPECT = "odd_aspect"
 DUPLICATE_RUN = "duplicate_run"
 DUPLICATE_HISTORY = "duplicate_history"
+HISTORY_PENDING = "history_pending"
 ENCODE_FAILED = "encode_failed"
 CORRUPT = "corrupt"
 
@@ -778,9 +779,10 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
                 try:
                     match = history.consider(target)
                 except (OSError, ValueError) as exc:
-                    match = {"duplicate_of": "", "reason": "history_error:" + type(exc).__name__}
+                    match = {"state": "needs_review", "duplicate_of": "", "reason": "history_error:" + type(exc).__name__}
                 if match:
-                    child["status"] = DUPLICATE_HISTORY
+                    child["status"] = HISTORY_PENDING if match.get('state') == 'needs_review' else DUPLICATE_HISTORY
+                    child["history_check"] = match
                     child["duplicate_of"] = str(match.get("duplicate_of") or "")
                     child["duplicate_reason"] = str(match.get("reason") or "")
         seen_children.add(child_sha)
@@ -796,6 +798,9 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
             record["status"] = STATUS_SPLIT_PARTIAL
         elif children and all(child["status"] in {DUPLICATE_RUN, DUPLICATE_HISTORY} for child in children):
             record["status"] = STATUS_DUPLICATE
+        elif any(child['status'] == HISTORY_PENDING for child in children):
+            record["status"] = STATUS_NEEDS_MANUAL
+            record["reason"] = "history_relation_unconfirmed"
         else:
             record["status"] = STATUS_LOW_RESOLUTION
     record["counts"] = count_summary(record["status"], children)

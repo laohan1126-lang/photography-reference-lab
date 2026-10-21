@@ -136,8 +136,11 @@ def test_success_exit_without_search_page_stops_old_card_clicks(tmp_path, monkey
     assert browser.return_failed is True
 
 
-def test_stopping_attempt_keeps_elapsed_and_can_replenish(library, project, client, monkeypatch):
-    from ref_lab import service
+def test_stopping_attempt_keeps_elapsed_and_can_replenish(library, project, client, monkeypatch, tmp_path):
+    from ref_lab import service, collection_queue
+    rows=[_write_original(tmp_path,_textured((800,600),seed,(80,100,130)),name=f'{seed}.png') for seed in (81,82)]
+    (tmp_path/'received.json').write_text(json.dumps(rows),'utf8')
+    monkeypatch.setattr(collection_queue,'run_directory',lambda _:tmp_path)
     job=library.create_job(project['id'],JobInput(kind='collection',collection_mode='search',target_count=15))
     started=service.time.time()
     monkeypatch.setattr(service.time,'time',lambda:started)
@@ -145,10 +148,10 @@ def test_stopping_attempt_keeps_elapsed_and_can_replenish(library, project, clie
     library.update_search_stage(job['id'],'synthetic-attempt','running',{'counts':{'found':2}},'synthetic pending')
     monkeypatch.setattr(service.time,'time',lambda:started+123.)
     stopped=library.cancel_search_stage(job['id'])
-    assert stopped['search_elapsed_seconds']==123
+    assert stopped['search_elapsed_seconds']==pytest.approx(job.get('search_elapsed_seconds',0)+123)
     assert client.get(f"/api/jobs/{job['id']}").json()['can_start_review'] is True
     resumed=library.replenish_search(job['id'],900)
-    assert resumed['target_count']==15 and resumed['search_elapsed_seconds']==123
+    assert resumed['target_count']==15 and resumed['search_elapsed_seconds']==stopped['search_elapsed_seconds']
     assert resumed['search_timeout_seconds']==1800
 
 
@@ -160,8 +163,8 @@ def test_terminal_search_time_includes_parent_preparation(library, project, monk
     monkeypatch.setattr(service.time,'time',lambda:started+123.)
     finished=library.update_search_stage(job['id'],'timing-attempt','partial',
         {'counts':{'found':1},'elapsed_seconds':1},'synthetic child timer excludes setup')
-    assert finished['search_elapsed_seconds']==123
-    assert finished['collection_elapsed_seconds']==123
+    assert finished['search_elapsed_seconds']==pytest.approx(job.get('search_elapsed_seconds',0)+123)
+    assert finished['collection_elapsed_seconds']==finished['search_elapsed_seconds']
 
 
 def test_interrupted_checkpoint_recovers_elapsed_from_frozen_job(tmp_path):
@@ -174,21 +177,24 @@ def test_interrupted_checkpoint_recovers_elapsed_from_frozen_job(tmp_path):
     assert summary['cumulative_elapsed_seconds']>=140
 
 
-def test_frozen_goal_history_seeds_sha_without_rescanning_all_copies(tmp_path, monkeypatch):
+def test_frozen_goal_history_seeds_sha_after_current_index_is_ready(tmp_path, monkeypatch):
     import hashlib,threading
     from tools import collect_verified as worker
     root=tmp_path/'root';folder=root/'.local/collection-runs/job/current';folder.mkdir(parents=True)
     baseline_dir=root/'.local/goals/goal';baseline_dir.mkdir(parents=True)
-    fp={'asset_sha':'a'*64,'path':str(root/'old.jpg'),'ratio':1.,'dhash':'0'*16,'sample':'0'*384}
-    baseline={'items':[{'path':str(root/f'copy-{i}.jpg'),'sha':'a'*64,'fingerprint':fp} for i in range(3)]}
+    fp={'asset_sha':'a'*64,'path':str(root/'old.jpg'),'ratio':1.,'dhash':'0'*16,'sample':'0'*384,'pixels':'0'*24576}
+    baseline={'goal_id':'goal','fingerprint_algorithm_version':2,'items':[{'path':str(root/f'copy-{i}.jpg'),'sha':'a'*64,'fingerprint':fp} for i in range(3)]}
     raw=json.dumps(baseline).encode();(baseline_dir/'baseline.json').write_bytes(raw)
-    (folder/'goal.json').write_text(json.dumps({'goal_id':'goal','baseline_sha':hashlib.sha256(raw).hexdigest()}))
+    (folder/'baseline.json').write_bytes(raw)
+    (folder/'goal.json').write_text(json.dumps({'goal_id':'goal','baseline_sha':hashlib.sha256(raw).hexdigest(),'baseline_shas':['a'*64]}))
     monkeypatch.setattr(worker,'ROOT',root)
     monkeypatch.setattr(worker.subprocess,'check_output',lambda *a,**k:'.git')
     monkeypatch.setattr(worker,'historical_paths',lambda *a,**k:[])
     class History:
         def __init__(self,paths,**kwargs):
             assert not paths,'Frozen same-SHA copies must not be statted again before every attempt'
+            assert kwargs['lazy'] is False
+            self.ready=True;self.errors=[]
             self._lock=threading.RLock();self.known_shas=set();self.records={}
     monkeypatch.setattr(worker,'ImageHistory',History)
     history=worker._history_for_search(folder)

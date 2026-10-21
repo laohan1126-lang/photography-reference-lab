@@ -82,7 +82,7 @@ class AntigravityClassifier:
         from .agent_collection import stop_process_tree
         self.last_receipt = {"asset_sha": sha, "producer": self.producer_name,
                              "status": "running", "started_at": time.time(), "tokens": None,
-                             "agent": "ref-lab-photo-view"}
+                             "agent": "ref-lab-photo-view", "invoked": False}
         if hashlib.sha256(image_bytes).hexdigest() != sha:
             raise ProviderError("原件SHA不匹配；未调用模型")
         cli = find_antigravity_cli()
@@ -90,7 +90,10 @@ class AntigravityClassifier:
             raise ClassificationUnavailable("未找到 Antigravity CLI；安装并登录后点击重试")
         if os.name != "nt" and str(cli).lower().endswith(".exe"):
             raise ClassificationUnavailable("请在 Windows 服务中使用 Windows Antigravity")
-        with tempfile.TemporaryDirectory(prefix="photo-classify-") as temporary:
+        temporary_root = self.evidence_dir.parent if self.evidence_dir is not None else None
+        if temporary_root is not None:
+            temporary_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="photo-classify-", dir=temporary_root) as temporary:
             folder = Path(temporary)
             # The default CLI agent exposes read_file; this native tool selection preserves view_file receipts.
             agents = folder / '.agents' / 'agents'
@@ -144,8 +147,9 @@ asset_sha 必须原样返回 {sha}。
             with (folder / "stream.jsonl").open("w+", encoding="utf-8") as output:
                 process = subprocess.Popen(command, cwd=folder, env=env, stdin=subprocess.DEVNULL,
                                            stdout=output, stderr=subprocess.DEVNULL, **options)
+                self.last_receipt['invoked'] = True
                 try:
-                    deadline = time.monotonic() + 180
+                    deadline = min(time.monotonic() + 180, getattr(self, 'deadline', float('inf')))
                     while process.poll() is None:
                         if stop.wait(0.2):
                             raise InterruptedError("Classification stopped")

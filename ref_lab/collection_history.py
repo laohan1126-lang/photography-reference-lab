@@ -1,6 +1,8 @@
 """Local-only duplicate exclusion. Never changes source images or human choices.
 
-Search must not wait for a full perceptual rebuild. A path/size/mtime keyed cache
+Ordinary Search can use a path/size/mtime keyed cache while rebuilding. Goal
+admission requires a complete, validated frozen baseline before it can count.
+A path/size/mtime keyed cache
 lets a warm run load fingerprints by ``stat`` only; a cold run can fill expensive
 fingerprints in the background while download/display proceeds. The Review stage
 uses the same cache synchronously before admitting an image, so a duplicate that
@@ -23,8 +25,8 @@ from .preflight import compute_dhash, hamming_distance
 
 
 # Bump when the decoded representation, dHash, colour sample, or cache key changes.
-FINGERPRINT_ALGORITHM_VERSION=1
-CACHE_SCHEMA_VERSION=2
+FINGERPRINT_ALGORITHM_VERSION=2
+CACHE_SCHEMA_VERSION=3
 _DHASH=re.compile(r"[0-9a-f]{16}\Z")
 _SAMPLE=re.compile(r"[0-9a-f]{384}\Z")
 _SHA=re.compile(r"[0-9a-f]{64}\Z")
@@ -32,6 +34,25 @@ _SHA=re.compile(r"[0-9a-f]{64}\Z")
 
 def _is_link_or_junction(path):
     return path.is_symlink() or getattr(path,'is_junction',lambda:False)()
+
+
+def _historical_file(base, declared, sha, role, boundaries):
+    if not isinstance(sha,str) or not _SHA.fullmatch(sha):
+        raise ValueError('Historical SHA binding is invalid')
+    path=Path(declared).resolve()
+    if not any(path.is_relative_to(boundary) for boundary in boundaries) or not path.is_file():
+        # Archived/copied runs retain absolute paths; reclaim only identical bytes
+        # from that run's expected image namespace, never an arbitrary substitute.
+        candidates=(base/role).glob(sha+'.*')
+        path=next((p.resolve() for p in candidates if p.is_file() and not p.is_symlink()
+                   and hashlib.sha256(p.read_bytes()).hexdigest()==sha),path)
+    if not any(path.is_relative_to(boundary) for boundary in boundaries):
+        raise ValueError(f'Historical image escapes local collection boundary: {base} -> {path}')
+    if not path.is_file() or path.is_symlink():
+        raise ValueError(f'Historical original is missing; cannot prove no repeat: {path}')
+    if hashlib.sha256(path.read_bytes()).hexdigest()!=sha:
+        raise ValueError(f'Historical image SHA changed: {path}')
+    return path
 
 
 def historical_paths(root: Path, current: Path, history_roots=()):
@@ -46,6 +67,7 @@ def historical_paths(root: Path, current: Path, history_roots=()):
         except (OSError,RuntimeError) as exc:raise ValueError('History root is unavailable') from exc
         if not candidate.is_dir():raise ValueError('History root is unavailable')
         if candidate not in roots:roots.append(candidate)
+    boundaries=[(candidate/'.local').resolve() for candidate in roots]
     local=root/'.local'
     if _is_link_or_junction(local):raise ValueError('History root local directory cannot be a link')
     config=local/'windows-runtime.json'
@@ -54,8 +76,13 @@ def historical_paths(root: Path, current: Path, history_roots=()):
     data=Path(configured) if configured else root/'data'
     if not data.is_absolute():data=root/data
     originals=Path(os.environ.get('LAB_COLLECTION_HISTORY_DIR') or data/'assets')
+    def add_asset(path):
+        if not path.is_file() or path.is_symlink():return
+        if _SHA.fullmatch(path.parent.name) and hashlib.sha256(path.read_bytes()).hexdigest()!=path.parent.name:
+            raise ValueError(f'Historical asset SHA changed: {path}')
+        paths.add(path.resolve())
     for path in originals.glob('*/*/original.*'):
-        if path.is_file() and not path.is_symlink():paths.add(path.resolve())
+        add_asset(path)
     for history_root in roots:
         history_local=history_root/'.local'
         if _is_link_or_junction(history_local):raise ValueError('History root local directory cannot be a link')
@@ -65,7 +92,7 @@ def historical_paths(root: Path, current: Path, history_roots=()):
         history_data=Path(json.loads(history_config.read_text('utf-8-sig'))['data_dir']) if history_config.exists() else history_root/'data'
         if not history_data.is_absolute():history_data=history_root/history_data
         for path in (history_data/'assets').glob('*/*/original.*'):
-            if path.is_file() and not path.is_symlink():paths.add(path.resolve())
+            add_asset(path)
         for base,dirs,files in os.walk(history_local,followlinks=False):
             base=Path(base)
             # Archived batches under ``backups`` stay in duplicate history: moving
@@ -80,35 +107,33 @@ def historical_paths(root: Path, current: Path, history_roots=()):
             if base.is_relative_to(current) or 'received.json' not in files:continue
             received=json.loads((base/'received.json').read_text('utf8'))
             records=received.get('candidates',[]) if isinstance(received,dict) else received
+            images=base/'images'
+            if _is_link_or_junction(images):raise ValueError('Historical image directory cannot be a link')
+            for original in images.glob('*'):
+                sha=original.stem
+                if original.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.avif'} and _SHA.fullmatch(sha):
+                    paths.add(_historical_file(base,str(original),sha,'images',boundaries))
             for row in records:
-                path=Path(row['original_path']).resolve()
-                if not path.is_relative_to(local_root):raise ValueError('Historical image escapes local collection boundary')
-                if not path.is_file():raise ValueError('Historical original is missing; cannot prove no repeat')
-                if hashlib.sha256(path.read_bytes()).hexdigest()!=row['asset_sha']:raise ValueError('Historical image SHA changed')
+                path=_historical_file(base,row['original_path'],row['asset_sha'],'images',boundaries)
                 paths.add(path)
             # Valid derived tiles of older, never-imported batches are real images
             # too: a new download identical to one of them is a repeat, not a new
-            # independent reference. Only current-algorithm, verified tiles count.
+            # independent reference. Intact old tiles remain historical material.
             derived=base/'derived.json'
             if derived.is_file():
-                from .collage import ALGORITHM_VERSION, VALID
-                try:data=json.loads(derived.read_text('utf8'))
-                except (OSError,ValueError):data={}
+                from .collage import VALID
+                data=json.loads(derived.read_text('utf8'))
                 items=data.get('items') if isinstance(data,dict) else None
+                if not isinstance(items,dict):raise ValueError('Historical derived records are invalid')
                 for parent_sha,record in (items or {}).items():
                     if not isinstance(record,dict):continue
-                    if str(record.get('algorithm_version',''))!=str(ALGORITHM_VERSION):continue
+                    if record.get('parent_sha')!=parent_sha:
+                        raise ValueError('Historical tile parent binding changed')
                     for child in record.get('children') or []:
                         if not isinstance(child,dict) or child.get('status')!=VALID:continue
                         sha=str(child.get('child_sha') or '')
                         if not sha:continue
-                        path=Path(str(child.get('path') or '')).resolve()
-                        if not path.is_relative_to(local_root):
-                            raise ValueError('Historical derived tile escapes local collection boundary')
-                        if not path.is_file():
-                            raise ValueError('Historical derived tile is missing; cannot prove no repeat')
-                        if hashlib.sha256(path.read_bytes()).hexdigest()!=sha:
-                            raise ValueError('Historical derived tile SHA changed')
+                        path=_historical_file(base,str(child.get('path') or ''),sha,'derived',boundaries)
                         paths.add(path)
     return sorted(paths)
 
@@ -120,7 +145,8 @@ def _fingerprint_from_raw(path: Path,raw: bytes,sha: str):
         display=ImageOps.exif_transpose(im).convert('RGB')
         return {'asset_sha':sha,'path':str(path.resolve()),
                 'ratio':display.width/display.height,'dhash':compute_dhash(display),
-                'sample':display.resize((8,8),Image.Resampling.LANCZOS).tobytes().hex()}
+                'sample':display.resize((8,8),Image.Resampling.LANCZOS).tobytes().hex(),
+                'pixels':display.resize((64,64),Image.Resampling.LANCZOS).tobytes().hex()}
 
 
 def fingerprint(path: Path):
@@ -134,7 +160,8 @@ def _valid_cache_value(value):
             and type(value.get('ratio')) in (int,float)
             and math.isfinite(value['ratio']) and value['ratio']>0
             and isinstance(value.get('dhash'),str) and _DHASH.fullmatch(value['dhash'])
-            and isinstance(value.get('sample'),str) and _SAMPLE.fullmatch(value['sample']))
+            and isinstance(value.get('sample'),str) and _SAMPLE.fullmatch(value['sample'])
+            and isinstance(value.get('pixels'),str) and re.fullmatch(r'[0-9a-f]{24576}',value['pixels']))
 
 
 def _valid_file_entry(value):
@@ -152,7 +179,7 @@ def _cache_checksum(files):
 def _read_cache(path):
     try:
         payload=json.loads(path.read_text(encoding='utf8'))
-        if not isinstance(payload,dict) or payload.get('schema_version')!=CACHE_SCHEMA_VERSION:
+        if not isinstance(payload,dict) or payload.get('schema_version')!=CACHE_SCHEMA_VERSION or payload.get('algorithm_version')!=FINGERPRINT_ALGORITHM_VERSION:
             return {}
         files=payload.get('files')
         if not isinstance(files,dict) or payload.get('checksum')!=_cache_checksum(files):
@@ -168,7 +195,8 @@ def _read_cache(path):
 
 
 def _write_cache(path,files):
-    payload={'schema_version':CACHE_SCHEMA_VERSION,'files':dict(sorted(files.items()))}
+    payload={'schema_version':CACHE_SCHEMA_VERSION,'algorithm_version':FINGERPRINT_ALGORITHM_VERSION,
+             'files':dict(sorted(files.items()))}
     payload['checksum']=_cache_checksum(payload['files'])
     temporary=None
     try:
@@ -186,6 +214,90 @@ def _write_cache(path,files):
             try:temporary.unlink(missing_ok=True)
             except OSError:pass
     return True
+
+
+from functools import lru_cache
+
+
+@lru_cache(maxsize=4)
+def _frozen_baseline(path, size, mtime, expected_sha):
+    raw=Path(path).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=expected_sha:
+        raise ValueError('Goal baseline SHA changed')
+    baseline=json.loads(raw)
+    if baseline.get('fingerprint_algorithm_version')!=FINGERPRINT_ALGORITHM_VERSION:
+        raise ValueError('Goal baseline fingerprints need explicit upgrade')
+    for item in baseline['items']:
+        fp=item.get('fingerprint')
+        if not _valid_cache_value(fp) or fp.get('asset_sha')!=item.get('sha'):
+            raise ValueError('Goal baseline fingerprint binding is invalid')
+    return baseline
+
+
+def goal_baseline(folder, goal):
+    path=Path(folder)/'baseline.json'
+    stat=path.stat()
+    baseline=_frozen_baseline(str(path.resolve()),stat.st_size,stat.st_mtime_ns,goal.get('baseline_sha'))
+    if (baseline.get('goal_id')!=goal.get('goal_id')
+            or {item['sha'] for item in baseline['items']}!=set(goal.get('baseline_shas',[]))):
+        raise ValueError('Goal baseline identity or SHA set changed')
+    return baseline
+
+
+def _photo_relation(value, other):
+    """Fit a bounded crop by pixels; similar colours alone cannot reject a frame."""
+    import numpy as np
+    from numpy.lib.stride_tricks import sliding_window_view
+    images=[Image.frombytes('RGB',(64,64),bytes.fromhex(v['pixels'])) for v in (value,other)]
+    diff=np.abs(np.asarray(images[0],dtype=float)-np.asarray(images[1],dtype=float))
+    direct=float(diff.mean())
+    if abs(value['ratio']/other['ratio']-1)<=.03 and direct<=4 and diff.reshape(8,8,8,8,3).mean(axis=(1,3,4)).max()<=8:
+        return {'reason':'near_duplicate','pixel_difference':round(direct,3)}
+    for source,query,source_ratio,query_ratio in ((images[0],images[1],value['ratio'],other['ratio']),
+                                                (images[1],images[0],other['ratio'],value['ratio'])):
+        small=np.asarray(source.resize((16,16),Image.Resampling.LANCZOS),dtype=np.int16)
+        best=None
+        for width in range(10,17):
+            height=round(width*source_ratio/query_ratio)
+            if not 10<=height<=16:continue
+            template=np.asarray(query.resize((width,height),Image.Resampling.LANCZOS),dtype=np.int16)
+            windows=sliding_window_view(small,(height,width),axis=(0,1)).transpose(0,1,3,4,2)
+            differences=np.abs(windows-template).mean(axis=(2,3,4))
+            y,x=np.unravel_index(differences.argmin(),differences.shape)
+            score=float(differences[y,x])
+            if best is None or score<best[0]:best=(score,x/16,y/16,width/16)
+        if best is None or best[0]>18:continue
+        target=np.asarray(query.resize((32,32),Image.Resampling.LANCZOS),dtype=float)
+        factor=source_ratio/query_ratio
+        def difference(x,y,width):
+            height=width*factor
+            if width<.60 or height<.60 or x<0 or y<0 or x+width>1.001 or y+height>1.001:
+                return float('inf'),None
+            tile=source.resize((32,32),Image.Resampling.BICUBIC,
+                               box=(x*64,y*64,min(64,(x+width)*64),min(64,(y+height)*64)))
+            pixels=np.asarray(tile,dtype=float)
+            return float(np.abs(pixels-target).mean()),pixels
+        _,x,y,width=best
+        score,pixels=difference(x,y,width)
+        for step in (1/32,1/64,1/128,1/256,1/512):
+            choices=[]
+            for dx in (-step,0,step):
+                for dy in (-step,0,step):
+                    for dw in (-step,0,step):
+                        error,tile=difference(x+dx,y+dy,width+dw)
+                        choices.append((error,x+dx,y+dy,width+dw,tile))
+            score,x,y,width,pixels=min(choices,key=lambda item:item[0])
+        if pixels is None:continue
+        a=pixels.reshape(-1);b=target.reshape(-1)
+        correlation=float(np.corrcoef(a,b)[0,1]) if a.std()>3 and b.std()>3 else 0
+        local_error=float(np.abs(pixels-target).reshape(8,4,8,4,3).mean(axis=(1,3,4)).max())
+        if score<=4 and correlation>=.99 and local_error<=10:
+            return {'reason':'crop_duplicate','pixel_difference':round(score,3),
+                    'correlation':round(correlation,5),'crop_fraction':[x,y,width,width*factor]}
+        if score<=8 and correlation>=.98 and local_error<=16:
+            return {'reason':'possible_crop_duplicate','state':'needs_review',
+                    'pixel_difference':round(score,3),'correlation':round(correlation,5)}
+    return None
 
 
 class ImageHistory:
@@ -247,7 +359,7 @@ class ImageHistory:
         if cached.get('size')!=stat['size'] or cached.get('mtime_ns')!=stat['mtime_ns']:
             return None
         return {'asset_sha':cached['sha'],'path':key,'ratio':cached['ratio'],
-                'dhash':cached['dhash'],'sample':cached['sample']}
+                'dhash':cached['dhash'],'sample':cached['sample'],'pixels':cached['pixels']}
 
     def _remember(self,path):
         value=self._fingerprint(path)
@@ -260,7 +372,7 @@ class ImageHistory:
             try:self._remember(path)
             except (OSError,ValueError) as exc:
                 self.errors.append({'path':str(path),'error':type(exc).__name__})
-        self.ready=True
+        self.ready=not self._stop.is_set() and not self.errors
         self._save_cache()
 
     def _fingerprint(self,path):
@@ -273,13 +385,13 @@ class ImageHistory:
                 and cached.get('mtime_ns')==stat['mtime_ns']
                 and _valid_file_entry(cached)):
             return {'asset_sha':cached['sha'],'path':key,'ratio':cached['ratio'],
-                    'dhash':cached['dhash'],'sample':cached['sample']}
+                    'dhash':cached['dhash'],'sample':cached['sample'],'pixels':cached['pixels']}
         raw=path.read_bytes()
         if len(raw)>20*1024*1024:raise ValueError('Duplicate input exceeds image size limit')
         sha=hashlib.sha256(raw).hexdigest()
         value=_fingerprint_from_raw(path,raw,sha)
         self._cache_files[key]={'size':stat['size'],'mtime_ns':stat['mtime_ns'],'sha':sha,
-                                'ratio':value['ratio'],'dhash':value['dhash'],'sample':value['sample']}
+                                'ratio':value['ratio'],'dhash':value['dhash'],'sample':value['sample'],'pixels':value['pixels']}
         self._cache_dirty=True
         return value
 
@@ -304,13 +416,12 @@ class ImageHistory:
             if sha in self.known_shas:return {'duplicate_of':sha,'reason':'same_bytes'}
             records=list(self.records.values())
         if sha in {other.get('asset_sha') for other in records if isinstance(other,dict)}:return {'duplicate_of':sha,'reason':'same_bytes'}
-        sample=bytes.fromhex(value['sample'])
         for other in records:
             if not _valid_cache_value(other):continue
-            if abs(value['ratio']/other['ratio']-1)>.03 or hamming_distance(value['dhash'],other['dhash'])>6:continue
-            # Preserve originals; quarantine only close composition AND colour matches.
-            difference=sum(abs(a-b) for a,b in zip(sample,bytes.fromhex(other['sample'])))/len(sample)
-            if difference<=8:return {'duplicate_of':other.get('asset_sha',sha),'reason':'near_duplicate'}
+            relation=_photo_relation(value,other)
+            if relation:
+                return {'duplicate_of':other.get('asset_sha',sha),**relation}
+
         return None
 
     def consider(self,path):

@@ -386,9 +386,11 @@ class Browser:
 
     def command(self,*args,timeout=35):
         # Recovery belongs to the controller; replaying a dead session only wastes time.
-        timeout=min(timeout,getattr(self,'deadline',float('inf'))-time.monotonic())
+        remaining=getattr(self,'deadline',float('inf'))-time.monotonic()
+        if remaining<=0:
+            raise AgentCallFailed('time_budget_exhausted',fatal=True)
+        timeout=min(timeout,remaining)
         try:
-            if timeout<=0:raise subprocess.TimeoutExpired(args,0)
             result=subprocess.run([self.bsk,*args],capture_output=True,text=True,encoding='utf8',
                                   errors='replace',env=self.env,timeout=timeout)
             if result.returncode:
@@ -401,8 +403,10 @@ class Browser:
                     raise classify_bsk_error(args[0],1,result.stdout,result.stderr)
             return result.stdout
         except subprocess.TimeoutExpired:
+            if time.monotonic()>=getattr(self,'deadline',float('inf')):
+                raise AgentCallFailed('time_budget_exhausted',fatal=True)
             err=BrowserInfrastructureError('BrowserSkill command timed out',action=args[0],
-                                           code='timeout',details=f'timeout after {timeout:.3f}s',is_timeout=True)
+                                           code='command_timeout',details=f'timeout after {timeout:.3f}s',is_timeout=True)
         except OSError as exc:
             err=BrowserInfrastructureError('BrowserSkill process unavailable',action=args[0],
                                            code='process_unavailable',details=str(exc))
@@ -652,9 +656,12 @@ class Browser:
                 except BrowserInfrastructureError as exc:
                     if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
                         raise
-                finally:
-                    self.session=None
+                self.session=None
             save(self.folder/'browser-session.json',{'browser_id':self.browser_id,'state':'closed'})
+        except Exception:
+            save(self.folder/'browser-session.json',{'browser_id':self.browser_id,
+                 'session_id':self.session,'start_request':self.start_request,'state':'cleanup_pending'})
+            raise
         finally:self.deadline=old_deadline
 
 
@@ -796,7 +803,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         from ref_lab.collage import CollageWorker
         if (folder/'goal.json').exists():
             from ref_lab.photo_types import PhotoTypeWorker
-            type_worker=PhotoTypeWorker(folder,limit=agent.candidate_limit,model=agent.model)
+            type_worker=PhotoTypeWorker(folder,limit=min(MAX_IMAGES,max(20,target*2)),model=agent.model,history=history,deadline=getattr(agent,'deadline',float('inf'))-5)
         collage_worker=CollageWorker(folder,history=history,known_shas=seen,
                                      on_record=type_worker.enqueue if type_worker else None)
         # A resumed run must finish local processing for originals received before
@@ -834,7 +841,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     def limit_reason():
         if search_only:
             if confirmed()>=target:return 'target_reached'
-            if type_worker is not None and type_worker.blocked:return 'type_classification_blocked'
+            if type_worker is not None and type_worker.blocked:return getattr(type_worker,'block_reason','') or 'model_unavailable'
             if time.monotonic()>=getattr(agent,'deadline',float('inf'))-30:return 'time_budget_exhausted'
             if len(received)>=agent.candidate_limit:return 'candidate_budget_exhausted'
             if details>=MAX_DETAIL_PAGES:return 'detail_budget_exhausted'
@@ -1249,8 +1256,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         })
                         should_advance=False
                     else:
-                        reason='browser_unavailable'
-                        stop_reason='browser_unavailable'
+                        reason='command_timeout' if getattr(exc,'is_timeout',False) else 'browser_unavailable'
+                        stop_reason=reason
                         blocked=True
                         state.setdefault('operation_errors',[]).append({
                             'action':'browser_infrastructure','source':source,'query':query,
@@ -1296,7 +1303,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     if len(query_log)>120:del query_log[:len(query_log)-120]
                 checkpoint()
     except BrowserInfrastructureError as exc:
-        blocked=True;stop_reason='browser_unavailable'
+        blocked=True;stop_reason='command_timeout' if exc.is_timeout else 'browser_unavailable'
         errors=collection_queue.read_json(folder/'browser-errors.json',[])
         errors.append(sanitize_diagnostics({'action':exc.action,'category':exc.category,
                                            'code':exc.code,'details':exc.details,'result':'failed','at':time.time()}))
@@ -1324,7 +1331,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             collage_worker.close(timeout=max(1.0,min(30.0,deadline-time.monotonic())))
             collage_closed=True
         if type_worker is not None:
-            type_worker.close(timeout=max(0,min(180,getattr(agent,'deadline',time.monotonic())-time.monotonic()-5)))
+            type_worker.close(timeout=max(0,getattr(agent,'deadline',time.monotonic())-time.monotonic()-5))
         if not search_only and hasattr(agent,'cache_references'):agent.cache_references(project)
         if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
             stop_reason='sources_blocked';blocked=True
@@ -1691,6 +1698,8 @@ def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False
                 if history is not None:
                     duplicate=history.match(Path(row['original_path']))
                     if duplicate:
+                        if duplicate.get('state') == 'needs_review':
+                            raise AgentUnavailable('history_relation_unconfirmed: '+duplicate.get('reason','unknown'))
                         items[sha]={'asset_sha':sha,'status':'duplicate','accepted':False,'decision':'DUPLICATE',
                                     'error':duplicate.get('reason','duplicate'),'duplicate_of':duplicate.get('duplicate_of'),
                                     'attempts':attempts,'completed_at':time.time()}
@@ -1819,6 +1828,11 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
              'counts_source':'ref_lab.collection_counts.compute',
              'model_calls_note':'包含本候选集的真实图片类型模型调用及失败；Token只加总供应商实际报告值，未报告部分未知。',
              'usage_complete':with_usage==calls}
+    attempts=read_json(folder/'photo-types.json',{}).get('calls',[])
+    summary.update(type_images=len(read_json(folder/'photo-types.json',{}).get('items',{})),
+                   type_attempts=len(attempts), type_successes=sum(c.get('status')=='succeeded' for c in attempts),
+                   confirmed_model_invocations=sum(c.get('invoked') is True for c in attempts),
+                   unknown_model_invocations=sum('invoked' not in c for c in attempts))
     if extra:
         for key in ('target','requested_target','effective_target','target_reached','budget_note',
                     'search_only','history_ready','history_known','history_errors','source_blocked',
@@ -1974,36 +1988,26 @@ def _history_for_search(folder):
     paths=historical_paths(ROOT,folder,history_roots=history_roots)
     goal=read_json(folder/'goal.json',{})
     if goal:
-        baseline_path=ROOT/'.local/goals'/goal['goal_id']/'baseline.json'
-        if hashlib.sha256(baseline_path.read_bytes()).hexdigest()!=goal.get('baseline_sha'):
-            raise AgentUnavailable('Goal历史基线已改变；未启动采集。')
-        baseline=read_json(baseline_path,{})
-        # Frozen SHA/fingerprints are seeded below; re-statting every historical copy delays each attempt.
-        supplement={}
-        if goal.get('baseline_supplement_sha'):
-            extra_path=baseline_path.with_name('baseline-supplement.json')
-            if hashlib.sha256(extra_path.read_bytes()).hexdigest()!=goal['baseline_supplement_sha']:
-                raise AgentUnavailable('Goal补充历史指纹已改变；未启动采集。')
-            supplement=read_json(extra_path,{}).get('items',{})
-    history=ImageHistory(paths,cache_path=ROOT/'.local/history-fingerprints.json',lazy=True)
+        from ref_lab.collection_history import goal_baseline
+        baseline=goal_baseline(folder,goal)
+    history=ImageHistory(paths,cache_path=ROOT/'.local/history-fingerprints.json',lazy=not bool(goal))
     if goal:
-        # The frozen baseline is fully decoded before the first Goal search;
-        # delayed background indexing cannot admit an old re-encoding.
+        if not history.ready or history.errors:
+            raise AgentCallFailed('history_index_unavailable',fatal=True)
         with history._lock:
-            from ref_lab.collection_history import _valid_cache_value
             for item in baseline['items']:
                 history.known_shas.add(item['sha'])
-                if item.get('fingerprint') and _valid_cache_value(item['fingerprint']):
-                    history.records[item['sha']]=item['fingerprint']
-            if isinstance(supplement, dict):
-                for k, v in supplement.items():
-                    if _valid_cache_value(v):
-                        history.records[k] = v
+                history.records[item['sha']]=item['fingerprint']
             history.known_count=len(history.known_shas)
+        history.baseline_sha=goal['baseline_sha']
+
     return history
 
 
 def main():
+    from ref_lab.collection_checkpoint import implementation_digest
+    if os.environ.get('LAB_CODE_DIGEST') and os.environ['LAB_CODE_DIGEST'] != implementation_digest():
+        raise ValueError('Adapter source differs from the running server; refusing split-brain collection')
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('task',type=Path);ap.add_argument('result',type=Path)
     ap.add_argument('--resume',type=Path,help='仅续核已保存原图；结果路径须在对应.local/collection-resumes状态目录内。')
     ap.add_argument('--vision-workers',type=int,choices=(1,2),default=2,help='最多两个独立摄影初判；1用于串行对照。')
@@ -2040,18 +2044,27 @@ def main():
                 print('SEARCH_CONTINUE '+json.dumps({'archived':archive.name,'extra_target':extra,
                                                      'target_total':requested},ensure_ascii=False))
             agent=AntigravityCollectionAgent(folder,target_count=int(job.get('target_count') or 12),runtime_budget=False)
-            agent.deadline=time.monotonic()+max(0,float(job.get('search_timeout_seconds') or 900)-float(job.get('search_elapsed_seconds') or 0))-10
-            _write_run_info(folder,job,agent,args.vision_workers,mode='search_only')
-            history=_history_for_search(folder)
+            from ref_lab.collection_stages import _remaining
+            agent.deadline=time.monotonic()+_remaining(job,'search')-30
+            _write_run_info(folder,job,agent,1,mode='search_only')
+            try:
+                history=_history_for_search(folder)
+            except (AgentUnavailable,OSError,ValueError,KeyError) as exc:
+                from ref_lab.collection_stages import _summary_blocked
+                _summary_blocked(job['id'],getattr(exc,'category','history_index_unavailable'),
+                                 '历史基线或索引无法验证；未启动浏览器或模型：'+type(exc).__name__,
+                                 target=int(job.get('target_count') or 0),
+                                 found=len(collection_queue._received_rows(folder)))
+                return
             save(folder/'history-index.json',{'images':list(history.records.values()),
-                                              'lazy':True,'known_shas':history.known_count,
+                                              'lazy':not bool(job.get('goal_id')),'ready':history.ready,'known_shas':history.known_count,
                                               'historical_images':history.known_count})
             try:
                 summary,_=collect(job,agent,Browser(folder),folder,history=history,workers=1,search_only=True)
             finally:
                 history.close(wait=False,timeout=3)
                 save(folder/'history-index.json',{'images':list(history.records.values()),
-                                                  'lazy':True,'ready':history.ready,
+                                                  'lazy':not bool(job.get('goal_id')),'ready':history.ready,
                                                   'known_shas':history.known_count,
                                                   'history_errors':history.errors,
                                                   'historical_images':history.known_count})
