@@ -244,4 +244,7 @@ def compute(folder, rows, records, *, named=None) -> dict:
     counts["usable_independent"] = len(usable)
     counts["usable_named"] = len(usable & named_associations)
     counts['goal_shas'] = sorted(usable & named_associations)
+    # Plain Search has no type worker; only an explicit Goal promises verified photos.
+    counts['target_metric'] = 'usable_named' if goal else 'named_candidates'
+    counts['target_progress'] = counts[counts['target_metric']]
     return counts

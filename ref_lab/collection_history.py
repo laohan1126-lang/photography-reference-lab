@@ -59,6 +59,7 @@ def historical_paths(root: Path, current: Path, history_roots=()):
     for history_root in roots:
         history_local=history_root/'.local'
         if _is_link_or_junction(history_local):raise ValueError('History root local directory cannot be a link')
+        local_root=history_local.resolve()
         history_config=history_local/'windows-runtime.json'
         if _is_link_or_junction(history_config):raise ValueError('History runtime configuration cannot be a link')
         history_data=Path(json.loads(history_config.read_text('utf-8-sig'))['data_dir']) if history_config.exists() else history_root/'data'
@@ -74,11 +75,11 @@ def historical_paths(root: Path, current: Path, history_roots=()):
             dirs[:]=[name for name in dirs if name not in {'worktrees','public','baseline','reference-research','reference-images','visual-references','node_modules','__pycache__','.git','restored-library'}
                      and name.casefold() not in {'.venv','venv'}
                      and not name.casefold().startswith(('test','pytest','browser','fixture')) and not _is_link_or_junction(base/name)
-                     and not (base/name).resolve().is_relative_to(current)]
-            if base.resolve().is_relative_to(current) or 'received.json' not in files:continue
+                     and not (base/name).is_relative_to(current)]
+            # Roots are resolved and every linked directory is pruned before descent.
+            if base.is_relative_to(current) or 'received.json' not in files:continue
             received=json.loads((base/'received.json').read_text('utf8'))
             records=received.get('candidates',[]) if isinstance(received,dict) else received
-            local_root=history_local.resolve()
             for row in records:
                 path=Path(row['original_path']).resolve()
                 if not path.is_relative_to(local_root):raise ValueError('Historical image escapes local collection boundary')

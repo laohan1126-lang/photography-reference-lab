@@ -153,6 +153,10 @@ asset_sha 必须原样返回 {sha}。
                             raise ClassificationUnavailable("Antigravity 看图超时；请检查登录、代理和网络后重试")
                     if process.returncode != 0:
                         raise ClassificationUnavailable("Antigravity 未完成分类；请检查登录、权限和网络后重试")
+                finally:
+                    # Failed and interrupted calls can consume tokens too; keep the native stream before cleanup.
+                    stop_process_tree(process)
+                    output.flush()
                     output.seek(0)
                     stream = output.read()
                     if self.evidence_dir is not None:
@@ -162,22 +166,25 @@ asset_sha 必须原样返回 {sha}。
                         atomic_write(receipt_path, stream.encode('utf8'))
                         self.last_receipt['stream_path'] = str(receipt_path)
                         self.last_receipt['stream_sha'] = hashlib.sha256(stream.encode('utf8')).hexdigest()
-                    events = [json.loads(line) for line in stream.splitlines()]
-                    final = next(e["result"] for e in reversed(events) if e.get("event") == "result")
-                    usage = final.get("usage") or {}
-                    self.last_receipt.update(tokens=usage.get('total_tokens'), usage=usage,
-                                             result_status=final.get('status'), finished_at=time.time())
-                    result = parse_vision_stream(stream, path)
-                    if result.asset_sha != sha:
-                        raise ProviderError("模型结果与图片不匹配；未保存，请重试")
-                    self.last_receipt.update(status="succeeded", finished_at=time.time(),
-                        tokens=usage.get("total_tokens"), usage=usage,
-                        read_evidence={"tool": "view_file", "state": "DONE", "asset_sha": sha,
-                                       "path": str(path), "preview_sha": hashlib.sha256(path.read_bytes()).hexdigest()},
-                        result_status=final.get("status"))
-                    return result
-                finally:
-                    stop_process_tree(process)
+                    self.last_receipt.update(status="failed", finished_at=time.time())
+                    for line in stream.splitlines():
+                        try:
+                            event = json.loads(line)
+                        except ValueError:
+                            continue  # A killed stream may end halfway through an event; never repair its bytes.
+                        if isinstance(event, dict) and event.get('event') == 'result' and isinstance(event.get('result'), dict):
+                            final = event['result']
+                            usage = final.get('usage') or {}
+                            if isinstance(usage, dict):
+                                self.last_receipt.update(tokens=usage.get('total_tokens'), usage=usage,
+                                                         result_status=final.get('status'))
+                result = parse_vision_stream(stream, path)
+                if result.asset_sha != sha:
+                    raise ProviderError("模型结果与图片不匹配；未保存，请重试")
+                self.last_receipt.update(status="succeeded", finished_at=time.time(),
+                    read_evidence={"tool": "view_file", "state": "DONE", "asset_sha": sha,
+                                   "path": str(path), "preview_sha": hashlib.sha256(path.read_bytes()).hexdigest()})
+                return result
 
 
 class ClassificationQueue:

@@ -42,9 +42,9 @@ def receipt_intact(folder, item):
 class PhotoTypeWorker:
     """One bounded consumer, receiving only this run's actual split records."""
 
-    def __init__(self, folder, *, analyzer=None, limit=45):
+    def __init__(self, folder, *, analyzer=None, limit=45, model="gemini-3.8-flash-medium"):
         self.folder = Path(folder)
-        self.analyzer = analyzer or AntigravityClassifier(evidence_dir=self.folder/'type-evidence')
+        self.analyzer = analyzer or AntigravityClassifier(model, evidence_dir=self.folder/'type-evidence')
         self.limit = limit
         self.stop = threading.Event()
         self.pending = queue.Queue()

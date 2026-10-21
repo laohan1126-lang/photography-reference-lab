@@ -688,7 +688,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         from ref_lab.collage import CollageWorker
         if (folder/'goal.json').exists():
             from ref_lab.photo_types import PhotoTypeWorker
-            type_worker=PhotoTypeWorker(folder,limit=agent.candidate_limit)
+            type_worker=PhotoTypeWorker(folder,limit=agent.candidate_limit,model=agent.model)
         collage_worker=CollageWorker(folder,history=history,known_shas=seen,
                                      on_record=type_worker.enqueue if type_worker else None)
         # A resumed run must finish local processing for originals received before
@@ -720,7 +720,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             canonical_cache['key']=key
         return canonical_cache['value']
     def confirmed():
-        return canonical_counts()['usable_named'] if search_only else len(candidates)
+        return canonical_counts()['target_progress'] if search_only else len(candidates)
     def exploration():
         return exploration_count(received) if search_only else 0
     def limit_reason():
@@ -1144,7 +1144,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if not stop_reason and sources and all(checks.get(s,{}).get('status') in ('login_required','blocked') for s in sources):
             stop_reason='sources_blocked';blocked=True
         stop_reason=stop_reason or limit_reason() or 'search_plan_exhausted'
-        confirmed_total=canonical_counts(force=True)['usable_named'] if search_only else len(candidates)
+        confirmed_total=canonical_counts(force=True)['target_progress'] if search_only else len(candidates)
         if search_only and not interrupted:
             if stop_reason=='target_reached' and confirmed_total<target:
                 # A target_reached reason must be backed by confirmed names, never downloads alone.
@@ -1178,7 +1178,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                                              if requested_total>target else ''),
                                               'search_only':True,
                                               'canonical':canonical,
-                                              'usable_independent_named':confirmed_total,
+                                              'usable_independent_named':canonical['usable_named'],
                                               'collage':collage_totals,
                                               'collage_errors':list(getattr(collage_worker,'errors',[]))[:10],
                                               'collage_seconds':round(getattr(collage_worker,'seconds',0.0),3),
