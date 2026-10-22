@@ -49,12 +49,17 @@ def load(path: Path):
     return json.loads(path.read_text('utf-8-sig'))
 
 
+XHS_STABLE_PATH = re.compile(r"/(notes_[a-z_]+/.+)$", re.IGNORECASE)
+
+
 def normalize_image_url(url: str) -> str:
     """Stable identity for a previously seen source-image address.
 
-    Only the host and path identify the same stored rendition; query strings and
-    fragments are per-session noise. Anything not a plain https image address
-    yields an empty key, so unknown or unsafe addresses are never pre-skipped.
+    Host plus path identifies the stored rendition. Xiaohongshu CDN paths carry
+    a per-session timestamp/bucket segment before ``notes_*/``; that segment is
+    dropped so the same note image matches across sessions, while the
+    ``!nd_...`` rendition suffix stays part of the key (other bytes differ).
+    Query strings and fragments are never part of the identity.
     """
     try:
         parsed = urlsplit(str(url or ''))
@@ -62,7 +67,11 @@ def normalize_image_url(url: str) -> str:
         return ''
     if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password:
         return ''
-    return parsed.hostname.lower() + parsed.path
+    path = parsed.path
+    stable = XHS_STABLE_PATH.search(path)
+    if stable:
+        path = '/' + stable.group(1)
+    return parsed.hostname.lower() + path
 
 
 def incoming_directory(folder: Path) -> Path:

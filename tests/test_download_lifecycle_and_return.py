@@ -444,3 +444,11 @@ def test_capture_note_creates_a_missing_temporary_area(tmp_path, monkeypatch):
     assert rows and rows[0]["temporary"] is True
     assert Path(rows[0]["original_path"]).parent == missing
     assert Path(rows[0]["original_path"]).read_bytes() == raw
+
+def test_xhs_source_identity_survives_the_per_session_cdn_prefix():
+    one = "https://sns-webpic-qc.xhscdn.com/202610222302/9c0674e4c27935e63e3362d3bd00aac5/notes_pre_post/1040g00831v57qbh0ise05opk15sm5rq9js5np08!nd_dft_wlteh_webp_3"
+    other = "https://sns-webpic-qc.xhscdn.com/202610240001/ffffffffffffffffffffffffffffffff/notes_pre_post/1040g00831v57qbh0ise05opk15sm5rq9js5np08!nd_dft_wlteh_webp_3"
+    assert exact_recall.normalize_image_url(one) == exact_recall.normalize_image_url(other)
+    # A different rendition of the same asset is different bytes and must not collide.
+    smaller = one.replace("!nd_dft_wlteh_webp_3", "!nd_dft_wgth_webp_3")
+    assert exact_recall.normalize_image_url(smaller) != exact_recall.normalize_image_url(one)

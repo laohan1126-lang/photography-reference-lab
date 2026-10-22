@@ -551,22 +551,61 @@ class ImageHistory:
             if sha in self.known_shas:return {'duplicate_of':sha,'reason':'same_bytes'}
             records=[other for key,other in self.records.items() if key not in exclude]
         if sha in {other.get('asset_sha') for other in records if isinstance(other,dict)}:return {'duplicate_of':sha,'reason':'same_bytes'}
+        records=[other for other in records if _valid_cache_value(other)]
+        if not records:return None
         candidate_collage=None
         context=_MatchContext(self._pyramids)
+        # Build every historical pyramid once. The shared cache is then read-only
+        # for the comparison workers, and only the query's crop templates are
+        # per-worker state.
         for other in records:
-            if not _valid_cache_value(other):continue
-            relation=_photo_relation(value,other,context)
-            if relation:
-                if relation.get('container_sha')==sha:
-                    if candidate_collage is None:
-                        from .collage import analyze, STATUS_SPLIT_OK
-                        with Image.open(value['path']) as image:
-                            candidate_collage=analyze(image)['status']==STATUS_SPLIT_OK
-                    if candidate_collage:
-                        continue  # Match the collage's tiles; an old panel does not cover its new panels.
-                return {'duplicate_of':other.get('asset_sha',sha),**relation}
-
+            try:context.features(other)
+            except (ValueError,OSError):pass
+        start=0
+        while start<len(records):
+            candidate=self._first_relation(value,records,start)
+            if candidate is None:return None
+            index,other,relation=candidate
+            if relation.get('container_sha')==sha:
+                if candidate_collage is None:
+                    from .collage import analyze, STATUS_SPLIT_OK
+                    with Image.open(value['path']) as image:
+                        candidate_collage=analyze(image)['status']==STATUS_SPLIT_OK
+                if candidate_collage:
+                    start=index+1
+                    continue  # Match the collage's tiles; an old panel does not cover its new panels.
+            return {'duplicate_of':other.get('asset_sha',sha),**relation}
         return None
+
+    def _first_relation(self,value,records,start):
+        """First matching historical record at or after ``start``.
+
+        Chunks are compared in parallel but the earliest index wins, so the
+        result is identical to a sequential scan. Pure pixel work releases the
+        GIL inside OpenCV, and the comparison order never depends on scheduling.
+        """
+        import os
+        from concurrent.futures import ThreadPoolExecutor
+        workers=min(4,max(1,(os.cpu_count() or 4)-1))
+        indexes=list(range(start,len(records)))
+        if workers<2 or len(indexes)<64:
+            context=_MatchContext(self._pyramids)
+            for index in indexes:
+                relation=_photo_relation(value,records[index],context)
+                if relation:return index,records[index],relation
+            return None
+        chunks=[indexes[i::workers] for i in range(workers)]
+
+        def scan(chunk):
+            local=_MatchContext(self._pyramids)
+            for index in chunk:
+                relation=_photo_relation(value,records[index],local)
+                if relation:return index,records[index],relation
+            return None
+
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            results=[result for result in pool.map(scan,chunks) if result]
+        return min(results,key=lambda item:item[0]) if results else None
 
     def consider(self,path,*,exclude=()):
         """Compare outside the lock, then commit atomically.
