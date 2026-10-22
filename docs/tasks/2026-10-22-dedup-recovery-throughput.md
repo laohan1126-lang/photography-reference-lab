@@ -1,8 +1,8 @@
 # 重复下载与磁盘积压清理、返回恢复与获取吞吐修复
 
-状态：IN PROGRESS（第1轮）。本记录替代旧的“仅两轮验收”目标，但保留全部旧失败与结论，不覆盖历史任务记录。
+状态：IN PROGRESS（第2轮）。本记录替代旧的“仅两轮验收”目标，但保留全部旧失败与结论，不覆盖历史任务记录。
 
-**当前阻断**：清理、下载生命周期、返回/恢复、排重性能与调度修复均已完成并有回归；最终候选版本`83ec2ff`的四次正常网页单次开始验收全部停在同一外部BrowserSkill扩展故障（约34~35个详情后`Background execution cleanup timed out`），最好一次为17/30。未重启用户Edge、未升级/重载扩展，等待主人决定；完整Goal未完成。
+**当前状态**：最终冻结`33bd302`（返回改为即时`history.back`+四项核实）。Round 1 正常网页单次点击 **PASS 30/30**（两轮共155个详情循环未再出现此前的扩展清理卡死；35原件/35引用/35/35浏览器加载）；主人授权重启一次后发现扩展已是0.3.3、CLI更新因GitHub连接重置失败，daemon按产品脚本重启成功；Round 2 同版本单次点击 **FAIL 16/30**（达到96详情上限，新增率下降）。正常启动器重启后两轮计数/引用/资产/浏览器加载全部保持。完整Goal因第二轮未达30张**未完成**，不合并main。
 
 ## 原意与授权（保留用户原话）
 
@@ -139,6 +139,43 @@
 - 实施：`Browser._go_back()`改为`evaluate`执行`history.back()`（不等页面），随后用现有四项核实（来源主机/路径、原查询、可见卡片、会话id）做最多3次、间隔0.7秒的有界轮询；确认才清错误，未确认才进入原查询导航恢复。仍是“先核实再解除”，没有放宽成功判定。
 - 预期收益：每个详情少等约4秒（34个详情≈136秒），并避免每次返回产生一个超时等待；是否真正消除扩展卡死要看新的两轮实跑。
 - 回归：返回/生命周期/详情计时/恢复边界/搜索供给86项中83项本次运行全部通过（其余为同一组的其它用例，见最终统计）。
+
+## 第2轮：正式验收（最终冻结33bd302）
+
+### Round 1 —— PASS（30/30，target_reached）
+
+- 正常网页选择西木野真姬、目标30、要求/Goal编号/别名留空，2026-10-22T18:16:19Z 单次点击创建 Job `03cdde4160b9459dab5a8b157081f15e`；采集轮次开始后自动运行，点击后约3分39秒（465.75秒）首张原件落盘，全程无人工继续/CLI补采集/改状态。
+- 最终：`search_state=completed`、`collection_outcome=complete`、`stop_reason=target_reached`，应用累计2230.215秒；**found 35、usable_named 30、usable_independent 31**、awaiting_manual 3（拼图待人工）、type_rejected 1、collages 1。
+- 35份原件逐一SHA比对+解码通过，35条项目引用、35条发现记录带job_id；真实浏览器逐一加载候选35/35（naturalWidth>0）。
+- 33次真实图片类型调用全部成功、0失败；已知Token 1,166,315，用量完整；重复141条 = 82条下载前来源地址拦截 + 38条下载到临时区后立即删除 + 21条封面命中；`incoming`零残留；`known_source_images=444`；探索配额按图片实际拦下29张。
+- 详情59个、窗口14个、查询8条、33次模型调用，用时35.6分钟达到目标。**返回搜索页修复生效**：50+个详情循环没有出现此前的扩展清理卡死；`history.back()`+四项核实路径替代了原生navigate-back的5秒等待。
+- 注意：Job行`status`字段仍显示`blocked`（`update_search_stage`在search-only且review未运行时把状态写成blocked），而`search_state/completed`、`collection_outcome/complete`、目标30/30均正确；网页任务卡按search_state/collection_outcome显示。这是状态字段一致性问题，不影响本轮成果，未在冻结版本上临时修改。
+
+### 重启（主人授权一次）
+
+- 扩展确为0.3.3（Edge已启用）；CLI/daemon为0.3.2。`bsk update`因GitHub连接被重置失败（os error 10054），CLI仍0.3.2；随后按产品脚本`scripts/ensure-external-services.ps1`停止并重启daemon（PID 46064→57292），协议1.3、Edge 9d3f232a重新连接。证据`.local/disk-audit-20261022/restart-evidence.json`。产品代码未变，仍为33bd302。
+
+### Round 2 —— FAIL（16/30，detail_budget_exhausted）
+
+- 2026-10-22T19:04:12Z 单次点击创建 Job `51e0ad92b0c34f8c8a8653f9cc5cf9fe`（目标30、普通输入，Round 1与全部历史自动入基线，`history_files=1793`）。
+- 结果：`search_state=partial`、`stop_reason=detail_budget_exhausted`（达到96个详情上限，非时间/模型/浏览器故障），应用累计1949.670秒；found 24、**usable_named 16**、usable_independent 19、target_confirmed 21、awaiting_manual 5、collages 3。
+- 24份原件SHA+解码全部通过，24条项目引用、26条发现记录（含重复登记）；23次图片类型调用全部成功、0拒绝；已知Token 816,941，**`usage_complete=false`**（有一次调用未报告用量，如实保留）。
+- 重复175条 = 94条下载前来源地址拦截 + 56条临时下载后删除 + 22条封面命中 + 2条裁切重复 + 1条疑似裁切重复（历史匹配把Round 1的裁切变体也识别出来）；`incoming`零残留；探索配额按图片拦下70张。
+- 第一张原件401.7秒、第一张合格627.5秒；用满96个详情仍只有24张新原件——Round 1 已消耗该查询空间里容易获得的新素材，第2轮的新增率降到约25%/详情，详情上限先于时间预算耗尽。
+- 未人工继续、未CLI补采集、未改状态/计数；不以第二轮16张凑数或改称通过。
+
+### 正常启动器重启验证（两轮之后）
+
+- `scripts/terminate.ps1` 停止 PID 57060；`scripts/launch.ps1` 启动 PID 52792，同一`33bd302`/digest `59f113a6…`。
+- 重启前后：assets 1652→1652、refs 1412→1412；Round 1 `usable_named=30/found=35/search_state=completed/outcome=complete`、35条引用与35个资产目录一致；Round 2 `16/24/partial/partial`、24条引用与24个资产目录一致。API与SQLite一致，无重复导入。
+- 真实浏览器重启后加载：Round 1 候选35/35、Round 2 候选26/26（naturalWidth>0，0失败）。
+- 证据：`round-audit-03cdde…json`、`round-audit-51e0ad…json`、`pre-restart-rounds.json`、`timeline-*.json`。
+
+### 本轮最终结论
+
+- **Round 1：PASS（30/30，单次点击、自动完成、35/35原件校验与浏览器加载、33次模型调用全成功）。**
+- **Round 2：FAIL（16/30，96详情上限耗尽，新增率下降）。**
+- 因此“同一最终冻结版本两轮各≥30张”的Goal验收**未完成**；不合并main、不出售/发布、不把16张或旧的13/1写成通过。下一轮若要继续，需要在不放宽准入的前提下扩大可用检索面（更多可信语言/意图查询、更深窗口）或由主人决定是否调整目标口径；当前冻结版本本身可以稳定跑完45分钟并达到30张（Round 1已证明）。
 
 ## 报告更正（追加，不覆盖旧记录）
 
