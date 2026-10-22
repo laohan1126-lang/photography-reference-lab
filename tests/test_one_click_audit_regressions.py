@@ -127,7 +127,7 @@ def test_v2_no_collage_is_outdated_and_explicitly_recomputed(tmp_path):
     assert hashlib.sha256(Path(row['original_path']).read_bytes()).hexdigest()==row['asset_sha']
 
 
-@pytest.mark.parametrize('box', [(80, 30, 760, 570), (160, 90, 720, 510), (60, 60, 740, 570)])
+@pytest.mark.parametrize('box', [(80, 30, 760, 570), (160, 90, 720, 510), (60, 60, 740, 570), (240, 0, 560, 600)])
 def test_history_excludes_reencoded_crops_but_preserves_other_frames(tmp_path, box):
     from PIL import ImageDraw
     from ref_lab.collection_history import ImageHistory
