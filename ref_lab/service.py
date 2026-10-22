@@ -263,10 +263,10 @@ class Library:
             self._schedule_archive(con, project)
             return project
 
-    def ingest_asset(self, content: bytes, filename: str = "") -> dict:
+    def ingest_asset(self, content: bytes, filename: str = "", source_path=None) -> dict:
         # Share the writer lock with recycling so an import cannot race a purge.
         with self.db.transaction() as con:
-            metadata = self.assets.ingest(content, filename)
+            metadata = self.assets.ingest(content, filename, source_path=source_path)
             con.execute("INSERT OR IGNORE INTO assets VALUES(?,?)", (metadata["id"], encode(metadata)))
             previous = row_data(con, "assets", metadata["id"])
             if previous.get("storage_status") in {"purged", "purge_failed"}:
@@ -564,7 +564,7 @@ class Library:
                     continue
                 if hit is None:
                     path, raw = collection_queue.original_bytes(job_id, item["asset_sha"])
-                    asset = self.ingest_asset(raw, path.name)
+                    asset = self.ingest_asset(raw, path.name, source_path=path)
                     data = self._queue_candidate_input(job, {**item, "asset_sha": asset["id"]})
                     decision = human if human in {"keep", "reject"} else "pending"
                     try:

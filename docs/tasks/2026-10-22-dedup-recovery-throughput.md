@@ -28,7 +28,7 @@
 ## 本次核实基线（第1轮实测，不沿用旧快照）
 
 - 分支 `codex/one-click-runtime-v4-20261022`，HEAD `5560246bf7b23669fcbc6923297be273e8f105ab`；与 `codex/narrow-crop-goal-20261022` 完全一致（0/0）。未提交改动仅4个既有测试临时目录删除（`.pytest-tmp-learning-review*/`、`tmpu82yxeyy/`、`tmpye_gx0i8/`），与本轮无关。
-- 实跑实现 `8bf51ba`；运行记录 `.local/runtime/server.json` 仍记 PID 44876 / `code_8bf51ba` / digest `f95efa…`，但**该进程已不存在**，当前无 Python 服务、无活动采集进程。未据此宣称运行正常。
+- 实跑实现 `8bf51ba`；运行记录 `.local/runtime/server.json` 记 PID 44876 / `code_8bf51ba` / digest `f95efa…`。**更正（第1轮稍后核实）**：该服务实际仍在运行（`python -m ref_lab serve --port 18765`，PID 44876/父进程50252），最初一次进程快照漏读，后续以CIM命令行核实为准；未重启、未改动其数据。另发现同机 `D:\AI PROJECTS\codex 名片生成` 有多个活动工作流/Streamlit/测试进程，属无关任务，本轮不中断；其实跑时间会受同机负载影响，计时按实际记录。
 - 数据目录：`D:\AI PROJECTS\photography-reference-lab\data`（项目内，`LAB_DATA_DIR` 由启动器配置，未在本 shell 设置）；项目外未发现需要扩展的清理路径。
 - 卷可用空间（清理前）：D: `33,739,034,624` 字节（31.42 GiB）。项目总占用约 34 GB，其中 `.local` 约 30.5 GB（`.local/backups` 16.42 GB、`.local/worktrees` 4.93 GB）。
 - 资产存储为内容寻址：`data/assets/<sha[:2]>/<sha>/original.*|preview.jpg|thumb.jpg`，共1554个SHA目录/4662文件/695.8 MB；原图与派生图分开计。
@@ -77,4 +77,35 @@
   - 可用空间：删除前D: 41,072,246,784字节（38.257 GiB，紧接删除前实测；20:58首次读数为33,739,034,624字节，两次读数差异按实测如实并列），删除后46,693,470,208字节（43.492 GiB），**净释放5.235 GiB**；`data`+`.local` 文件数276,197→237,938，字节46,474,301,696→40,926,262,748。
   - 保留未删（逐项原因）：45个旧备份ZIP（11.05 GB，含数据库历史状态与包内元数据，属“旧备份单独处理”）；20个旧任务工作树（4.1 GiB干净检出+若干脏检出，属工作副本非下载副本）；`backups/`(1.888 GB)与`.local/backups/consolidation-20261011-2305`(2.56 GB，其他仓库归档，超出本仓库范围)；`references/`内Git跟踪的暂存下载（544个文件与资产同字节，但属跟踪内容，待单独判断）；`inspections/`与`training_sets/`（评估/训练语料，有manifest与构建脚本依赖）；旧采集运行目录中43个与资产同字节的文件（`received.json`仍以原路径引用，待链路改造后再处理）；`.local/backups/browser-audit-tests-20261021`（测试截图，字节不重复）。
   - 清理脚本可重跑：`.local/disk-audit-20261022/verify_clean2.py`（默认dry-run，`--apply`才删并在删除前再次SHA复核；清单 `cleanup-verify2.json`/`cleanup-executed.json`）。
+
+### 第1轮工程改动（未冻结，验收前继续复核）
+
+- `ref_lab/collection_history.py`：把逐对构造/缩放的 128px 指纹改为按记录缓存的图像金字塔与按查询缓存的裁剪模板；粗定位模板按 (side,kind,尺寸) 复用，匹配语义（含像素差/相关性/局部冲突阈值、拼图容器规则）保持。`consider` 的重型比较移到共享读锁之外，新增独立入账锁并在提交时复核 `known_shas`，保留并发入账的精确字节原子去重；新增 `rekey` 供临时文件转正后更新缓存路径。
+- 等价性：用 `git show HEAD:ref_lab/collection_history.py` 载入改动前实现，对同一组合成样本（6种横/竖/窄裁切+重编码、局部覆盖、换姿势、12张随机图）两两比较 `_photo_relation` 结果，**80对0差异**（`.local/disk-audit-20261022/matcher-equivalence.json`）。
+- 同数据耗时：1554个真实资产原件为历史，同一张裁切查询完整扫描一遍，改动前 `22.469秒` → 改动后 `11.687秒`（本机wall，另有其它项目在跑，仅作同机同数据对照；不是正式Job计时）。修复过程中回归测试先抓到两处模板参数顺序/平坦模板判定差异，已按原语义修正，10项既有裁切回归由失败转通过后才保留优化。
+- `tools/collect_verified.py` 返回与恢复：
+  - `navigate-back` 超时或报错后，先读活页面并用 **来源主机+路径、原查询（URL参数或搜索框）、可见结果数、当前会话id** 共同判定；确认已回到原搜索页才清除残留 `return_error`，并把证据写入 `return-checks.json`（只保留最近20条）。仅“URL像搜索页”不再算通过。
+  - 恢复预算改为累计**实际恢复耗时**（`recovery_seconds_used`），正常采集时间不再计入；仍保留Job总deadline和最多2次上限。
+  - `recover(step, reason='return')` 先核实活页面、再在同一会话导航回原查询并复核，只有仍失败才重建自己的会话；不触碰共享BrowserSkill daemon。
+  - 每个详情返回后立即检查返回故障并在任何重型历史比较之前做一次有界恢复；未恢复时才抛出，并保留 `return_pending_rows` 证据。区分 `page_return`/`connection`/`time_budget_exhausted`。
+- 下载生命周期：新增 `incoming/` 受限临时区；XHS `capture_note` 与 Pinterest 详情都先流式写入临时文件并同时算SHA。已知来源图片地址（只复用已在验证历史中的SHA）在传输前跳过该图；下载后SHA命中已知集合立即删除临时文件；未知字节经历史判定后才用 `os.replace` 转正到 `images/`。失败/取消/退出统一清理本Job残留临时文件（`incoming_cleaned`）。`duplicates.json` 区分 `known_source_url`（下载前拦截）与 `same_bytes_known`（临时下载后清理）。
+- 调度与配额：连续2条查询0新增且反馈为高重复/无新结果时提前进入检索词改写，不再等初始计划跑满两遍；探索配额改为按**图片**计数（全局/来源/查询），多图帖不能再用一个帖名突破配额；无名称证据的越额候选立即丢弃临时副本并记录原因。
+- 回归：新增 `tests/test_download_lifecycle_and_return.py` 13项（返回状态判定、恢复预算跨正常工作、原查询优先修复、已知地址/已知SHA/未知字节三条下载路径、返回故障先于历史比较、并发入账、转正后rekey、清理后历史跳过、资产硬链接）；更新 `tests/test_search_detail_timing.py` 5项到临时区契约。
+- 入库链路：`AssetStore.ingest` 增加 `source_path`，与采集批次在同一卷时用**硬链接**保存原件（一份物理存储、两个路径），失败自动回退普通写入；搜索候选导入传入批次路径。防止入库后再复制出第二套长期原件。
+- 清理后历史：`historical_paths` 对被清理过、`images/` 已空的归档批次记录 `skipped`（其字节已在正式资产库中，SHA仍覆盖），仍含文件却无法校验的批次照旧报错；采集侧把跳过写入 `history-skips.json` 和摘要计数，不把未扫描写成已完成。
+
+### 第1轮回归结果
+
+- 组A：`test_one_click_audit_regressions`、`test_collection_history_cache`、`test_goal_photo_admission`、`test_collage_split`、`test_collection_audit`、`test_collection_stages`、`test_search_continue_recovery` → **121 passed**（604.06秒，2026-10-22T23:41Z起）。
+  命令：`.venv\Scripts\python.exe -X utf8 -m pytest -q --tb=short -p no:cacheprovider --basetemp=.local\tmp\ptA <上述文件>`
+- 组B（结果见下一步检查点）：`test_download_lifecycle_and_return`、`test_search_detail_timing`、`test_browser_recovery_boundary`、`test_browserskill_recovery`、`test_collection_autonomy`、`test_review_self_duplicate`、`test_collection_supply`、`test_collection_upgrade_counts` → **90 passed**（99.11秒，含关闭API集成用例）。合计相关回归 **211 passed / 0 failed**。
+- 清理后历史规模（`history_after_cleanup.py`）：2,731个文件、1,664个不同SHA、1,679条指纹记录、0错误；历史路径遍历28.515秒、热缓存加载21.360秒。清理前审计口径为2,800路径/1,694 SHA（该口径来自上次Goal冻结时，包含后来被上一轮归档进ZIP的formal5/6运行目录）。
+- 覆盖核对（`coverage_check.py`）：本轮删除的35,399个文件中，属于历史扫描范围（`images/`或`derived/`且非`restored-library`）的删除数为**0**；删除的3,112个不同SHA全部只对应`data/assets/*/preview.jpg|thumb.jpg`或`data/exports`副本，这些字节从未进入历史指纹集合。说明本轮清理没有减少任何历史原件/子图的排重覆盖。仍有30个SHA的差异来自上一轮把formal5/6运行目录整体归档为ZIP（非本轮清理），其中含1份从未进入received清单的孤立字节；失败原件/清单未删。
+
+## 本轮资源上限（实跑前记录，不临时扩充）
+
+- 正式Job：2个（Round1/Round2），每个最长2700秒、最多60次图片类型模型尝试；合计≤5400秒/120次。
+- 诊断Job：0；不新增预算；不人工继续、不CLI补采集、不手动导入、不改状态/计数。
+- 两轮都使用同一最终冻结提交与配置；第二轮必须排除第一轮及全部历史成功/失败/诊断所得。
+- 保留旧失败13张与1张；不合并main、不强推、不发布。
 

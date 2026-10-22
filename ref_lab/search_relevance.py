@@ -173,6 +173,17 @@ def exploration_count(rows: Iterable[dict]) -> int:
                 {"target_context", "unconfirmed"}})
 
 
+def exploration_image_count(rows: Iterable[dict]) -> int:
+    """Count exploration images, not posts.
+
+    A multi-image post must not buy six exploration slots with one quota check;
+    the global, per-source and per-query limits apply per image.
+    """
+    return sum(1 for row in rows
+               if str((row.get("relevance") or {}).get("tier") or "") in
+               {"target_context", "unconfirmed"})
+
+
 def associate_detail(card, row, *, names=(), work_terms=(), other_terms=()):
     """Keep card and author-only detail evidence, and re-evaluate new evidence."""
     card_evidence = {k: card[k] for k in ('page', 'text', 'title', 'description') if k in card}

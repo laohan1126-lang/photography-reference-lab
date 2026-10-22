@@ -13,7 +13,7 @@ import re
 import subprocess
 import sys
 import time
-from urllib.parse import quote,urlsplit
+from urllib.parse import parse_qs,quote,urlsplit
 from uuid import uuid4
 import zipfile
 from contextlib import contextmanager, nullcontext
@@ -33,9 +33,10 @@ from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
 from ref_lab.collection_checkpoint import load_checkpoint,original_bytes,coverage,read_json,rule_contract,job_binding
 from ref_lab.search_relevance import (classify_card, confirmed_count, exploration_count,
-                                      exploration_limit, is_confirmed, relevance_counts, source_warnings)
+                                      exploration_image_count, exploration_limit, is_confirmed,
+                                      relevance_counts, source_warnings)
 from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
-from tools.exact_recall import assess_search,capture_note,save
+from tools.exact_recall import assess_search,capture_note,normalize_image_url,save
 from ref_lab.browser_recovery import (
     BrowserError, BrowserInfrastructureError, PlatformRestrictionError,
     DetailItemError, sanitize_diagnostics, classify_bsk_error, is_infrastructure_error
@@ -321,8 +322,11 @@ class Browser:
         self.env={**os.environ,'BSK_AUTO_START':'0'}
         self.timing=None;self.preview=None;self.preview_reused=0
         self.recovery_attempts=0;self.max_recovery_attempts=2
-        self.recovery_budget_seconds=60.0;self.recovery_start_time=None
+        self.recovery_budget_seconds=60.0;self.recovery_seconds_used=0.0
+        self.recovery_start_time=None;self.recovery_active=False
         self.last_successful_page=None;self.last_successful_at=None
+        self.return_issue_category=None
+        self.known_shas=None;self.known_sources=None;self.incoming_dir=None
 
     def _span(self,name,**fields):
         timing=getattr(self,'timing',None)
@@ -336,46 +340,124 @@ class Browser:
         return data['value']
 
     def can_recover(self)->bool:
+        """Recovery keeps the total-Job deadline and a bounded attempt/time cap.
+
+        Only time actually spent inside a recovery counts against the budget;
+        normal collection work never consumes it.
+        """
         return (self.recovery_attempts<self.max_recovery_attempts
                 and time.monotonic()<getattr(self,'deadline',float('inf'))
-                and (self.recovery_start_time is None
-                     or time.monotonic()-self.recovery_start_time<self.recovery_budget_seconds))
+                and self.recovery_seconds_used<self.recovery_budget_seconds
+                and not self.recovery_active)
 
-    def recover(self,step=None)->bool:
-        """Recover only this task's browser, within one monotonic deadline."""
+    def search_url(self,step):
+        q=quote(step['query'])
+        return ('https://www.pinterest.com/search/pins/?q='+q if step['source']=='pinterest'
+                else 'https://www.xiaohongshu.com/search_result?keyword='+q)
+
+    def _return_state(self,snapshot,source,query):
+        """Describe whether the live page really is the original search page.
+
+        Source host, path, the original query (URL parameter or visible search
+        box), visible result content and this session id are all required; an
+        address that merely looks like a search page is not enough.
+        """
+        parsed=urlsplit(snapshot.get('url','') or '')
+        params=parse_qs(parsed.query or '')
+        expected_path='/search/pins' if source=='pinterest' else '/search_result'
+        host=(parsed.hostname or '').lower()
+        source_ok=host.endswith('pinterest.com') if source=='pinterest' else host.endswith('xiaohongshu.com')
+        url_query=(params.get('q') or params.get('keyword') or [''])[0]
+        box=str(snapshot.get('search') or '')
+        cards=snapshot.get('cards') or []
+        blocked=bool(snapshot.get('login_required') or snapshot.get('challenge'))
+        query_ok=bool(query) and (url_query==query or box==query)
+        confirmed=bool(source_ok and parsed.path.rstrip('/')==expected_path and query_ok
+                       and cards and not blocked)
+        return {'confirmed':confirmed,'source':source,'host':host,'path':parsed.path.rstrip('/'),
+                'expected_path':expected_path,'query':query,'url_query':url_query,'search_box':box,
+                'cards':len(cards),'login_required':bool(snapshot.get('login_required')),
+                'challenge':bool(snapshot.get('challenge')),'session_id':self.session}
+
+    def _record_return_check(self,evidence):
+        checks=collection_queue.read_json(self.folder/'return-checks.json',[])
+        checks.append({'at':time.time(),**sanitize_diagnostics(evidence)})
+        save(self.folder/'return-checks.json',checks[-20:])
+
+    def _verify_return(self,step,stage):
+        try:
+            snapshot=self.snapshot()
+        except (ValueError,OSError,subprocess.SubprocessError,KeyError) as exc:
+            self._record_return_check({'confirmed':False,'stage':stage,'error':type(exc).__name__,
+                                       'source':step.get('source'),'query':step.get('query')})
+            return False
+        evidence=self._return_state(snapshot,step['source'],
+                                    str(step.get('query') or getattr(self,'active_query','') or ''))
+        evidence['stage']=stage
+        self._record_return_check(evidence)
+        if evidence['confirmed']:
+            self.return_failed=False;self.return_error=None;self.return_issue_category=None
+            return True
+        return False
+
+    def recover(self,step=None,reason='connection')->bool:
+        """Recover only this task's browser, within one monotonic deadline.
+
+        A page-return failure is repaired in place first: verify the live page,
+        then revisit the original query in the same session. Rebuilding the
+        session is the last resort, and the whole attempt stays bounded.
+        """
         if not self.can_recover() or not self.bsk or not self.browser_id:
             return False
         self.recovery_attempts+=1
-        if self.recovery_start_time is None:self.recovery_start_time=time.monotonic()
+        started=time.monotonic()
+        self.recovery_active=True
+        if self.recovery_start_time is None:self.recovery_start_time=started
         old_deadline=getattr(self,'deadline',float('inf'))
-        self.deadline=min(old_deadline,self.recovery_start_time+self.recovery_budget_seconds)
+        self.deadline=min(old_deadline,started+self.recovery_budget_seconds)
         try:
-            browsers=json.loads(self.command('browsers','--json',timeout=10))
-            if not isinstance(browsers,list) or not any(
-                    b.get('instance_id')==self.browser_id and not b.get('unresponsive')
-                    and not b.get('version_skew') for b in browsers if isinstance(b,dict)):
-                self._record_error(BrowserInfrastructureError('原浏览器尚未连接',code='browser_unavailable'))
-                return False
-            if self.start_request:
-                cancelled=json.loads(self.command('session','request',self.start_request,'--cancel','--json',timeout=5))
-                if cancelled.get('state')!='closed' or cancelled.get('cleanup_error'):return False
-                self.start_request=None
-            if self.session:
-                try:self.command('session','stop',self.session,'--json',timeout=6)
-                except BrowserInfrastructureError as exc:
-                    if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
-                        return False
-                self.session=None
-            self._start_session(timeout=12)
-            # Session creation alone does not prove that the extension can read a page.
-            self.snapshot()
-            self.return_failed=False
-            self.return_error=None
-            return True
+            if reason=='return' and step:
+                if self._verify_return(step,'before_repair'):
+                    return True
+                try:
+                    self.command('navigate',self.search_url(step),'--session',self.session,
+                                 '--wait-until','domcontentloaded','--timeout','15s',timeout=25)
+                except (BrowserError,OSError,subprocess.SubprocessError) as exc:
+                    if not is_infrastructure_error(exc):raise
+                if self._verify_return(step,'after_original_query'):
+                    return True
+            return self._rebuild_session()
         except (BrowserError,ValueError,OSError,subprocess.SubprocessError):
             return False
         finally:
             self.deadline=old_deadline
+            self.recovery_seconds_used+=time.monotonic()-started
+            self.recovery_active=False
+
+    def _rebuild_session(self)->bool:
+        browsers=json.loads(self.command('browsers','--json',timeout=10))
+        if not isinstance(browsers,list) or not any(
+                b.get('instance_id')==self.browser_id and not b.get('unresponsive')
+                and not b.get('version_skew') for b in browsers if isinstance(b,dict)):
+            self._record_error(BrowserInfrastructureError('原浏览器尚未连接',code='browser_unavailable'))
+            return False
+        if self.start_request:
+            cancelled=json.loads(self.command('session','request',self.start_request,'--cancel','--json',timeout=5))
+            if cancelled.get('state')!='closed' or cancelled.get('cleanup_error'):return False
+            self.start_request=None
+        if self.session:
+            try:self.command('session','stop',self.session,'--json',timeout=6)
+            except BrowserInfrastructureError as exc:
+                if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
+                    return False
+            self.session=None
+        self._start_session(timeout=12)
+        # Session creation alone does not prove that the extension can read a page.
+        self.snapshot()
+        self.return_failed=False
+        self.return_error=None
+        self.return_issue_category=None
+        return True
 
     def _record_error(self,err):
         errors=collection_queue.read_json(self.folder/'browser-errors.json',[])
@@ -443,6 +525,7 @@ class Browser:
 
     def search(self,step,sort='relevance'):
         self.scroll_windows=0
+        self.active_query=str(step.get('query') or '')
         q=quote(step['query'])
         url=('https://www.pinterest.com/search/pins/?q='+q if step['source']=='pinterest'
              else 'https://www.xiaohongshu.com/search_result?keyword='+q)
@@ -546,7 +629,8 @@ class Browser:
 
     def receive(self,card,step):
         page=card['page'];source=step['source']
-        self.return_failed=False;self.return_error=None
+        query=str(step.get('query') or getattr(self,'active_query','') or '')
+        self.return_failed=False;self.return_error=None;self.return_issue_category=None
         entered_detail=source!='xiaohongshu'
         try:
             if source=='xiaohongshu':
@@ -576,7 +660,10 @@ class Browser:
                 rows=capture_note(self.bsk,self.session,self.folder,canonical,
                                   limit=getattr(self,'note_image_limit',3),errors=errors,
                                   timing=getattr(self,'timing',None),command=self.command,
-                                  deadline=getattr(self,'deadline',float('inf')))
+                                  deadline=getattr(self,'deadline',float('inf')),
+                                  known_shas=getattr(self,'known_shas',None),
+                                  known_sources=getattr(self,'known_sources',None),
+                                  incoming=getattr(self,'incoming_dir',None))
                 self.download_errors=getattr(self,'download_errors',[])+errors
                 return rows
             # Navigation and DOM are timed inside the adapter; an outer span here
@@ -586,36 +673,78 @@ class Browser:
             if detail.get('is_login_wall'):raise SourceBlocked('登录门槛')
             url=detail.get('image_url')
             if not url:return []
+            source_key=normalize_image_url(url)
+            known_sources=getattr(self,'known_sources',None)
+            if known_sources and source_key and source_key in known_sources:
+                return [{'asset_sha':known_sources[source_key],'page_url':page,'image_url':url,
+                         'duplicate':True,'reason':'known_source_url',
+                         'source_text':detail.get('title','')+'\n'+detail.get('desc','')}]
             with self._span('detail_download',source=source):
                 raw,width,height,fmt,reused=self._pinterest_bytes(url)
             ext={'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(fmt)
             if ext is None:return []
-            sha=hashlib.sha256(raw).hexdigest();path=self.folder/'images'/f'{sha}.{ext}'
-            path.parent.mkdir(exist_ok=True)
-            if not path.exists():path.write_bytes(raw)
-            elif hashlib.sha256(path.read_bytes()).hexdigest()!=sha:raise ValueError('Immutable image conflict')
-            return [{'asset_sha':sha,'original_path':str(path.resolve()),'page_url':page,'image_url':url,
+            sha=hashlib.sha256(raw).hexdigest()
+            known_shas=getattr(self,'known_shas',None)
+            if known_shas is not None and sha in known_shas:
+                return [{'asset_sha':sha,'page_url':page,'image_url':url,'duplicate':True,
+                         'reason':'same_bytes_known','bytes_received':len(raw),
+                         'width':width,'height':height,
+                         'source_text':detail.get('title','')+'\n'+detail.get('desc','')}]
+            incoming=getattr(self,'incoming_dir',None)
+            temp_dir=Path(incoming) if incoming is not None else self.folder/'incoming'
+            temp_dir.mkdir(parents=True,exist_ok=True)
+            temporary=temp_dir/(uuid4().hex+'.part')
+            with temporary.open('xb') as stream:stream.write(raw)
+            return [{'asset_sha':sha,'original_path':str(temporary.resolve()),'page_url':page,'image_url':url,
                      'source_text':detail.get('title','')+'\n'+detail.get('desc',''),'width':width,'height':height,
                      'author_detail':{'title':detail.get('title',''),'description':detail.get('desc','')},
-                     'preview_bytes_reused':reused}]
+                     'ext':ext,'temporary':True,'bytes_received':len(raw),'preview_bytes_reused':reused}]
         finally:
             # Restore the same search page; do not start another query or inspect a related feed.
-            try:
-                if entered_detail:
+            navigate_error=None
+            if entered_detail:
+                try:
                     with self._span('detail_return',source=source):
                         self.command('navigate-back','--session',self.session,'--timeout','5s',timeout=15)
-            except (ValueError,OSError,subprocess.SubprocessError) as exc:
-                self.return_failed=True
-                if is_infrastructure_error(exc):self.return_error=exc
+                except (ValueError,OSError,subprocess.SubprocessError) as exc:
+                    navigate_error=exc
+                    self.return_failed=True
+                    # Separate a slow/SPA page return from a real connection fault.
+                    self.return_issue_category=('page_return'
+                        if getattr(exc,'is_timeout',False) else 'connection')
+                    if is_infrastructure_error(exc):self.return_error=exc
             if entered_detail:
                 try:
                     restored=self.snapshot()
-                    expected_path='/search/pins' if source=='pinterest' else '/search_result'
-                    self.return_failed=not (urlsplit(restored.get('url','')).path.rstrip('/')==expected_path
-                        and restored.get('cards') and not restored.get('login_required') and not restored.get('challenge'))
-                except (ValueError,OSError,subprocess.SubprocessError) as exc:
+                    evidence=self._return_state(restored,source,query)
+                except (ValueError,OSError,subprocess.SubprocessError,KeyError) as exc:
+                    evidence={'confirmed':False,'stage':'after_navigate_back','error':type(exc).__name__,
+                              'source':source,'query':query,'session_id':self.session}
                     self.return_failed=True
-                    if is_infrastructure_error(exc):self.return_error=exc
+                    self.return_issue_category=self.return_issue_category or 'connection'
+                    if is_infrastructure_error(exc) and self.return_error is None:self.return_error=exc
+                evidence['stage']='after_navigate_back'
+                evidence['navigate_back_error']=(type(navigate_error).__name__ if navigate_error is not None else None)
+                self._record_return_check(evidence)
+                if evidence.get('confirmed'):
+                    # The original operation did succeed: the page is the same
+                    # source, the same query, with visible results, in this
+                    # session. A stale timeout error must not stop the Job later.
+                    self.return_failed=False
+                    self.return_issue_category=None
+                    if self.return_error is not None:
+                        recovered=getattr(self,'return_recovered',[])
+                        recovered.append({'action':'navigate-back','code':getattr(self.return_error,'code',''),
+                                          'stage':'verified_live_page','at':time.time()})
+                        self.return_recovered=recovered
+                        self.return_error=None
+                else:
+                    self.return_failed=True
+                    if self.return_error is None:
+                        self.return_error=BrowserInfrastructureError(
+                            '返回搜索页未确认',action='navigate-back',code='return_unconfirmed',
+                            details=f'source={source} cards={evidence.get("cards")} query_ok={evidence.get("url_query") or evidence.get("search_box")}')
+                        self.return_issue_category=self.return_issue_category or 'page_return'
 
     def _pinterest_bytes(self,url):
         """Download the Pin's primary image, reusing the preview we already fetched.
@@ -932,6 +1061,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
 
     def drain():
         while pending:finish_one()
+    known_sources={}
     try:
         checkpoint('planning')
         from ref_lab.verified_collection import NamePlan,deterministic_plan
@@ -1008,12 +1138,25 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         except BrowserInfrastructureError:
             checkpoint('browser_recovering')
             if not (hasattr(browser,'recover') and browser.recover()):raise
+        known_sources=_known_image_sources(history,folder)
+        for name,value in (('known_shas',getattr(history,'known_shas',None) if history is not None else None),
+                           ('known_sources',known_sources),('incoming_dir',folder/'incoming')):
+            if hasattr(browser,name):setattr(browser,name,value)
+        if known_sources:state['known_source_images']=len(known_sources)
         latest_fallback_sources=set()
         total_steps=min(len(steps),query_budget)
         max_passes=2*total_steps
         pass_index=0
+        poor_streak=0
         while True:
-            if pass_index>=max_passes:
+            refine_due=pass_index>=max_passes
+            if (not refine_due and search_only and job.get('goal_id') and total_steps<query_budget
+                    and poor_streak>=2 and not limit_reason()):
+                # Two low-yield queries in a row are enough evidence to change
+                # direction; waiting for every planned query to repeat first only
+                # re-downloads known duplicates.
+                refine_due=True
+            if refine_due:
                 if not (search_only and job.get('goal_id') and total_steps<query_budget and not limit_reason()):
                     break
                 known={(step['source'],step['query']) for step in steps}
@@ -1166,11 +1309,51 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             received_errors.extend(new_download_errors)
                             browser.download_errors=[]
                             save(folder/'download-errors.json',received_errors)
+                        # A page-return fault is handled before any heavy image
+                        # comparison, so the bounded recovery window is not spent
+                        # on local history matching.
+                        return_issue=getattr(browser,'return_error',None)
+                        if return_issue is not None or getattr(browser,'return_failed',False):
+                            category=getattr(browser,'return_issue_category','page_return')
+                            state.setdefault('return_pending_rows',{})[page_key]={
+                                'source':source,'query':query,'category':category,'at':time.time(),
+                                'rows':[{k:row.get(k) for k in ('asset_sha','original_path','page_url','image_url','bytes_received','duplicate','reason')} for row in rows]}
+                            checkpoint('return_pending')
+                            recovered=False
+                            if hasattr(browser,'can_recover') and browser.can_recover():
+                                try:recovered=browser.recover(step,reason='return')
+                                except Exception:recovered=False
+                            if recovered:
+                                code=(getattr(return_issue,'code','') if return_issue is not None else '')
+                                errors=collection_queue.read_json(folder/'browser-errors.json',[])
+                                errors.append({'action':'browser_recovery','category':category,
+                                               'code':code or 'return_unconfirmed','result':'recovered',
+                                               'recovered':True,'stage':'before_history_compare','at':time.time()})
+                                save(folder/'browser-errors.json',errors)
+                                state.setdefault('operation_errors',[]).append({'action':'browser_recovery',
+                                    'source':source,'query':query,'code':category,'result':'recovered','at':time.time()})
+                                state.setdefault('return_pending_rows',{}).pop(page_key,None)
+                                browser.return_failed=False;browser.return_error=None
+                                checkpoint()
+                            else:
+                                if return_issue is not None:raise return_issue
+                                raise BrowserInfrastructureError('返回搜索页未确认',action='navigate-back',
+                                    code='return_unconfirmed',details=f'category={category}')
                         for row in rows:
                             if not search_only:
                                 while pending and (len(pending)>=workers or len(candidates)+len(pending)>=target):finish_one()
                             sha=row['asset_sha']
+                            if row.get('duplicate'):
+                                reason=row.get('reason') or 'same_bytes_known'
+                                entry={'asset_sha':sha,'page_url':row.get('page_url'),'duplicate_of':sha,
+                                       'reason':reason,
+                                       **({'source_address_precheck':True} if reason=='known_source_url' else {'temporary_copy_removed':True})}
+                                if row.get('bytes_received'):
+                                    entry['bytes_received']=row['bytes_received']
+                                duplicates.append(entry)
+                                save(folder/'duplicates.json',duplicates);checkpoint();continue
                             if sha in seen:
+                                _discard_temporary(row)
                                 if search_only and sha in by_sha:
                                     from ref_lab.search_relevance import associate_detail
                                     updated=associate_detail(card,row,names=name_records,work_terms=work_terms,other_terms=other_terms)
@@ -1182,11 +1365,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                     save(folder/'received.json',received)
                                 duplicates.append({'asset_sha':sha,'page_url':row['page_url'],'duplicate_of':sha,'reason':'same_bytes_this_run'});continue
                             if search_only:
-                                if confirmed()>=target or per_note>=browser.note_image_limit:break
+                                if confirmed()>=target or per_note>=browser.note_image_limit:
+                                    _discard_temporary(row);break
                             elif len(candidates)>=target or calls()>=agent.candidate_limit or len(received)>=agent.candidate_limit or per_note>=3:
-                                break
+                                _discard_temporary(row);break
                             if (sha in {r['asset_sha'] for r in (agent.references or [])}
-                                    or not Path(row['original_path']).resolve().is_relative_to((folder/'images').resolve())):
+                                    or not Path(row['original_path']).resolve().is_relative_to(folder.resolve())):
+                                _discard_temporary(row)
                                 seen.add(sha);collisions.append({'asset_sha':sha,'page_url':row['page_url'],'reason':'reference media or wrong namespace; never photography'});continue
                             valid=True;error=''
                             if search_only:
@@ -1194,16 +1379,38 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             elif hashlib.sha256(Path(row['original_path']).read_bytes()).hexdigest()!=sha:
                                 raise AgentUnavailable('收到的原图SHA不一致；停止，不采用未绑定图片。')
                             if not valid:
+                                _discard_temporary(row)
                                 seen.add(sha);received_errors.append({'asset_sha':sha,'page_url':row['page_url'],'error':error})
                                 save(folder/'search-errors.json',received_errors);checkpoint();continue
                             seen.add(sha)
                             if history is not None:
                                 with timing.span('history_consider'):duplicate=history.consider(Path(row['original_path']))
                                 if duplicate:
-                                    duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate})
+                                    _discard_temporary(row)
+                                    duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate,
+                                                       'temporary_copy_removed':bool(row.get('temporary'))})
                                     save(folder/'duplicates.json',duplicates);checkpoint();continue
                             from ref_lab.search_relevance import associate_detail
                             detail_relevance=associate_detail(card,row,names=name_records,work_terms=work_terms,other_terms=other_terms)
+                            if search_only and str(detail_relevance.get('tier')) in ('target_context','unconfirmed'):
+                                source_images=exploration_image_count(
+                                    [r for r in received if urlsplit(r.get('page_url','')).hostname==parsed.hostname])
+                                query_images=exploration_image_count(
+                                    [r for r in received if r.get('search_query')==query])
+                                if (exploration_image_count(received)>=exploration_limit(target)
+                                        or source_images>=max(1,(exploration_limit(target)+len(sources)-1)//len(sources))
+                                        or query_images>=1):
+                                    _discard_temporary(row)
+                                    skipped['exploration_budget']+=1
+                                    state.setdefault('exploration_skipped',[]).append({
+                                        'asset_sha':sha,'page_url':row.get('page_url'),'query':query,
+                                        'tier':detail_relevance.get('tier'),'at':time.time(),
+                                        'reason':'image_quota_exhausted','temporary_copy_removed':bool(row.get('temporary'))})
+                                    save(folder/'duplicates.json',duplicates);checkpoint();continue
+                            if row.get('temporary'):
+                                temporary_path=Path(row['original_path'])
+                                _promote_temporary(folder,row)
+                                if history is not None:history.rekey(temporary_path,Path(row['original_path']))
                             row={**row,'search_query':query,'discovery_url':snapshot['url'],
                                  'acquired_at':time.time(),'relevance':detail_relevance if search_only else relevance}
                             received.append(row);attempted+=1;per_note+=1
@@ -1222,6 +1429,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 pending.submit(row)
                                 checkpoint()
                                 if workers==1:finish_one()
+                        # Any row the loop skipped (quota, limit, duplicate) must
+                        # not keep its temporary copy around for the whole Job.
+                        for leftover in rows:
+                            if leftover.get('temporary'):_discard_temporary(leftover)
                         pages.add(page_key);checkpoint()
                         if getattr(browser,'return_error',None) is not None:
                             raise browser.return_error
@@ -1330,6 +1541,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     query_log=state.setdefault('query_history',[])
                     query_log.append({**entry,'attempt':int(state.get('search_attempts',1)),'at':time.time()})
                     if len(query_log)>120:del query_log[:len(query_log)-120]
+                if search_only:
+                    new_rows=len(received)-feedback_before['received']
+                    if (new_rows==0 and search.get('feedback',{}).get('reason') in
+                            ('history_duplicate_high','no_new_results','name_coverage_insufficient')):
+                        poor_streak+=1
+                    else:
+                        poor_streak=0
                 checkpoint()
     except BrowserInfrastructureError as exc:
         blocked=True;stop_reason='command_timeout' if exc.is_timeout else 'browser_unavailable'
@@ -1352,6 +1570,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         blocked=True;stop_reason='internal_error';interrupted=True
         raise
     finally:
+        incoming_cleanup=cleanup_incoming(folder)
+        state['incoming_cleanup']=incoming_cleanup
         if pending is not None:pending.close(cancel=True)
         if collage_worker is not None and not collage_closed:
             # The download path never waits for splitting; the bounded drain here
@@ -1423,6 +1643,14 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'collage_processed':int(getattr(collage_worker,'processed',0)),
                                               'preview_bytes_reused':int(getattr(browser,'preview_reused',0)),
                                               'history_restore':history_restore,
+                                              'incoming_cleaned':incoming_cleanup,
+                                              'duplicates_pre_download':sum(1 for r in duplicates
+                                                  if r.get('reason')=='known_source_url'),
+                                              'duplicates_temp_cleaned':sum(1 for r in duplicates
+                                                  if r.get('temporary_copy_removed')),
+                                              'known_source_images':len(known_sources),
+                                              'history_skipped_runs':len(getattr(history,'skipped_runs',[])),
+                                              'history_files':getattr(history,'known_count',None),
                                               'cumulative_elapsed_seconds':round(elapsed_total,3),
                                               'continue':continue_info,
                                               'query_history':len(state.get('query_history',[])),
@@ -1796,12 +2024,90 @@ def review_candidates(job,agent,folder:Path,*,history=None,wait_for_search=False
     return manifest,images,summary
 
 
+def _discard_temporary(row):
+    """Delete this run's temporary copy; never touches a durable original."""
+    path=row.get('original_path')
+    if row.get('temporary') and path:
+        try:Path(path).unlink(missing_ok=True)
+        except OSError:pass
+
+
+def _promote_temporary(folder:Path,row):
+    """Move a judged-new temporary file into the run's durable image area."""
+    source=Path(row['original_path']);sha=row['asset_sha']
+    ext=str(row.get('ext') or source.suffix.lstrip('.') or 'jpg').lower()
+    target=(Path(folder)/'images'/f'{sha}.{ext}')
+    target.parent.mkdir(parents=True,exist_ok=True)
+    if target.exists():
+        if hashlib.sha256(target.read_bytes()).hexdigest()!=sha:raise ValueError('Immutable file conflict')
+        source.unlink(missing_ok=True)
+    else:
+        os.replace(source,target)
+    row['original_path']=str(target.resolve());row.pop('temporary',None)
+    return target
+
+
+def cleanup_incoming(folder:Path)->dict:
+    """Remove only this run's leftover temporary downloads after failure/exit."""
+    incoming=Path(folder)/'incoming'
+    if not incoming.is_dir() or incoming.is_symlink():return {'files':0,'bytes':0}
+    files=0;size=0
+    for path in incoming.glob('*'):
+        if not path.is_file() or path.is_symlink():continue
+        try:
+            size+=path.stat().st_size;path.unlink();files+=1
+        except OSError:
+            pass
+    return {'files':files,'bytes':size}
+
+
+def _known_image_sources(history,current:Path)->dict:
+    """Map previously received source-image addresses to verified SHAs.
+
+    Only addresses whose SHA already belongs to the verified duplicate history
+    are reused, so an unknown, edited or re-encoded image is still fetched and
+    judged. A matching address skips that one known transmission; it never
+    skips a whole post.
+    """
+    known=getattr(history,'known_shas',None) if history is not None else None
+    if not known:return {}
+    roots=[ROOT/'.local/collection-runs',ROOT/'.local/backups']
+    sources={}
+    current=Path(current).resolve()
+    candidates=[]
+    for root in roots:
+        if not root.is_dir():continue
+        candidates.extend(root.glob('*/received.json'))
+        candidates.extend(root.glob('*/*/received.json'))
+        candidates.extend(root.glob('*/*/*/received.json'))
+    for path in candidates:
+        try:
+            resolved=path.resolve()
+        except OSError:continue
+        if resolved.parent.is_relative_to(current):continue
+        try:payload=json.loads(resolved.read_text('utf8'))
+        except (OSError,ValueError):continue
+        records=payload.get('candidates',[]) if isinstance(payload,dict) else payload
+        if not isinstance(records,list):continue
+        for row in records:
+            if not isinstance(row,dict):continue
+            sha=row.get('asset_sha')
+            if not isinstance(sha,str) or sha not in known:continue
+            key=normalize_image_url(row.get('image_url'))
+            if key:sources.setdefault(key,sha)
+    return sources
+
+
 def _valid_search_row(row,folder):
     """Cheap deterministic file check; never a visual identity or quality verdict."""
     try:
         path=Path(row['original_path']).resolve()
-        if path.is_symlink() or not path.is_relative_to((folder/'images').resolve()) or not path.is_file():
+        root=Path(folder).resolve()
+        if path.is_symlink() or not path.is_file() or not path.is_relative_to(root):
             return False,'original_path_outside_run'
+        if not (path.is_relative_to((Path(folder)/'images').resolve())
+                or path.is_relative_to((Path(folder)/'incoming').resolve())):
+            return False,'original_path_outside_staging'
         raw=path.read_bytes()
         if len(raw)>20*1024*1024:return False,'image_too_large'
         if hashlib.sha256(raw).hexdigest()!=row.get('asset_sha'):return False,'sha_mismatch'
@@ -1872,7 +2178,9 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
                     'cumulative_elapsed_seconds','continue','query_history','canonical',
                     'usable_independent_named','collage','collage_errors','collage_seconds',
                     'collage_processed','preview_bytes_reused','history_restore',
-                    'skipped_other_character','skipped_non_photo','skipped_exploration_budget'):
+                    'skipped_other_character','skipped_non_photo','skipped_exploration_budget',
+                    'incoming_cleaned','duplicates_pre_download','duplicates_temp_cleaned',
+                    'known_source_images','history_skipped_runs','history_files'):
             if key in extra:summary[key]=extra[key]
     save(folder/'search-summary.json',summary)
     return summary
@@ -2019,12 +2327,16 @@ def _history_for_search(folder):
     common=Path(subprocess.check_output(['git','rev-parse','--git-common-dir'],cwd=ROOT,text=True).strip())
     canonical=(ROOT/common).resolve().parent
     history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
-    paths=historical_paths(ROOT,folder,history_roots=history_roots)
+    skipped_history=[]
+    paths=historical_paths(ROOT,folder,history_roots=history_roots,skipped=skipped_history)
     goal=read_json(folder/'goal.json',{})
     if goal:
         from ref_lab.collection_history import goal_baseline
         baseline=goal_baseline(folder,goal)
     history=ImageHistory(paths,cache_path=ROOT/'.local/history-fingerprints.json',lazy=not bool(goal))
+    history.skipped_runs=skipped_history
+    if skipped_history:
+        save(folder/'history-skips.json',skipped_history[-20:])
     if goal:
         if not history.ready or history.errors:
             raise AgentCallFailed('history_index_unavailable',fatal=True)

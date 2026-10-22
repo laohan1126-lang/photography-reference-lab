@@ -41,16 +41,19 @@ def test_capture_note_records_locate_download_store(tmp_path, monkeypatch):
 
     monkeypatch.setattr(exact_recall.subprocess, "run", lambda *args, **kwargs: Completed())
 
-    class Response:
-        content = _png()
+    def stream(url, target, timeout, limit=20 * 1024 * 1024):
+        raw = _png()
+        target.write_bytes(raw)
+        return hashlib.sha256(raw).hexdigest(), len(raw)
 
-        def raise_for_status(self):
-            return None
-
-    monkeypatch.setattr(exact_recall.httpx, "get", lambda *args, **kwargs: Response())
+    monkeypatch.setattr(exact_recall, "_stream_into_temp", stream)
     timing = CollectionTiming(tmp_path)
     rows = exact_recall.capture_note("bsk", "session", tmp_path, page, limit=3, timing=timing)
     assert len(rows) == 1 and rows[0]["width"] == 400
+    assert rows[0]["temporary"] is True
+    # New bytes wait in the bounded temporary area, not in long-term storage.
+    assert Path(rows[0]["original_path"]).parent == tmp_path / "incoming"
+    assert not (tmp_path / "images").exists()
     stages = _stages(tmp_path / "timings.jsonl")
     for expected in ("detail_locate", "detail_download", "detail_store"):
         assert expected in stages
@@ -65,14 +68,13 @@ def test_note_download_stops_at_browser_deadline_and_keeps_first_original(tmp_pa
     browser.command=lambda *a,**kw:json.dumps({'ok':True,'value':payload})
     browser._probe_detail=lambda:{'url':page}
     browser.snapshot=lambda:{'url':'https://www.xiaohongshu.com/search_result','cards':[{}]}
-    class Response:
-        content=raw
-        def raise_for_status(self):pass
-    def download(url,**kwargs):
-        calls.append(kwargs['timeout']);clock[0]=2.0;return Response()
+    def stream(url,target,timeout,limit=20*1024*1024):
+        calls.append(timeout);target.write_bytes(raw)
+        clock[0]=2.0
+        return hashlib.sha256(raw).hexdigest(),len(raw)
     monkeypatch.setattr(time,'monotonic',lambda:clock[0])
-    monkeypatch.setattr(exact_recall.httpx,'get',download)
-    rows=browser.receive({'page':page},{'source':'xiaohongshu'})
+    monkeypatch.setattr(exact_recall,'_stream_into_temp',stream)
+    rows=browser.receive({'page':page},{'source':'xiaohongshu','query':'西木野真姬'})
     assert len(rows)==len(calls)==1 and calls[0]<=1.0
     assert Path(rows[0]['original_path']).read_bytes()==raw
 
@@ -97,7 +99,7 @@ def test_xhs_receive_attributes_click_dom_wait_and_return(tmp_path, monkeypatch)
                         lambda *args, **kwargs: [{"asset_sha": "a" * 64}])
     timing = CollectionTiming(tmp_path)
     browser.timing = timing
-    rows = browser.receive({"page": page}, {"source": "xiaohongshu"})
+    rows = browser.receive({"page": page}, {"source": "xiaohongshu", "query": "西木野真姬"})
     assert rows == [{"asset_sha": "a" * 64}]
     stages = _stages(tmp_path / "timings.jsonl")
     assert {"detail_click", "detail_dom_wait", "detail_return"} <= set(stages)
@@ -121,9 +123,11 @@ def test_pinterest_detail_reuses_the_preview_instead_of_downloading_again(tmp_pa
         raise AssertionError("the same bytes must not be downloaded twice")
 
     monkeypatch.setattr(collect_verified.httpx, "stream", fail)
-    rows = browser.receive({"page": "https://www.pinterest.com/pin/123/"}, {"source": "pinterest"})
+    rows = browser.receive({"page": "https://www.pinterest.com/pin/123/"},
+                           {"source": "pinterest", "query": "西木野真姬"})
     assert rows and rows[0]["preview_bytes_reused"] is True
     assert rows[0]["asset_sha"] == sha
+    assert rows[0]["temporary"] is True
     assert browser.preview_reused == 1
 
 

@@ -14,6 +14,7 @@ import re
 import subprocess
 import time
 from urllib.parse import parse_qs, urlsplit
+from uuid import uuid4
 
 import httpx
 from PIL import Image
@@ -46,6 +47,45 @@ def save(path: Path, data: object):
 
 def load(path: Path):
     return json.loads(path.read_text('utf-8-sig'))
+
+
+def normalize_image_url(url: str) -> str:
+    """Stable identity for a previously seen source-image address.
+
+    Only the host and path identify the same stored rendition; query strings and
+    fragments are per-session noise. Anything not a plain https image address
+    yields an empty key, so unknown or unsafe addresses are never pre-skipped.
+    """
+    try:
+        parsed = urlsplit(str(url or ''))
+    except ValueError:
+        return ''
+    if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password:
+        return ''
+    return parsed.hostname.lower() + parsed.path
+
+
+def incoming_directory(folder: Path) -> Path:
+    """Bounded temporary area: bytes stay here only until they are judged."""
+    path = Path(folder) / 'incoming'
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _stream_into_temp(url: str, target: Path, timeout: float, limit: int = 20 * 1024 * 1024):
+    """Stream one image into ``target`` while hashing; never buffers it whole."""
+    digest = hashlib.sha256()
+    size = 0
+    with httpx.stream('GET', url, timeout=timeout, follow_redirects=False) as response:
+        response.raise_for_status()
+        with target.open('xb') as stream:
+            for chunk in response.iter_bytes():
+                stream.write(chunk)
+                digest.update(chunk)
+                size += len(chunk)
+                if size > limit:
+                    raise ValueError('Image too large')
+    return digest.hexdigest(), size
 
 
 def assess_search(snapshot: dict, query: str, scope: dict) -> dict:
@@ -85,7 +125,9 @@ def after_visual_sample(states: list[str]) -> str:
 
 
 def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit: int = 3,
-                 errors: list | None = None, timing=None, command=None, deadline=float('inf')) -> list[dict]:
+                 errors: list | None = None, timing=None, command=None, deadline=float('inf'),
+                 known_shas: set | None = None, known_sources: dict | None = None,
+                 incoming: Path | None = None) -> list[dict]:
     """Read only currently rendered note DOM. No bootstrap state, cookies or API.
 
     A single unusable slide must not discard slides already received from the
@@ -93,6 +135,10 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
     the remaining slides are still attempted; page/login/binding errors still stop.
     ``timing`` optionally receives locate/download/store spans, so the expensive
     detail phase can be attributed instead of appearing as one opaque block.
+
+    New bytes land in the bounded ``incoming`` area only. A known source address
+    is skipped before any transfer; a known exact SHA is deleted immediately
+    after the streaming comparison, before anything reaches long-term storage.
     """
     from contextlib import nullcontext
     def span(name):
@@ -110,41 +156,50 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
         page = data.get('page_url','')
         if page != expected_page or not re.fullmatch(r'https://www\.xiaohongshu\.com/explore/[a-f0-9]{24}', page):
             raise ValueError('Note page binding mismatch')
+    temp_dir = Path(incoming) if incoming is not None else incoming_directory(folder)
     rows = []
     for index,image in enumerate(data.get('images', [])[:limit],1):
         remaining=deadline-time.monotonic()
         if remaining<=0:break
+        temporary=None
         try:
             url = image['url']; parsed = urlsplit(url)
             if parsed.scheme != 'https' or not (parsed.hostname or '').endswith('.xhscdn.com'):
                 raise ValueError('Untrusted image host')
+            source_key = normalize_image_url(url)
+            if known_sources and source_key and source_key in known_sources:
+                rows.append({'asset_sha':known_sources[source_key],'page_url':page,'image_url':url,
+                             'image_index':index,'duplicate':True,'reason':'known_source_url',
+                             'width':image['width'],'height':image['height'],
+                             'source_text':data['text'],'author_detail':data.get('author_detail',{})})
+                continue
             with span('detail_download'):
-                response = httpx.get(url, timeout=min(20,remaining), follow_redirects=False)
-                response.raise_for_status()
-                content = response.content
-                if len(content) > 20*1024*1024:
-                    raise ValueError('Image too large')
+                temporary = temp_dir / (uuid4().hex + '.part')
+                sha,size = _stream_into_temp(url,temporary,min(20,remaining))
             with span('detail_store'):
-                sha = hashlib.sha256(content).hexdigest()
-                import io
-                with Image.open(io.BytesIO(content)) as im:
+                with Image.open(temporary) as im:
                     im.load(); width,height = im.size; fmt = im.format
                 if (width,height) != (image['width'],image['height']):
                     raise ValueError('Received dimensions differ from the rendered image')
                 ext = {'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(fmt)
                 if ext is None:
                     raise ValueError('Unsupported original image type')
-                target = folder/'images'/f'{sha}.{ext}'
-                target.parent.mkdir(parents=True,exist_ok=True)
-                if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest()!=sha:
-                    raise ValueError('Immutable file conflict')
-                if not target.exists():
-                    with target.open('xb') as stream: stream.write(content)
-                rows.append({'asset_sha':sha,'original_path':str(target.resolve()),'page_url':page,
+                if known_shas is not None and sha in known_shas:
+                    temporary.unlink(missing_ok=True);temporary=None
+                    rows.append({'asset_sha':sha,'page_url':page,'image_url':url,'image_index':index,
+                                 'duplicate':True,'reason':'same_bytes_known','bytes_received':size,
+                                 'width':width,'height':height,'source_text':data['text'],
+                                 'author_detail':data.get('author_detail',{})})
+                    continue
+                rows.append({'asset_sha':sha,'original_path':str(temporary.resolve()),'page_url':page,
                              'image_url':url,'width':width,'height':height,'source_text':data['text'],
-                             'author_detail':data.get('author_detail', {}),
+                             'author_detail':data.get('author_detail', {}),'ext':ext,
+                             'temporary':True,'bytes_received':size,
                              'image_index':index,'visual_state':'UNREVIEWED'})
         except (ValueError,OSError,httpx.HTTPError) as exc:
+            if temporary is not None:
+                try:temporary.unlink(missing_ok=True)
+                except OSError:pass
             if errors is None:raise
             errors.append({'page_url':page,'image_index':index,
                            'observed_url':str(image.get('url',''))[:1000],

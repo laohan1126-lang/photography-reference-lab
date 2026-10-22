@@ -55,7 +55,14 @@ def _historical_file(base, declared, sha, role, boundaries):
     return path
 
 
-def historical_paths(root: Path, current: Path, history_roots=()):
+def historical_paths(root: Path, current: Path, history_roots=(), skipped=None):
+    """Return verified historical original paths.
+
+    ``skipped`` optionally receives archived runs whose image directory was
+    deliberately emptied by the duplicate cleanup. Their bytes still exist in the
+    live asset store (that is why they were cleaned), so they remain covered by
+    history; a run that still has files but cannot verify one still fails loudly.
+    """
     root=Path(root)
     if _is_link_or_junction(root):raise ValueError('History root cannot be a link')
     root=root.resolve();current=Path(current).resolve();paths=set()
@@ -109,32 +116,44 @@ def historical_paths(root: Path, current: Path, history_roots=()):
             records=received.get('candidates',[]) if isinstance(received,dict) else received
             images=base/'images'
             if _is_link_or_junction(images):raise ValueError('Historical image directory cannot be a link')
-            for original in images.glob('*'):
-                sha=original.stem
-                if original.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.avif'} and _SHA.fullmatch(sha):
-                    paths.add(_historical_file(base,str(original),sha,'images',boundaries))
-            for row in records:
-                path=_historical_file(base,row['original_path'],row['asset_sha'],'images',boundaries)
-                paths.add(path)
-            # Valid derived tiles of older, never-imported batches are real images
-            # too: a new download identical to one of them is a repeat, not a new
-            # independent reference. Intact old tiles remain historical material.
-            derived=base/'derived.json'
-            if derived.is_file():
-                from .collage import VALID
-                data=json.loads(derived.read_text('utf8'))
-                items=data.get('items') if isinstance(data,dict) else None
-                if not isinstance(items,dict):raise ValueError('Historical derived records are invalid')
-                for parent_sha,record in (items or {}).items():
-                    if not isinstance(record,dict):continue
-                    if record.get('parent_sha')!=parent_sha:
-                        raise ValueError('Historical tile parent binding changed')
-                    for child in record.get('children') or []:
-                        if not isinstance(child,dict) or child.get('status')!=VALID:continue
-                        sha=str(child.get('child_sha') or '')
-                        if not sha:continue
-                        path=_historical_file(base,str(child.get('path') or ''),sha,'derived',boundaries)
-                        paths.add(path)
+            run_files=list(images.glob('*')) if images.is_dir() else []
+            try:
+                for original in run_files:
+                    sha=original.stem
+                    if original.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.avif'} and _SHA.fullmatch(sha):
+                        paths.add(_historical_file(base,str(original),sha,'images',boundaries))
+                for row in records:
+                    path=_historical_file(base,row['original_path'],row['asset_sha'],'images',boundaries)
+                    paths.add(path)
+                # Valid derived tiles of older, never-imported batches are real images
+                # too: a new download identical to one of them is a repeat, not a new
+                # independent reference. Intact old tiles remain historical material.
+                derived=base/'derived.json'
+                if derived.is_file():
+                    from .collage import VALID
+                    data=json.loads(derived.read_text('utf8'))
+                    items=data.get('items') if isinstance(data,dict) else None
+                    if not isinstance(items,dict):raise ValueError('Historical derived records are invalid')
+                    for parent_sha,record in (items or {}).items():
+                        if not isinstance(record,dict):continue
+                        if record.get('parent_sha')!=parent_sha:
+                            raise ValueError('Historical tile parent binding changed')
+                        for child in record.get('children') or []:
+                            if not isinstance(child,dict) or child.get('status')!=VALID:continue
+                            sha=str(child.get('child_sha') or '')
+                            if not sha:continue
+                            path=_historical_file(base,str(child.get('path') or ''),sha,'derived',boundaries)
+                            paths.add(path)
+            except ValueError as exc:
+                if run_files:
+                    raise
+                # The duplicate cleanup deliberately removed this archived run's
+                # copies because every byte also exists in the live asset store.
+                # The SHA set still covers them; record the skip instead of
+                # pretending the run was scanned.
+                if skipped is not None:
+                    skipped.append({'run':str(base),'reason':'archived copies cleaned; bytes covered by live assets',
+                                    'received_rows':len(records),'error':str(exc)[:200]})
     return sorted(paths)
 
 
@@ -244,24 +263,29 @@ def goal_baseline(folder, goal):
     return baseline
 
 
-def _photo_relation(value, other):
-    """Fit a bounded crop by pixels; similar colours alone cannot reject a frame."""
+def _photo_relation(value, other, context=None):
+    """Fit a bounded crop by pixels; similar colours alone cannot reject a frame.
+
+    ``context`` carries the per-query template cache and the lazily built 128px
+    pyramids used by the fine fit. Records only keep their own downscaled
+    pyramids, so a query image is resized once instead of once per record.
+    """
     import numpy as np
     import cv2
-    images=[Image.frombytes('RGB',(128,128),bytes.fromhex(v['pixels'])) for v in (value,other)]
-    diff=np.abs(np.asarray(images[0],dtype=float)-np.asarray(images[1],dtype=float))
-    direct=float(diff.mean())
+    context = context if context is not None else _MatchContext()
+    first, second = context.features(value), context.features(other)
+    diff = np.abs(first['arr'].astype(float) - second['arr'].astype(float))
+    direct = float(diff.mean())
     if abs(value['ratio']/other['ratio']-1)<=.03 and direct<=4 and diff.reshape(8,16,8,16,3).mean(axis=(1,3,4)).max()<=8:
         return {'reason':'near_duplicate','pixel_difference':round(direct,3)}
-    for source,query,source_ratio,query_ratio in ((images[0],images[1],value['ratio'],other['ratio']),
-                                                (images[1],images[0],other['ratio'],value['ratio'])):
-        container_sha=value['asset_sha'] if source is images[0] else other['asset_sha']
+    for side,(source,query,source_ratio,query_ratio) in enumerate((
+            (first,second,value['ratio'],other['ratio']),
+            (second,first,other['ratio'],value['ratio']))):
+        container_sha=value['asset_sha'] if side==0 else other['asset_sha']
         factor=source_ratio/query_ratio
-        source_pixels=np.asarray(source)
-        query_pixels=np.asarray(query)
         candidates=[]
         for resolution in (32,64):
-            small=cv2.resize(source_pixels,(resolution,resolution),interpolation=cv2.INTER_AREA)
+            small=source[f'small{resolution}']
             for width in range(2,resolution+1):
                 height=round(width*factor)
                 if not 2<=height<=resolution+1:continue
@@ -269,19 +293,20 @@ def _photo_relation(value, other):
                 area=width*height
                 # Increase sampling density for small crops, rather than using colour-only templates.
                 if area<(9 if resolution==32 else 16) or (resolution==64 and area>=36):continue
-                template=cv2.resize(query_pixels,(width,height),interpolation=cv2.INTER_AREA)
-                if template.reshape(-1,3).std(axis=0).max()<3:continue
+                template,usable=context.template(side,query,'area',width,height,resolution)
+                if not usable:continue
                 _,correlation,_,(xx,yy)=cv2.minMaxLoc(cv2.matchTemplate(small,template,cv2.TM_CCOEFF_NORMED))
                 if correlation>=.80:
                     candidates.append((xx/resolution,yy/resolution,min(width/resolution,1/factor)))
         if not candidates:continue
-        target=np.asarray(query.resize((32,32),Image.Resampling.LANCZOS),dtype=float)
+        target=query['target32']
         factor=source_ratio/query_ratio
+        source_image=_materialize_image(source)
         def difference(x,y,width):
             height=width*factor
             if width<1/128 or height<1/128 or x<0 or y<0 or x+width>1.001 or y+height>1.001:
                 return float('inf'),None
-            tile=source.resize((32,32),Image.Resampling.BICUBIC,
+            tile=source_image.resize((32,32),Image.Resampling.BICUBIC,
                                box=(x*128,y*128,min(128,(x+width)*128),min(128,(y+height)*128)))
             pixels=np.asarray(tile,dtype=float)
             return float(np.abs(pixels-target).mean()),pixels
@@ -300,8 +325,9 @@ def _photo_relation(value, other):
                 left=max(0,round(x*128)-4);top=max(0,round(y*128)-4)
                 right=min(128,round(x*128)+pixels_w+5);bottom=min(128,round(y*128)+pixels_h+5)
                 if right-left<pixels_w or bottom-top<pixels_h:continue
-                template=np.asarray(query.resize((pixels_w,pixels_h),Image.Resampling.LANCZOS))
-                _,correlation,_,(xx,yy)=cv2.minMaxLoc(cv2.matchTemplate(source_pixels[top:bottom,left:right],template,cv2.TM_CCOEFF_NORMED))
+                template,usable=context.template(side,query,'lanczos',pixels_w,pixels_h)
+                if not usable:continue
+                _,correlation,_,(xx,yy)=cv2.minMaxLoc(cv2.matchTemplate(source['arr'][top:bottom,left:right],template,cv2.TM_CCOEFF_NORMED))
                 if correlation<.90 and coarse>8:continue
                 pos=((left+xx)/128,(top+yy)/128,min(pixels_w/128,1/factor))
                 error,tile=difference(*pos)
@@ -346,6 +372,65 @@ def _photo_relation(value, other):
     return None
 
 
+class _MatchContext:
+    """Per-query caches: 128px pyramids and query crop templates.
+
+    Template crops depend only on the query image, so each (side, kind,
+    width, height) is resized once per query instead of once per historical
+    record. Historical pyramids live in a side cache keyed by asset SHA, so
+    observable record dicts stay unchanged and later queries reuse the work.
+    """
+    __slots__=('_templates','_pyramids')
+
+    def __init__(self, pyramids=None):
+        self._templates={}
+        self._pyramids=pyramids if pyramids is not None else {}
+
+    def features(self,record):
+        import numpy as np
+        import cv2
+        key=record.get('asset_sha')
+        feature=self._pyramids.get(key)
+        if feature is not None:
+            return feature
+        image=Image.frombytes('RGB',(128,128),bytes.fromhex(record['pixels']))
+        arr=np.asarray(image)
+        feature={
+            'arr':arr,
+            'image':None,
+            'small32':cv2.resize(arr,(32,32),interpolation=cv2.INTER_AREA),
+            'small64':cv2.resize(arr,(64,64),interpolation=cv2.INTER_AREA),
+            'target32':np.asarray(image.resize((32,32),Image.Resampling.LANCZOS)),
+        }
+        self._pyramids[key]=feature
+        return feature
+
+    def template(self,side,query,kind,width,height,resolution=None):
+        key=(side,kind,resolution,width,height)
+        cached=self._templates.get(key)
+        if cached is not None:
+            return (cached, True) if cached is not False else (False, False)
+        import numpy as np
+        import cv2
+        if kind=='lanczos':
+            template=np.asarray(_materialize_image(query).resize((width,height),Image.Resampling.LANCZOS))
+        else:
+            template=cv2.resize(query['arr'],(width,height),interpolation=cv2.INTER_AREA)
+        # The coarse proposal stage skips flat templates; the fine fit has always
+        # scored every crop on the full pixels and must keep doing so.
+        if kind!='lanczos' and template.reshape(-1,3).std(axis=0).max()<3:
+            self._templates[key]=False
+            return False, False
+        self._templates[key]=template
+        return template, True
+
+
+def _materialize_image(feature):
+    if feature.get('image') is None:
+        feature['image']=Image.fromarray(feature['arr'])
+    return feature['image']
+
+
 class ImageHistory:
     def __init__(self,paths,cache_path=None,*,lazy=False):
         try:__import__('cv2')
@@ -354,6 +439,7 @@ class ImageHistory:
         self._cache_files=_read_cache(self.cache_path) if self.cache_path is not None else {}
         self._cache_dirty=False
         self._lock=threading.RLock()
+        self._admission=threading.RLock()
         self._stop=threading.Event()
         self._thread=None
         self._pending=[]
@@ -361,6 +447,7 @@ class ImageHistory:
         self.ready=not lazy
         self.records={}
         self.known_shas=set()
+        self._pyramids={}
         ordered=[]
         seen=set()
         for path in paths:
@@ -465,9 +552,10 @@ class ImageHistory:
             records=[other for key,other in self.records.items() if key not in exclude]
         if sha in {other.get('asset_sha') for other in records if isinstance(other,dict)}:return {'duplicate_of':sha,'reason':'same_bytes'}
         candidate_collage=None
+        context=_MatchContext(self._pyramids)
         for other in records:
             if not _valid_cache_value(other):continue
-            relation=_photo_relation(value,other)
+            relation=_photo_relation(value,other,context)
             if relation:
                 if relation.get('container_sha')==sha:
                     if candidate_collage is None:
@@ -481,13 +569,39 @@ class ImageHistory:
         return None
 
     def consider(self,path,*,exclude=()):
+        """Compare outside the lock, then commit atomically.
+
+        The heavy perceptual comparison no longer holds the shared lock, so a
+        concurrent Review/Goal admission can still inspect history. The final
+        commit re-checks ``known_shas`` under the lock, keeping exact-byte
+        dedupe atomic for concurrent image accounting.
+        """
         value=self._fingerprint(path);sha=value['asset_sha']
-        with self._lock:
+        with self._admission:
             found=self._match(value,exclude) if exclude else self._match(value)
-            if not found:
+            if found:
+                return found
+            with self._lock:
+                if sha in self.known_shas:
+                    return {'duplicate_of':sha,'reason':'same_bytes'}
                 self.records[sha]=value;self.known_shas.add(sha)
                 self._cache_dirty=True
-        return found
+            return None
+
+    def rekey(self,old,new):
+        """Move a verified original from a temporary path to its durable path."""
+        old_key=str(Path(old).resolve());new_path=Path(new).resolve();new_key=str(new_path)
+        if old_key==new_key:return False
+        with self._lock:
+            entry=self._cache_files.pop(old_key,None)
+            stat=self._stat_key(new_path)
+            if entry is not None and stat is not None:
+                entry=dict(entry);entry['size']=stat['size'];entry['mtime_ns']=stat['mtime_ns']
+                self._cache_files[new_key]=entry;self._cache_dirty=True
+            for record in self.records.values():
+                if record.get('path')==old_key:
+                    record['path']=new_key
+            return entry is not None
 
     def match(self,path):
         """A discovery preview can match history but must never become an original."""
@@ -508,4 +622,5 @@ class ImageHistory:
                     self.known_shas.discard(sha);removed=True
                 if sha in self.records:
                     self.records.pop(sha,None);removed=True
+                self._pyramids.pop(sha,None)
         return removed

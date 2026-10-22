@@ -53,7 +53,7 @@ class AssetStore:
             raise ValueError("Invalid image extension")
         return self.root / sha[:2] / sha / f"{variant}.{suffix}"
 
-    def ingest(self, content: bytes, filename: str = "") -> dict:
+    def ingest(self, content: bytes, filename: str = "", source_path=None) -> dict:
         if not content or len(content) > self.settings.max_upload_bytes:
             raise ValueError("Empty image or image exceeds the 20 MiB upload limit")
         try:
@@ -85,7 +85,9 @@ class AssetStore:
             if hashlib.sha256(original.read_bytes()).hexdigest() != sha:
                 raise ValueError("Stored original failed integrity check; refusing overwrite")
         else:
-            atomic_write(original, content)
+            linked = self._hardlink(Path(source_path), original, sha) if source_path is not None else False
+            if not linked:
+                atomic_write(original, content)
         for variant, size in (("preview", 2000), ("thumb", 360)):
             target = self.path(meta, variant)
             if not target.exists():
@@ -95,6 +97,31 @@ class AssetStore:
                 derivative.save(out, "JPEG", quality=90, optimize=True)
                 atomic_write(target, out.getvalue())
         return meta
+
+    def _hardlink(self, source: Path, target: Path, sha: str) -> bool:
+        """Store the received original by hard link when the source is stable.
+
+        A search batch keeps the same received bytes in its run directory and the
+        library keeps one asset; linking them shares one physical storage instead
+        of duplicating the photo. Any failure (different volume, busy file,
+        mismatch) falls back to a normal write, and a broken link is removed.
+        """
+        try:
+            source = Path(source)
+            if source.is_symlink() or not source.is_file():
+                return False
+            target.parent.mkdir(parents=True, exist_ok=True)
+            os.link(source, target)
+            if hashlib.sha256(target.read_bytes()).hexdigest() != sha:
+                target.unlink(missing_ok=True)
+                return False
+            return True
+        except OSError:
+            try:
+                target.unlink(missing_ok=True)
+            except OSError:
+                pass
+            return False
 
     def verify(self, metadata: dict) -> bool:
         path = self.path(metadata)
