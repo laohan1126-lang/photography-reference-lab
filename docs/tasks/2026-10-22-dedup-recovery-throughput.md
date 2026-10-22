@@ -2,6 +2,8 @@
 
 状态：IN PROGRESS（第1轮）。本记录替代旧的“仅两轮验收”目标，但保留全部旧失败与结论，不覆盖历史任务记录。
 
+**当前阻断**：清理、下载生命周期、返回/恢复、排重性能与调度修复均已完成并有回归；最终候选版本`83ec2ff`的四次正常网页单次开始验收全部停在同一外部BrowserSkill扩展故障（约34~35个详情后`Background execution cleanup timed out`），最好一次为17/30。未重启用户Edge、未升级/重载扩展，等待主人决定；完整Goal未完成。
+
 ## 原意与授权（保留用户原话）
 
 用户原话：**“优先解决摄影参考库的重复下载和磁盘积压”**、**“确认保留件就不要备份了，不要占磁盘了，磁盘没空间了。”**
@@ -101,6 +103,24 @@
 - 组B（结果见下一步检查点）：`test_download_lifecycle_and_return`、`test_search_detail_timing`、`test_browser_recovery_boundary`、`test_browserskill_recovery`、`test_collection_autonomy`、`test_review_self_duplicate`、`test_collection_supply`、`test_collection_upgrade_counts` → **90 passed**（99.11秒，含关闭API集成用例）。合计相关回归 **211 passed / 0 failed**。
 - 清理后历史规模（`history_after_cleanup.py`）：2,731个文件、1,664个不同SHA、1,679条指纹记录、0错误；历史路径遍历28.515秒、热缓存加载21.360秒。清理前审计口径为2,800路径/1,694 SHA（该口径来自上次Goal冻结时，包含后来被上一轮归档进ZIP的formal5/6运行目录）。
 - 覆盖核对（`coverage_check.py`）：本轮删除的35,399个文件中，属于历史扫描范围（`images/`或`derived/`且非`restored-library`）的删除数为**0**；删除的3,112个不同SHA全部只对应`data/assets/*/preview.jpg|thumb.jpg`或`data/exports`副本，这些字节从未进入历史指纹集合。说明本轮清理没有减少任何历史原件/子图的排重覆盖。仍有30个SHA的差异来自上一轮把formal5/6运行目录整体归档为ZIP（非本轮清理），其中含1份从未进入received清单的孤立字节；失败原件/清单未删。
+
+### 最终候选版本（83ec2ff）上的验收尝试与外部阻断
+
+四次正常网页单次开始的正式尝试，全部停在同一类**外部浏览器扩展故障**上；不是总预算、模型、来源封锁或本产品代码：
+
+| # | Job | 冻结版本 | 点击(本地) | 结束原因 | 用时 | 合格/30 | 重复 | 关键证据 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | ad454382 | 3b3d46c | 00:08:18 | command_timeout | 2375s | 12 | 58 | 3次返回超时全部由页面状态核实恢复；点击超时后`session_stop`返回`Background execution cleanup timed out` |
+| 2 | 4e18c278 | 83ec2ff | 01:39:16 | command_timeout | 849s | 0 | 63 | Pinterest返回超时→`page_return`恢复成功；随后`wheel`超时，恢复时`session_stop`再次清理超时 |
+| 3 | 8226be7b | 83ec2ff | 02:08:55 | command_timeout | 169s | 0 | 12 | 同一次`click`+`navigate-back`超时并立即`session_stop`清理超时 |
+| 4 | 67b9f1c9 | 83ec2ff | 02:20:44 | command_timeout | 1411s | **17** | 68 | 34个详情、7窗口后`evaluate` 30秒RPC超时，`session_stop`仍返回`Background execution cleanup timed out` |
+
+- 尝试2前发现BrowserSkill守护进程已死，用产品自带`scripts/ensure-external-services.ps1`恢复（新daemon PID 46064，Edge 9d3f232a已连接）；随后一个独立诊断会话（创建/导航/读页/返回/停止）全部在1.1秒内成功，说明浏览器本身可用。尝试3、4仍在该新daemon上失败。
+- 共同点：失败发生在约34~35个详情循环之后（尝试1=35详情、尝试4=34详情），且总是`tool.session_stop: Background execution cleanup timed out`（扩展协议错误）。守护进程0.3.2、扩展0.3.3、CLI 0.3.2；`bsk doctor`在失败后仍报daemon/扩展健康。**这指向浏览器扩展后台执行清理卡死的外部缺陷**，本产品代码无法在会话内修复（重建会话也必须先停旧会话，而停会话正是失败点）。
+- 尝试4的正面证据：23.5分钟内达到**17张合格**（20份原件全部SHA+解码通过、18次真实图片类型调用且全部成功、0拒绝、20条项目引用与发现记录完整），按当时速率本可在45分钟内接近30；它在第34个详情循环处被外部扩展拖死。
+- 下载生命周期实测（尝试4）：68条重复 = **27条下载前来源地址拦截**（`known_source_url`，小红书跨会话CDN身份生效）+ 23条下载到临时区后立即删除（`same_bytes_known`）+ 18条Pinterest封面命中；`incoming`零残留；`known_source_images=424`；18次模型调用、634,460已知Token、`usage_complete=true`。
+- 返回与恢复修复实测：多次`navigate-back`超时后，均由“来源+原查询+可见卡片+同会话id”确认已恢复并继续；Pinterest一次未恢复时，`browser_recovery/page_return/recovered=true`在原会话内导航回原查询成功。没有一次因为“旧超时错误残留”误停。
+- **结论：两轮各≥30张的最终验收未完成，且不是靠再点一次就能通过。** 阻断是外部BrowserSkill扩展的会话清理超时（34~35个详情后稳定触发）与本机同跑的其它项目负载；需要先解决扩展/守护版本（0.3.2 daemon ↔ 0.3.3 extension）或重新加载扩展，再在同一冻结版本上重新取得完整两轮。未重启用户Edge、未重启共享daemon以外的服务、未修改扩展；等待主人决定是否升级/重载扩展。
 
 ## 报告更正（追加，不覆盖旧记录）
 
