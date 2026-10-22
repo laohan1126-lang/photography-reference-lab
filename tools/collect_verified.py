@@ -42,6 +42,7 @@ from ref_lab.browser_recovery import (
 )
 
 MAX_QUERIES=8
+MAX_GOAL_QUERIES=24
 MAX_IMAGES=200
 SAMPLE_PER_QUERY=8
 MAX_WINDOWS=3
@@ -708,6 +709,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     requested_total=requested+max(0,extra_target)
     target=min(requested_total,100)
     agent.candidate_limit=min(MAX_IMAGES,max(24,target*3) if search_only else max(20,target*2))
+    query_budget=MAX_GOAL_QUERIES if search_only and job.get('goal_id') else MAX_QUERIES
     sources=job.get('preferred_sources',['xiaohongshu','pinterest'])
     try:state=load_checkpoint(folder,job,getattr(agent,'model',agent.producer))
     except (OSError,ValueError,KeyError,TypeError) as exc:raise AgentUnavailable('恢复绑定或原图完整性检查失败：'+str(exc)) from exc
@@ -1004,10 +1006,32 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             checkpoint('browser_recovering')
             if not (hasattr(browser,'recover') and browser.recover()):raise
         latest_fallback_sources=set()
-        total_steps=min(len(steps),MAX_QUERIES)
+        total_steps=min(len(steps),query_budget)
         max_passes=2*total_steps
         pass_index=0
-        while pass_index<max_passes:
+        while True:
+            if pass_index>=max_passes:
+                if not (search_only and job.get('goal_id') and total_steps<query_budget and not limit_reason()):
+                    break
+                known={(step['source'],step['query']) for step in steps}
+                fresh=[]
+                for offset in range(1,4):
+                    fresh=[step for step in query_steps(project,plan,sources,intent_offset=offset)
+                           if (step['source'],step['query']) not in known
+                           and checks.get(step['source'],{}).get('status') not in ('login_required','blocked')]
+                    if fresh:break
+                if not fresh:break
+                productive={step['source'] for step in steps if any(
+                    row.get('search_query')==step['query'] and is_confirmed(row) for row in received)}
+                fresh.sort(key=lambda step:step['source'] not in productive)
+                fresh=fresh[:query_budget-total_steps]
+                state.setdefault('query_plan_history',[]).append({'reason':'automatic_goal_refinement',
+                    'steps':list(steps),'added_steps':fresh,'at':time.time(),
+                    'attempt_id':job.get('active_attempt_id')})
+                pass_index=total_steps
+                steps.extend(fresh);total_steps=len(steps);max_passes=2*total_steps
+                save(folder/'name-plan.json',{'plan':plan.model_dump(),'steps':steps,'origin':'automatic_goal_refinement'})
+                checkpoint()
             step_index=pass_index%total_steps;step=steps[step_index]
             source=step['source'];query=step['query']
             search=searches.setdefault(str(step_index),{'source':source,'query':query,'language':step.get('language','unknown'),
@@ -1095,7 +1119,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             with timing.span('discovery_preview'):duplicate=browser.check_duplicate(card,history)
                             if duplicate:
                                 current=by_sha.get(duplicate.get('duplicate_of'))
-                                if search_only and current is not None and is_confirmed({'relevance':relevance}):
+                                if search_only and current is not None and duplicate.get('state')!='needs_review' and is_confirmed({'relevance':relevance}):
                                     from ref_lab.search_relevance import associate_detail
                                     updated=associate_detail(card,{},names=name_records,work_terms=work_terms,other_terms=other_terms)
                                     updated['image_match']=duplicate
@@ -1346,6 +1370,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             else:
                 stop_reason='search_plan_exhausted'
         confirmed_total=canonical_counts(force=True)['target_progress'] if search_only else len(candidates)
+        termination_reason=stop_reason
         if search_only and not interrupted:
             if stop_reason=='target_reached' and confirmed_total<target:
                 # A target_reached reason must be backed by confirmed names, never downloads alone.
@@ -1379,6 +1404,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 first_received=(started+first_usable if isinstance(first_usable,(int,float)) else None),
                 duplicates=duplicates,
                 errors=received_errors,extra={'target':target,'target_reached':confirmed_total>=target,
+                                              'termination_reason':termination_reason,
+                                              'query_budget':query_budget,
                                               'requested_target':requested_total,'effective_target':target,
                                               'budget_note':('本轮上限 100 张；请求 %s 张，按 %s 张执行。' % (requested_total,target)
                                                              if requested_total>target else ''),
@@ -1835,6 +1862,7 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
                    unknown_model_invocations=sum('invoked' not in c for c in attempts))
     if extra:
         for key in ('target','requested_target','effective_target','target_reached','budget_note',
+                    'termination_reason','query_budget',
                     'search_only','history_ready','history_known','history_errors','source_blocked',
                     'cumulative_elapsed_seconds','continue','query_history','canonical',
                     'usable_independent_named','collage','collage_errors','collage_seconds',
@@ -1976,7 +2004,8 @@ def _write_run_info(folder,job,agent,workers,*,mode):
          'adapter_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
          'agent_contract_sha256':hashlib.sha256((ROOT/'ref_lab/verified_collection.py').read_bytes()).hexdigest(),
          'reference_research_sha256':hashlib.sha256((ROOT/'ref_lab/automatic_references.py').read_bytes()).hexdigest(),
-         'model':agent.model,'query_budget':MAX_QUERIES,'windows_per_query':MAX_WINDOWS,'detail_page_budget':MAX_DETAIL_PAGES,
+         'model':agent.model,'query_budget':MAX_GOAL_QUERIES if mode=='search_only' and job.get('goal_id') else MAX_QUERIES,
+         'windows_per_query':MAX_WINDOWS,'detail_page_budget':MAX_DETAIL_PAGES,
          'visual_call_budget':min(MAX_IMAGES,max(20,min(int(job.get('target_count') or 12),100)*2)),
          'vision_workers':workers,'pid':os.getpid(),'started_at':time.time(),'binding':job_binding(job,agent.model)})
 

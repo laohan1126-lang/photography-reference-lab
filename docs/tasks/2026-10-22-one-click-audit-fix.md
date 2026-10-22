@@ -346,3 +346,50 @@ ref_lab/collage.py
 - freeze2：86 passed /38.79s，Goal创建服务409/历史缓存/历史损坏/Goal准入/审核/阶段相关路径通过。legacybase：1 failed /1.46s，严格新准入会让旧成果页不展示旧照片；修后legacyfix（新反例+Goal+个人库）77 passed /37.61s。补保留已入库旧子图的只读展示：当前合格数保持新规则结果，单列“历史准入记录·当前待复核”，不补写旧视觉结论或新基线。oldread最终小集待结果。
 
 - oldread最终小集4 passed /3.66s，旧原件/旧已入库子图只读展示与当前Goal成果页一致性通过。准备工程冻结提交；本提交明确为IN PROGRESS检查点，正式两轮0/2。
+
+### 日用正常链路初次冷启动（工程检查点4fe203f）
+
+- 工程提交4fe203f3fde49211e4dd2cc77b289ad104710312已推送codex/one-click-audit-20261022，ls-remote实查同SHA；非Goal完成、非main合并。日用独立任务分支codex/one-click-runtime-20261022同SHA，292个无关原脏文件逐字节SHA仍与归档一致。
+- 通过正式terminate.ps1停止46388；随后的独立命令确认PID/运行记录/health均不存在。正式configure-windows-runtime.ps1设置2700秒并保留原历史roots/auto_classify。正式launch.ps1创建服务及server.json，执行宿主退出后独立runtime读数仍PID5444、源码/adapter同日用checkout、code_revision=4fe203f、code_digest=15e399a857048e202a20a4b67f4b3148211f2ceb4981b67bf723010347bf056c。26项目/1364资产/1124引用/3756事件未变。日志initial-stop/cold-start/after-cold-host-exit.*。
+- 本次证明该执行宿主中初次正常冷启动确实工作，不倒写旧次失败原因。旧审计未保留足以定位当时具体失败点的完整进程证据，仍不能宣称旧启动链路通过。
+- 实际旧0f7ded75批次10b48c25通过既有split_run_collages显式重算（非新任务补跑）：v2完整快照/v3三合格子图、原件不变、人工文件不变、重复复用；旧报告另行备份。原始27个派生文件均保留，新增3文件；未入库、未补写Goal计数。后续冻结历史包含这些字节。
+- 一个Linux urllib读取Windows端口尝试被sandbox网络拒绝，未写API快照；改用Windows同一read-only helper成功。原runtime/config在此前已经复制保全。
+
+### 续跑与正式第一轮开始（未通过）
+
+- 上一条BrowserSkill fill帮助命令因自动审批账户用量不足未执行（审批未能完成，不是操作安全拒绝）；用户continue后同一审批路径恢复，未绕过审批。
+- 间隔约6小时后重核：PID5444仍健康，同4fe203f/digest，全部冻结实现文件与runtime配置SHA未变，库计数仍1364/1124/3756，无其他采集进程。旧自有会话已注销，创建新自有omlp/Edge9d3f232a，debug d0089cdcd525f在正常导航前开始。
+- 正式R1：正常网页选西木野真姬、search、目标字段填30，notes/Goal ID/额外别名为空；可见2700秒/60次尝试。2026-10-22T03:14:58.038754Z发起唯一开始点击，03:14:58.336Z记录正常POST /api/projects/1ed24eedebc54813b8472dca8cb9faa5/jobs。此后仅观察，未继续/加搜/额外审核。03:16:28Z创建请求仍pending，03:17:03Z尚未观测到新Job，开始按钮disabled。日志round1-*保存在日用.local/one-click-audit-20261022。
+- 正式新轮次通过仍0/2；有限资源4个正式Job、每个2700秒/60尝试的边界不变。历史/失败/诊断字节不移除。
+
+- R1已由应用创建Job c3e42762bc76463db1ca04e2d05fa7fb、Goal auto-353d7ddd22a4463d987919211bbfbd03；基线1524份/指纹算法2/SHA38ccc79ede29ba6e0054b675a5fe557bdb3010256221290f7805742bc0b0e24d（含旧H显式重算3子图）。准备229.282秒，写入search_elapsed与collection_elapsed，同预算2700秒，attempt_count=1。
+- run-info实查adapter SHA0c9ca7adeb836bade660f26d190667e2d7be4712f1f8882535583b83faefce84、模型gemini-3.8-flash-medium、模型上限60、worker1、queries8/windows3/details96，与冻结一致。自有采集会话bwex保持active，独立网页观察会话omlp；无人工接力。03:20附近9个same_bytes历史重复已排除，尚无合格准入。
+
+- 已回看用户给定旧原始执行记录（文件SHA 775e59fc89fe42487bc3df4e1b48306f5871006d77065cc600fb1ad598b7f8a1）：307–339行记录launcher调用后检查PID2344及health，再改为手动serve；3170–3287行再次launcher/health/日志检查后手动serve，并两种方式补写server.json，最后仅验证launcher识别现有进程。原记录主要是命令列表，缺少对应exit/健康结果与进程退出原因；可以定位旧验收断裂在launcher之后的进程持续/健康阶段，不能证明是产品创建失败还是原执行器生命周期回收。当前正常launcher在独立宿主退出后持续约6小时的PID5444/源码版本证据，与旧手动路径明确区分，不伪造旧根因。
+- R1首个新received：ce629da0…，timings first_received=1792639361.6709802；03:23:10.288Z正常候选页实际decode800x1200。该图原生实际读图成功确认cosplay但名称关联unconfirmed，未纳入Goal。首张名称合格照片24989a09…的第2次模型尝试1792639504.7386858–1792639539.7676716、35369已知Token；03:25:52.767651Z首次轮询观察到Goal1张。浏览器可见时间按首次实际DOM/decode观察记录，不把模型结束时刻伪称浏览器paint时刻。
+
+### 正式R1发现准入反例：本轮不能通过
+
+- 根Agent实际逐个打开24989a09…、71e4d333…、ceab4de6…三个子图和bb86fb59…原图。24989a09与bb86fb59是同一画面（手、表情、背景物件一致），分别为带角落水印的小尺寸子图和大尺寸原图；系统却把二者计入Goal。不是仅SHA不同的推断，有实际图片观察及原始文件。
+- 因此无论该Job后续达到多少，都不能认作正式PASS；保留全部数据/日志/模型回执，不删计数、不手写photo-audit、不人工补状态。继续只观察原冻结4fe203f Job自动结束，修复只在隔离工作树进行；后续必须新冻结版本取完整两轮，已失败字节继续进历史。
+- 一对一复现：ImageHistory([24989a09]).match(bb86fb59)==None；注册拟合score2.510742/correlation0.995389，但local_error25.291667，超过当前局部阈值，被误当“无重复关系”。这是强整体相似与局部冲突应保持unknown却被清空的漏洞。duplicate-pair-probe.json / duplicate-pair-fit.json保存文件绑定、时序和数值。
+- 同时复核consider：匹配快照和插入记录分离、原图与拼图线程可同时放行近重复；已新增并发反例验证，不靠放宽确定重复阈值修补真实案例。新增修前测试dedupsecondbase运行中。
+
+- 失败R1自动结束：21原图/28独立候选/界面准入15（含已证实重复），28次真实模型尝试；stop=target_partial、未达30、首次单次attempt，无加预算。search-summary elapsed1705.032秒，加Goal准备229.282秒约1934.314秒，未用满2700；最终时间线/账本原样保留，后续不据此宣称完成。
+- dedupsecondbase：2 failed /2.99s；隔离修复后dedupsecondfix63 passed /23.89s，真实漏重对变needs_review且不同真实连拍仍None。匹配语义版本升3，旧版本准入不得当新规则已校验；当前日用仍FP2/4fe，未偷偷改变运行代码。
+- dedupcallers127 passed/1 failed /130.18s；失败实际Windows读句柄测试的150ms等待在高负载时早于replace结束、未产生冲突（attempts=[]）。改为真实读句柄持有至首次replace PermissionError后释放，未改产品；winwriterstable2 passed /0.67s。
+- 网页观察失败源已实证：lazy图片在屏幕外complete=false，await decode等待未请求图片；仅终止自有observe-browser.py子进程50596并更换为不等待未加载图的观察器，未停采集。失败结果页完整15/15实际decode。浏览器导出failed-round1-browser.json 7,065,695字节；capture上限2000请求导致781 dropped，未丢操作记录；不宣称完整网络原流。未来通过轮的观察转普通成果页定期只读刷新，减少无关轮询记录，并保留本次缺口说明。
+- 一对一probe helper第一次复测覆盖了duplicate-pair-probe.json为修后结果；原失败duplicate-pair-fit.json仍完整保留match=null及拟合前证据，原tool输出/修前FF日志也保留；后续输出改为duplicate-pair-fixed.json，不倒写旧证据。
+
+### 原因闭环与下一工程检查点（仍0/2通过）
+
+- R1最终精确账本：28次模型尝试，991,493已知Token、0未知用量；模型耗时合计1000.944461秒。summary cumulative_elapsed_seconds=1957.739，点击至finished_at约1959.585秒；前述1934.314仅相加两个阶段、漏了传输准备约23.425秒，现明确纠正，不冒称完整计时。
+- R1发生8个计划耗尽时尚未用满时间/模型预算的正常流程缺口。新增controller回归autorefinementbase修前failed；首版修复82 passed/1 failed，因为新fixture未提供真实查询框的search字段，被STOP_STALE_QUERY拦住，不能当作修复无效或降低校验。修正fixture后，使用Git4fe原代码做明确标记的事后受控回归（不是编辑前基线），仍found0/search_plan_exhausted；新实现成功在同一个attempt取新query并保留900固定预算。
+- 复用query_steps的可信别名/摄影意图轮换，只在自动Goal初始计划耗尽且时间、模型、候选与详情预算仍有余量时追加；最多24个不同检索词（初始8加两批），优先已有文字名称关联成果的来源，不把名称当视觉事实。单Job/同attempt、不增加2700秒、不增加60模型尝试、不重置历史与已访问页，不重跑同一查询碰运气。真实终止原因另存termination_reason，partial是结果状态。
+- 不确定封面匹配不能将另一图片的名称命中升级到当前原图；新增正反例。refinementscope101 passed /55.38s；finalrefinebounds82 passed /37.47s（包含预算耗尽禁止自动改写/恢复）。编译、JS语法、diff检查待最终检查点重查。
+- 单帖3张上限是否漏掉该真实帖其它可见原件尚未实证：源canonical链接在普通浏览器返回“当前笔记暂时无法浏览/扫码查看”，未重试挑战、未隐藏API或凭据；不据推测提高单帖下载上限。生产check_duplicate已限制单主图Pinterest Pin，未把小红书封面重复当整帖重复。
+- 新匹配语义版本3，强整体一致但局部冲突只标待核验；确定重复阈值未放宽，既有不同手势合成反例及已实际打开的不同真实连拍保持None。匹配+登记使用原RLock形成一次原子判定，原件/子图线程不能同时漏过快照。旧准入回执不能自动冒充新规则已验证；旧照片仍可历史只读。
+- 新库计数26项目/1396资产/1156引用/3825事件，72既有FK问题不增，无活动采集进程。官方backup-20261022-post-failed-formal.zip=1396资产，失败批次209文件另保全到.local/backups/20261022-pre-refinement/failed-run-c3e42762.zip；正在隔离恢复验证。
+- 全局实跑资源授权不变：已用1个失败正式Job；至多3个正式Job余量、每个2700秒/60尝试；另保留最初冻结的1个正常网页诊断Job/2700秒/20尝试。下一代码检查点后先做诊断实测，再冻结新的完整正式两轮；旧失败不混算。
+
+- 新官方备份隔离恢复通过：1396原件及派生实际doctor校验，0缺失/损坏，72既有FK错误一致；ZIP SHA700e70cd992b0bdf9aa9987014c47575b35faa84c28eacfeafaed68297f0a315。证据backup-restore-post-failed.json。最终JS/compileall/diff检查退出0，预算耗尽反例与相关82项通过；准备第二工程检查点，非Goal完成。

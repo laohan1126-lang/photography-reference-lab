@@ -266,18 +266,18 @@ def test_atomic_json_write_recovers_after_polling_reader_releases(tmp_path,monke
     import importlib
     module=importlib.import_module(module_name)
     path=tmp_path/'polled.json';path.write_bytes(b'{"old":true}')
-    opened=threading.Event();attempts=[];real=module.os.replace
+    opened=threading.Event();release=threading.Event();attempts=[];real=module.os.replace
     def reader():
         with path.open('rb'):
-            opened.set();time.sleep(.15)
+            opened.set();release.wait(30)
     def replace(*args,**kw):
         try:return real(*args,**kw)
         except PermissionError:
-            attempts.append('reader still owns handle');raise
+            attempts.append('reader still owns handle');release.set();raise
     thread=threading.Thread(target=reader);thread.start();assert opened.wait(2)
     monkeypatch.setattr(module.os,'replace',replace)
-    module.atomic_write(path,b'{"new":true}')
-    thread.join(2)
+    try:module.atomic_write(path,b'{"new":true}')
+    finally:release.set();thread.join(2)
     assert attempts and path.read_bytes()==b'{"new":true}'
 
 
@@ -378,3 +378,68 @@ def test_old_goal_photos_remain_readable_as_history_without_current_admission(cl
     assert '历史准入记录' in response.text and '当前待复核' in response.text
     assert '0/30' in response.text
     assert client.get(f'/api/assets/{sha}/original').content==image_bytes(33)
+
+
+def test_crop_with_local_overlay_is_uncertain_instead_of_cleared_as_new(tmp_path):
+    from PIL import ImageDraw
+    from ref_lab.collection_history import ImageHistory
+    image=_textured((800,600),41,(70,90,120))
+    source=tmp_path/'source.png';image.save(source)
+    crop=image.crop((60,30,760,555)).resize((800,600))
+    ImageDraw.Draw(crop).rectangle((695,555,790,590),fill=(255,255,255))
+    variant=tmp_path/'overlay.jpg';crop.save(variant,quality=93)
+    match=ImageHistory([source]).match(variant)
+    assert match and match.get('state')=='needs_review'
+
+
+def test_parallel_original_and_tile_admission_has_one_winner(tmp_path,monkeypatch):
+    from ref_lab.collection_history import ImageHistory
+    image=_textured((800,600),17,(70,100,140))
+    a=tmp_path/'a.png';b=tmp_path/'b.jpg';image.save(a);image.save(b,quality=98)
+    history=ImageHistory([]);real=history._match;barrier=threading.Barrier(2)
+    def overlap(value):
+        result=real(value)
+        try:barrier.wait(timeout=.2)
+        except threading.BrokenBarrierError:pass
+        return result
+    monkeypatch.setattr(history,'_match',overlap)
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(2) as pool:results=list(pool.map(history.consider,(a,b)))
+    assert sum(result is None for result in results)==1
+
+
+@pytest.mark.parametrize('expired',[False,True])
+def test_goal_refines_exhausted_plan_inside_single_frozen_attempt(tmp_path,monkeypatch,expired):
+    from tests.test_search_continue_recovery import Agent
+    row=_write_original(tmp_path,_textured((800,600),23,(80,100,150)))
+    offsets=[]
+    def plans(project,plan,sources,*,intent_offset=0):
+        offsets.append(intent_offset)
+        return [{'source':'xiaohongshu','query':'角色甲 cos '+str(intent_offset),
+                 'language':'zh','used_name':'角色甲','name_source':'project_character'}]
+    monkeypatch.setattr(collector,'query_steps',plans)
+    class Browser:
+        def start(self):pass
+        def close(self):pass
+        def search(self,step):
+            from urllib.parse import quote
+            return {'url':'https://example.org/?keyword='+quote(step['query']),'search':step['query'],
+                    'cards':[] if step['query'].endswith('0') else
+                    [{'page':'https://example.org/fresh','text':'角色甲 cos 正片'}]}
+        def receive(self,card,step):return [row]
+    job={'id':'feedback-fixture','goal_id':'synthetic-controller-only',
+         'project_snapshot':{'character':'角色甲','work':'','costume':'','brief':''},
+         'target_count':1,'notes':'','preferred_sources':['xiaohongshu'],
+         'search_timeout_seconds':900,'active_attempt_id':'same-attempt'}
+    agent=Agent()
+    if expired:agent.deadline=time.monotonic()-1
+    summary,_=collector.collect(job,agent,Browser(),tmp_path,search_only=True)
+    assert summary['counts']['found']==(0 if expired else 1)
+    if expired:
+        assert offsets==[0] and summary['stop_reason']=='time_budget_exhausted'
+    else:
+        assert 1 in offsets
+    assert job['active_attempt_id']=='same-attempt'
+    assert job['search_timeout_seconds']==900
+    assert summary['query_budget']==collector.MAX_GOAL_QUERIES
+    assert summary['termination_reason']

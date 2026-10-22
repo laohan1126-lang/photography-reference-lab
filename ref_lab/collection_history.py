@@ -24,8 +24,8 @@ from PIL import Image, ImageOps
 from .preflight import compute_dhash, hamming_distance
 
 
-# Bump when the decoded representation, dHash, colour sample, or cache key changes.
-FINGERPRINT_ALGORITHM_VERSION=2
+# Bump when representation or matching rules change; old admission needs review.
+FINGERPRINT_ALGORITHM_VERSION=3
 CACHE_SCHEMA_VERSION=3
 _DHASH=re.compile(r"[0-9a-f]{16}\Z")
 _SAMPLE=re.compile(r"[0-9a-f]{384}\Z")
@@ -290,13 +290,29 @@ def _photo_relation(value, other):
         if pixels is None:continue
         a=pixels.reshape(-1);b=target.reshape(-1)
         correlation=float(np.corrcoef(a,b)[0,1]) if a.std()>3 and b.std()>3 else 0
-        local_error=float(np.abs(pixels-target).reshape(8,4,8,4,3).mean(axis=(1,3,4)).max())
+        delta=np.abs(pixels-target)
+        patch_errors=delta.reshape(8,4,8,4,3).mean(axis=(1,3,4))
+        local_error=float(patch_errors.max())
         if score<=4 and correlation>=.99 and local_error<=10:
             return {'reason':'crop_duplicate','pixel_difference':round(score,3),
                     'correlation':round(correlation,5),'crop_fraction':[x,y,width,width*factor]}
         if score<=8 and correlation>=.98 and local_error<=16:
             return {'reason':'possible_crop_duplicate','state':'needs_review',
                     'pixel_difference':round(score,3),'correlation':round(correlation,5)}
+        if score<=4:
+            # A small conflicting region can be an overlay or a changed frame;
+            # strong agreement elsewhere is inconclusive, never clearance as new.
+            matching=patch_errors<=4
+            if matching.mean()>=.90:
+                mask=np.repeat(np.repeat(matching,4,axis=0),4,axis=1)
+                a=pixels[mask].reshape(-1);b=target[mask].reshape(-1)
+                clean_error=float(delta[mask].mean())
+                clean_correlation=float(np.corrcoef(a,b)[0,1]) if a.std()>3 and b.std()>3 else 0
+                if clean_error<=2 and clean_correlation>=.99:
+                    return {'reason':'possible_crop_duplicate','state':'needs_review',
+                            'pixel_difference':round(score,3),'correlation':round(correlation,5),
+                            'matching_fraction':round(float(matching.mean()),4),
+                            'matching_region_error':round(clean_error,3)}
     return None
 
 
@@ -426,11 +442,11 @@ class ImageHistory:
 
     def consider(self,path):
         value=self._fingerprint(path);sha=value['asset_sha']
-        found=self._match(value)
-        if not found:
-            with self._lock:
+        with self._lock:
+            found=self._match(value)
+            if not found:
                 self.records[sha]=value;self.known_shas.add(sha)
-            self._cache_dirty=True
+                self._cache_dirty=True
         return found
 
     def match(self,path):

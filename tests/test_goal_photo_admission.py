@@ -64,7 +64,8 @@ def test_name_association_survives_text_type_hint_but_still_requires_photo_read(
     assert compute(tmp_path,[row],{row['asset_sha']:record})['usable_named']==1
 
 
-def test_current_photo_cover_repeat_adds_name_without_new_download(tmp_path):
+@pytest.mark.parametrize('uncertain',[False,True])
+def test_current_photo_cover_repeat_adds_name_without_new_download(tmp_path,uncertain):
     from ref_lab.collection_checkpoint import load_checkpoint
     from tests.photo_type_fixture import synthetic_type
     from tests.test_search_continue_recovery import Agent
@@ -85,15 +86,19 @@ def test_current_photo_cover_repeat_adds_name_without_new_download(tmp_path):
             from urllib.parse import quote
             return {'url':'https://www.pinterest.com/search/pins/?q='+quote(step['query']),
                 'search':step['query'],'cards':[{'page':'https://www.pinterest.com/pin/999/','text':'角色甲 cosplay'}]}
-        def check_duplicate(self,*args):return {'duplicate_of':row['asset_sha'],'reason':'visible_cover_matches_history'}
+        def check_duplicate(self,*args):return {'duplicate_of':row['asset_sha'],'reason':'visible_cover_matches_history',
+                                                **({'state':'needs_review'} if uncertain else {})}
         def receive(self,*args):raise AssertionError('Current repeat must reuse original bytes')
     history=ImageHistory([])
     summary,_=worker.collect(job,Agent(),RepeatedBrowser(),tmp_path,search_only=True,history=history)
-    assert summary['counts']['found']==1 and summary['counts']['usable_named']==1
+    assert summary['counts']['found']==1 and summary['counts']['usable_named']==(0 if uncertain else 1)
     assert Path(row['original_path']).read_bytes()==before
     saved=json.loads((tmp_path/'received.json').read_text())[0]
-    assert saved['discovery_evidence_history'][0]['tier']=='unconfirmed'
-    assert saved['discovery_evidence_history'][-1]['image_match']['duplicate_of']==row['asset_sha']
+    if uncertain:
+        assert saved['relevance']['tier']=='unconfirmed'
+    else:
+        assert saved['discovery_evidence_history'][0]['tier']=='unconfirmed'
+        assert saved['discovery_evidence_history'][-1]['image_match']['duplicate_of']==row['asset_sha']
 
 
 def test_successful_new_search_clears_previous_return_failure(tmp_path):
@@ -183,7 +188,8 @@ def test_frozen_goal_history_seeds_sha_after_current_index_is_ready(tmp_path, mo
     root=tmp_path/'root';folder=root/'.local/collection-runs/job/current';folder.mkdir(parents=True)
     baseline_dir=root/'.local/goals/goal';baseline_dir.mkdir(parents=True)
     fp={'asset_sha':'a'*64,'path':str(root/'old.jpg'),'ratio':1.,'dhash':'0'*16,'sample':'0'*384,'pixels':'0'*24576}
-    baseline={'goal_id':'goal','fingerprint_algorithm_version':2,'items':[{'path':str(root/f'copy-{i}.jpg'),'sha':'a'*64,'fingerprint':fp} for i in range(3)]}
+    from ref_lab.collection_history import FINGERPRINT_ALGORITHM_VERSION
+    baseline={'goal_id':'goal','fingerprint_algorithm_version':FINGERPRINT_ALGORITHM_VERSION,'items':[{'path':str(root/f'copy-{i}.jpg'),'sha':'a'*64,'fingerprint':fp} for i in range(3)]}
     raw=json.dumps(baseline).encode();(baseline_dir/'baseline.json').write_bytes(raw)
     (folder/'baseline.json').write_bytes(raw)
     (folder/'goal.json').write_text(json.dumps({'goal_id':'goal','baseline_sha':hashlib.sha256(raw).hexdigest(),'baseline_shas':['a'*64]}))
