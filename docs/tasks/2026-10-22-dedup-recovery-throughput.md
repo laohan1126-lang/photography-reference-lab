@@ -101,6 +101,7 @@
 - 组A：`test_one_click_audit_regressions`、`test_collection_history_cache`、`test_goal_photo_admission`、`test_collage_split`、`test_collection_audit`、`test_collection_stages`、`test_search_continue_recovery` → **121 passed**（604.06秒，2026-10-22T23:41Z起）。
   命令：`.venv\Scripts\python.exe -X utf8 -m pytest -q --tb=short -p no:cacheprovider --basetemp=.local\tmp\ptA <上述文件>`
 - 组B（结果见下一步检查点）：`test_download_lifecycle_and_return`、`test_search_detail_timing`、`test_browser_recovery_boundary`、`test_browserskill_recovery`、`test_collection_autonomy`、`test_review_self_duplicate`、`test_collection_supply`、`test_collection_upgrade_counts` → **90 passed**（99.11秒，含关闭API集成用例）。合计相关回归 **211 passed / 0 failed**。
+- 最终版本`83ec2ff`复核：核心5个文件 **110 passed**（242.77秒）+ 上列组B **92 passed**（91.38秒，新增2项来源身份回归）；合计 **202 passed / 0 failed**。并行匹配、来源身份与历史跳过修正均在这两组内。
 - 清理后历史规模（`history_after_cleanup.py`）：2,731个文件、1,664个不同SHA、1,679条指纹记录、0错误；历史路径遍历28.515秒、热缓存加载21.360秒。清理前审计口径为2,800路径/1,694 SHA（该口径来自上次Goal冻结时，包含后来被上一轮归档进ZIP的formal5/6运行目录）。
 - 覆盖核对（`coverage_check.py`）：本轮删除的35,399个文件中，属于历史扫描范围（`images/`或`derived/`且非`restored-library`）的删除数为**0**；删除的3,112个不同SHA全部只对应`data/assets/*/preview.jpg|thumb.jpg`或`data/exports`副本，这些字节从未进入历史指纹集合。说明本轮清理没有减少任何历史原件/子图的排重覆盖。仍有30个SHA的差异来自上一轮把formal5/6运行目录整体归档为ZIP（非本轮清理），其中含1份从未进入received清单的孤立字节；失败原件/清单未删。
 
@@ -124,7 +125,7 @@
 
 ## 第1轮收口状态（2026-10-23 03:0x 本地）
 
-- 工作树干净（`git status --porcelain` 为空）；任务分支`codex/dedup-recovery-20261022`，最终候选`83ec2ff`，文档检查点`3c01227`。
+- 工作树干净（`git status --porcelain` 为空）；任务分支`codex/dedup-recovery-20261022`，最终候选`83ec2ff`，文档检查点`875a9b6`。
 - 正常运行：服务经`scripts/terminate.ps1`+`scripts/launch.ps1`部署`83ec2ff`，PID 53972，digest `7c80f513…`；无活动采集进程；数据库26项目/1591资产/1351引用/72条既有外键错误（未新增类别）。
 - 磁盘：清理前实测38.257 GiB可用，删除后43.492 GiB；收口时64.102 GiB（期间同机其它任务也释放了空间，净释放只按本轮删除量5.235 GiB计，不外推）。
 - 证据：`.local/disk-audit-20261022/`（`cleanup-executed.json`、`cleanup-verify2.json`、`cleanup-plan-summary.json`、`matcher-equivalence.json`、`history-after-cleanup.json`、`coverage-check.json`、`frozen-dedup-recovery-v1.json`、`frozen-dedup-recovery-final.json`、`frozen-dedup-recovery-final2.json`、`round-audit-<job>.json`、`audit_run.py`、`verify_clean2.py`等）；四次尝试的原始`browser-errors.json`/`return-checks.json`/`duplicates.json`仍在各自运行目录。
