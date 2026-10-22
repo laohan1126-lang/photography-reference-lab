@@ -122,6 +122,15 @@
 - 返回与恢复修复实测：多次`navigate-back`超时后，均由“来源+原查询+可见卡片+同会话id”确认已恢复并继续；Pinterest一次未恢复时，`browser_recovery/page_return/recovered=true`在原会话内导航回原查询成功。没有一次因为“旧超时错误残留”误停。
 - **结论：两轮各≥30张的最终验收未完成，且不是靠再点一次就能通过。** 阻断是外部BrowserSkill扩展的会话清理超时（34~35个详情后稳定触发）与本机同跑的其它项目负载；需要先解决扩展/守护版本（0.3.2 daemon ↔ 0.3.3 extension）或重新加载扩展，再在同一冻结版本上重新取得完整两轮。未重启用户Edge、未重启共享daemon以外的服务、未修改扩展；等待主人决定是否升级/重载扩展。
 
+## 第1轮收口状态（2026-10-23 03:0x 本地）
+
+- 工作树干净（`git status --porcelain` 为空）；任务分支`codex/dedup-recovery-20261022`，最终候选`83ec2ff`，文档检查点`3c01227`。
+- 正常运行：服务经`scripts/terminate.ps1`+`scripts/launch.ps1`部署`83ec2ff`，PID 53972，digest `7c80f513…`；无活动采集进程；数据库26项目/1591资产/1351引用/72条既有外键错误（未新增类别）。
+- 磁盘：清理前实测38.257 GiB可用，删除后43.492 GiB；收口时64.102 GiB（期间同机其它任务也释放了空间，净释放只按本轮删除量5.235 GiB计，不外推）。
+- 证据：`.local/disk-audit-20261022/`（`cleanup-executed.json`、`cleanup-verify2.json`、`cleanup-plan-summary.json`、`matcher-equivalence.json`、`history-after-cleanup.json`、`coverage-check.json`、`frozen-dedup-recovery-v1.json`、`frozen-dedup-recovery-final.json`、`frozen-dedup-recovery-final2.json`、`round-audit-<job>.json`、`audit_run.py`、`verify_clean2.py`等）；四次尝试的原始`browser-errors.json`/`return-checks.json`/`duplicates.json`仍在各自运行目录。
+- 最优一次（`67b9f1c9`）：20张原件全部SHA+解码通过并已入库为项目pending引用，20条发现记录带job_id；真实浏览器逐一加载20/20（`naturalWidth>0`）；17张合格、18张可用独立、类型调用18次全成功、0拒绝；63.4万已知Token、用量完整。
+- **未完成**：同一冻结版本的两轮各≥30张、第二轮独立于第一轮、正常启动器重启后两轮保持验证。阻断为外部BrowserSkill扩展在约34~35个详情后`Background execution cleanup timed out`；需要主人决定是否升级到0.3.3/重载扩展或重启Edge后再继续。未重启用户Edge、未升级CLI/daemon、未修改扩展。
+
 ## 报告更正（追加，不覆盖旧记录）
 
 1. **1,694/1,717 的含义**：这是上一轮Goal在正式Job开始时冻结的“全历史相同字节/指纹组”数量（含所有项目、历史成功与失败批次、诊断所得，以及formal5新增的原件与1份未进received清单的孤立字节），用于排重；**不是**小红书/Pinterest上西木野真姬合格照片的库存，也不能据此宣称平台素材耗尽。本轮清理后当前历史为2,731文件/1,664 SHA/1,679指纹记录，Job会重新冻结自己的基线。
