@@ -36,6 +36,10 @@ def _is_link_or_junction(path):
     return path.is_symlink() or getattr(path,'is_junction',lambda:False)()
 
 
+class HistoricalBytesMissing(ValueError):
+    """A verified historical original no longer exists on disk."""
+
+
 def _historical_file(base, declared, sha, role, boundaries):
     if not isinstance(sha,str) or not _SHA.fullmatch(sha):
         raise ValueError('Historical SHA binding is invalid')
@@ -49,7 +53,7 @@ def _historical_file(base, declared, sha, role, boundaries):
     if not any(path.is_relative_to(boundary) for boundary in boundaries):
         raise ValueError(f'Historical image escapes local collection boundary: {base} -> {path}')
     if not path.is_file() or path.is_symlink():
-        raise ValueError(f'Historical original is missing; cannot prove no repeat: {path}')
+        raise HistoricalBytesMissing(f'Historical original is missing; cannot prove no repeat: {path}')
     if hashlib.sha256(path.read_bytes()).hexdigest()!=sha:
         raise ValueError(f'Historical image SHA changed: {path}')
     return path
@@ -144,13 +148,13 @@ def historical_paths(root: Path, current: Path, history_roots=(), skipped=None):
                             if not sha:continue
                             path=_historical_file(base,str(child.get('path') or ''),sha,'derived',boundaries)
                             paths.add(path)
-            except ValueError as exc:
+            except HistoricalBytesMissing as exc:
                 if run_files:
                     raise
                 # The duplicate cleanup deliberately removed this archived run's
                 # copies because every byte also exists in the live asset store.
                 # The SHA set still covers them; record the skip instead of
-                # pretending the run was scanned.
+                # pretending the run was scanned. Malformed metadata still fails.
                 if skipped is not None:
                     skipped.append({'run':str(base),'reason':'archived copies cleaned; bytes covered by live assets',
                                     'received_rows':len(records),'error':str(exc)[:200]})
