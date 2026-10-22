@@ -400,6 +400,18 @@ class Browser:
             return True
         return False
 
+    def _go_back(self):
+        """Step back through browser history without waiting for the SPA.
+
+        ``bsk navigate-back`` waits for load/commit up to the timeout; on
+        Xiaohongshu's SPA that wait regularly times out, and every timed-out
+        navigation leaves the extension with a background execution that later
+        blocks session cleanup. ``history.back()`` returns immediately and the
+        live page is verified afterwards, which is the real success signal.
+        """
+        self.command('evaluate','--session',self.session,'--json',
+                     '(()=>{history.back();return true})()',timeout=10)
+
     def recover(self,step=None,reason='connection')->bool:
         """Recover only this task's browser, within one monotonic deadline.
 
@@ -705,7 +717,7 @@ class Browser:
             if entered_detail:
                 try:
                     with self._span('detail_return',source=source):
-                        self.command('navigate-back','--session',self.session,'--timeout','5s',timeout=15)
+                        self._go_back()
                 except (ValueError,OSError,subprocess.SubprocessError) as exc:
                     navigate_error=exc
                     self.return_failed=True
@@ -714,16 +726,21 @@ class Browser:
                         if getattr(exc,'is_timeout',False) else 'connection')
                     if is_infrastructure_error(exc):self.return_error=exc
             if entered_detail:
-                try:
-                    restored=self.snapshot()
-                    evidence=self._return_state(restored,source,query)
-                except (ValueError,OSError,subprocess.SubprocessError,KeyError) as exc:
-                    evidence={'confirmed':False,'stage':'after_navigate_back','error':type(exc).__name__,
-                              'source':source,'query':query,'session_id':self.session}
-                    self.return_failed=True
-                    self.return_issue_category=self.return_issue_category or 'connection'
-                    if is_infrastructure_error(exc) and self.return_error is None:self.return_error=exc
-                evidence['stage']='after_navigate_back'
+                evidence=None
+                for attempt in range(3):
+                    try:
+                        restored=self.snapshot()
+                        evidence=self._return_state(restored,source,query)
+                    except (ValueError,OSError,subprocess.SubprocessError,KeyError) as exc:
+                        evidence={'confirmed':False,'stage':'after_history_back','error':type(exc).__name__,
+                                  'source':source,'query':query,'session_id':self.session}
+                        self.return_failed=True
+                        self.return_issue_category=self.return_issue_category or 'connection'
+                        if is_infrastructure_error(exc) and self.return_error is None:self.return_error=exc
+                    if evidence.get('confirmed'):break
+                    if attempt<2:time.sleep(0.7)
+                evidence['stage']='after_history_back'
+                evidence['return_attempts']=attempt+1
                 evidence['navigate_back_error']=(type(navigate_error).__name__ if navigate_error is not None else None)
                 self._record_return_check(evidence)
                 if evidence.get('confirmed'):

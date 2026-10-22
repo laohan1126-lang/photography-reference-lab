@@ -103,7 +103,7 @@ def test_xhs_receive_attributes_click_dom_wait_and_return(tmp_path, monkeypatch)
     assert rows == [{"asset_sha": "a" * 64}]
     stages = _stages(tmp_path / "timings.jsonl")
     assert {"detail_click", "detail_dom_wait", "detail_return"} <= set(stages)
-    assert commands[0] == "click" and commands[-1] == "navigate-back"
+    assert commands[0] == "click" and commands[-1] == "evaluate"
 
 
 def test_pinterest_detail_reuses_the_preview_instead_of_downloading_again(tmp_path, monkeypatch):

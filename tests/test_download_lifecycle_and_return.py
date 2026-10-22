@@ -55,13 +55,15 @@ def test_return_timeout_on_an_already_restored_page_leaves_no_stale_error(tmp_pa
     page = "https://www.xiaohongshu.com/explore/" + "a" * 24
     query = "西木野真姬"
     good = _page_payload(query)
+    calls = []
 
     browser = worker.Browser(tmp_path)
     browser.bsk, browser.session = "bsk", "session-1"
 
     def command(*args, timeout=35, **kwargs):
-        if args[0] == "navigate-back":
-            raise BrowserInfrastructureError("BrowserSkill command timed out", action="navigate-back",
+        calls.append(args[0])
+        if args[0] == "evaluate" and "history.back()" in str(args[-1]) and calls.count("evaluate") == 1:
+            raise BrowserInfrastructureError("BrowserSkill command timed out", action="evaluate",
                                              code="command_timeout", is_timeout=True)
         if args[0] == "evaluate":
             return json.dumps({"ok": True, "value": good})
@@ -72,12 +74,14 @@ def test_return_timeout_on_an_already_restored_page_leaves_no_stale_error(tmp_pa
     monkeypatch.setattr(worker, "capture_note", lambda *a, **k: [])
     browser.receive({"page": page}, {"source": "xiaohongshu", "query": query})
 
+    assert "navigate-back" not in calls
     assert browser.return_error is None
     assert browser.return_failed is False
     checks = json.loads((tmp_path / "return-checks.json").read_text("utf8"))
     assert checks[-1]["confirmed"] is True
     assert checks[-1]["navigate_back_error"] == "BrowserInfrastructureError"
     assert checks[-1]["session_id"] == "session-1"
+    assert checks[-1]["stage"] == "after_history_back"
 
 
 def test_return_timeout_with_the_wrong_page_keeps_the_error(tmp_path, monkeypatch):
@@ -85,15 +89,17 @@ def test_return_timeout_with_the_wrong_page_keeps_the_error(tmp_path, monkeypatc
     query = "西木野真姬"
     wrong = {"url": "https://www.xiaohongshu.com/search_result", "search": "",
              "visibleMain": "", "cards": [], "login_required": False, "challenge": False}
+    snapshots = []
 
     browser = worker.Browser(tmp_path)
     browser.bsk, browser.session = "bsk", "session-2"
 
     def command(*args, timeout=35, **kwargs):
-        if args[0] == "navigate-back":
-            raise BrowserInfrastructureError("BrowserSkill command timed out", action="navigate-back",
-                                             code="command_timeout", is_timeout=True)
         if args[0] == "evaluate":
+            if "history.back()" in str(args[-1]):
+                raise BrowserInfrastructureError("BrowserSkill command timed out", action="evaluate",
+                                                 code="command_timeout", is_timeout=True)
+            snapshots.append(args[-1])
             return json.dumps({"ok": True, "value": wrong})
         return json.dumps({"session_id": "session-2"})
 
@@ -105,8 +111,10 @@ def test_return_timeout_with_the_wrong_page_keeps_the_error(tmp_path, monkeypatc
     assert browser.return_error is not None
     assert browser.return_failed is True
     assert browser.return_issue_category == "page_return"
+    assert len(snapshots) == 3, "an unconfirmed return is polled three times before failing"
     checks = json.loads((tmp_path / "return-checks.json").read_text("utf8"))
     assert checks[-1]["confirmed"] is False
+    assert checks[-1]["return_attempts"] == 3
 
 
 # --- recovery budget ----------------------------------------------------------
