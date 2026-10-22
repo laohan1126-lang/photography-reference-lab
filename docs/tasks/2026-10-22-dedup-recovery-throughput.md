@@ -109,3 +109,10 @@
 - 两轮都使用同一最终冻结提交与配置；第二轮必须排除第一轮及全部历史成功/失败/诊断所得。
 - 保留旧失败13张与1张；不合并main、不强推、不发布。
 
+### 首次正式开始的失败（开发性，不计验收）
+
+- 2026-10-22T15:01:09Z 正常网页单次点击创建 Job `b3e11b62bbbe47ef84598c2b7c18e65e`（目标30、普通输入），基线冻结约45秒，采集在15:02:02Z启动（实现`94446a4`/digest `d1f65cea…`）。
+- 首个窗口3个详情全部在下载阶段失败：`FileNotFoundError ...\current\incoming\<uuid>.part`。根因是新增的受限临时区在传入显式`incoming`路径时未创建父目录（默认路径会创建），下载写入即失败；`download-errors.json`保留原始错误。
+- 15:04:Z 用产品自带`POST /api/jobs/{id}/search/cancel`受控停止；Job最终`blocked/user_cancelled`，`found=0 accepted=0`，真实模型调用0。该次只作为缺陷证据，不冒充两轮验收之一，也不改写成平台/网络故障。
+- 修复：`capture_note` 使用显式临时区前先`mkdir(parents=True, exist_ok=True)`；新增回归 `test_capture_note_creates_a_missing_temporary_area`，下载生命周期+详情计时20项通过。修复后重新提交、重新部署、重新冻结，再执行两轮正式验收。
+

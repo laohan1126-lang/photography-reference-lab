@@ -157,6 +157,7 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
         if page != expected_page or not re.fullmatch(r'https://www\.xiaohongshu\.com/explore/[a-f0-9]{24}', page):
             raise ValueError('Note page binding mismatch')
     temp_dir = Path(incoming) if incoming is not None else incoming_directory(folder)
+    temp_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     for index,image in enumerate(data.get('images', [])[:limit],1):
         remaining=deadline-time.monotonic()

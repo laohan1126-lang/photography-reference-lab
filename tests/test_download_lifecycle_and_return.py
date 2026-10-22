@@ -426,3 +426,21 @@ def test_cleaned_archived_run_is_skipped_without_hiding_live_bytes(tmp_path):
     stale.write_bytes(raw)
     with pytest.raises(ValueError):
         historical_paths(root, root / ".local" / "collection-runs" / "current", skipped=[])
+
+def test_capture_note_creates_a_missing_temporary_area(tmp_path, monkeypatch):
+    page = "https://www.xiaohongshu.com/explore/" + "e" * 24
+    url = "https://sns-img.xhscdn.com/needs-temp-dir.jpg"
+    raw = _png()
+    monkeypatch.setattr(exact_recall.subprocess, "run",
+                        lambda *a, **k: _Completed(_note_payload(page, [url])))
+
+    def stream(url_arg, target, timeout, limit=20 * 1024 * 1024):
+        target.write_bytes(raw)
+        return hashlib.sha256(raw).hexdigest(), len(raw)
+
+    monkeypatch.setattr(exact_recall, "_stream_into_temp", stream)
+    missing = tmp_path / "not-created-yet"
+    rows = exact_recall.capture_note("bsk", "session", tmp_path, page, incoming=missing)
+    assert rows and rows[0]["temporary"] is True
+    assert Path(rows[0]["original_path"]).parent == missing
+    assert Path(rows[0]["original_path"]).read_bytes() == raw
