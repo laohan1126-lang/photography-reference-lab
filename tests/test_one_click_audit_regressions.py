@@ -443,3 +443,24 @@ def test_goal_refines_exhausted_plan_inside_single_frozen_attempt(tmp_path,monke
     assert job['search_timeout_seconds']==900
     assert summary['query_budget']==collector.MAX_GOAL_QUERIES
     assert summary['termination_reason']
+
+
+def test_goal_reaches_new_note_image_after_three_historical_images(tmp_path):
+    from tests.test_search_continue_recovery import Agent
+    from ref_lab.collection_history import ImageHistory
+    rows=[_write_original(tmp_path,_textured((800,600),i,(40+i*20,90,150)),name=f'frame-{i}.png')
+          for i in range(4)]
+    class Browser:
+        def start(self):pass
+        def close(self):pass
+        def search(self,step):
+            from urllib.parse import quote
+            return {'url':'https://example.org/?keyword='+quote(step['query']),'search':step['query'],
+                    'cards':[{'page':'https://example.org/gallery','text':'角色甲 cos 正片'}]}
+        def receive(self,card,step):return rows[:getattr(self,'note_image_limit',3)]
+    job={'id':'note-quota-fixture','goal_id':'synthetic-controller-only',
+         'project_snapshot':{'character':'角色甲','work':'','costume':'','brief':''},
+         'target_count':1,'notes':'','preferred_sources':['xiaohongshu']}
+    history=ImageHistory([Path(r['original_path']) for r in rows[:3]])
+    summary,_=collector.collect(job,Agent(),Browser(),tmp_path,search_only=True,history=history)
+    assert summary['counts']['found']==1 and summary['counts']['duplicates']==3

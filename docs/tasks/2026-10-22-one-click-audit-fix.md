@@ -393,3 +393,23 @@ ref_lab/collage.py
 - 全局实跑资源授权不变：已用1个失败正式Job；至多3个正式Job余量、每个2700秒/60尝试；另保留最初冻结的1个正常网页诊断Job/2700秒/20尝试。下一代码检查点后先做诊断实测，再冻结新的完整正式两轮；旧失败不混算。
 
 - 新官方备份隔离恢复通过：1396原件及派生实际doctor校验，0缺失/损坏，72既有FK错误一致；ZIP SHA700e70cd992b0bdf9aa9987014c47575b35faa84c28eacfeafaed68297f0a315。证据backup-restore-post-failed.json。最终JS/compileall/diff检查退出0，预算耗尽反例与相关82项通过；准备第二工程检查点，非Goal完成。
+
+### 第二工程版本已正常部署（正式未重新开始）
+
+- 新代码56bba676ab3e0847fd8a2e4f7d6fb1983f03d394已推送任务分支，ls-remote实查同SHA。日用新独立任务分支codex/one-click-runtime-v2-20261022；292个无关原文件字节仍与原归档一致。未main合并、未公开发布。
+- 正式terminate.ps1停止5444并确认PID/record/health均不存在；正常launch.ps1自行创建服务及运行记录。宿主退出后独立读数PID12128、code_digest72377cc73a19b809f58a6a61cdaedfade5a560aedcab6ae121ceb1d7a2f0d168、revision56bba67，服务/适配器同日用checkout；1396资产/1156引用/3825事件保持。配置仍2700秒，模型预算60（诊断目标1按正常规则20）、worker1，Goal query最大24。
+- 新工程快照helper首次错误沿用了原frozen-acceptance.json输出名，被assert not exists拒绝，原冻结清单未被覆盖；改成engineering-v2-snapshot.json独立存储诊断输入，非正式验收。
+- 浏览器旧自有omlp会话在诊断准备时已注销，未接管其他会话；将正常新建自有会话，采集Job均无活动进程。此前直接canonical源帖404仅单帖阻断，未据此称整体来源不可用，未绕过。
+
+### 诊断结果及采样盲区证据（正式仍0/2）
+
+- 唯一诊断Job97deea5f302b4acab2a8d1d0a687800d，正常网页目标1/同56bba67，自动完成3/1，4次模型尝试，无继续/加预算/人工导入。点击2026-10-22T04:28:12.468137Z；正常创建POST201耗时202.91723秒。基线1556份/FP3，包含失败轮新增32资产。正常成果页实解码3/3。
+- 根Agent分别用view_image打开10c28be2…、50451088…、a49a2746…三实际原件：真人Cosplay，有不同背景/构图/手持物与动作；不宣称严格角色身份。三图不是相同画面；后续仍需独立对冻结历史核对。诊断不算正式两轮，不追加第二个诊断Job。
+- 更正此前“真实单帖3张盲区未实证”：旧失败批次source_text（普通可见DOM）明确含1/8及作者正文，capturenote只[:3]，后续五个图库项未尝试。新合成controller反例notequotabase failed /3.48s：前三张均历史、第四张新图，found0。计划复用既有DOM读取函数，把自动Goal单帖上限有界调到12并同时约束接收端/剩余候选预算；不是把未知图库项自动计数，仍逐张排重/画质/实际看图。时间2700、模型60、候选90、详情96不变。
+- 单帖较多下载须共享Browser截止时间；将在真实capture_note调用链补“第一次已收到、时间耗尽后不得第二次HTTP下载”的最小反例。修改只在隔离树，日用56bba67诊断已结束后仍保持其原代码/产物。
+
+- 诊断最终账本4次/144,014已知Token/0未知，累计609.034秒，session state=closed；目标1自动达3。3/3真实原件已逐个打开，3/3浏览器解码，仍非正式通过。
+- 新单帖预算反例notequotabase修前failed /3.48s；HTTP截止反例notedlbase修前failed /0.70s（两次HTTP均timeout20，第二次在总截止后仍派发）。修后notecapfix115 passed /55.26s（controller/采集DOM/计时/恢复边界/Goal/继续/阶段调用方）。自动Goal最多12个当前已呈现图库原件项，受剩余候选上限限制；旧非Goal/独立采样默认3保持。每次HTTP timeout=min(20,remaining)，截止不再发下一张；已有字节保留。仅观察到DOM的原URL，不猜高清、不绕过访问。
+- 此采集修改不改FP3匹配语义或原生分类协议；诊断证明的对应未变路径可复用，但新采样范围须由后续最终版本正式两轮实跑覆盖，不能倒写56bba67已经通过完整Goal。
+
+- 第三检查点compileall、node --check web/app.js、git diff --check均退出0。诊断browser export因自有会话lgpc已失效返回not_found，未能保存完整debug录制；既有点击/POST/逐15秒状态/模型原始回执/成果解码日志保留，不声称完整浏览器流。重新部署前官方backup首次错误带了全局--data-dir参数，argparse拒绝且无写入；改回此前验证的官方backup命令执行，原失败日志保留。

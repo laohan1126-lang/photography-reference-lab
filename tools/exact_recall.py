@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import time
 from urllib.parse import parse_qs, urlsplit
 
 import httpx
@@ -84,7 +85,7 @@ def after_visual_sample(states: list[str]) -> str:
 
 
 def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit: int = 3,
-                 errors: list | None = None, timing=None, command=None) -> list[dict]:
+                 errors: list | None = None, timing=None, command=None, deadline=float('inf')) -> list[dict]:
     """Read only currently rendered note DOM. No bootstrap state, cookies or API.
 
     A single unusable slide must not discard slides already received from the
@@ -111,12 +112,14 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
             raise ValueError('Note page binding mismatch')
     rows = []
     for index,image in enumerate(data.get('images', [])[:limit],1):
+        remaining=deadline-time.monotonic()
+        if remaining<=0:break
         try:
             url = image['url']; parsed = urlsplit(url)
             if parsed.scheme != 'https' or not (parsed.hostname or '').endswith('.xhscdn.com'):
                 raise ValueError('Untrusted image host')
             with span('detail_download'):
-                response = httpx.get(url, timeout=20, follow_redirects=False)
+                response = httpx.get(url, timeout=min(20,remaining), follow_redirects=False)
                 response.raise_for_status()
                 content = response.content
                 if len(content) > 20*1024*1024:

@@ -43,6 +43,7 @@ from ref_lab.browser_recovery import (
 
 MAX_QUERIES=8
 MAX_GOAL_QUERIES=24
+MAX_GOAL_NOTE_IMAGES=12
 MAX_IMAGES=200
 SAMPLE_PER_QUERY=8
 MAX_WINDOWS=3
@@ -572,8 +573,10 @@ class Browser:
                 if not entered_detail:raise ValueError('Note did not open; search page preserved')
                 canonical='https://www.xiaohongshu.com/explore/'+note
                 errors=[]
-                rows=capture_note(self.bsk,self.session,self.folder,canonical,limit=3,errors=errors,
-                                  timing=getattr(self,'timing',None),command=self.command)
+                rows=capture_note(self.bsk,self.session,self.folder,canonical,
+                                  limit=getattr(self,'note_image_limit',3),errors=errors,
+                                  timing=getattr(self,'timing',None),command=self.command,
+                                  deadline=getattr(self,'deadline',float('inf')))
                 self.download_errors=getattr(self,'download_errors',[])+errors
                 return rows
             # Navigation and DOM are timed inside the adapter; an outer span here
@@ -1138,6 +1141,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         page_attempts[page_key]=page_attempts.get(page_key,0)+1;per_note=0
                         checkpoint()
                         try:
+                            browser.note_image_limit=(min(MAX_GOAL_NOTE_IMAGES,agent.candidate_limit-len(received))
+                                                      if search_only and job.get('goal_id') else 3)
                             with timing.span('browser_receive'):rows=browser.receive(card,step)
                         except SourceBlocked:
                             checks[source]={'source':source,'status':'blocked','detail':'已停止受登录/验证限制的来源，尝试其他授权来源。'}
@@ -1177,7 +1182,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                     save(folder/'received.json',received)
                                 duplicates.append({'asset_sha':sha,'page_url':row['page_url'],'duplicate_of':sha,'reason':'same_bytes_this_run'});continue
                             if search_only:
-                                if confirmed()>=target or per_note>=3:break
+                                if confirmed()>=target or per_note>=browser.note_image_limit:break
                             elif len(candidates)>=target or calls()>=agent.candidate_limit or len(received)>=agent.candidate_limit or per_note>=3:
                                 break
                             if (sha in {r['asset_sha'] for r in (agent.references or [])}

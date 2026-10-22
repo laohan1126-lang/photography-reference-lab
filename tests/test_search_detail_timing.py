@@ -56,6 +56,27 @@ def test_capture_note_records_locate_download_store(tmp_path, monkeypatch):
         assert expected in stages
 
 
+def test_note_download_stops_at_browser_deadline_and_keeps_first_original(tmp_path,monkeypatch):
+    import time
+    clock=[0.0];calls=[];raw=_png();page='https://www.xiaohongshu.com/explore/'+'d'*24
+    payload={'page_url':page,'text':'synthetic visible DOM','images':[
+        {'url':f'https://sns-img.xhscdn.com/{i}.png','width':400,'height':600} for i in range(2)]}
+    browser=collect_verified.Browser(tmp_path);browser.bsk='fixture';browser.session='owned';browser.deadline=1.0
+    browser.command=lambda *a,**kw:json.dumps({'ok':True,'value':payload})
+    browser._probe_detail=lambda:{'url':page}
+    browser.snapshot=lambda:{'url':'https://www.xiaohongshu.com/search_result','cards':[{}]}
+    class Response:
+        content=raw
+        def raise_for_status(self):pass
+    def download(url,**kwargs):
+        calls.append(kwargs['timeout']);clock[0]=2.0;return Response()
+    monkeypatch.setattr(time,'monotonic',lambda:clock[0])
+    monkeypatch.setattr(exact_recall.httpx,'get',download)
+    rows=browser.receive({'page':page},{'source':'xiaohongshu'})
+    assert len(rows)==len(calls)==1 and calls[0]<=1.0
+    assert Path(rows[0]['original_path']).read_bytes()==raw
+
+
 def test_xhs_receive_attributes_click_dom_wait_and_return(tmp_path, monkeypatch):
     note = "b" * 24
     page = "https://www.xiaohongshu.com/explore/" + note
