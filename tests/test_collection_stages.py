@@ -250,7 +250,7 @@ def test_search_only_cli_writes_summary_without_a_model_budget_or_result_zip(tmp
         known_count = 0
         ready = True
         errors = []
-        def consider(self, path): return None
+        def consider(self, path, **kwargs): return None
         def close(self, **kwargs): pass
 
     monkeypatch.setattr(worker, "ROOT", root)

@@ -25,8 +25,8 @@ from .preflight import compute_dhash, hamming_distance
 
 
 # Bump when representation or matching rules change; old admission needs review.
-FINGERPRINT_ALGORITHM_VERSION=3
-CACHE_SCHEMA_VERSION=3
+FINGERPRINT_ALGORITHM_VERSION=4
+CACHE_SCHEMA_VERSION=4
 _DHASH=re.compile(r"[0-9a-f]{16}\Z")
 _SAMPLE=re.compile(r"[0-9a-f]{384}\Z")
 _SHA=re.compile(r"[0-9a-f]{64}\Z")
@@ -146,7 +146,7 @@ def _fingerprint_from_raw(path: Path,raw: bytes,sha: str):
         return {'asset_sha':sha,'path':str(path.resolve()),
                 'ratio':display.width/display.height,'dhash':compute_dhash(display),
                 'sample':display.resize((8,8),Image.Resampling.LANCZOS).tobytes().hex(),
-                'pixels':display.resize((64,64),Image.Resampling.LANCZOS).tobytes().hex()}
+                'pixels':display.resize((128,128),Image.Resampling.LANCZOS).tobytes().hex()}
 
 
 def fingerprint(path: Path):
@@ -161,7 +161,7 @@ def _valid_cache_value(value):
             and math.isfinite(value['ratio']) and value['ratio']>0
             and isinstance(value.get('dhash'),str) and _DHASH.fullmatch(value['dhash'])
             and isinstance(value.get('sample'),str) and _SAMPLE.fullmatch(value['sample'])
-            and isinstance(value.get('pixels'),str) and re.fullmatch(r'[0-9a-f]{24576}',value['pixels']))
+            and isinstance(value.get('pixels'),str) and re.fullmatch(r'[0-9a-f]{98304}',value['pixels']))
 
 
 def _valid_file_entry(value):
@@ -247,40 +247,69 @@ def goal_baseline(folder, goal):
 def _photo_relation(value, other):
     """Fit a bounded crop by pixels; similar colours alone cannot reject a frame."""
     import numpy as np
-    from numpy.lib.stride_tricks import sliding_window_view
-    images=[Image.frombytes('RGB',(64,64),bytes.fromhex(v['pixels'])) for v in (value,other)]
+    import cv2
+    images=[Image.frombytes('RGB',(128,128),bytes.fromhex(v['pixels'])) for v in (value,other)]
     diff=np.abs(np.asarray(images[0],dtype=float)-np.asarray(images[1],dtype=float))
     direct=float(diff.mean())
-    if abs(value['ratio']/other['ratio']-1)<=.03 and direct<=4 and diff.reshape(8,8,8,8,3).mean(axis=(1,3,4)).max()<=8:
+    if abs(value['ratio']/other['ratio']-1)<=.03 and direct<=4 and diff.reshape(8,16,8,16,3).mean(axis=(1,3,4)).max()<=8:
         return {'reason':'near_duplicate','pixel_difference':round(direct,3)}
     for source,query,source_ratio,query_ratio in ((images[0],images[1],value['ratio'],other['ratio']),
                                                 (images[1],images[0],other['ratio'],value['ratio'])):
-        small=np.asarray(source.resize((16,16),Image.Resampling.LANCZOS),dtype=np.int16)
-        best=None
-        for width in range(10,17):
-            height=round(width*source_ratio/query_ratio)
-            if not 10<=height<=16:continue
-            template=np.asarray(query.resize((width,height),Image.Resampling.LANCZOS),dtype=np.int16)
-            windows=sliding_window_view(small,(height,width),axis=(0,1)).transpose(0,1,3,4,2)
-            differences=np.abs(windows-template).mean(axis=(2,3,4))
-            y,x=np.unravel_index(differences.argmin(),differences.shape)
-            score=float(differences[y,x])
-            if best is None or score<best[0]:best=(score,x/16,y/16,width/16)
-        if best is None or best[0]>18:continue
+        container_sha=value['asset_sha'] if source is images[0] else other['asset_sha']
+        factor=source_ratio/query_ratio
+        source_pixels=np.asarray(source)
+        query_pixels=np.asarray(query)
+        candidates=[]
+        for resolution in (32,64):
+            small=cv2.resize(source_pixels,(resolution,resolution),interpolation=cv2.INTER_AREA)
+            for width in range(2,resolution+1):
+                height=round(width*factor)
+                if not 2<=height<=resolution+1:continue
+                height=min(height,resolution)
+                area=width*height
+                # Increase sampling density for small crops, rather than using colour-only templates.
+                if area<(9 if resolution==32 else 16) or (resolution==64 and area>=36):continue
+                template=cv2.resize(query_pixels,(width,height),interpolation=cv2.INTER_AREA)
+                if template.reshape(-1,3).std(axis=0).max()<3:continue
+                _,correlation,_,(xx,yy)=cv2.minMaxLoc(cv2.matchTemplate(small,template,cv2.TM_CCOEFF_NORMED))
+                if correlation>=.80:
+                    candidates.append((xx/resolution,yy/resolution,min(width/resolution,1/factor)))
+        if not candidates:continue
         target=np.asarray(query.resize((32,32),Image.Resampling.LANCZOS),dtype=float)
         factor=source_ratio/query_ratio
         def difference(x,y,width):
             height=width*factor
-            if width<.60 or height<.60 or x<0 or y<0 or x+width>1.001 or y+height>1.001:
+            if width<1/128 or height<1/128 or x<0 or y<0 or x+width>1.001 or y+height>1.001:
                 return float('inf'),None
             tile=source.resize((32,32),Image.Resampling.BICUBIC,
-                               box=(x*64,y*64,min(64,(x+width)*64),min(64,(y+height)*64)))
+                               box=(x*128,y*128,min(128,(x+width)*128),min(128,(y+height)*128)))
             pixels=np.asarray(tile,dtype=float)
             return float(np.abs(pixels-target).mean()),pixels
-        _,x,y,width=best
-        score,pixels=difference(x,y,width)
-        for step in (1/32,1/64,1/128,1/256,1/512):
-            choices=[]
+        fine=[]
+        for x,y,width in candidates:
+            coarse,probe=difference(x,y,width)
+            if coarse>32 or probe is None:continue
+            if coarse>8:
+                a=probe.reshape(-1,3)-probe.reshape(-1,3).mean(axis=0)
+                b=target.reshape(-1,3)-target.reshape(-1,3).mean(axis=0)
+                norm=float(np.sqrt((a*a).sum()*(b*b).sum()))
+                if norm==0 or float((a*b).sum())/norm<.80:continue
+            for pixels_w in range(max(2,round(width*128)-4),min(128,round(width*128)+4)+1):
+                pixels_h=round(pixels_w*factor)
+                if not 2<=pixels_h<=128:continue
+                left=max(0,round(x*128)-4);top=max(0,round(y*128)-4)
+                right=min(128,round(x*128)+pixels_w+5);bottom=min(128,round(y*128)+pixels_h+5)
+                if right-left<pixels_w or bottom-top<pixels_h:continue
+                template=np.asarray(query.resize((pixels_w,pixels_h),Image.Resampling.LANCZOS))
+                _,correlation,_,(xx,yy)=cv2.minMaxLoc(cv2.matchTemplate(source_pixels[top:bottom,left:right],template,cv2.TM_CCOEFF_NORMED))
+                if correlation<.90 and coarse>8:continue
+                pos=((left+xx)/128,(top+yy)/128,min(pixels_w/128,1/factor))
+                error,tile=difference(*pos)
+                if correlation>=.90 or error<=8:fine.append((error,*pos,tile))
+        if not fine:continue
+        score,x,y,width,pixels=min(fine,key=lambda item:item[0])
+        for step in (1/256,1/512,1/1024):
+            choices=[(score,x,y,width,pixels)]
             for dx in (-step,0,step):
                 for dy in (-step,0,step):
                     for dw in (-step,0,step):
@@ -295,10 +324,11 @@ def _photo_relation(value, other):
         local_error=float(patch_errors.max())
         if score<=4 and correlation>=.99 and local_error<=10:
             return {'reason':'crop_duplicate','pixel_difference':round(score,3),
-                    'correlation':round(correlation,5),'crop_fraction':[x,y,width,width*factor]}
+                    'correlation':round(correlation,5),'crop_fraction':[x,y,width,width*factor],
+                    'container_sha':container_sha}
         if score<=8 and correlation>=.98 and local_error<=16:
             return {'reason':'possible_crop_duplicate','state':'needs_review',
-                    'pixel_difference':round(score,3),'correlation':round(correlation,5)}
+                    'pixel_difference':round(score,3),'correlation':round(correlation,5),'container_sha':container_sha}
         if score<=4:
             # A small conflicting region can be an overlay or a changed frame;
             # strong agreement elsewhere is inconclusive, never clearance as new.
@@ -312,12 +342,14 @@ def _photo_relation(value, other):
                     return {'reason':'possible_crop_duplicate','state':'needs_review',
                             'pixel_difference':round(score,3),'correlation':round(correlation,5),
                             'matching_fraction':round(float(matching.mean()),4),
-                            'matching_region_error':round(clean_error,3)}
+                            'matching_region_error':round(clean_error,3),'container_sha':container_sha}
     return None
 
 
 class ImageHistory:
     def __init__(self,paths,cache_path=None,*,lazy=False):
+        try:__import__('cv2')
+        except (ImportError,OSError) as exc:raise ValueError('History matcher unavailable') from exc
         self.cache_path=Path(cache_path) if cache_path is not None else None
         self._cache_files=_read_cache(self.cache_path) if self.cache_path is not None else {}
         self._cache_dirty=False
@@ -426,24 +458,32 @@ class ImageHistory:
         if self._thread is not None and wait:self._thread.join(timeout)
         self._save_cache()
 
-    def _match(self,value):
+    def _match(self,value,exclude=()):
         sha=value['asset_sha']
         with self._lock:
             if sha in self.known_shas:return {'duplicate_of':sha,'reason':'same_bytes'}
-            records=list(self.records.values())
+            records=[other for key,other in self.records.items() if key not in exclude]
         if sha in {other.get('asset_sha') for other in records if isinstance(other,dict)}:return {'duplicate_of':sha,'reason':'same_bytes'}
+        candidate_collage=None
         for other in records:
             if not _valid_cache_value(other):continue
             relation=_photo_relation(value,other)
             if relation:
+                if relation.get('container_sha')==sha:
+                    if candidate_collage is None:
+                        from .collage import analyze, STATUS_SPLIT_OK
+                        with Image.open(value['path']) as image:
+                            candidate_collage=analyze(image)['status']==STATUS_SPLIT_OK
+                    if candidate_collage:
+                        continue  # Match the collage's tiles; an old panel does not cover its new panels.
                 return {'duplicate_of':other.get('asset_sha',sha),**relation}
 
         return None
 
-    def consider(self,path):
+    def consider(self,path,*,exclude=()):
         value=self._fingerprint(path);sha=value['asset_sha']
         with self._lock:
-            found=self._match(value)
+            found=self._match(value,exclude) if exclude else self._match(value)
             if not found:
                 self.records[sha]=value;self.known_shas.add(sha)
                 self._cache_dirty=True

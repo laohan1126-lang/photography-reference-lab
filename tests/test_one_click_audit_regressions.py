@@ -127,7 +127,9 @@ def test_v2_no_collage_is_outdated_and_explicitly_recomputed(tmp_path):
     assert hashlib.sha256(Path(row['original_path']).read_bytes()).hexdigest()==row['asset_sha']
 
 
-@pytest.mark.parametrize('box', [(80, 30, 760, 570), (160, 90, 720, 510), (60, 60, 740, 570), (240, 0, 560, 600)])
+@pytest.mark.parametrize('box', [(80, 30, 760, 570), (160, 90, 720, 510), (60, 60, 740, 570),
+                                (240, 0, 560, 600), (272, 0, 528, 600), (0, 180, 800, 420),
+                                (296, 24, 488, 336)])
 def test_history_excludes_reencoded_crops_but_preserves_other_frames(tmp_path, box):
     from PIL import ImageDraw
     from ref_lab.collection_history import ImageHistory
@@ -149,6 +151,30 @@ def test_history_excludes_reencoded_crops_but_preserves_other_frames(tmp_path, b
     assert history.match(next_frame) is None, 'a different arm pose must stay available'
 
 
+@pytest.mark.parametrize('rotated', [False, True])
+def test_narrow_crop_does_not_reject_a_different_visible_pose(tmp_path, rotated):
+    from PIL import Image, ImageDraw
+    from ref_lab.collection_history import ImageHistory
+    original = _textured((800, 600), 19, (70, 90, 120))
+    next_frame = original.copy()
+    ImageDraw.Draw(original).line((330, 180, 470, 420), fill=(230, 30, 50), width=50)
+    ImageDraw.Draw(next_frame).line((470, 180, 330, 420), fill=(230, 30, 50), width=50)
+    box = (240, 0, 560, 600)
+    if rotated:
+        original = original.transpose(Image.Transpose.ROTATE_90)
+        next_frame = next_frame.transpose(Image.Transpose.ROTATE_90)
+        box = (0, 240, 600, 560)
+    source = tmp_path / 'original.png'
+    original.save(source)
+    duplicate = tmp_path / 'same-frame.jpg'
+    original.crop(box).save(duplicate, quality=93)
+    different = tmp_path / 'different-frame.jpg'
+    next_frame.crop(box).save(different, quality=93)
+    history = ImageHistory([source])
+    assert history.match(duplicate), 'the same visible crop must stay excluded'
+    assert history.match(different) is None, 'a changed visible pose must remain available'
+
+
 def test_goal_baseline_freezes_verified_fingerprints(library, project, goal_root):
     from tests.conftest import image_bytes
     asset=library.assets.ingest(image_bytes(17), 'synthetic.png')
@@ -159,6 +185,38 @@ def test_goal_baseline_freezes_verified_fingerprints(library, project, goal_root
     baseline=json.loads((goal_root/'.local/goals'/job['goal_id']/'baseline.json').read_text())
     entries={r['sha']:r for r in baseline['items']}
     assert entries[asset['id']]['fingerprint']['asset_sha']==asset['id']
+
+
+def test_mixed_collage_keeps_new_panel_and_parent_is_not_its_own_history(tmp_path):
+    from ref_lab.collection_history import ImageHistory
+    first = _write_original(tmp_path, _collage(2, 1, tile=(800, 600),
+        bases=[(28, 30, 34), (222, 220, 214)]), name='first.png')
+    first_record = collage.process_original(tmp_path, first)
+    history = ImageHistory([Path(first['original_path'])])
+    for child in first_record['children']:
+        history.consider(Path(child['path']), exclude={first['asset_sha']})
+    second = _write_original(tmp_path, _collage(2, 1, tile=(800, 600),
+        bases=[(28, 30, 34), (52, 150, 196)]), name='second.png')
+    assert history.consider(Path(second['original_path'])) is None, 'an old panel does not make the entire new collage old'
+    result = collage.process_original(tmp_path, second, history=history)
+    assert result['children'][0]['status'] == collage.DUPLICATE_RUN
+    assert result['children'][1]['status'] == collage.VALID
+    assert history.match(Path(second['original_path']))['reason'] == 'same_bytes'
+    assert history.match(Path(result['children'][1]['path']))['reason'] == 'same_bytes'
+    history.close()
+
+
+def test_history_requires_matcher_before_marking_index_ready(monkeypatch):
+    import builtins
+    from ref_lab.collection_history import ImageHistory
+    original = builtins.__import__
+    def missing(name, *args, **kwargs):
+        if name == 'cv2':
+            raise ImportError('synthetic missing matcher')
+        return original(name, *args, **kwargs)
+    monkeypatch.setattr(builtins, '__import__', missing)
+    with pytest.raises(ValueError, match='History matcher unavailable'):
+        ImageHistory([])
 
 
 def test_extend_second_file_failure_restores_first_and_database(library, project, goal_root, monkeypatch):
@@ -318,7 +376,7 @@ def test_duplicate_alias_cannot_hide_corrupt_library_original(library,project,go
 def test_uncertain_tile_history_stays_pending_instead_of_confirmed_duplicate(tmp_path,unavailable):
     row=_write_original(tmp_path,_collage(2,1,tile=(800,600)))
     class History:
-        def consider(self,path):
+        def consider(self,path,**kwargs):
             if unavailable:raise OSError('synthetic history unavailable')
             return {'state':'needs_review','reason':'possible_crop_duplicate','duplicate_of':'a'*64}
     record=collage.process_original(tmp_path,row,history=History())

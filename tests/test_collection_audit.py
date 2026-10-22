@@ -83,7 +83,7 @@ class _RecordingHistory:
     def __init__(self):
         self.seen: list[str] = []
 
-    def consider(self, path):
+    def consider(self, path, **kwargs):
         self.seen.append(str(Path(path).resolve()))
         return None
 

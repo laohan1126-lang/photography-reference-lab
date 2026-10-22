@@ -187,7 +187,7 @@ def test_frozen_goal_history_seeds_sha_after_current_index_is_ready(tmp_path, mo
     from tools import collect_verified as worker
     root=tmp_path/'root';folder=root/'.local/collection-runs/job/current';folder.mkdir(parents=True)
     baseline_dir=root/'.local/goals/goal';baseline_dir.mkdir(parents=True)
-    fp={'asset_sha':'a'*64,'path':str(root/'old.jpg'),'ratio':1.,'dhash':'0'*16,'sample':'0'*384,'pixels':'0'*24576}
+    fp={'asset_sha':'a'*64,'path':str(root/'old.jpg'),'ratio':1.,'dhash':'0'*16,'sample':'0'*384,'pixels':'0'*(128*128*3*2)}
     from ref_lab.collection_history import FINGERPRINT_ALGORITHM_VERSION
     baseline={'goal_id':'goal','fingerprint_algorithm_version':FINGERPRINT_ALGORITHM_VERSION,'items':[{'path':str(root/f'copy-{i}.jpg'),'sha':'a'*64,'fingerprint':fp} for i in range(3)]}
     raw=json.dumps(baseline).encode();(baseline_dir/'baseline.json').write_bytes(raw)

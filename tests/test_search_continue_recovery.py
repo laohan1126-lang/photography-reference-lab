@@ -213,7 +213,7 @@ def test_search_only_cli_continues_instead_of_exiting_on_the_old_summary(tmp_pat
         ready = True
         errors: list = []
 
-        def consider(self, path):
+        def consider(self, path, **kwargs):
             return None
 
         def close(self, **kwargs):

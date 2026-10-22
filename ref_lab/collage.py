@@ -777,7 +777,7 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
                 child["recovered_from_algorithm_version"] = previous_version
             elif history is not None:
                 try:
-                    match = history.consider(target)
+                    match = history.consider(target, exclude={parent_sha})
                 except (OSError, ValueError) as exc:
                     match = {"state": "needs_review", "duplicate_of": "", "reason": "history_error:" + type(exc).__name__}
                 if match:

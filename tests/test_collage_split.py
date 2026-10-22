@@ -148,7 +148,7 @@ def test_child_that_matches_history_is_not_counted_as_usable(tmp_path):
     class History:
         def __init__(self):
             self.seen = []
-        def consider(self, path):
+        def consider(self, path, **kwargs):
             self.seen.append(path)
             return {"duplicate_of": "b" * 64, "reason": "same_bytes"}
 
