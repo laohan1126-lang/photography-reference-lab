@@ -98,6 +98,11 @@ class PhotoTypeWorker:
         if self.blocked:
             return
         sha = record['parent_sha']
+        from .search_relevance import source_warnings
+        parent = next((row for row in read_json(self.folder/'received.json', [])
+                       if row.get('asset_sha') == sha), {})
+        if source_warnings(parent):
+            return
         if record.get('status') == STATUS_NO_COLLAGE:
             candidates = [(sha, next(iter((self.folder/'images').glob(sha+'.*')), None))]
         else:

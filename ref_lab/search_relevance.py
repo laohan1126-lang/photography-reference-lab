@@ -153,6 +153,16 @@ def is_confirmed(row: dict) -> bool:
         and bool(relevance.get('name_hits')) and not relevance.get('explicit_other_marker'))
 
 
+def source_warnings(row: dict) -> list[str]:
+    """Preserve visible platform warnings separately from author/name evidence."""
+    lines = str(row.get('source_text') or '').splitlines()
+    for evidence in [row.get('relevance'), *(row.get('discovery_evidence_history') or [])]:
+        if isinstance(evidence, dict):
+            lines.extend(evidence.get('source_warnings') or [])
+    return list(dict.fromkeys(line.strip() for line in lines if isinstance(line, str)
+        and re.fullmatch(r'(?:(?:可能)?含|包含)\s*AI\s*生成内容[。.!！]?', line.strip(), re.I)))
+
+
 def confirmed_count(rows: Iterable[dict]) -> int:
     return sum(1 for row in rows if is_confirmed(row))
 
@@ -172,6 +182,9 @@ def associate_detail(card, row, *, names=(), work_terms=(), other_terms=()):
     detail_result = classify_card(detail_evidence, names=names, work_terms=work_terms, other_terms=other_terms)
     result = (detail_result if detail_result['tier'] in {'target_named', 'other_character', 'non_photo'}
               or (detail_result['text_present'] and card_result['tier'] != 'target_named') else card_result)
+    warnings = source_warnings(row)
+    if warnings:
+        result = {**result, 'source_warnings': warnings}
     return {**result, 'card': {'evidence': card_evidence, 'relevance': card_result},
             'detail': {'evidence': detail_evidence, 'relevance': detail_result}}
 

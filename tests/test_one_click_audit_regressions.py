@@ -464,3 +464,63 @@ def test_goal_reaches_new_note_image_after_three_historical_images(tmp_path):
     history=ImageHistory([Path(r['original_path']) for r in rows[:3]])
     summary,_=collector.collect(job,Agent(),Browser(),tmp_path,search_only=True,history=history)
     assert summary['counts']['found']==1 and summary['counts']['duplicates']==3
+
+
+@pytest.mark.parametrize('as_tile',[False,True])
+def test_platform_ai_warning_blocks_count_even_with_native_photo_receipt(tmp_path,as_tile):
+    from tests.photo_type_fixture import synthetic_type
+    from ref_lab.collection_counts import compute
+    row=_write_original(tmp_path,_textured((800,600),88,(70,90,110)))
+    row.update(relevance={'tier':'target_named'},source_text='可能含AI生成内容\n1/4\n角色甲 cos 摄影')
+    record=collage.process_original(tmp_path,row)
+    synthetic_type(tmp_path,row)
+    if as_tile:
+        child=tmp_path/'derived'/('a'*64)/Path(row['original_path']).name
+        child.parent.mkdir(parents=True);child.write_bytes(Path(row['original_path']).read_bytes())
+        record.update(status=collage.STATUS_SPLIT_OK,children=[{'parent_sha':row['asset_sha'],'child_sha':row['asset_sha'],'path':str(child),'status':collage.VALID}])
+    result=compute(tmp_path,[row],{row['asset_sha']:record})
+    assert result['usable_named']==result['usable_independent']==0
+    assert result['source_pending']==1 and result['awaiting_manual']==1
+
+
+def test_platform_ai_warning_does_not_dispatch_type_model(tmp_path):
+    row=_write_original(tmp_path,_textured((800,600),89,(70,90,110)))
+    row['source_text']='可能含AI生成内容\n作者正文';(tmp_path/'received.json').write_text(json.dumps([row]),'utf8')
+    class Analyzer:
+        producer_name='synthetic'
+        def classify(self,*args):pytest.fail('Unresolved platform warning cannot spend a type-only model attempt')
+    worker=photo_types.PhotoTypeWorker(tmp_path,analyzer=Analyzer())
+    try:worker._process({'parent_sha':row['asset_sha'],'status':collage.STATUS_NO_COLLAGE})
+    finally:worker.close(timeout=0)
+    assert not (tmp_path/'photo-types.json').exists()
+
+
+def test_platform_warning_is_separate_from_name_and_survives_later_discovery():
+    from ref_lab.search_relevance import associate_detail,is_confirmed,source_warnings
+    row={'source_text':'可能含AI生成内容\n作者甲\n角色甲 cosplay',
+         'author_detail':{'title':'角色甲 cosplay','description':'摄影 作者甲'}}
+    result=associate_detail({},row,names=['角色甲'])
+    assert is_confirmed({'relevance':result})
+    assert result['source_warnings']==['可能含AI生成内容']
+    assert source_warnings({'source_text':'新来源标题','relevance':{'tier':'target_named'},
+                            'discovery_evidence_history':[result]})==['可能含AI生成内容']
+    assert source_warnings({'source_text':'讨论AI生成内容\n不是AI生成\n可能含AI生成内容的提示是否准确？'})==[]
+
+
+def test_later_parent_warning_blocks_an_already_seen_shared_tile(tmp_path):
+    from tests.photo_type_fixture import synthetic_type
+    from ref_lab.collection_counts import compute
+    a=_write_original(tmp_path,_textured((800,600),90,(70,90,110)),name='a.png')
+    b=_write_original(tmp_path,_textured((800,600),91,(70,90,110)),name='b.png')
+    for row in (a,b):row['relevance']={'tier':'target_named'}
+    b['source_text']='可能含AI生成内容\n作者正文'
+    child=tmp_path/'derived'/a['asset_sha']/Path(a['original_path']).name
+    child.parent.mkdir(parents=True);child.write_bytes(Path(a['original_path']).read_bytes())
+    records={}
+    for row,status in [(a,collage.VALID),(b,collage.DUPLICATE_RUN)]:
+        record=collage.process_original(tmp_path,row)
+        record.update(status=collage.STATUS_SPLIT_OK,children=[{'parent_sha':row['asset_sha'],'child_sha':a['asset_sha'],'path':str(child),'status':status}])
+        records[row['asset_sha']]=record
+    synthetic_type(tmp_path,a)
+    counts=compute(tmp_path,[a,b],records)
+    assert counts['source_pending']==1 and counts['usable_named']==0

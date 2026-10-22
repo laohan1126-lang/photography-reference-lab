@@ -33,7 +33,7 @@ from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
 from ref_lab.collection_checkpoint import load_checkpoint,original_bytes,coverage,read_json,rule_contract,job_binding
 from ref_lab.search_relevance import (classify_card, confirmed_count, exploration_count,
-                                      exploration_limit, is_confirmed, relevance_counts)
+                                      exploration_limit, is_confirmed, relevance_counts, source_warnings)
 from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
 from tools.exact_recall import assess_search,capture_note,save
 from ref_lab.browser_recovery import (
@@ -834,7 +834,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             try:
                 stat=(folder/filename).stat();stamps.append((stat.st_size,stat.st_mtime_ns))
             except OSError:stamps.append((0,0))
-        key=(len(received),tuple(stamps),tuple(is_confirmed(r) for r in received))
+        key=(len(received),tuple(stamps),tuple((is_confirmed(r),bool(source_warnings(r))) for r in received))
         if force or canonical_cache['key']!=key or canonical_cache['value'] is None:
             canonical_cache['value']=compute(folder,received,DerivedStore(folder).items())
             canonical_cache['key']=key

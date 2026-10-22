@@ -413,3 +413,23 @@ ref_lab/collage.py
 - 此采集修改不改FP3匹配语义或原生分类协议；诊断证明的对应未变路径可复用，但新采样范围须由后续最终版本正式两轮实跑覆盖，不能倒写56bba67已经通过完整Goal。
 
 - 第三检查点compileall、node --check web/app.js、git diff --check均退出0。诊断browser export因自有会话lgpc已失效返回not_found，未能保存完整debug录制；既有点击/POST/逐15秒状态/模型原始回执/成果解码日志保留，不声称完整浏览器流。重新部署前官方backup首次错误带了全局--data-dir参数，argparse拒绝且无写入；改回此前验证的官方backup命令执行，原失败日志保留。
+
+### 最终版本aa3c904冻结与新正式R1
+
+- aa3c9044737e8ca5d437aa674be5120e294300ee已推送任务分支，远端同SHA。官方1401资产备份/隔离恢复通过，ZIP SHA cef9dbe8169f99c2cbf99b7bde8e9df4ebdf523b8a08a6e3f88a3cc17a14a085；0缺失/损坏、72既有FK保持。正常脚本停止12128，独立确认PID/record/health消失，再正常脚本冷启动PID42200，源码/adapter同checkout/revision/digest7e39b0ea370b0da748ce4753d37f3bf377719f3d06f19f4d2c0ec597e6a18977；1401资产/1161引用/3840事件保持。新日用分支codex/one-click-runtime-v3-20261022，291个当前无关原文件字节保全（较前292少1是本次明确更新README）。
+- frozen-final-v3.json于2026-10-22T04:55:34.839254Z保存实际实现SHA、配置、项目/可信别名与所有预算。2700秒/60尝试/worker1/candidate90/query24/detail96/note12/FP3/collage3。全局最多4正式Job，已有1失败、诊断1已用；不增加资源。
+- 自有新观察会话yxxo，debug d82b16677176b在导航前启动；正常网页西木野/目标30/search、其它字段空、可见2700/60；唯一点击记录formal2-click.json。新版本正式R1在等待自动创建，不混入旧失败或诊断成果，Goal仍未通过。
+
+### 新正式R1准入疑点（不得通过）
+
+- formal2 Job e992f833c92945bc851af5f54e9f65fa，正常点击2026-10-22T04:56:43附近，网页POST201耗22.277秒、自动start POST200，同attempt。基线1561份/FP3，实核包含旧失败21原件和诊断5原件，所有字节未排除。
+- 根Agent实际打开2859d9ad…，可见圆形底座上的棚拍式人物；source_text首行明确“可能含AI生成内容”。原生模型给cosplay_photo，但未解释此来源警示。associate_detail只选作者正文，未传递平台可见警示到准入。不能据此断言已证实AI生成，也不能将来源未决的图片当已验证真人摄影。formal2-ai-warning-finding.json保存原行/来源/原始模型分类；此轮即使自动达到30亦不接受为正式PASS，后续只观察自行结束，不修改计数/状态。
+- 将先补最小反例，再在隔离树复用现有来源/计数与worker机制：平台完整独立行的AI警示保持待核验，保留名称元数据/原件，不把评论或普通AI话题统统当AI图。不追加诊断Job。正式总上限4轮不变，当前第二个正式Job已用，剩余至多两轮，必须最终同版本两轮均过；不提高2700秒/60尝试上限。
+
+- aiwarningbase：原件与子图两项确实错误计1；第三项fixture缺producer_name，已纠正并单独aiworkerbase确认旧代码仍生成错误模型尝试账本（failed）。修复新增source_warnings读取完整独立警示行、保留在关联/发现轨迹；名称命中保持元数据，counts单列source_pending且排除父子图准入，worker不为未决来源派发type-only模型。canonical缓存同时绑定警示状态，后续同SHA的警示不得被只更新名称遮掉。
+- 首次关联验证命令误写不存在的test_photo_classification.py，pytest collection退出4未跑测试；第二条helper标签含连字符被assert拒绝未运行；已分别纠正文件名及标签重跑，不将这两条当测试通过。
+
+- aiwarningfix2关联99 passed /57.96s；新增共享子图边界首次44 passed/1 failed /42.97s，fixture默认parent.png导致第二张合成原件覆盖第一张，完整性保护正确报original_sha_changed。改用a.png/b.png独立文件，正重跑包含全部审计反例/Goal/收尾/继续的相关集。产品不降低原件完整性校验；此前99项结果不冒充后来新边界已经通过。
+
+- aiwarningshared2：83 passed /57.72s，包含所有审计反例、原件/子图、后出现的共享子图来源警示、Goal、收尾与主动继续。此前名称/分类99项通过。compileall与git diff --check退出0。警示只匹配完整独立平台提示行，普通AI话题与否定句不一律拒绝；不声称有完整AI图像检测能力。新语义独立于FP3，因此不修改图像指纹算法版本。
+- 当前日用aa3c904 formal2仍自动运行，05:15观察36原件/28旧准入；新修复未部署，不能倒写正在执行的版本已获修复。准备第四工程提交，明确Goal仍未完成。

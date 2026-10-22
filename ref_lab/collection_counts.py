@@ -76,7 +76,7 @@ def compute(folder, rows, records, *, named=None) -> dict:
     by parent SHA. File integrity results are cached by size/mtime, so this can be
     called from a one-second polling loop without re-reading every image.
     """
-    from .search_relevance import is_confirmed
+    from .search_relevance import is_confirmed, source_warnings
     folder = Path(folder)
     from .collection_checkpoint import read_json
     from .photo_types import verified_photo, receipt_intact
@@ -96,6 +96,7 @@ def compute(folder, rows, records, *, named=None) -> dict:
         "outdated_records": 0, "unprocessed": 0, "integrity_failures": 0,
         "independent_candidates": 0, "named_candidates": 0, "type_pending": 0,
         "type_rejected": 0, "goal_excluded": 0,
+        "source_pending": 0,
     }
     records = records if isinstance(records, dict) else {}
     # Photo uniqueness and name-hit discovery are aggregated separately, then
@@ -108,6 +109,7 @@ def compute(folder, rows, records, *, named=None) -> dict:
     old_parents: set[str] = set()
     named_associations: set[str] = set()
     valid_tiles: set[str] = set()
+    source_pending: set[str] = set()
     seen_originals: set[str] = set()
     for row in rows or ():
         if not isinstance(row, dict):
@@ -136,7 +138,10 @@ def compute(folder, rows, records, *, named=None) -> dict:
         elif tier in {"other_character", "non_photo"}:
             counts[tier] += 1
 
-        unresolved = not named_row
+        warning = bool(source_warnings(row))
+        if warning:
+            source_pending.add(sha)
+        unresolved = not named_row or warning
         record = records.get(sha)
         if not _original_ok(folder, row):
             counts["integrity_failures"] += 1
@@ -156,6 +161,8 @@ def compute(folder, rows, records, *, named=None) -> dict:
             counts["integrity_failures"] += 1
             unresolved = True
         children = [child for child in (record.get("children") or []) if isinstance(child, dict)]
+        if warning:
+            source_pending.update(child.get('child_sha') for child in children)
         counts["derived_total"] += len(children)
         good = [child for child in children
                 if child.get("status") == collage.VALID and _child_ok(folder, child, sha)]
@@ -223,6 +230,8 @@ def compute(folder, rows, records, *, named=None) -> dict:
             excluded.update(c.get('child_sha') for c in records.get(row['asset_sha'], {}).get('children', []))
     counts['goal_excluded'] = len(usable & excluded)
     usable -= excluded
+    counts['source_pending'] = len(usable & source_pending)
+    usable -= source_pending
     counts['type_pending'] = sum(not classifications.get(sha) or
         classifications[sha].get('status') != 'succeeded' or
         classifications[sha].get('result', {}).get('kind') == 'unknown' for sha in usable)
