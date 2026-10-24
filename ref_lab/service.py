@@ -1084,8 +1084,8 @@ class Library:
                 names.extend(request.search_aliases)
         names = [n for n in dict.fromkeys(names) if n]
 
-        from .collection_history import (FINGERPRINT_ALGORITHM_VERSION,
-                                         ImageHistory, collect_history_scope)
+        from .collection_history import (DEDUP_SCOPE_VERSION, FINGERPRINT_ALGORITHM_VERSION,
+                                         ImageHistory, collect_history_scope, scoped_cache_path)
         root = Path(__file__).resolve().parents[1]
         history_roots = [Path(path) for path in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS', '[]'))]
         try:
@@ -1101,7 +1101,7 @@ class Library:
             raise Problem(409, '历史图片或保留件校验失败；历史排重基线不完整，未建立Goal。',
                           {'code':'history_integrity_blocked'}) from exc
         try:
-            history = ImageHistory(sorted(paths), cache_path=root/'.local/history-fingerprints.json',
+            history = ImageHistory(sorted(paths), cache_path=scoped_cache_path(root/'.local/history-fingerprints.json', project['id']),
                                    library_keepers=scope.library_keepers)
         except (OSError, ValueError) as exc:
             raise Problem(409, '历史图片指纹未完整建立；未建立Goal') from exc
@@ -1121,6 +1121,8 @@ class Library:
             "target": target,
             "started_at": started_at,
             "items": items,
+            "project_id": project["id"],
+            "dedup_scope_version": DEDUP_SCOPE_VERSION,
             "fingerprint_algorithm_version": FINGERPRINT_ALGORITHM_VERSION
         }
         baseline_bytes = json.dumps(baseline, ensure_ascii=False).encode("utf8")
@@ -1136,6 +1138,8 @@ class Library:
             "started_at": started_at,
             "names": names,
             "work": project.get("work", ""),
+            "project_id": project["id"],
+            "dedup_scope_version": DEDUP_SCOPE_VERSION,
             "baseline_sha": baseline_sha,
             "baseline_shas": unique_shas
         }
@@ -1190,6 +1194,7 @@ class Library:
                    "imported_ids": [], "completed_ids": [], "created_at": now(), "updated_at": now()}
             if request.kind == "collection":
                 if request.goal_id:
+                    from .collection_history import DEDUP_SCOPE_VERSION
                     goal_path = Path(__file__).resolve().parents[1]/'.local/goals'/request.goal_id/'goal.json'
                     if not goal_path.is_file() or goal_path.is_symlink():
                         raise Problem(422, "持续目标不存在；请先建立历史基线")
@@ -1198,6 +1203,13 @@ class Library:
                             or project['character'] not in goal.get('names', [])
                             or project.get('work', '') != goal.get('work', '')):
                         raise Problem(422, "本项目名称、作品或目标数与持续目标不一致")
+                    if (goal.get('project_id') != project_id
+                            or goal.get('dedup_scope_version') != DEDUP_SCOPE_VERSION):
+                        # An unbound baseline predates the project duplicate
+                        # boundary; continuing it would silently restore a
+                        # whole-library scope. Old results stay readable.
+                        raise Problem(422, "持续目标未绑定本项目的查重范围或范围版本过期；不能续跑，请新建Goal",
+                                      {'code': 'goal_scope_binding_invalid'})
                     job['goal_id'] = request.goal_id
                 else:
                     setup_started = time.monotonic()

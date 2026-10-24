@@ -2908,7 +2908,12 @@ def _history_for_search(folder, project_id):
     if goal:
         from ref_lab.collection_history import goal_baseline
         baseline=goal_baseline(folder,goal)
-    history=ImageHistory(scope.paths,cache_path=ROOT/'.local/history-fingerprints.json',
+    from ref_lab.collection_history import scoped_cache_path
+    # The perceptual fingerprint cache belongs to this project's scope: an
+    # empty project reads no library-wide cache, and other projects' growth
+    # never enlarges it. The legacy shared cache file is left untouched.
+    history=ImageHistory(scope.paths,
+                         cache_path=scoped_cache_path(ROOT/'.local/history-fingerprints.json',project_id),
                          lazy=not bool(goal),library_keepers=scope.library_keepers)
     history.discovery_roots=history_roots
     history.skipped_runs=skipped_history
@@ -2990,10 +2995,18 @@ def main():
                 history=_history_for_search(folder,project_id)
             except (AgentUnavailable,OSError,ValueError,KeyError) as exc:
                 from ref_lab.collection_stages import _summary_blocked
+                from ref_lab.collection_history import BaselineNeedsUpgrade
                 category=getattr(exc,'category','history_index_unavailable')
-                detail=('历史原件缺失且无可验证保留件；排重基线不完整，未启动浏览器或模型。'
-                        if category=='history_integrity_blocked'
-                        else '历史基线或索引无法验证；未启动浏览器或模型：'+type(exc).__name__)
+                if isinstance(exc,BaselineNeedsUpgrade):
+                    # An unbound or outdated goal baseline predates the
+                    # project duplicate boundary: continuing it would silently
+                    # restore a whole-library scope. Say so and stop.
+                    category='goal_scope_binding_invalid'
+                    detail='Goal基线未绑定项目查重范围或范围版本过期；不能按新规则续跑，请新建Goal。旧成果与回执仍可查看。'
+                elif category=='history_integrity_blocked':
+                    detail='历史原件缺失且无可验证保留件；排重基线不完整，未启动浏览器或模型。'
+                else:
+                    detail='历史基线或索引无法验证；未启动浏览器或模型：'+type(exc).__name__
                 _summary_blocked(job['id'],category,detail,
                                  target=int(job.get('target_count') or 0),
                                  found=len(collection_queue._received_rows(folder)))
@@ -3040,7 +3053,9 @@ def main():
                 history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
                 try:
                     scope=_validated_history_scope(ROOT,folder,_job_project_id(job),history_roots=history_roots)
-                    history=ImageHistory(scope.paths,cache_path=ROOT/'.local/history-fingerprints.json',
+                    from ref_lab.collection_history import scoped_cache_path
+                    history=ImageHistory(scope.paths,
+                                         cache_path=scoped_cache_path(ROOT/'.local/history-fingerprints.json',_job_project_id(job)),
                                          library_keepers=scope.library_keepers)
                 except HistoryIntegrityBlocked as exc:
                     # The review may not run on an unproven history: the
@@ -3135,7 +3150,9 @@ def main():
             with agent.timing.span('history_index'):
                 try:
                     scope=_validated_history_scope(ROOT,folder,_job_project_id(job),history_roots=history_roots)
-                    history=ImageHistory(scope.paths,cache_path=ROOT/'.local/history-fingerprints.json',
+                    from ref_lab.collection_history import scoped_cache_path
+                    history=ImageHistory(scope.paths,
+                                         cache_path=scoped_cache_path(ROOT/'.local/history-fingerprints.json',_job_project_id(job)),
                                          library_keepers=scope.library_keepers)
                 except HistoryIntegrityBlocked as exc:
                     save(folder/'history-index.json',{'ready':False,'history_errors':[

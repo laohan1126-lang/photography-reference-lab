@@ -255,11 +255,14 @@ def test_goal_count_drop_after_target_observation_is_not_reported_as_success(tmp
     from tests.test_collect_repeat_association import _Browser,_raw
     from tests.test_browserskill_recovery import SyntheticAgent,_job
     monkeypatch.setattr(worker,'ROOT',tmp_path)
-    baseline={'goal_id':'synthetic-goal','fingerprint_algorithm_version':history_module.FINGERPRINT_ALGORITHM_VERSION,'items':[]}
+    from ref_lab.collection_history import DEDUP_SCOPE_VERSION
+    baseline={'goal_id':'synthetic-goal','fingerprint_algorithm_version':history_module.FINGERPRINT_ALGORITHM_VERSION,
+              'project_id':'synthetic-project','dedup_scope_version':DEDUP_SCOPE_VERSION,'items':[]}
     raw_baseline=json.dumps(baseline).encode();baseline_sha=hashlib.sha256(raw_baseline).hexdigest()
     (tmp_path/'baseline.json').write_bytes(raw_baseline)
     (tmp_path/'goal.json').write_text(json.dumps({'goal_id':'synthetic-goal','baseline_sha':baseline_sha,
-        'baseline_shas':[],'started_at':0.,'target':1}),'utf8')
+        'baseline_shas':[],'started_at':0.,'target':1,'project_id':'synthetic-project',
+        'dedup_scope_version':DEDUP_SCOPE_VERSION}),'utf8')
     class Types:
         def __init__(self,*a,**k):self.pending=SimpleNamespace(unfinished_tasks=0);self.blocked=False
         def enqueue(self,record):

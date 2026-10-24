@@ -26,6 +26,7 @@ from ref_lab.collection_checkpoint import rule_contract
 from tools import collect_verified as worker
 
 PROJECT = {"character": "西木野真姬", "work": "Love Live!", "costume": "", "brief": ""}
+PROJECT_ID = "continue-regression-project"
 JOB_ID = "continue-regression"
 
 
@@ -101,7 +102,10 @@ class Agent:
 
 
 def _job(extra: int = 0, target: int = 4) -> dict:
-    return {"id": JOB_ID, "project_snapshot": PROJECT, "target_count": target,
+    # Collection jobs carry a verifiable project identity; the duplicate
+    # history scope refuses whole-library fallbacks without one.
+    return {"id": JOB_ID, "project_id": PROJECT_ID,
+            "project_snapshot": {**PROJECT, "id": PROJECT_ID}, "target_count": target,
             "preferred_sources": ["pinterest"], "notes": "", "search_extra_target": extra}
 
 
@@ -222,7 +226,7 @@ def test_search_only_cli_continues_instead_of_exiting_on_the_old_summary(tmp_pat
     monkeypatch.setattr(worker, "ROOT", root)
     monkeypatch.setattr(worker, "AntigravityCollectionAgent", CliAgent)
     monkeypatch.setattr(worker, "Browser", lambda folder: browser)
-    monkeypatch.setattr(worker, "_history_for_search", lambda folder: History())
+    monkeypatch.setattr(worker, "_history_for_search", lambda folder, project_id: History())
     monkeypatch.setattr(worker, "_write_run_info", lambda *args, **kwargs: None)
     monkeypatch.setattr(worker.sys, "argv", ["collect_verified.py", str(root / "task" / "AGENT_TASK.md"),
                                              str(run / "result.zip"), "--search-only"])

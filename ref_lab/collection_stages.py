@@ -41,7 +41,9 @@ def _artifacts(library: Library, job_id: str) -> tuple[Path, Path, Path]:
     task_file = task_dir / "AGENT_TASK.md"
     with _ARTIFACT_LOCK:
         _prepare_task(library, job_id, task_dir, task_file)
-        goal_id = library.job(job_id).get('goal_id')
+        current_job = library.job(job_id)
+        goal_id = current_job.get('goal_id')
+        job_project_id = current_job.get('project_id')
         if goal_id:
             source = collection_queue.ROOT/'.local/goals'/goal_id/'goal.json'
             goal = json.loads(source.read_text('utf8'))
@@ -50,19 +52,24 @@ def _artifacts(library: Library, job_id: str) -> tuple[Path, Path, Path]:
                 raise Problem(409, 'Goal历史基线完整性失败；未启动')
             from .storage import atomic_write
             atomic_write(folder/'baseline.json', baseline)
-            from .collection_history import BaselineNeedsUpgrade, goal_baseline
+            from .collection_history import BaselineNeedsUpgrade, DEDUP_SCOPE_VERSION, goal_baseline
             try:
                 goal_baseline(folder, goal)
             except BaselineNeedsUpgrade as exc:
-                # A baseline frozen under older matching rules cannot admit an
-                # image under the current ones. Say so instead of failing the
+                # A baseline frozen under older matching rules, or one without
+                # a project duplicate-scope binding, cannot admit an image
+                # under the current rules. Say so instead of failing the
                 # request with an internal error: the old results stay
                 # readable, their admission is simply no longer proven.
-                raise Problem(409, 'Goal历史基线的排重算法版本已过期；该Goal的准入结论需要重新核验，未启动。') from exc
+                raise Problem(409, 'Goal历史基线缺少项目查重范围绑定或算法版本已过期；不能按新规则续跑，请新建Goal。旧成果与回执仍可查看。',
+                              {'code': 'goal_scope_binding_invalid'}) from exc
             except ValueError as exc:
                 # Any other baseline failure is a validation failure, not a
                 # routine version upgrade: say what actually went wrong.
                 raise Problem(409, 'Goal历史基线校验失败；该Goal的准入结论不可信，未启动。') from exc
+            if goal.get('project_id') != job_project_id or goal.get('dedup_scope_version') != DEDUP_SCOPE_VERSION:
+                raise Problem(409, 'Goal与本项目查重范围绑定不一致；未启动',
+                              {'code': 'goal_scope_binding_invalid'})
             target = int(library.job(job_id).get('target_count') or 0) + int(library.job(job_id).get('search_extra_target') or 0)
             if goal.get('target') != target:
                 raise Problem(409, 'Goal与数据库目标不一致；未启动')

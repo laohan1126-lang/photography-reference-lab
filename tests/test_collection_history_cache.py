@@ -388,3 +388,117 @@ def test_isolated_adapter_environment_cannot_hide_the_real_library(tmp_path, mon
     monkeypatch.setenv('LAB_COLLECTION_HISTORY_DIR', str(worktree / '.local' / 'ui-data' / 'assets'))
     scope = collect_history_scope(worktree, worktree / '.local' / 'current', 'proj-a', history_roots=[daily])
     assert original.resolve() in {Path(p).resolve() for p in scope.paths}
+
+
+def test_non_current_attempt_directories_of_this_project_are_not_missed(tmp_path):
+    """A prior attempt batch (failed/never imported) below its own job keeps
+    protecting its project, whatever the attempt directory is called."""
+    root = tmp_path
+    job = 'job-a'
+    attempt = root / '.local' / 'collection-runs' / job / 'attempt-001'
+    attempt_photo = photo(attempt / 'images' / 'old-batch.png', (33, 66, 99))
+    received(attempt, attempt_photo)
+    nested = root / '.local' / 'collection-runs' / 'job-b' / 'retry-7' / 'current'
+    nested_photo = photo(nested / 'images' / 'retry.png', (99, 33, 66))
+    received(nested, nested_photo)
+    library_db(root / 'data', jobs=[(job, 'proj-a'), ('job-b', 'proj-a')])
+    scope = collect_history_scope(root, root / '.local' / 'current', 'proj-a')
+    resolved = {Path(p).resolve() for p in scope.paths}
+    assert attempt_photo.resolve() in resolved
+    assert nested_photo.resolve() in resolved
+    assert len(scope.project_run_dirs) == 2
+
+
+def test_corrupt_library_database_blocks_instead_of_empty_history(tmp_path):
+    root = tmp_path
+    (root / 'data').mkdir(parents=True)
+    (root / 'data' / 'library.sqlite3').write_bytes(b'this is not a database')
+    with pytest.raises(collection_history.HistoryIntegrityBlocked, match='cannot be read'):
+        collect_history_scope(root, root / '.local' / 'current', 'proj-a')
+
+
+def test_library_without_required_tables_blocks_instead_of_empty_history(tmp_path):
+    import sqlite3
+    root = tmp_path
+    (root / 'data').mkdir(parents=True)
+    con = sqlite3.connect(root / 'data' / 'library.sqlite3')
+    con.execute('CREATE TABLE other (id TEXT PRIMARY KEY)')
+    con.commit(); con.close()
+    with pytest.raises(collection_history.HistoryIntegrityBlocked, match='required history tables'):
+        collect_history_scope(root, root / '.local' / 'current', 'proj-a')
+
+
+def test_missing_referenced_original_blocks_unless_legitimately_purged(tmp_path):
+    import sqlite3
+    root = tmp_path
+    missing_sha = 'f' * 64
+    library_db(root / 'data', refs=[('proj-a', missing_sha)])
+    # The use relation points at nothing: no record, no bytes, no keeper.
+    with pytest.raises(collection_history.HistoryIntegrityBlocked, match='no asset record'):
+        collect_history_scope(root, root / '.local' / 'current', 'proj-a')
+
+    # A recorded, not-purged asset whose bytes are gone cannot be proven.
+    con = sqlite3.connect(root / 'data' / 'library.sqlite3')
+    con.execute("INSERT INTO assets VALUES(?,?)", (missing_sha, json.dumps({'storage_status': 'active'})))
+    con.commit(); con.close()
+    with pytest.raises(collection_history.HistoryIntegrityBlocked, match='missing without a retained copy'):
+        collect_history_scope(root, root / '.local' / 'current', 'proj-a')
+
+    # A deliberately cleaned asset is absent by design and stays legitimate.
+    con = sqlite3.connect(root / 'data' / 'library.sqlite3')
+    con.execute("UPDATE assets SET data=? WHERE id=?", (json.dumps({'storage_status': 'purged'}), missing_sha))
+    con.commit(); con.close()
+    scope = collect_history_scope(root, root / '.local' / 'current', 'proj-a')
+    assert scope.paths == []
+    assert scope.report['reference_assets_missing'] == 0
+
+
+def test_relative_runtime_data_dir_resolves_against_its_own_checkout(tmp_path, monkeypatch):
+    monkeypatch.delenv('LAB_DATA_DIR', raising=False)
+    monkeypatch.delenv('LAB_COLLECTION_HISTORY_DIR', raising=False)
+    primary = tmp_path / 'primary'
+    secondary = tmp_path / 'secondary'
+    staged = photo(tmp_path / 'staging.png', (10, 60, 200))
+    sha = sha_of(staged)
+    keeper = secondary / 'library' / 'assets' / sha[:2] / sha / 'original.png'
+    keeper.parent.mkdir(parents=True)
+    keeper.write_bytes(staged.read_bytes())
+    # A relative data_dir belongs to the checkout that holds the config file,
+    # not to the current working directory.
+    (secondary / '.local').mkdir(parents=True)
+    (secondary / '.local' / 'windows-runtime.json').write_text(
+        json.dumps({'data_dir': 'library'}), encoding='utf-8-sig')
+    library_db(secondary / 'library', refs=[('proj-a', sha)])
+    monkeypatch.chdir(tmp_path)  # a wrong CWD-relative resolution would break this
+    primary.mkdir(parents=True, exist_ok=True)
+    (primary / '.local').mkdir(exist_ok=True)
+    scope = collect_history_scope(primary, primary / '.local' / 'current', 'proj-a',
+                                  history_roots=[secondary])
+    assert keeper.resolve() in {Path(p).resolve() for p in scope.paths}
+
+
+def test_empty_project_reads_no_library_wide_fingerprint_cache(tmp_path):
+    import io
+    import ref_lab.collection_history as ch
+    base_cache = tmp_path / '.local' / 'history-fingerprints.json'
+    base_cache.parent.mkdir(parents=True)
+    # A shared cache carrying thousands of library fingerprints, as in review.
+    entries = {}
+    for index in range(200):
+        entries[str(tmp_path / f'other-{index}.png')] = {
+            'sha': 'a' * 64, 'size': index, 'mtime_ns': index,
+            'ratio': 1.0, 'dhash': '0' * 16, 'sample': '0' * 384, 'pixels': '0' * 98304}
+    payload = {'schema_version': ch.CACHE_SCHEMA_VERSION,
+               'algorithm_version': ch.FINGERPRINT_ALGORITHM_VERSION, 'files': entries}
+    payload['checksum'] = ch._cache_checksum(payload['files'])
+    base_cache.write_text(json.dumps(payload), encoding='utf8')
+
+    scoped = ch.scoped_cache_path(base_cache, 'empty-project')
+    assert scoped != base_cache and not scoped.exists()
+    history = ch.ImageHistory([], cache_path=scoped)
+    try:
+        assert history.records == {} and not history._cache_files
+    finally:
+        history.close(wait=True, timeout=5)
+    # The shared cache was never read, let alone rewritten.
+    assert json.loads(base_cache.read_text(encoding='utf8'))['files'] == entries

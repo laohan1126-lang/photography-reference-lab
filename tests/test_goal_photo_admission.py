@@ -188,11 +188,15 @@ def test_frozen_goal_history_seeds_sha_after_current_index_is_ready(tmp_path, mo
     root=tmp_path/'root';folder=root/'.local/collection-runs/job/current';folder.mkdir(parents=True)
     baseline_dir=root/'.local/goals/goal';baseline_dir.mkdir(parents=True)
     fp={'asset_sha':'a'*64,'path':str(root/'old.jpg'),'ratio':1.,'dhash':'0'*16,'sample':'0'*384,'pixels':'0'*(128*128*3*2)}
-    from ref_lab.collection_history import FINGERPRINT_ALGORITHM_VERSION
-    baseline={'goal_id':'goal','fingerprint_algorithm_version':FINGERPRINT_ALGORITHM_VERSION,'items':[{'path':str(root/f'copy-{i}.jpg'),'sha':'a'*64,'fingerprint':fp} for i in range(3)]}
+    from ref_lab.collection_history import DEDUP_SCOPE_VERSION, FINGERPRINT_ALGORITHM_VERSION
+    baseline={'goal_id':'goal','fingerprint_algorithm_version':FINGERPRINT_ALGORITHM_VERSION,
+              'project_id':'proj-a','dedup_scope_version':DEDUP_SCOPE_VERSION,
+              'items':[{'path':str(root/f'copy-{i}.jpg'),'sha':'a'*64,'fingerprint':fp} for i in range(3)]}
     raw=json.dumps(baseline).encode();(baseline_dir/'baseline.json').write_bytes(raw)
     (folder/'baseline.json').write_bytes(raw)
-    (folder/'goal.json').write_text(json.dumps({'goal_id':'goal','baseline_sha':hashlib.sha256(raw).hexdigest(),'baseline_shas':['a'*64]}))
+    (folder/'goal.json').write_text(json.dumps({'goal_id':'goal','project_id':'proj-a',
+                                                'dedup_scope_version':DEDUP_SCOPE_VERSION,
+                                                'baseline_sha':hashlib.sha256(raw).hexdigest(),'baseline_shas':['a'*64]}))
     monkeypatch.setattr(worker,'ROOT',root)
     monkeypatch.setattr(worker.subprocess,'check_output',lambda *a,**k:'.git')
     class _EmptyScope:

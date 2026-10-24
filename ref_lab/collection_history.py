@@ -32,6 +32,11 @@ from .preflight import compute_dhash, hamming_distance
 # rules and must be re-checked instead of inherited.
 FINGERPRINT_ALGORITHM_VERSION=5
 CACHE_SCHEMA_VERSION=5
+# Version of the project binding carried by frozen goal baselines. Version 1
+# binds every baseline to exactly one project_id; a baseline without this
+# binding predates the project-scoped duplicate boundary and must never be
+# continued as if it covered the whole library.
+DEDUP_SCOPE_VERSION=1
 _DHASH=re.compile(r"[0-9a-f]{16}\Z")
 _SAMPLE=re.compile(r"[0-9a-f]{384}\Z")
 _SHA=re.compile(r"[0-9a-f]{64}\Z")
@@ -124,31 +129,61 @@ def _runtime_data_dir(root: Path, *, primary: bool) -> Path:
     if primary:
         history_dir = os.environ.get('LAB_COLLECTION_HISTORY_DIR')
         if history_dir:
-            return Path(history_dir).resolve().parent
+            # The collector is given the real asset store; the library that
+            # owns it is one level up.
+            return _resolve_data_dir(history_dir, root).parent
         configured = os.environ.get('LAB_DATA_DIR')
         if configured:
-            return Path(configured)
+            return _resolve_data_dir(configured, root)
     config = local / 'windows-runtime.json'
     if _is_link_or_junction(config):
         raise ValueError('History runtime configuration cannot be a link')
     if config.exists():
-        return Path(json.loads(config.read_text('utf-8-sig'))['data_dir'])
+        return _resolve_data_dir(json.loads(config.read_text('utf-8-sig'))['data_dir'], root)
     return root / 'data'
 
 
+def _resolve_data_dir(value, owner_root: Path) -> Path:
+    """Resolve a configured data directory relative to its own checkout.
+
+    A relative ``data_dir`` in ``windows-runtime.json`` belongs to the checkout
+    that holds the configuration file, not to the current working directory;
+    the primary checkout's environment variables resolve against that root for
+    the same reason.
+    """
+    path = Path(value)
+    if not path.is_absolute():
+        path = owner_root / path
+    return path
+
+
 def _read_only_library(data_dir: Path):
-    """A read-only connection to one checkout's library, or None when absent."""
+    """A read-only connection to one checkout's library.
+
+    Returns None only when the library genuinely does not exist (a new
+    checkout with no history). A database that exists but cannot be opened,
+    or whose required tables are missing, is an integrity failure: history
+    cannot be proven complete, so the caller must block instead of treating
+    the project as empty.
+    """
     if not isinstance(data_dir, Path):
         return None
     db = data_dir / 'library.sqlite3'
-    if not db.is_file() or db.is_symlink():
+    if not db.is_file():
         return None
+    if db.is_symlink():
+        raise HistoryIntegrityBlocked(f'Library database is a link; history cannot be verified: {db}')
     try:
         con = sqlite3.connect(db.resolve().as_uri() + '?mode=ro', uri=True)
-        con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='jobs'").fetchone()
+        missing = con.execute("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('jobs','refs','assets')").fetchall()
+        if len(missing) < 3:
+            con.close()
+            raise HistoryIntegrityBlocked(
+                f'Library database is missing required history tables; cannot prove history completeness: {db}')
         return con
-    except (sqlite3.Error, OSError, ValueError):
-        return None
+    except sqlite3.Error as exc:
+        raise HistoryIntegrityBlocked(
+            f'Library database cannot be read; refusing an unprovable empty history: {db} ({type(exc).__name__})') from exc
 
 
 def _collection_job_owners(data_dir: Path) -> dict[str, str]:
@@ -158,8 +193,9 @@ def _collection_job_owners(data_dir: Path) -> dict[str, str]:
         return {}
     try:
         rows = con.execute("SELECT id, project_id FROM jobs WHERE kind='collection'").fetchall()
-    except sqlite3.Error:
-        return {}
+    except sqlite3.Error as exc:
+        raise HistoryIntegrityBlocked(
+            f'Collection job attribution query failed; history completeness is unproven: {data_dir} ({type(exc).__name__})') from exc
     finally:
         con.close()
     return {str(job_id): str(project_id) for job_id, project_id in rows
@@ -175,8 +211,9 @@ def _project_reference_shas(data_dir: Path, project_id: str) -> set[str]:
         rows = con.execute(
             "SELECT asset_sha, data FROM refs WHERE project_id=? AND asset_sha IS NOT NULL",
             (project_id,)).fetchall()
-    except sqlite3.Error:
-        return set()
+    except sqlite3.Error as exc:
+        raise HistoryIntegrityBlocked(
+            f'Project reference query failed; history completeness is unproven: {data_dir} ({type(exc).__name__})') from exc
     finally:
         con.close()
     shas = set()
@@ -193,45 +230,92 @@ def _project_reference_shas(data_dir: Path, project_id: str) -> set[str]:
     return shas
 
 
+def _purged_asset_shas(data_dir: Path, shas: set[str]) -> set[str]:
+    """Shas whose bytes were deliberately cleaned; their absence is legitimate.
+
+    Only consulted for referenced originals that no verifiable file stands
+    for. A missing asset row for such a sha is itself an integrity failure:
+    the use relation points at nothing that can be proven or cleaned.
+    """
+    if not shas:
+        return set()
+    con = _read_only_library(data_dir)
+    if con is None:
+        return set()
+    purged = set()
+    try:
+        for sha in sorted(shas):
+            row = con.execute("SELECT data FROM assets WHERE id=?", (sha,)).fetchone()
+            if row is None:
+                raise HistoryIntegrityBlocked(
+                    f'Project references an asset with no asset record and no verifiable bytes; '
+                    f'history is incomplete: {sha}')
+            try:
+                record = json.loads(row[0]) if isinstance(row[0], (str, bytes)) else {}
+            except ValueError as exc:
+                raise HistoryIntegrityBlocked(
+                    f'Asset record is unreadable; history is incomplete: {sha}') from exc
+            if isinstance(record, dict) and record.get('storage_status') == 'purged':
+                purged.add(sha)
+    except sqlite3.Error as exc:
+        raise HistoryIntegrityBlocked(
+            f'Asset status query failed; history completeness is unproven: {data_dir} ({type(exc).__name__})') from exc
+    finally:
+        con.close()
+    return purged
+
+
 def _run_bases(root: Path, job_owners: dict[str, str]):
     """Bounded run discovery: attributed runs by job id, unattributed reported.
 
     Only ``collection-runs/<job_id>/`` and ``backups/<...>/<job_id>/`` shapes
-    are ever read, and each is attributed through a library database. There is
-    no recursive walk of ``.local`` and no directory-name heuristic: synthetic
-    test, QA or probe directories (no job row) can never enter the real history
-    scope, and nothing is deleted from them.
+    are ever read, and each is attributed through a library database. Every
+    attempt directory of an attributed job counts: the durable ``current``
+    run plus any non-current attempt batch (failed, never imported or
+    archived), whatever its directory name. There is no recursive walk of
+    ``.local`` and no directory-name heuristic: synthetic test, QA or probe
+    directories (no job row) can never enter the real history scope, and
+    nothing is deleted from them.
     """
     local = root / '.local'
     if _is_link_or_junction(local):
         raise ValueError('History root local directory cannot be a link')
     attributed: list[tuple[Path, str]] = []
     unattributed: list[dict] = []
+
+    def run_bases(job_dir: Path):
+        """Every bounded attempt shape below one job directory."""
+        bases = []
+        for candidate in (job_dir / 'current',
+                          *[base.parent for base in sorted(job_dir.glob('*/*/received.json'))],
+                          *[base.parent for base in sorted(job_dir.glob('*/received.json'))],
+                          job_dir):
+            if (candidate / 'received.json').is_file() or (candidate / 'images').is_dir():
+                bases.append(candidate)
+        return list(dict.fromkeys(bases))
+
     runs_dir = local / 'collection-runs'
     if runs_dir.is_dir() and not _is_link_or_junction(runs_dir):
         for entry in sorted(runs_dir.iterdir()):
             if _is_link_or_junction(entry) or not entry.is_dir():
                 continue
             owner = job_owners.get(entry.name)
-            bases = [entry / 'current', *sorted(
-                base.parent for base in entry.glob('*') if base.name != 'current'
-                and (base / 'received.json').is_file())]
-            if (entry / 'received.json').is_file():
-                bases.append(entry)
-            for base in bases:
-                if not ((base / 'received.json').is_file() or (base / 'images').is_dir()):
-                    continue
+            for base in run_bases(entry):
                 if owner:
                     attributed.append((base, owner))
                 else:
                     unattributed.append(base)
     backups = local / 'backups'
     if backups.is_dir() and not _is_link_or_junction(backups):
-        for base in sorted(backups.glob('*/*/*/received.json')):
-            base = base.parent
+        for received in sorted(backups.glob('*/*/*/received.json')) + sorted(backups.glob('*/*/received.json')):
+            base = received.parent
             if _is_link_or_junction(base):
                 continue
-            owner = job_owners.get(base.parent.name)
+            # depth-3 shape .../<snapshot>/<job>/current/received.json vs the
+            # shallower .../<snapshot>/<job>/received.json: the job directory
+            # differs and so does the owner lookup.
+            job_dir = base.parent if base.name == 'current' else base
+            owner = job_owners.get(job_dir.name)
             if owner:
                 attributed.append((base, owner))
             else:
@@ -281,6 +365,24 @@ def _run_exact_names(base: Path) -> dict[str, str]:
     return names
 
 
+def _verified_bytes(keepers: dict, library_keepers: dict, sha: str):
+    """The retained copy of ``sha`` whose bytes provably match, or None."""
+    for source in (keepers, library_keepers):
+        path = source.get(sha)
+        if not path:
+            continue
+        path = Path(path)
+        try:
+            if not path.is_file() or path.is_symlink():
+                continue
+            if hashlib.sha256(path.read_bytes()).hexdigest() != sha:
+                raise ValueError(f'Historical asset SHA changed: {path}')
+        except OSError:
+            continue
+        return path
+    return None
+
+
 def collect_history_scope(root, current, project_id, history_roots=(), skipped=None,
                           unattributed=None) -> HistoryScope:
     """Build one project's verified duplicate scope and the library exact index.
@@ -315,7 +417,8 @@ def collect_history_scope(root, current, project_id, history_roots=(), skipped=N
             roots.append(candidate)
     boundaries = [(candidate / '.local').resolve() for candidate in roots]
     data_dir = _runtime_data_dir(root, primary=True)
-    originals = Path(os.environ.get('LAB_COLLECTION_HISTORY_DIR') or data_dir / 'assets')
+    originals = _resolve_data_dir(
+        os.environ.get('LAB_COLLECTION_HISTORY_DIR') or data_dir / 'assets', root)
     # One index of the canonical retained copies across every authorized asset
     # store. Names are content-addressed by ingestion; the bytes of a keeper are
     # re-verified before it stands in for anything or is reused.
@@ -426,32 +529,54 @@ def collect_history_scope(root, current, project_id, history_roots=(), skipped=N
             if unattributed is not None:
                 unattributed.append(entry)
 
-    # This project's referenced assets join the perceptual scope from their
-    # retained canonical copies; a copy whose bytes no longer match its
-    # content address blocks the scope instead of quietly shrinking it.
-    reference_shas = _project_reference_shas(data_dir, project_id)
-    reference_in_scope = 0
-    for sha in sorted(reference_shas):
-        keeper = keepers.get(sha)
-        if keeper is None or not keeper.is_file() or keeper.is_symlink():
-            continue
-        if hashlib.sha256(keeper.read_bytes()).hexdigest() != sha:
-            raise ValueError(f'Historical asset SHA changed: {keeper}')
-        paths.add(keeper)
-        reference_in_scope += 1
-
     # Whole-library exact index: retained asset copies plus every attributed
     # run's received originals. Unattributed runs are reported, never indexed.
+    # Built before the reference check so a referenced original that lives only
+    # in a verified run directory is found there.
     for sha, path in keepers.items():
         scope.library_keepers.setdefault(sha, str(path))
     for base, owner in scope.attributed_runs.items():
         for sha, path in _run_exact_names(Path(base)).items():
             scope.library_keepers.setdefault(sha, path)
+
+    # This project's referenced assets join the perceptual scope from their
+    # retained canonical copies. References are gathered from every authorized
+    # root's own library: each root attributes its history through its
+    # checkout. A missing original blocks the scope unless the asset was
+    # deliberately cleaned; a copy whose bytes no longer match its content
+    # address blocks as well: the scope must stay provably complete instead
+    # of quietly shrinking.
+    root_data_dirs = [data_dir if history_root == roots[0] else _runtime_data_dir(history_root, primary=False)
+                      for history_root in roots]
+    reference_shas: set[str] = set()
+    for root_data in root_data_dirs:
+        reference_shas |= _project_reference_shas(root_data, project_id)
+    unresolved = {sha for sha in reference_shas
+                  if not _verified_bytes(keepers, scope.library_keepers, sha)}
+    purged: set[str] = set()
+    for root_data in root_data_dirs:
+        relevant = unresolved & _project_reference_shas(root_data, project_id)
+        if relevant:
+            purged |= _purged_asset_shas(root_data, relevant)
+    reference_in_scope = 0
+    for sha in sorted(reference_shas):
+        if sha in purged:
+            continue
+        keeper = _verified_bytes(keepers, scope.library_keepers, sha)
+        if keeper is None:
+            raise HistoryIntegrityBlocked(
+                'Referenced project original is missing without a retained copy or a deliberate '
+                f'cleanup record; refusing an incomplete history scope: {sha}')
+        paths.add(keeper)
+        reference_in_scope += 1
+
     scope.paths = sorted(paths)
     scope.report = {
         'project_id': project_id,
         'reference_assets_in_scope': reference_in_scope,
-        'reference_assets_missing': len(reference_shas) - reference_in_scope,
+        'reference_assets_purged': len(purged & reference_shas) if reference_shas else 0,
+        'reference_assets_missing': max(0, len(reference_shas) - reference_in_scope
+                                        - (len(purged & reference_shas) if reference_shas else 0)),
         'runs': run_counts,
         'project_run_dirs': len(scope.project_run_dirs),
         'library_keepers': len(scope.library_keepers),
@@ -563,6 +688,21 @@ def goal_baseline(folder, goal):
     if (baseline.get('goal_id')!=goal.get('goal_id')
             or {item['sha'] for item in baseline['items']}!=set(goal.get('baseline_shas',[]))):
         raise ValueError('Goal baseline identity or SHA set changed')
+    # A frozen baseline only admits images when its duplicate scope is bound:
+    # the exact project it belongs to and the dedup-scope rules it was frozen
+    # under. Baselines written before the project boundary exist only as
+    # historical evidence; continuing one would silently restore a
+    # whole-library scope, so they are refused with a named reason instead of
+    # being migrated or rewritten.
+    if goal.get('dedup_scope_version')!=DEDUP_SCOPE_VERSION or baseline.get('dedup_scope_version')!=DEDUP_SCOPE_VERSION:
+        raise BaselineNeedsUpgrade(
+            'Goal baseline has no project-scoped duplicate boundary (dedup_scope_version missing '
+            'or outdated); it cannot be continued under the current rules. Create a new Goal; the '
+            'old results and receipts stay readable.')
+    if not goal.get('project_id') or baseline.get('project_id')!=goal.get('project_id'):
+        raise BaselineNeedsUpgrade(
+            'Goal baseline project binding is missing or inconsistent with the goal; it cannot be '
+            'continued. Create a new Goal bound to this project.')
     return baseline
 
 
@@ -742,6 +882,20 @@ def _materialize_image(feature):
     if feature.get('image') is None:
         feature['image']=Image.fromarray(feature['arr'])
     return feature['image']
+
+
+def scoped_cache_path(base_cache: Path, project_id: str) -> Path:
+    """The perceptual-fingerprint cache file of exactly one project.
+
+    The shared legacy cache was parsed whole on every build, so even an empty
+    project paid for the entire library's fingerprints. Each scope now owns
+    its file: entries are still path/size/mtime keyed with the same algorithm
+    and invalidation rules, other projects' growth never enlarges this
+    project's cache, and the legacy shared file is left on disk untouched.
+    """
+    digest=hashlib.sha256(str(project_id).encode('utf8')).hexdigest()[:16]
+    base_cache=Path(base_cache)
+    return base_cache.with_name(f'{base_cache.stem}-{digest}{base_cache.suffix}')
 
 
 class ImageHistory:
