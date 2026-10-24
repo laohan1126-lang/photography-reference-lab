@@ -15,6 +15,7 @@ import json
 import math
 import os
 import re
+import sqlite3
 import tempfile
 import threading
 from pathlib import Path
@@ -87,134 +88,376 @@ def _historical_file(base, declared, sha, role, boundaries):
     return path
 
 
-def historical_paths(root: Path, current: Path, history_roots=(), skipped=None):
-    """Return verified historical original paths.
+class HistoryScope:
+    """Verified duplicate scope for one project plus the library exact index.
 
-    ``skipped`` optionally receives archived runs whose image directory was
-    deliberately emptied by the duplicate cleanup. Their bytes still exist in the
-    live asset store (that is why they were cleaned), so they remain covered by
-    history; a run that still has files but cannot verify one still fails loudly.
+    ``paths`` is the perceptual comparison set: assets referenced by this
+    project and originals received by this project's own collection jobs
+    (including failed or never-imported batches). ``library_keepers`` is the
+    whole-library lightweight exact-byte index (SHA -> retained file); it is
+    built from content-addressed names only, never decoded up front, and is
+    verified byte-for-byte before anything is reported or reused. Runs whose
+    job cannot be attributed from a library database are kept out of both sets
+    and reported, instead of falling back to a whole-library scan.
     """
-    root=Path(root)
-    if _is_link_or_junction(root):raise ValueError('History root cannot be a link')
-    root=root.resolve();current=Path(current).resolve();paths=set()
-    roots=[]
-    for candidate in (root,*history_roots):
-        candidate=Path(candidate)
-        if _is_link_or_junction(candidate):raise ValueError('History root cannot be a link')
-        try:candidate=candidate.resolve(strict=True)
-        except (OSError,RuntimeError) as exc:raise ValueError('History root is unavailable') from exc
-        if not candidate.is_dir():raise ValueError('History root is unavailable')
-        if candidate not in roots:roots.append(candidate)
-    boundaries=[(candidate/'.local').resolve() for candidate in roots]
-    local=root/'.local'
-    if _is_link_or_junction(local):raise ValueError('History root local directory cannot be a link')
-    config=local/'windows-runtime.json'
-    configured=os.environ.get('LAB_DATA_DIR')
-    if not configured and config.exists():configured=json.loads(config.read_text('utf-8-sig'))['data_dir']
-    data=Path(configured) if configured else root/'data'
-    if not data.is_absolute():data=root/data
-    originals=Path(os.environ.get('LAB_COLLECTION_HISTORY_DIR') or data/'assets')
-    # One verified index of the canonical copies, built while the assets are
-    # read: SHA -> the retained file. A cleaned-up archived run no longer has
-    # its own copy, and this index is what proves the bytes still exist.
-    keepers={}
-    def add_asset(path):
-        if not path.is_file() or path.is_symlink():return
-        if _SHA.fullmatch(path.parent.name) and hashlib.sha256(path.read_bytes()).hexdigest()!=path.parent.name:
-            raise ValueError(f'Historical asset SHA changed: {path}')
-        resolved=path.resolve()
-        paths.add(resolved)
-        if _SHA.fullmatch(path.parent.name):keepers.setdefault(path.parent.name,resolved)
-    def asset_store(history_root):
-        history_local=history_root/'.local'
-        if _is_link_or_junction(history_local):raise ValueError('History root local directory cannot be a link')
-        history_config=history_local/'windows-runtime.json'
-        if _is_link_or_junction(history_config):raise ValueError('History runtime configuration cannot be a link')
-        history_data=Path(json.loads(history_config.read_text('utf-8-sig'))['data_dir']) if history_config.exists() else history_root/'data'
-        if not history_data.is_absolute():history_data=history_root/history_data
-        return history_data/'assets'
-    # Every authorized asset store is indexed before any run is read. A keeper
-    # may live in a later history root, so the order of the roots must not
-    # decide whether a missing original can be proven.
-    for path in originals.glob('*/*/original.*'):
-        add_asset(path)
-    for history_root in roots:
-        for path in asset_store(history_root).glob('*/*/original.*'):
-            add_asset(path)
-    for history_root in roots:
-        history_local=history_root/'.local'
-        local_root=history_local.resolve()
-        for base,dirs,files in os.walk(history_local,followlinks=False):
-            base=Path(base)
-            # Archived batches under ``backups`` stay in duplicate history: moving
-            # a diagnostic run aside for evidence must not let its received bytes
-            # be counted as new later. Synthetic test fixtures are excluded by
-            # name so generated material never enters the real history scope.
-            dirs[:]=[name for name in dirs if name not in {'worktrees','public','baseline','reference-research','reference-images','visual-references','node_modules','__pycache__','.git','restored-library'}
-                     and name.casefold() not in {'.venv','venv'}
-                     and not name.casefold().startswith(('test','pytest','browser','fixture')) and not _is_link_or_junction(base/name)
-                     and not (base/name).is_relative_to(current)]
-            # Roots are resolved and every linked directory is pruned before descent.
-            if base.is_relative_to(current) or 'received.json' not in files:continue
-            received=json.loads((base/'received.json').read_text('utf8'))
-            records=received.get('candidates',[]) if isinstance(received,dict) else received
-            images=base/'images'
-            if _is_link_or_junction(images):raise ValueError('Historical image directory cannot be a link')
-            run_files=list(images.glob('*')) if images.is_dir() else []
-            resolved=[]
-            def resolve(declared, sha, role):
-                """The verified file that stands for one historical byte set.
 
-                The duplicate cleanup removed the redundant copies of archived
-                runs, so a run can be missing its own file while the library
-                still holds the canonical asset. That keeper is only accepted
-                when its bytes and its decodability are proven; without one the
-                history stays blocked instead of claiming complete coverage.
-                """
-                try:
-                    return _historical_file(base,str(declared),sha,role,boundaries)
-                except HistoricalBytesMissing:
-                    keeper=keepers.get(sha)
-                    if keeper is None:
-                        raise HistoryIntegrityBlocked(
-                            f'No verifiable keeper for missing historical bytes: {sha}') from None
-                    if hashlib.sha256(keeper.read_bytes()).hexdigest()!=sha or not _decodable_image(keeper):
-                        raise HistoryIntegrityBlocked(f'No verifiable keeper for missing historical bytes: {sha}')
-                    resolved.append(sha)
-                    return keeper
-            for original in run_files:
-                sha=original.stem
-                if original.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.avif'} and _SHA.fullmatch(sha):
-                    paths.add(resolve(original,sha,'images'))
-            for row in records:
-                path=resolve(row['original_path'],row['asset_sha'],'images')
+    def __init__(self):
+        self.project_id = ''
+        self.paths: list[str] = []
+        self.library_keepers: dict[str, str] = {}
+        self.project_run_dirs: list[str] = []
+        self.attributed_runs: dict[str, str] = {}
+        self.unattributed_runs: list[dict] = []
+        self.report: dict = {}
+
+
+def _runtime_data_dir(root: Path, *, primary: bool) -> Path:
+    """The library data directory that backs one checkout's history.
+
+    The primary checkout honours the collector's explicit asset directory
+    (``LAB_COLLECTION_HISTORY_DIR``), so an isolated adapter scratch
+    ``LAB_DATA_DIR`` cannot hide the real library or its jobs database.
+    """
+    local = root / '.local'
+    if _is_link_or_junction(local):
+        raise ValueError('History root local directory cannot be a link')
+    if primary:
+        history_dir = os.environ.get('LAB_COLLECTION_HISTORY_DIR')
+        if history_dir:
+            return Path(history_dir).resolve().parent
+        configured = os.environ.get('LAB_DATA_DIR')
+        if configured:
+            return Path(configured)
+    config = local / 'windows-runtime.json'
+    if _is_link_or_junction(config):
+        raise ValueError('History runtime configuration cannot be a link')
+    if config.exists():
+        return Path(json.loads(config.read_text('utf-8-sig'))['data_dir'])
+    return root / 'data'
+
+
+def _read_only_library(data_dir: Path):
+    """A read-only connection to one checkout's library, or None when absent."""
+    if not isinstance(data_dir, Path):
+        return None
+    db = data_dir / 'library.sqlite3'
+    if not db.is_file() or db.is_symlink():
+        return None
+    try:
+        con = sqlite3.connect(db.resolve().as_uri() + '?mode=ro', uri=True)
+        con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='jobs'").fetchone()
+        return con
+    except (sqlite3.Error, OSError, ValueError):
+        return None
+
+
+def _collection_job_owners(data_dir: Path) -> dict[str, str]:
+    """job_id -> project_id for collection jobs, from one checkout's library."""
+    con = _read_only_library(data_dir)
+    if con is None:
+        return {}
+    try:
+        rows = con.execute("SELECT id, project_id FROM jobs WHERE kind='collection'").fetchall()
+    except sqlite3.Error:
+        return {}
+    finally:
+        con.close()
+    return {str(job_id): str(project_id) for job_id, project_id in rows
+            if isinstance(job_id, str) and isinstance(project_id, str) and job_id and project_id}
+
+
+def _project_reference_shas(data_dir: Path, project_id: str) -> set[str]:
+    """Asset SHAs this project actually uses; detached uses are not current."""
+    con = _read_only_library(data_dir)
+    if con is None:
+        return set()
+    try:
+        rows = con.execute(
+            "SELECT asset_sha, data FROM refs WHERE project_id=? AND asset_sha IS NOT NULL",
+            (project_id,)).fetchall()
+    except sqlite3.Error:
+        return set()
+    finally:
+        con.close()
+    shas = set()
+    for sha, blob in rows:
+        if not isinstance(sha, str) or not _SHA.fullmatch(sha):
+            continue
+        try:
+            record = json.loads(blob) if isinstance(blob, (str, bytes)) else {}
+        except ValueError:
+            continue
+        if isinstance(record, dict) and record.get('detached_at'):
+            continue
+        shas.add(sha)
+    return shas
+
+
+def _run_bases(root: Path, job_owners: dict[str, str]):
+    """Bounded run discovery: attributed runs by job id, unattributed reported.
+
+    Only ``collection-runs/<job_id>/`` and ``backups/<...>/<job_id>/`` shapes
+    are ever read, and each is attributed through a library database. There is
+    no recursive walk of ``.local`` and no directory-name heuristic: synthetic
+    test, QA or probe directories (no job row) can never enter the real history
+    scope, and nothing is deleted from them.
+    """
+    local = root / '.local'
+    if _is_link_or_junction(local):
+        raise ValueError('History root local directory cannot be a link')
+    attributed: list[tuple[Path, str]] = []
+    unattributed: list[dict] = []
+    runs_dir = local / 'collection-runs'
+    if runs_dir.is_dir() and not _is_link_or_junction(runs_dir):
+        for entry in sorted(runs_dir.iterdir()):
+            if _is_link_or_junction(entry) or not entry.is_dir():
+                continue
+            owner = job_owners.get(entry.name)
+            bases = [entry / 'current', *sorted(
+                base.parent for base in entry.glob('*') if base.name != 'current'
+                and (base / 'received.json').is_file())]
+            if (entry / 'received.json').is_file():
+                bases.append(entry)
+            for base in bases:
+                if not ((base / 'received.json').is_file() or (base / 'images').is_dir()):
+                    continue
+                if owner:
+                    attributed.append((base, owner))
+                else:
+                    unattributed.append(base)
+    backups = local / 'backups'
+    if backups.is_dir() and not _is_link_or_junction(backups):
+        for base in sorted(backups.glob('*/*/*/received.json')):
+            base = base.parent
+            if _is_link_or_junction(base):
+                continue
+            owner = job_owners.get(base.parent.name)
+            if owner:
+                attributed.append((base, owner))
+            else:
+                unattributed.append(base)
+    return attributed, unattributed
+
+
+def _received_row_count(base: Path) -> int:
+    try:
+        payload = json.loads((base / 'received.json').read_text('utf8'))
+    except (OSError, ValueError):
+        return 0
+    records = payload.get('candidates', []) if isinstance(payload, dict) else payload
+    return len(records) if isinstance(records, list) else 0
+
+
+def _run_exact_names(base: Path) -> dict[str, str]:
+    """SHA -> file path for a run's received originals (verified on use).
+
+    Both the SHA-named files in the run's image directory and the verified
+    SHA bindings in ``received.json`` feed the library-wide exact index.
+    """
+    images = base / 'images'
+    names: dict[str, str] = {}
+    if _is_link_or_junction(images) or not images.is_dir():
+        return names
+    for path in images.iterdir():
+        sha = path.stem
+        if path.is_file() and not path.is_symlink() and _SHA.fullmatch(sha):
+            names.setdefault(sha, str(path.resolve()))
+    try:
+        payload = json.loads((base / 'received.json').read_text('utf8'))
+    except (OSError, ValueError):
+        return names
+    records = payload.get('candidates', []) if isinstance(payload, dict) else payload
+    if not isinstance(records, list):
+        return names
+    for row in records:
+        if not isinstance(row, dict):
+            continue
+        sha = row.get('asset_sha')
+        path = row.get('original_path')
+        if isinstance(sha, str) and _SHA.fullmatch(sha) and isinstance(path, str):
+            resolved = Path(path)
+            if resolved.is_file() and not resolved.is_symlink():
+                names.setdefault(sha, str(resolved.resolve()))
+    return names
+
+
+def collect_history_scope(root, current, project_id, history_roots=(), skipped=None,
+                          unattributed=None) -> HistoryScope:
+    """Build one project's verified duplicate scope and the library exact index.
+
+    Raises :class:`HistoryIntegrityBlocked` when a verifiable historical byte
+    set of this project is missing without a retained keeper: the scope must
+    stay provably complete instead of silently shrinking.
+    """
+    root = Path(root)
+    if _is_link_or_junction(root):
+        raise ValueError('History root cannot be a link')
+    if not isinstance(project_id, str) or not project_id:
+        raise HistoryIntegrityBlocked(
+            'Collection history requires a verifiable project identity; refusing a whole-library scope')
+    root = root.resolve()
+    current = Path(current).resolve()
+    scope = HistoryScope()
+    scope.project_id = project_id
+    paths: set[Path] = set()
+    roots = []
+    for candidate in (root, *history_roots):
+        candidate = Path(candidate)
+        if _is_link_or_junction(candidate):
+            raise ValueError('History root cannot be a link')
+        try:
+            candidate = candidate.resolve(strict=True)
+        except (OSError, RuntimeError) as exc:
+            raise ValueError('History root is unavailable') from exc
+        if not candidate.is_dir():
+            raise ValueError('History root is unavailable')
+        if candidate not in roots:
+            roots.append(candidate)
+    boundaries = [(candidate / '.local').resolve() for candidate in roots]
+    data_dir = _runtime_data_dir(root, primary=True)
+    originals = Path(os.environ.get('LAB_COLLECTION_HISTORY_DIR') or data_dir / 'assets')
+    # One index of the canonical retained copies across every authorized asset
+    # store. Names are content-addressed by ingestion; the bytes of a keeper are
+    # re-verified before it stands in for anything or is reused.
+    keepers: dict[str, Path] = {}
+    def add_asset_name(path: Path):
+        if not path.is_file() or path.is_symlink():
+            return
+        sha = path.parent.name
+        if _SHA.fullmatch(sha):
+            keepers.setdefault(sha, path.resolve())
+    for path in originals.glob('*/*/original.*'):
+        add_asset_name(path)
+    for history_root in roots[1:]:
+        store = _runtime_data_dir(history_root, primary=False) / 'assets'
+        for path in store.glob('*/*/original.*'):
+            add_asset_name(path)
+
+    def resolve(base: Path, declared, sha, role):
+        """The verified file that stands for one historical byte set.
+
+        A cleaned-up archived run can be missing its own copy while the library
+        still holds the canonical asset; that keeper is accepted only when its
+        bytes and decodability are proven, and its use is counted.
+        """
+        try:
+            return _historical_file(base, str(declared), sha, role, boundaries), False
+        except HistoricalBytesMissing:
+            keeper = keepers.get(sha)
+            if keeper is None:
+                raise HistoryIntegrityBlocked(
+                    f'No verifiable keeper for missing historical bytes: {sha}') from None
+            if hashlib.sha256(keeper.read_bytes()).hexdigest() != sha or not _decodable_image(keeper):
+                raise HistoryIntegrityBlocked(f'No verifiable keeper for missing historical bytes: {sha}')
+            return keeper, True
+
+    def read_run(base: Path) -> int:
+        """Verify one attributed run into the perceptual scope; keeper uses."""
+        if base.resolve().is_relative_to(current):
+            return 0
+        received = base / 'received.json'
+        if not received.is_file():
+            return 0
+        payload = json.loads(received.read_text('utf8'))
+        records = payload.get('candidates', []) if isinstance(payload, dict) else payload
+        images = base / 'images'
+        if _is_link_or_junction(images):
+            raise ValueError('Historical image directory cannot be a link')
+        keeper_uses = 0
+        for original in (images.glob('*') if images.is_dir() else []):
+            sha = original.stem
+            if original.suffix.lower() in {'.jpg', '.jpeg', '.png', '.webp', '.avif'} and _SHA.fullmatch(sha):
+                path, kept = resolve(base, original, sha, 'images')
                 paths.add(path)
-            # Valid derived tiles of older, never-imported batches are real images
-            # too: a new download identical to one of them is a repeat, not a new
-            # independent reference. Intact old tiles remain historical material.
-            derived=base/'derived.json'
-            if derived.is_file():
-                from .collage import VALID
-                data=json.loads(derived.read_text('utf8'))
-                items=data.get('items') if isinstance(data,dict) else None
-                if not isinstance(items,dict):raise ValueError('Historical derived records are invalid')
-                for parent_sha,record in (items or {}).items():
-                    if not isinstance(record,dict):continue
-                    if record.get('parent_sha')!=parent_sha:
-                        raise ValueError('Historical tile parent binding changed')
-                    for child in record.get('children') or []:
-                        if not isinstance(child,dict) or child.get('status')!=VALID:continue
-                        sha=str(child.get('child_sha') or '')
-                        if not sha:continue
-                        path=resolve(child.get('path') or '',sha,'derived')
-                        paths.add(path)
-            if resolved and skipped is not None:
-                # The run was read, not skipped: every missing byte set was
-                # proven against a retained keeper.
-                skipped.append({'run':str(base),'reason':'archived copies cleaned; every missing byte set resolved to a verified keeper',
-                                'received_rows':len(records),'resolved_shas':len(resolved)})
-    return sorted(paths)
+                keeper_uses += kept
+        for row in records:
+            path, kept = resolve(base, row['original_path'], row['asset_sha'], 'images')
+            paths.add(path)
+            keeper_uses += kept
+        derived = base / 'derived.json'
+        if derived.is_file():
+            from .collage import VALID
+            data = json.loads(derived.read_text('utf8'))
+            items = data.get('items') if isinstance(data, dict) else None
+            if not isinstance(items, dict):
+                raise ValueError('Historical derived records are invalid')
+            for parent_sha, record in (items or {}).items():
+                if not isinstance(record, dict):
+                    continue
+                if record.get('parent_sha') != parent_sha:
+                    raise ValueError('Historical tile parent binding changed')
+                for child in record.get('children') or []:
+                    if not isinstance(child, dict) or child.get('status') != VALID:
+                        continue
+                    sha = str(child.get('child_sha') or '')
+                    if not sha:
+                        continue
+                    path, kept = resolve(base, child.get('path') or '', sha, 'derived')
+                    paths.add(path)
+                    keeper_uses += kept
+        return keeper_uses
+
+    run_counts = {'attributed': 0, 'project_runs': 0, 'unattributed': 0, 'keeper_resolved': 0}
+    for history_root in roots:
+        primary = history_root == roots[0]
+        root_data = data_dir if primary else _runtime_data_dir(history_root, primary=False)
+        job_owners = _collection_job_owners(root_data)
+        attributed, unowned = _run_bases(history_root, job_owners)
+        for base, owner in attributed:
+            scope.attributed_runs[str(base)] = owner
+            run_counts['attributed'] += 1
+            if owner == project_id:
+                scope.project_run_dirs.append(str(base))
+                keeper_uses = read_run(base)
+                run_counts['project_runs'] += 1
+                run_counts['keeper_resolved'] += keeper_uses
+                if keeper_uses and skipped is not None:
+                    skipped.append({'run': str(base),
+                                    'reason': 'archived copies cleaned; every missing byte set resolved to a verified keeper',
+                                    'received_rows': _received_row_count(base),
+                                    'resolved_shas': keeper_uses})
+        for base in unowned:
+            run_counts['unattributed'] += 1
+            entry = {'run': str(base), 'received_rows': _received_row_count(base),
+                     'reason': 'collection run has no verifiable project attribution in any '
+                               'library database; excluded from similar-image dedup scope, '
+                               'original records kept unchanged'}
+            scope.unattributed_runs.append(entry)
+            if unattributed is not None:
+                unattributed.append(entry)
+
+    # This project's referenced assets join the perceptual scope from their
+    # retained canonical copies; a copy whose bytes no longer match its
+    # content address blocks the scope instead of quietly shrinking it.
+    reference_shas = _project_reference_shas(data_dir, project_id)
+    reference_in_scope = 0
+    for sha in sorted(reference_shas):
+        keeper = keepers.get(sha)
+        if keeper is None or not keeper.is_file() or keeper.is_symlink():
+            continue
+        if hashlib.sha256(keeper.read_bytes()).hexdigest() != sha:
+            raise ValueError(f'Historical asset SHA changed: {keeper}')
+        paths.add(keeper)
+        reference_in_scope += 1
+
+    # Whole-library exact index: retained asset copies plus every attributed
+    # run's received originals. Unattributed runs are reported, never indexed.
+    for sha, path in keepers.items():
+        scope.library_keepers.setdefault(sha, str(path))
+    for base, owner in scope.attributed_runs.items():
+        for sha, path in _run_exact_names(Path(base)).items():
+            scope.library_keepers.setdefault(sha, path)
+    scope.paths = sorted(paths)
+    scope.report = {
+        'project_id': project_id,
+        'reference_assets_in_scope': reference_in_scope,
+        'reference_assets_missing': len(reference_shas) - reference_in_scope,
+        'runs': run_counts,
+        'project_run_dirs': len(scope.project_run_dirs),
+        'library_keepers': len(scope.library_keepers),
+        'perceptual_paths': len(scope.paths),
+    }
+    return scope
 
 
 def _fingerprint_from_raw(path: Path,raw: bytes,sha: str):
@@ -502,11 +745,15 @@ def _materialize_image(feature):
 
 
 class ImageHistory:
-    def __init__(self,paths,cache_path=None,*,lazy=False):
+    def __init__(self,paths,cache_path=None,*,lazy=False,library_keepers=None):
         try:__import__('cv2')
         except (ImportError,OSError) as exc:raise ValueError('History matcher unavailable') from exc
         self.cache_path=Path(cache_path) if cache_path is not None else None
         self._cache_files=_read_cache(self.cache_path) if self.cache_path is not None else {}
+        # Whole-library lightweight exact-byte index: SHA -> retained file. It
+        # never blocks a candidate; a hit means the identical original already
+        # exists and the current project may reuse it as its own reference.
+        self.library_keepers=dict(library_keepers or {})
         self._cache_dirty=False
         self._lock=threading.RLock()
         self._admission=threading.RLock()
@@ -691,6 +938,27 @@ class ImageHistory:
             results=[result for result in pool.map(scan,chunks) if result]
         return min(results,key=lambda item:item[0]) if results else None
 
+    def _verified_keeper(self,sha):
+        """The retained copy of a whole-library exact hit, bytes proven.
+
+        Returns None when the SHA belongs to this project's own duplicate scope
+        (that is a repeat, not a reuse) or when no verifiable keeper exists.
+        """
+        if sha in self.known_shas:
+            return None
+        path=self.library_keepers.get(sha)
+        if not path:
+            return None
+        path=Path(path)
+        try:
+            if not path.is_file() or path.is_symlink():
+                return None
+            if hashlib.sha256(path.read_bytes()).hexdigest()!=sha:
+                return None
+        except OSError:
+            return None
+        return path
+
     def consider(self,path,*,exclude=()):
         """Compare outside the lock, then commit atomically.
 
@@ -698,6 +966,11 @@ class ImageHistory:
         concurrent Review/Goal admission can still inspect history. The final
         commit re-checks ``known_shas`` under the lock, keeping exact-byte
         dedupe atomic for concurrent image accounting.
+
+        A whole-library exact hit that is not this project's own bytes is a
+        reuse, not a duplicate: the value is committed into this project's
+        records (later candidates must compare against it) and the caller is
+        told which retained file stands for the identical bytes.
         """
         value=self._fingerprint(path);sha=value['asset_sha']
         with self._admission:
@@ -707,8 +980,12 @@ class ImageHistory:
             with self._lock:
                 if sha in self.known_shas:
                     return {'duplicate_of':sha,'reason':'same_bytes'}
+                keeper=self._verified_keeper(sha)
                 self.records[sha]=value;self.known_shas.add(sha)
                 self._cache_dirty=True
+            if keeper is not None:
+                return {'duplicate_of':sha,'reason':'same_bytes_library','reuse':True,
+                        'keeper_path':str(keeper)}
             return None
 
     def rekey(self,old,new):

@@ -15,7 +15,9 @@ import pytest
 from PIL import Image
 
 from ref_lab import collage, collection_history, collection_queue
+from ref_lab.collection_history import collect_history_scope
 from ref_lab.collection_timing import CollectionTiming
+from conftest import library_db
 from tests.test_collage_split import _collage, _textured, _write_original
 
 
@@ -29,13 +31,13 @@ def _run(tmp_path: Path, *, rows=2, cols=1, tile=(800, 600)):
     return folder, row, record
 
 
-def _history_root(tmp_path: Path, name="old-run"):
+def _history_root(tmp_path: Path, name="job-old"):
     root = tmp_path / "history"
     local = root / ".local"
     local.mkdir(parents=True)
     data = tmp_path / "data"
     (data / "assets").mkdir(parents=True)
-    run = local / name
+    run = local / "collection-runs" / name / "current"
     (run / "images").mkdir(parents=True)
     return root, local, data, run
 
@@ -48,10 +50,11 @@ def test_historical_valid_child_enters_the_history_index(tmp_path, monkeypatch):
     (run / "received.json").write_text(json.dumps([row]), "utf8")
     record = collage.process_original(run, row)
     child = record["children"][0]
+    library_db(data, jobs=[(run.parent.name, "proj-a")])
     monkeypatch.setenv("LAB_DATA_DIR", str(data))
-    paths = collection_history.historical_paths(root, local / "current-job")
-    assert Path(child["path"]).resolve() in paths
-    assert Path(row["original_path"]).resolve() in paths
+    scope = collect_history_scope(root, local / "current-job", "proj-a")
+    assert Path(child["path"]).resolve() in {Path(p).resolve() for p in scope.paths}
+    assert Path(row["original_path"]).resolve() in {Path(p).resolve() for p in scope.paths}
 
 
 def test_historical_intact_outdated_child_still_prevents_repeating_old_photo(tmp_path, monkeypatch):
@@ -63,9 +66,10 @@ def test_historical_intact_outdated_child_still_prevents_repeating_old_photo(tmp
     data_json = json.loads(path.read_text("utf8"))
     data_json["items"][row["asset_sha"]].pop("algorithm_version")
     path.write_text(json.dumps(data_json), "utf8")
+    library_db(data, jobs=[(run.parent.name, "proj-a")])
     monkeypatch.setenv("LAB_DATA_DIR", str(data))
-    paths = collection_history.historical_paths(root, local / "current-job")
-    assert Path(record["children"][0]["path"]).resolve() in paths
+    scope = collect_history_scope(root, local / "current-job", "proj-a")
+    assert Path(record["children"][0]["path"]).resolve() in {Path(p).resolve() for p in scope.paths}
 
 
 def test_historical_corrupt_child_cannot_prove_no_repeat(tmp_path, monkeypatch):
@@ -74,9 +78,10 @@ def test_historical_corrupt_child_cannot_prove_no_repeat(tmp_path, monkeypatch):
     (run / "received.json").write_text(json.dumps([row]), "utf8")
     record = collage.process_original(run, row)
     Path(record["children"][0]["path"]).write_bytes(b"damaged")
+    library_db(data, jobs=[(run.parent.name, "proj-a")])
     monkeypatch.setenv("LAB_DATA_DIR", str(data))
     with pytest.raises(ValueError, match="Historical image SHA changed"):
-        collection_history.historical_paths(root, local / "current-job")
+        collect_history_scope(root, local / "current-job", "proj-a")
 
 
 class _RecordingHistory:

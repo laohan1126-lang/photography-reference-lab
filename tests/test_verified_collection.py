@@ -124,7 +124,9 @@ def row(tmp_path,name='image.png',content=b'original'):
             'page_url':'https://example.org/post','image_url':'https://example.org/image.png'}
 
 
-def job():return {'id':'synthetic-job','project_snapshot':PROJECT,'target_count':4,'preferred_sources':['xiaohongshu','pinterest']}
+def job():return {'id':'synthetic-job','project_id':'synthetic-project',
+                  'project_snapshot':{**PROJECT,'id':'synthetic-project'},
+                  'target_count':4,'preferred_sources':['xiaohongshu','pinterest']}
 
 
 def test_unavailable_agent_never_starts_search_or_exports_unreviewed(tmp_path):

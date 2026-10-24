@@ -27,7 +27,7 @@ from PIL import Image
 from ref_lab.models import CandidatePackage
 from ref_lab.verified_collection import AntigravityCollectionAgent,AgentUnavailable,AgentCallFailed,CollectionVision,accepted,query_steps,reference_supported,scope_sha,_plan_name_records
 from ref_lab.storage import atomic_write
-from ref_lab.collection_history import (HistoryIntegrityBlocked,ImageHistory,historical_paths)
+from ref_lab.collection_history import (HistoryIntegrityBlocked,ImageHistory,collect_history_scope)
 from ref_lab import collection_queue
 from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
@@ -1807,6 +1807,17 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             seen.add(sha)
                             if history is not None:
                                 with timing.span('history_consider'):duplicate=history.consider(Path(row['original_path']))
+                                if duplicate and duplicate.get('reason')=='same_bytes_library' and duplicate.get('reuse'):
+                                    # The identical original already exists in the
+                                    # library under another project's use. This
+                                    # project keeps its own candidate and reuses
+                                    # the retained bytes; nothing is reported as a
+                                    # second download and no inherited choice,
+                                    # identity or acceptance travels with it.
+                                    row['original_reuse']={'reason':'same_bytes_library',
+                                                           'keeper_path':duplicate.get('keeper_path'),
+                                                           'note':'复用全库已有原件，只保存一份；本项目参考关系与人工选择独立建立。'}
+                                    duplicate=None
                                 if duplicate:
                                     _discard_temporary(row)
                                     duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate,
@@ -2482,7 +2493,13 @@ def _discard_temporary(row):
 
 
 def _promote_temporary(folder:Path,row):
-    """Move a judged-new temporary file into the run's durable image area."""
+    """Move a judged-new temporary file into the run's durable image area.
+
+    A row marked ``original_reuse`` hard-links the retained library copy
+    instead of writing a second physical original; the received bytes are the
+    same either way and the fallback keeps the promotion working across
+    filesystem boundaries.
+    """
     source=Path(row['original_path']);sha=row['asset_sha']
     ext=str(row.get('ext') or source.suffix.lstrip('.') or 'jpg').lower()
     target=(Path(folder)/'images'/f'{sha}.{ext}')
@@ -2491,7 +2508,20 @@ def _promote_temporary(folder:Path,row):
         if hashlib.sha256(target.read_bytes()).hexdigest()!=sha:raise ValueError('Immutable file conflict')
         source.unlink(missing_ok=True)
     else:
-        os.replace(source,target)
+        keeper=Path(str((row.get('original_reuse') or {}).get('keeper_path') or ''))
+        linked=False
+        if keeper.is_file() and not keeper.is_symlink():
+            try:
+                os.link(keeper,target)
+                if hashlib.sha256(target.read_bytes()).hexdigest()!=sha:
+                    target.unlink(missing_ok=True);raise ValueError('Reused keeper bytes changed')
+                linked=True
+            except OSError:
+                linked=False
+        if linked:
+            source.unlink(missing_ok=True)
+        else:
+            os.replace(source,target)
     row['original_path']=str(target.resolve());row.pop('temporary',None)
     return target
 
@@ -2536,22 +2566,28 @@ def _known_image_sources(history,current:Path)->dict:
     Only addresses whose SHA already belongs to the verified duplicate history
     are reused, so an unknown, edited or re-encoded image is still fetched and
     judged. A matching address skips that one known transmission; it never
-    skips a whole post.
+    skips a whole post. The scanned runs are the current project's own
+    attributed runs: another project's sightings neither block a download nor
+    demote a post of this project.
     """
     if history is None:return {}
     known=set(getattr(history,'known_shas',()) or ())|set(getattr(history,'records',{}))
     if not known:return {}
-    roots=list(dict.fromkeys(base/'.local'/kind for base in
-        [ROOT,*getattr(history,'discovery_roots',[])] for kind in ('collection-runs','backups')))
+    attributed=[Path(path) for path in (getattr(history,'attributed_run_dirs',()) or ())]
+    if attributed:
+        candidates=[directory/'received.json' for directory in attributed]
+    else:
+        roots=list(dict.fromkeys(base/'.local'/kind for base in
+            [ROOT,*getattr(history,'discovery_roots',[])] for kind in ('collection-runs','backups')))
+        candidates=[]
+        for root in roots:
+            if not root.is_dir():continue
+            candidates.extend(root.glob('*/received.json'))
+            candidates.extend(root.glob('*/*/received.json'))
+            candidates.extend(root.glob('*/*/*/received.json'))
     sources={}
     seen_posts=set()
     current=Path(current).resolve()
-    candidates=[]
-    for root in roots:
-        if not root.is_dir():continue
-        candidates.extend(root.glob('*/received.json'))
-        candidates.extend(root.glob('*/*/received.json'))
-        candidates.extend(root.glob('*/*/*/received.json'))
     for path in candidates:
         try:
             resolved=path.resolve()
@@ -2847,27 +2883,45 @@ def _write_run_info(folder,job,agent,workers,*,mode):
          'vision_workers':workers,'pid':os.getpid(),'started_at':time.time(),'binding':job_binding(job,agent.model)})
 
 
-def _validated_history_paths(*args,**kwargs):
-    try:return historical_paths(*args,**kwargs)
-    except (OSError,ValueError) as exc:
+def _job_project_id(job) -> str:
+    """The verifiable project identity of a collection job."""
+    snapshot = job.get('project_snapshot') or {}
+    return str(job.get('project_id') or snapshot.get('id') or '')
+
+
+def _validated_history_scope(*args, **kwargs):
+    try:
+        return collect_history_scope(*args, **kwargs)
+    except (OSError, ValueError) as exc:
         raise HistoryIntegrityBlocked('History bytes or keeper validation failed') from exc
 
 
-def _history_for_search(folder):
+def _history_for_search(folder, project_id):
     common=Path(subprocess.check_output(['git','rev-parse','--git-common-dir'],cwd=ROOT,text=True).strip())
     canonical=(ROOT/common).resolve().parent
     history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
     skipped_history=[]
-    paths=_validated_history_paths(ROOT,folder,history_roots=history_roots,skipped=skipped_history)
+    unattributed_history=[]
+    scope=_validated_history_scope(ROOT,folder,project_id,history_roots=history_roots,
+                                   skipped=skipped_history,unattributed=unattributed_history)
     goal=read_json(folder/'goal.json',{})
     if goal:
         from ref_lab.collection_history import goal_baseline
         baseline=goal_baseline(folder,goal)
-    history=ImageHistory(paths,cache_path=ROOT/'.local/history-fingerprints.json',lazy=not bool(goal))
+    history=ImageHistory(scope.paths,cache_path=ROOT/'.local/history-fingerprints.json',
+                         lazy=not bool(goal),library_keepers=scope.library_keepers)
     history.discovery_roots=history_roots
     history.skipped_runs=skipped_history
+    history.unattributed_runs=unattributed_history
+    history.attributed_run_dirs=scope.project_run_dirs
+    history.project_id=project_id
+    history.scope_report=dict(scope.report)
     if skipped_history:
         save(folder/'history-skips.json',skipped_history[-20:])
+    if unattributed_history:
+        # Unknown-attribution runs keep their records untouched and are
+        # reported; they never fall back into a whole-library scan.
+        save(folder/'history-unattributed.json',unattributed_history[-50:])
     if goal:
         if not history.ready or history.errors:
             raise AgentCallFailed('history_index_unavailable',fatal=True)
@@ -2924,8 +2978,16 @@ def main():
             from ref_lab.collection_stages import _remaining
             agent.deadline=time.monotonic()+_remaining(job,'search')-30
             _write_run_info(folder,job,agent,1,mode='search_only')
+            project_id=_job_project_id(job)
+            if not project_id:
+                from ref_lab.collection_stages import _summary_blocked
+                _summary_blocked(job['id'],'history_integrity_blocked',
+                                 '采集任务缺少可验证的项目归属（project_id）；未启动浏览器或模型，未建立任何全库查重范围。',
+                                 target=int(job.get('target_count') or 0),
+                                 found=len(collection_queue._received_rows(folder)))
+                return
             try:
-                history=_history_for_search(folder)
+                history=_history_for_search(folder,project_id)
             except (AgentUnavailable,OSError,ValueError,KeyError) as exc:
                 from ref_lab.collection_stages import _summary_blocked
                 category=getattr(exc,'category','history_index_unavailable')
@@ -2936,7 +2998,10 @@ def main():
                                  target=int(job.get('target_count') or 0),
                                  found=len(collection_queue._received_rows(folder)))
                 return
-            save(folder/'history-index.json',{'images':list(history.records.values()),
+            save(folder/'history-index.json',{'project_id':project_id,'scope':getattr(history,'scope_report',{}),
+                                              'unattributed_runs':len(getattr(history,'unattributed_runs',[]) or []),
+                                              'library_keepers':len(getattr(history,'library_keepers',{}) or {}),
+                                              'images':list(history.records.values()),
                                               'fingerprint_stats':getattr(history,'fingerprint_stats',{}),
                                               'lazy':not bool(job.get('goal_id')),'ready':history.ready,'known_shas':history.known_count,
                                               'historical_images':history.known_count})
@@ -2945,7 +3010,10 @@ def main():
                 summary,_=collect(job,agent,browser,folder,history=history,workers=1,search_only=True)
             finally:
                 history.close(wait=False,timeout=3)
-                save(folder/'history-index.json',{'images':list(history.records.values()),
+                save(folder/'history-index.json',{'project_id':project_id,'scope':getattr(history,'scope_report',{}),
+                                                  'unattributed_runs':len(getattr(history,'unattributed_runs',[]) or []),
+                                                  'library_keepers':len(getattr(history,'library_keepers',{}) or {}),
+                                                  'images':list(history.records.values()),
                                                   'fingerprint_stats':getattr(history,'fingerprint_stats',{}),
                                                   'lazy':not bool(job.get('goal_id')),'ready':history.ready,
                                                   'known_shas':history.known_count,
@@ -2971,8 +3039,9 @@ def main():
                 canonical=(ROOT/common).resolve().parent
                 history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
                 try:
-                    history=ImageHistory(_validated_history_paths(ROOT,folder,history_roots=history_roots),
-                                         cache_path=ROOT/'.local/history-fingerprints.json')
+                    scope=_validated_history_scope(ROOT,folder,_job_project_id(job),history_roots=history_roots)
+                    history=ImageHistory(scope.paths,cache_path=ROOT/'.local/history-fingerprints.json',
+                                         library_keepers=scope.library_keepers)
                 except HistoryIntegrityBlocked as exc:
                     # The review may not run on an unproven history: the
                     # candidates stay, the stage stops with a named reason.
@@ -3065,13 +3134,22 @@ def main():
             history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
             with agent.timing.span('history_index'):
                 try:
-                    history=ImageHistory(_validated_history_paths(ROOT,folder,history_roots=history_roots),cache_path=ROOT/'.local/history-fingerprints.json')
+                    scope=_validated_history_scope(ROOT,folder,_job_project_id(job),history_roots=history_roots)
+                    history=ImageHistory(scope.paths,cache_path=ROOT/'.local/history-fingerprints.json',
+                                         library_keepers=scope.library_keepers)
                 except HistoryIntegrityBlocked as exc:
                     save(folder/'history-index.json',{'ready':False,'history_errors':[
                         {'code':'history_integrity_blocked','error':str(exc)[:200]}]})
                     raise SystemExit('history_integrity_blocked: 历史原件缺失且无可验证保留件；排重基线不完整，未启动采集。')
             history.discovery_roots=history_roots
-            save(folder/'history-index.json',{'images':list(history.records.values()),'historical_images':history.known_count,
+            history.project_id=_job_project_id(job)
+            history.scope_report=dict(scope.report)
+            history.unattributed_runs=scope.unattributed_runs
+            history.attributed_run_dirs=scope.project_run_dirs
+            save(folder/'history-index.json',{'project_id':history.project_id,'scope':history.scope_report,
+                                             'unattributed_runs':len(getattr(history,'unattributed_runs',[]) or []),
+                                             'library_keepers':len(history.library_keepers),
+                                             'images':list(history.records.values()),'historical_images':history.known_count,
                                              'fingerprint_stats':getattr(history,'fingerprint_stats',{})})
         print('Read-only gallery (updates during collection): '+str(folder/'public/index.html'),flush=True)
         manifest,images=collect(job,agent,browser,folder,history=history,workers=args.vision_workers)

@@ -1,11 +1,11 @@
 '''F3: a missing historical original has to be proven, not assumed.
 
 The duplicate cleanup removed the redundant copies of archived runs and kept
-the canonical asset in the library. A history walk that only saw an emptied
+the canonical asset in the library. A history scope that only saw an emptied
 ``images`` directory used to skip the whole run and declare the bytes covered.
 Every missing byte set now has to resolve to a keeper whose SHA and
-decodability are proven, and a run without one blocks the history instead of
-reporting a complete duplicate check.
+decodability are proven, and a run without one blocks the project's duplicate
+scope instead of reporting a complete duplicate check.
 '''
 from __future__ import annotations
 
@@ -15,7 +15,9 @@ import json
 import pytest
 from PIL import Image
 
-from ref_lab.collection_history import HistoricalBytesMissing, historical_paths
+from ref_lab.collection_history import (HistoricalBytesMissing, HistoryIntegrityBlocked,
+                                        collect_history_scope)
+from conftest import library_db
 
 
 @pytest.fixture(autouse=True)
@@ -49,6 +51,15 @@ def keeper(root, path, sha=None):
     return target.resolve()
 
 
+def attributed(root, job='old', project='proj-a'):
+    library_db(root / 'data', jobs=[(job, project)])
+
+
+def scope(root, current=None, *, project='proj-a', skipped=None, history_roots=()):
+    return collect_history_scope(root, current or root / '.local' / 'current', project,
+                                 history_roots=history_roots, skipped=skipped)
+
+
 def test_missing_original_resolves_to_keeper(tmp_path):
     root = tmp_path / 'root'
     source = photo(root / 'source.png', (40, 80, 120))
@@ -58,8 +69,9 @@ def test_missing_original_resolves_to_keeper(tmp_path):
     run = root / '.local' / 'collection-runs' / 'old'
     run_with_rows(run, [{'original_path': str(run / 'images' / (sha + '.png')),
                          'asset_sha': sha}])
+    attributed(root)
     skipped = []
-    paths = historical_paths(root, root / '.local' / 'current', skipped=skipped)
+    paths = set(scope(root, skipped=skipped).paths)
     assert kept in paths, 'the retained copy is the history for those bytes'
     assert len(skipped) == 1
     assert 'verified keeper' in skipped[0]['reason']
@@ -74,8 +86,9 @@ def test_missing_original_without_keeper_blocks(tmp_path):
     run = root / '.local' / 'collection-runs' / 'old'
     run_with_rows(run, [{'original_path': str(run / 'images' / (sha + '.png')),
                          'asset_sha': sha}])
+    attributed(root)
     with pytest.raises(HistoricalBytesMissing):
-        historical_paths(root, root / '.local' / 'current', skipped=[])
+        scope(root, skipped=[])
 
 
 def test_emptied_run_still_processes_other_rows(tmp_path):
@@ -90,8 +103,8 @@ def test_emptied_run_still_processes_other_rows(tmp_path):
     run_with_rows(run, [{'original_path': str(run / 'images' / (gone_sha + '.png')),
                          'asset_sha': gone_sha},
                         {'original_path': str(kept_source), 'asset_sha': sha_of(kept_source)}])
-    paths = set(historical_paths(root, root / '.local' / 'current', skipped=[]))
-    assert kept in paths
+    attributed(root)
+    paths = set(scope(root, skipped=[]).paths)
     assert gone_keeper in paths
     assert kept_source.resolve() in paths, 'the surviving row of the run is still history'
 
@@ -109,8 +122,9 @@ def test_missing_child_without_keeper_blocks(tmp_path):
         'children': [{'child_sha': tile_sha, 'path': str(run / 'derived' / (tile_sha + '.png')),
                       'status': 'valid'}]}}}), encoding='utf8')
     tile.unlink()
+    attributed(root)
     with pytest.raises(HistoricalBytesMissing):
-        historical_paths(root, root / '.local' / 'current', skipped=[])
+        scope(root, skipped=[])
 
 
 def test_missing_child_resolves_to_keeper(tmp_path):
@@ -127,8 +141,8 @@ def test_missing_child_resolves_to_keeper(tmp_path):
         'children': [{'child_sha': tile_sha, 'path': str(run / 'derived' / (tile_sha + '.png')),
                       'status': 'valid'}]}}}), encoding='utf8')
     tile.unlink()
-    paths = set(historical_paths(root, root / '.local' / 'current', skipped=[]))
-    assert kept in paths
+    attributed(root)
+    assert kept in set(scope(root, skipped=[]).paths)
 
 
 def test_a_corrupt_keeper_blocks(tmp_path):
@@ -142,8 +156,9 @@ def test_a_corrupt_keeper_blocks(tmp_path):
     run = root / '.local' / 'collection-runs' / 'old'
     run_with_rows(run, [{'original_path': str(run / 'images' / (sha + '.png')),
                          'asset_sha': sha}])
-    with pytest.raises(ValueError, match='Historical asset SHA changed'):
-        historical_paths(root, root / '.local' / 'current', skipped=[])
+    attributed(root)
+    with pytest.raises(HistoryIntegrityBlocked, match='No verifiable keeper'):
+        scope(root, skipped=[])
 
 
 def test_current_run_and_fixtures_stay_out(tmp_path):
@@ -154,17 +169,19 @@ def test_current_run_and_fixtures_stay_out(tmp_path):
     fixture = photo(root / '.local' / 'fixtures' / 'run' / 'images' / 'synthetic.png', (9, 9, 9))
     run_with_rows(root / '.local' / 'fixtures' / 'run',
                   [{'original_path': str(fixture), 'asset_sha': sha_of(fixture)}])
-    paths = set(historical_paths(root, current, skipped=[]))
+    attributed(root, job='current')
+    paths = set(scope(root, current=current, skipped=[]).paths)
     assert current_photo.resolve() not in paths
     assert fixture.resolve() not in paths
 
 
 def test_archived_run_under_backups_stays(tmp_path):
     root = tmp_path / 'root'
-    archived = photo(root / '.local' / 'backups' / 'diagnostic' / 'images' / 'one.png', (80, 90, 100))
-    run = root / '.local' / 'backups' / 'diagnostic'
-    run_with_rows(run, [{'original_path': str(archived), 'asset_sha': sha_of(archived)}])
-    paths = set(historical_paths(root, root / '.local' / 'current', skipped=[]))
+    archived_run = root / '.local' / 'backups' / 'snapshot' / 'job-diag' / 'current'
+    archived = photo(archived_run / 'images' / 'one.png', (80, 90, 100))
+    run_with_rows(archived_run, [{'original_path': str(archived), 'asset_sha': sha_of(archived)}])
+    attributed(root, job='job-diag')
+    paths = set(scope(root, skipped=[]).paths)
     assert archived.resolve() in paths
 
 
@@ -179,8 +196,8 @@ def test_keeper_in_a_later_history_root_is_found(tmp_path):
     run = primary / '.local' / 'collection-runs' / 'old'
     run_with_rows(run, [{'original_path': str(run / 'images' / (sha + '.png')),
                          'asset_sha': sha}])
-    paths = set(historical_paths(primary, primary / '.local' / 'current',
-                                 history_roots=[secondary], skipped=[]))
+    attributed(primary)
+    paths = set(scope(primary, history_roots=[secondary], skipped=[]).paths)
     assert kept in paths, 'the later root proves the missing bytes'
 
 
@@ -200,6 +217,6 @@ def test_child_keeper_in_a_later_history_root_is_found(tmp_path):
         'children': [{'child_sha': tile_sha, 'path': str(run / 'derived' / (tile_sha + '.png')),
                       'status': 'valid'}]}}}), encoding='utf8')
     tile.unlink()
-    paths = set(historical_paths(primary, primary / '.local' / 'current',
-                                 history_roots=[secondary], skipped=[]))
+    attributed(primary)
+    paths = set(scope(primary, history_roots=[secondary], skipped=[]).paths)
     assert kept in paths

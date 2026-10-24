@@ -23,6 +23,7 @@ import pytest
 from PIL import Image
 
 from ref_lab.browser_recovery import BrowserInfrastructureError
+from conftest import library_db
 from tools import collect_verified as worker
 from tools import exact_recall
 from tests.test_browserskill_recovery import SyntheticAgent, _job
@@ -414,7 +415,7 @@ def test_asset_store_falls_back_when_the_source_cannot_be_linked(tmp_path):
 
 
 def test_cleaned_archived_run_is_resolved_by_a_verified_keeper(tmp_path):
-    from ref_lab.collection_history import historical_paths
+    from ref_lab.collection_history import collect_history_scope
 
     root = tmp_path / "root"
     raw = _png()
@@ -423,14 +424,16 @@ def test_cleaned_archived_run_is_resolved_by_a_verified_keeper(tmp_path):
     asset.parent.mkdir(parents=True)
     asset.write_bytes(raw)
 
-    run = root / ".local" / "collection-runs" / "old-run"
+    run = root / ".local" / "collection-runs" / "old-run" / "current"
     run.mkdir(parents=True)
     (run / "received.json").write_text(json.dumps([
         {"asset_sha": sha, "original_path": str(run / "images" / f"{sha}.png")}]), "utf8")
+    library_db(root / "data", jobs=[("old-run", "proj-a")])
 
     skipped = []
-    paths = historical_paths(root, root / ".local" / "collection-runs" / "current", skipped=skipped)
-    assert [str(p) for p in paths] == [str(asset.resolve())]
+    scope = collect_history_scope(root, root / ".local" / "collection-runs" / "current", "proj-a",
+                                  skipped=skipped)
+    assert [str(p) for p in scope.paths] == [str(asset.resolve())]
     assert len(skipped) == 1
     assert skipped[0]["received_rows"] == 1
     assert "verified keeper" in skipped[0]["reason"]
@@ -445,7 +448,8 @@ def test_cleaned_archived_run_is_resolved_by_a_verified_keeper(tmp_path):
     stale.parent.mkdir()
     stale.write_bytes(raw)
     with pytest.raises(ValueError):
-        historical_paths(root, root / ".local" / "collection-runs" / "current", skipped=[])
+        collect_history_scope(root, root / ".local" / "collection-runs" / "current", "proj-a",
+                              skipped=[])
 
 def test_capture_note_creates_a_missing_temporary_area(tmp_path, monkeypatch):
     page = "https://www.xiaohongshu.com/explore/" + "e" * 24

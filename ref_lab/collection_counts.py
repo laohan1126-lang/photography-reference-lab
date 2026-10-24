@@ -97,6 +97,7 @@ def compute(folder, rows, records, *, named=None) -> dict:
         "independent_candidates": 0, "named_candidates": 0, "type_pending": 0,
         "type_rejected": 0, "goal_excluded": 0,
         "source_pending": 0,
+        "reused_originals": 0,
     }
     records = records if isinstance(records, dict) else {}
     # Photo uniqueness and name-hit discovery are aggregated separately, then
@@ -119,6 +120,10 @@ def compute(folder, rows, records, *, named=None) -> dict:
             continue
         seen_originals.add(sha)
         counts["found"] += 1
+        # A received original whose identical bytes already existed in the
+        # library is a reuse, never a second download or a second copy.
+        if isinstance(row.get("original_reuse"), dict):
+            counts["reused_originals"] += 1
         if goal and (not isinstance(row.get('acquired_at'), (float, int))
                      or row['acquired_at'] < float(goal['started_at'])):
             old_parents.add(sha)

@@ -213,7 +213,8 @@ def test_search_only_cli_writes_summary_without_a_model_budget_or_result_zip(tmp
     run.mkdir(parents=True)
     task_dir = root / "task"
     task_dir.mkdir()
-    job = {"id": "cli-job", "project_snapshot": {"character": "测试角色甲", "work": "", "costume": "", "brief": ""},
+    job = {"id": "cli-job", "project_id": "synthetic-project",
+           "project_snapshot": {"id": "synthetic-project", "character": "测试角色甲", "work": "", "costume": "", "brief": ""},
            "target_count": 1, "preferred_sources": ["xiaohongshu"], "notes": ""}
     (task_dir / "job.json").write_text(json.dumps({"job": job}), encoding="utf8")
     (task_dir / "AGENT_TASK.md").write_text("synthetic task", encoding="utf8")
@@ -256,7 +257,7 @@ def test_search_only_cli_writes_summary_without_a_model_budget_or_result_zip(tmp
     monkeypatch.setattr(worker, "ROOT", root)
     monkeypatch.setattr(worker, "AntigravityCollectionAgent", Agent)
     monkeypatch.setattr(worker, "Browser", Browser)
-    monkeypatch.setattr(worker, "_history_for_search", lambda folder: History())
+    monkeypatch.setattr(worker, "_history_for_search", lambda folder, project_id: History())
     monkeypatch.setattr(worker, "_write_run_info", lambda *args, **kwargs: None)
     monkeypatch.setattr(sys, "argv", ["collect_verified.py", str(task_dir / "AGENT_TASK.md"), str(run / "result.zip"), "--search-only"])
     worker.main()

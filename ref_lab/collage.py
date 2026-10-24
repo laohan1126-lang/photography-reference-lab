@@ -780,7 +780,12 @@ def process_original(folder: Path, row: dict, *, history=None, known_shas: set[s
                     match = history.consider(target, exclude={parent_sha})
                 except (OSError, ValueError) as exc:
                     match = {"state": "needs_review", "duplicate_of": "", "reason": "history_error:" + type(exc).__name__}
-                if match:
+                if match and match.get("reason") == "same_bytes_library" and match.get("reuse"):
+                    # Identical tile bytes exist under another project's use:
+                    # this project establishes its own use, nothing is inherited
+                    # and the tile is not a same-project duplicate.
+                    child["library_reuse"] = match
+                elif match:
                     child["status"] = HISTORY_PENDING if match.get('state') == 'needs_review' else DUPLICATE_HISTORY
                     child["history_check"] = match
                     child["duplicate_of"] = str(match.get("duplicate_of") or "")

@@ -98,9 +98,9 @@ def test_late_warning_excludes_legacy_output_without_changing_visual_receipt(tmp
 @pytest.mark.parametrize('failure',[ValueError('corrupt keeper'),worker.HistoryIntegrityBlocked('missing bytes')])
 def test_history_entry_has_a_named_integrity_failure(tmp_path,monkeypatch,failure):
     def broken(*args,**kwargs):raise failure
-    monkeypatch.setattr(worker,'historical_paths',broken)
+    monkeypatch.setattr(worker,'collect_history_scope',broken)
     with pytest.raises(worker.HistoryIntegrityBlocked) as error:
-        worker._validated_history_paths(tmp_path,tmp_path/'current')
+        worker._validated_history_scope(tmp_path,tmp_path/'current','proj-a')
     assert error.value.category=='history_integrity_blocked'
 
 
@@ -109,7 +109,7 @@ def test_goal_creation_returns_named_conflict_before_starting_collection(library
     from ref_lab.service import Problem
     from ref_lab.models import ProjectInput,JobInput
     def broken(*args,**kwargs):raise collection_history.HistoryIntegrityBlocked('synthetic missing keeper')
-    monkeypatch.setattr(collection_history,'historical_paths',broken)
+    monkeypatch.setattr(collection_history,'collect_history_scope',broken)
     project=library.create_project(ProjectInput(character='synthetic'))
     with pytest.raises(Problem) as error:
         library.create_job(project['id'],JobInput(kind='collection',collection_mode='search'))

@@ -169,7 +169,9 @@ def test_api_runner_imports_real_controller_state_contract(client,library,projec
         def __init__(self,folder):super().__init__([row(folder,'photo.png',image_bytes(1))])
     monkeypatch.setattr(worker,'AntigravityCollectionAgent',Agent)
     monkeypatch.setattr(worker,'Browser',Browser)
-    monkeypatch.setattr(worker,'historical_paths',lambda *a,**kw:[])
+    class _EmptyScope:
+        paths=[];library_keepers={};project_run_dirs=[];unattributed_runs=[];report={}
+    monkeypatch.setattr(worker,'_validated_history_scope',lambda *a,**kw:_EmptyScope())
     monkeypatch.setenv('LAB_COLLECTION_COMMAND',json.dumps([sys.executable,str(Path(worker.__file__)),
         '{task_file}','{result_file}']))
     def execute(lib,job_id,attempt_id,argv,*args,**kwargs):

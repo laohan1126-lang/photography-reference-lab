@@ -89,3 +89,39 @@ def ready_reference(client, project, seed=0):
     response = client.post(f"/api/references/{ref['id']}/accept", json={"expected_revision": ref["revision"]})
     assert response.status_code == 200, response.text
     return response.json()
+
+
+def library_db(root: Path, *, jobs=(), refs=()) -> Path:
+    """A minimal library database so history runs have verifiable attribution.
+
+    ``jobs`` are ``(job_id, project_id)`` collection jobs; ``refs`` are
+    ``(project_id, asset_sha)`` use relations. Without such a database a run
+    directory has no project attribution and must never enter a real
+    duplicate scope.
+    """
+    import sqlite3
+    db = root / "library.sqlite3"
+    db.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(db)
+    try:
+        con.executescript("""
+            CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS assets (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS refs (
+                id TEXT PRIMARY KEY, project_id TEXT NOT NULL, asset_sha TEXT,
+                decision TEXT NOT NULL, state TEXT NOT NULL, data TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS jobs (
+                id TEXT PRIMARY KEY, project_id TEXT NOT NULL,
+                kind TEXT NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL);
+        """)
+        for job_id, project_id in jobs:
+            con.execute("INSERT OR IGNORE INTO jobs VALUES(?,?,?,?,?)",
+                        (job_id, project_id, "collection", "blocked", "{}"))
+        for project_id, asset_sha in refs:
+            con.execute("INSERT OR IGNORE INTO refs VALUES(?,?,?,?,?,?)",
+                        (f"ref-{project_id[:6]}-{asset_sha[:8]}", project_id, asset_sha,
+                         "keep", "active", "{}"))
+        con.commit()
+    finally:
+        con.close()
+    return db

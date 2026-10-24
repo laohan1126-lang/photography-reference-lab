@@ -195,7 +195,9 @@ def test_frozen_goal_history_seeds_sha_after_current_index_is_ready(tmp_path, mo
     (folder/'goal.json').write_text(json.dumps({'goal_id':'goal','baseline_sha':hashlib.sha256(raw).hexdigest(),'baseline_shas':['a'*64]}))
     monkeypatch.setattr(worker,'ROOT',root)
     monkeypatch.setattr(worker.subprocess,'check_output',lambda *a,**k:'.git')
-    monkeypatch.setattr(worker,'historical_paths',lambda *a,**k:[])
+    class _EmptyScope:
+        paths=[];library_keepers={};project_run_dirs=[];unattributed_runs=[];report={}
+    monkeypatch.setattr(worker,'_validated_history_scope',lambda *a,**k:_EmptyScope())
     class History:
         def __init__(self,paths,**kwargs):
             assert not paths,'Frozen same-SHA copies must not be statted again before every attempt'
@@ -203,7 +205,7 @@ def test_frozen_goal_history_seeds_sha_after_current_index_is_ready(tmp_path, mo
             self.ready=True;self.errors=[]
             self._lock=threading.RLock();self.known_shas=set();self.records={}
     monkeypatch.setattr(worker,'ImageHistory',History)
-    history=worker._history_for_search(folder)
+    history=worker._history_for_search(folder,'proj-a')
     assert history.known_shas=={'a'*64} and history.records=={'a'*64:fp}
 
 

@@ -27,6 +27,14 @@ def goal_job(library, project, target=40):
     return library.create_job(project['id'], JobInput(kind='collection', collection_mode='search', target_count=target))
 
 
+def prior_collection_job(library, project, job_id='history-job'):
+    """A synthetic prior collection job so history runs have attribution."""
+    with library.db.transaction() as con:
+        con.execute('INSERT INTO jobs VALUES(?,?,?,?,?)',
+                    (job_id, project['id'], 'collection', 'blocked', '{}'))
+    return job_id
+
+
 def test_same_second_goals_do_not_overwrite(library, project, goal_root, monkeypatch):
     monkeypatch.setattr(service.time, 'time', lambda: 100)
     a = goal_job(library, project, 30)
@@ -177,10 +185,12 @@ def test_narrow_crop_does_not_reject_a_different_visible_pose(tmp_path, rotated)
 
 def test_goal_baseline_freezes_verified_fingerprints(library, project, goal_root):
     from tests.conftest import image_bytes
+    from ref_lab.db import encode
     asset=library.assets.ingest(image_bytes(17), 'synthetic.png')
     with library.db.transaction() as con:
-        from ref_lab.db import encode
         con.execute('INSERT INTO assets VALUES(?,?)',(asset['id'],encode(asset)))
+        con.execute('INSERT INTO refs VALUES(?,?,?,?,?,?)',
+                    ('ref-baseline', project['id'], asset['id'], 'keep', 'active', '{}'))
     job=goal_job(library,project,30)
     baseline=json.loads((goal_root/'.local/goals'/job['goal_id']/'baseline.json').read_text())
     entries={r['sha']:r for r in baseline['items']}
@@ -354,11 +364,15 @@ def test_unreadable_goal_projection_cannot_reuse_stored_success_counts(client,li
 
 
 def test_failed_run_downloads_still_enter_history_without_received_rows(tmp_path):
-    from ref_lab.collection_history import historical_paths
-    row=_write_original(tmp_path/'.local/failed-run',_textured((800,600),12,(90,100,120)))
+    from ref_lab.collection_history import collect_history_scope
+    from conftest import library_db
+    run=tmp_path/'.local/collection-runs/failed-job/current'
+    row=_write_original(run,_textured((800,600),12,(90,100,120)))
     path=Path(row['original_path']);path=path.rename(path.with_name(row['asset_sha']+'.png'))
     (path.parent.parent/'received.json').write_text('[]','utf8')
-    assert path.resolve() in historical_paths(tmp_path,tmp_path/'.local/current')
+    library_db(tmp_path/'data', jobs=[('failed-job','proj-a')])
+    paths=set(collect_history_scope(tmp_path,tmp_path/'.local/current','proj-a').paths)
+    assert path.resolve() in paths
 
 
 def test_duplicate_alias_cannot_hide_corrupt_library_original(library,project,goal_root):
@@ -367,6 +381,9 @@ def test_duplicate_alias_cannot_hide_corrupt_library_original(library,project,go
     first=library.assets.ingest(image_bytes(21),'a.png');second=library.assets.ingest(image_bytes(22),'b.png')
     with library.db.transaction() as con:
         for asset in (first,second):con.execute('INSERT INTO assets VALUES(?,?)',(asset['id'],encode(asset)))
+        for index,asset in enumerate((first,second)):
+            con.execute('INSERT INTO refs VALUES(?,?,?,?,?,?)',
+                        (f'ref-corrupt-{index}', project['id'], asset['id'], 'keep', 'active', '{}'))
     library.assets.path(first).write_bytes(library.assets.path(second).read_bytes())
     with pytest.raises((service.Problem,ValueError),match='SHA|历史|完整'):
         goal_job(library,project,30)
@@ -400,15 +417,18 @@ def test_uncertain_history_relation_blocks_review_without_claiming_duplicate(tmp
 
 
 def test_damaged_historical_tile_records_cannot_silently_shrink_baseline(tmp_path):
-    from ref_lab.collection_history import historical_paths
-    run=tmp_path/'.local/history-run';run.mkdir(parents=True)
+    from ref_lab.collection_history import collect_history_scope
+    from conftest import library_db
+    run=tmp_path/'.local/collection-runs/history-job/current';run.mkdir(parents=True)
     (run/'received.json').write_text('[]','utf8')
     (run/'derived.json').write_bytes(b'{damaged history')
-    with pytest.raises(ValueError):historical_paths(tmp_path,tmp_path/'.local/current')
+    library_db(tmp_path/'data', jobs=[('history-job','proj-a')])
+    with pytest.raises(ValueError):collect_history_scope(tmp_path,tmp_path/'.local/current','proj-a')
 
 
 def test_unreadable_historical_image_blocks_goal_instead_of_omitting_fingerprint(library,project,goal_root):
-    run=goal_root/'.local/history-run';images=run/'images';images.mkdir(parents=True)
+    prior=prior_collection_job(library,project)
+    run=goal_root/'.local/collection-runs'/prior/'current';images=run/'images';images.mkdir(parents=True)
     raw=b'not an image';sha=hashlib.sha256(raw).hexdigest()
     (images/(sha+'.png')).write_bytes(raw)
     (run/'received.json').write_text('[]','utf8')

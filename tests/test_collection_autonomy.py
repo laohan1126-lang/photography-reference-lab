@@ -6,10 +6,20 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from ref_lab.collection_history import ImageHistory, historical_paths
+from ref_lab.collection_history import ImageHistory, collect_history_scope
 from ref_lab.verified_collection import AgentCallFailed
+from conftest import library_db
 from tools import collect_verified as worker
 from test_verified_collection import FakeAgent, FakeBrowser, job
+
+
+def library_asset(assets_root, source):
+    """Place bytes into a content-addressed asset store; returns the keeper path."""
+    sha = hashlib.sha256(source.read_bytes()).hexdigest()
+    target = Path(assets_root) / sha[:2] / sha / 'original.png'
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(source.read_bytes())
+    return target.resolve()
 
 
 def photo(folder, seed, name=None):
@@ -46,30 +56,44 @@ def test_within_run_reencoded_duplicate_is_excluded_too(tmp_path):
 
 
 def test_historical_scan_includes_rejected_received_and_library_but_not_current_or_symlinks(tmp_path):
-    old=photo(tmp_path/'.local/old/images',3)
-    (old.parent.parent/'received.json').write_text(json.dumps({'candidates':[row(old)]}),encoding='utf8')
-    original=photo(tmp_path/'data/assets/ab/sha',5,'original.png')
-    current=photo(tmp_path/'.local/current/images',6)
-    (current.parent.parent/'received.json').write_text(json.dumps([row(current)]),encoding='utf8')
-    paths=set(historical_paths(tmp_path,current.parent.parent))
-    assert old.resolve() in paths and original.resolve() in paths and current.resolve() not in paths
+    job_id = 'job-old'
+    old = photo(tmp_path / '.local' / 'collection-runs' / job_id / 'current' / 'images', 3)
+    (old.parent.parent / 'received.json').write_text(json.dumps({'candidates': [row(old)]}), encoding='utf8')
+    staged = photo(tmp_path / 'staging', 5)
+    original = library_asset(tmp_path / 'data' / 'assets', staged)
+    library_db(tmp_path / 'data', jobs=[(job_id, 'proj-a')],
+               refs=[('proj-a', hashlib.sha256(staged.read_bytes()).hexdigest())])
+    current_job = 'job-current'
+    current = photo(tmp_path / '.local' / 'collection-runs' / current_job / 'current' / 'images', 6)
+    (current.parent.parent / 'received.json').write_text(json.dumps([row(current)]), encoding='utf8')
+    library_db(tmp_path / 'data', jobs=[(current_job, 'proj-a')])
+    paths = set(collect_history_scope(tmp_path, current.parent.parent, 'proj-a').paths)
+    assert old.resolve() in paths and original in paths and current.resolve() not in paths
 
 
-def test_parent_read_only_history_overrides_child_scratch_directory(tmp_path,monkeypatch):
-    original=photo(tmp_path/'library/assets/ab/sha',7,'original.png')
-    monkeypatch.setenv('LAB_DATA_DIR',str(tmp_path/'adapter-scratch'))
-    monkeypatch.setenv('LAB_COLLECTION_HISTORY_DIR',str(tmp_path/'library/assets'))
-    assert original.resolve() in set(historical_paths(tmp_path,tmp_path/'.local/current'))
+def test_parent_read_only_history_overrides_child_scratch_directory(tmp_path, monkeypatch):
+    staged = photo(tmp_path / 'staging', 7)
+    original = library_asset(tmp_path / 'library' / 'assets', staged)
+    library_db(tmp_path / 'library',
+               refs=[('proj-a', hashlib.sha256(staged.read_bytes()).hexdigest())])
+    monkeypatch.setenv('LAB_DATA_DIR', str(tmp_path / 'adapter-scratch'))
+    monkeypatch.setenv('LAB_COLLECTION_HISTORY_DIR', str(tmp_path / 'library' / 'assets'))
+    assert original in set(collect_history_scope(tmp_path, tmp_path / '.local' / 'current', 'proj-a').paths)
 
 
 def test_history_checks_original_hash_and_rejects_external_received_path(tmp_path):
     import pytest
-    path=photo(tmp_path/'.local/old/images',8);record=row(path);record['asset_sha']='0'*64
-    (path.parent.parent/'received.json').write_text(json.dumps([record]),encoding='utf8')
-    with pytest.raises(ValueError,match='SHA changed'):list(historical_paths(tmp_path,tmp_path/'.local/current'))
-    external=photo(tmp_path/'outside',9)
-    (path.parent.parent/'received.json').write_text(json.dumps([row(external)]),encoding='utf8')
-    with pytest.raises(ValueError,match='boundary'):list(historical_paths(tmp_path,tmp_path/'.local/current'))
+    run = tmp_path / '.local' / 'collection-runs' / 'job-old' / 'current'
+    path = photo(run / 'images', 8)
+    record = row(path);record['asset_sha'] = '0' * 64
+    (run / 'received.json').write_text(json.dumps([record]), encoding='utf8')
+    library_db(tmp_path / 'data', jobs=[('job-old', 'proj-a')])
+    with pytest.raises(ValueError, match='SHA changed'):
+        collect_history_scope(tmp_path, tmp_path / '.local' / 'current', 'proj-a')
+    external = photo(tmp_path / 'outside', 9)
+    (run / 'received.json').write_text(json.dumps([row(external)]), encoding='utf8')
+    with pytest.raises(ValueError, match='boundary'):
+        collect_history_scope(tmp_path, tmp_path / '.local' / 'current', 'proj-a')
 
 
 def test_one_request_moves_beyond_duplicate_first_screen_without_external_prompt(tmp_path):

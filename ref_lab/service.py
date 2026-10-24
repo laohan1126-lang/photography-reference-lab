@@ -1085,26 +1085,24 @@ class Library:
         names = [n for n in dict.fromkeys(names) if n]
 
         from .collection_history import (FINGERPRINT_ALGORITHM_VERSION,
-                                         ImageHistory, historical_paths)
+                                         ImageHistory, collect_history_scope)
         root = Path(__file__).resolve().parents[1]
         history_roots = [Path(path) for path in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS', '[]'))]
         try:
-            paths = set(historical_paths(root, root/'.local/goals'/goal_id, history_roots=history_roots))
+            # The frozen baseline covers this project only: its referenced
+            # assets and the originals its own collection jobs received. Other
+            # projects' images never join this project's perceptual baseline.
+            scope = collect_history_scope(root, root/'.local/goals'/goal_id, project["id"],
+                                          history_roots=history_roots)
+            paths = set(scope.paths)
         except (OSError,ValueError) as exc:
             # The history cannot be proven complete: the Goal would admit
             # images against an unproven baseline, so it is not created.
             raise Problem(409, '历史图片或保留件校验失败；历史排重基线不完整，未建立Goal。',
                           {'code':'history_integrity_blocked'}) from exc
-        for aid, djson in con.execute("SELECT id, data FROM assets"):
-            asset = json.loads(djson)
-            if asset.get('storage_status') == 'purged':
-                continue
-            path = self.assets.path(asset).resolve()
-            if hashlib.sha256(path.read_bytes()).hexdigest() != aid:
-                raise Problem(409, '历史原件SHA损坏；未建立Goal')
-            paths.add(path)
         try:
-            history = ImageHistory(sorted(paths), cache_path=root/'.local/history-fingerprints.json')
+            history = ImageHistory(sorted(paths), cache_path=root/'.local/history-fingerprints.json',
+                                   library_keepers=scope.library_keepers)
         except (OSError, ValueError) as exc:
             raise Problem(409, '历史图片指纹未完整建立；未建立Goal') from exc
         if not history.ready or history.errors:
