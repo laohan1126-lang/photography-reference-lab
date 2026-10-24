@@ -25,8 +25,12 @@ from .preflight import compute_dhash, hamming_distance
 
 
 # Bump when representation or matching rules change; old admission needs review.
-FINGERPRINT_ALGORITHM_VERSION=4
-CACHE_SCHEMA_VERSION=4
+# Version 5: a crop template is bound to the image it was cut from, so a
+# historical photo can no longer lend its template to the next one. Every
+# admission receipt written under version 4 was produced by the old matching
+# rules and must be re-checked instead of inherited.
+FINGERPRINT_ALGORITHM_VERSION=5
+CACHE_SCHEMA_VERSION=5
 _DHASH=re.compile(r"[0-9a-f]{16}\Z")
 _SAMPLE=re.compile(r"[0-9a-f]{384}\Z")
 _SHA=re.compile(r"[0-9a-f]{64}\Z")
@@ -38,6 +42,30 @@ def _is_link_or_junction(path):
 
 class HistoricalBytesMissing(ValueError):
     """A verified historical original no longer exists on disk."""
+
+
+class HistoryIntegrityBlocked(HistoricalBytesMissing):
+    """A missing historical byte set has no verifiable retained copy.
+
+    The history cannot be proven complete in this state, so the caller has to
+    stop with a named reason instead of continuing on an unproven basis.
+    """
+
+    category = 'history_integrity_blocked'
+
+
+class BaselineNeedsUpgrade(ValueError):
+    """The frozen baseline was written under older matching rules."""
+
+
+def _decodable_image(path):
+    """True when the file is a complete image, not a truncated leftover."""
+    try:
+        with Image.open(path) as image:
+            image.load()
+        return True
+    except Exception:  # noqa: BLE001 - an unreadable file is not a keeper
+        return False
 
 
 def _historical_file(base, declared, sha, role, boundaries):
@@ -87,23 +115,36 @@ def historical_paths(root: Path, current: Path, history_roots=(), skipped=None):
     data=Path(configured) if configured else root/'data'
     if not data.is_absolute():data=root/data
     originals=Path(os.environ.get('LAB_COLLECTION_HISTORY_DIR') or data/'assets')
+    # One verified index of the canonical copies, built while the assets are
+    # read: SHA -> the retained file. A cleaned-up archived run no longer has
+    # its own copy, and this index is what proves the bytes still exist.
+    keepers={}
     def add_asset(path):
         if not path.is_file() or path.is_symlink():return
         if _SHA.fullmatch(path.parent.name) and hashlib.sha256(path.read_bytes()).hexdigest()!=path.parent.name:
             raise ValueError(f'Historical asset SHA changed: {path}')
-        paths.add(path.resolve())
-    for path in originals.glob('*/*/original.*'):
-        add_asset(path)
-    for history_root in roots:
+        resolved=path.resolve()
+        paths.add(resolved)
+        if _SHA.fullmatch(path.parent.name):keepers.setdefault(path.parent.name,resolved)
+    def asset_store(history_root):
         history_local=history_root/'.local'
         if _is_link_or_junction(history_local):raise ValueError('History root local directory cannot be a link')
-        local_root=history_local.resolve()
         history_config=history_local/'windows-runtime.json'
         if _is_link_or_junction(history_config):raise ValueError('History runtime configuration cannot be a link')
         history_data=Path(json.loads(history_config.read_text('utf-8-sig'))['data_dir']) if history_config.exists() else history_root/'data'
         if not history_data.is_absolute():history_data=history_root/history_data
-        for path in (history_data/'assets').glob('*/*/original.*'):
+        return history_data/'assets'
+    # Every authorized asset store is indexed before any run is read. A keeper
+    # may live in a later history root, so the order of the roots must not
+    # decide whether a missing original can be proven.
+    for path in originals.glob('*/*/original.*'):
+        add_asset(path)
+    for history_root in roots:
+        for path in asset_store(history_root).glob('*/*/original.*'):
             add_asset(path)
+    for history_root in roots:
+        history_local=history_root/'.local'
+        local_root=history_local.resolve()
         for base,dirs,files in os.walk(history_local,followlinks=False):
             base=Path(base)
             # Archived batches under ``backups`` stay in duplicate history: moving
@@ -121,43 +162,58 @@ def historical_paths(root: Path, current: Path, history_roots=(), skipped=None):
             images=base/'images'
             if _is_link_or_junction(images):raise ValueError('Historical image directory cannot be a link')
             run_files=list(images.glob('*')) if images.is_dir() else []
-            try:
-                for original in run_files:
-                    sha=original.stem
-                    if original.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.avif'} and _SHA.fullmatch(sha):
-                        paths.add(_historical_file(base,str(original),sha,'images',boundaries))
-                for row in records:
-                    path=_historical_file(base,row['original_path'],row['asset_sha'],'images',boundaries)
-                    paths.add(path)
-                # Valid derived tiles of older, never-imported batches are real images
-                # too: a new download identical to one of them is a repeat, not a new
-                # independent reference. Intact old tiles remain historical material.
-                derived=base/'derived.json'
-                if derived.is_file():
-                    from .collage import VALID
-                    data=json.loads(derived.read_text('utf8'))
-                    items=data.get('items') if isinstance(data,dict) else None
-                    if not isinstance(items,dict):raise ValueError('Historical derived records are invalid')
-                    for parent_sha,record in (items or {}).items():
-                        if not isinstance(record,dict):continue
-                        if record.get('parent_sha')!=parent_sha:
-                            raise ValueError('Historical tile parent binding changed')
-                        for child in record.get('children') or []:
-                            if not isinstance(child,dict) or child.get('status')!=VALID:continue
-                            sha=str(child.get('child_sha') or '')
-                            if not sha:continue
-                            path=_historical_file(base,str(child.get('path') or ''),sha,'derived',boundaries)
-                            paths.add(path)
-            except HistoricalBytesMissing as exc:
-                if run_files:
-                    raise
-                # The duplicate cleanup deliberately removed this archived run's
-                # copies because every byte also exists in the live asset store.
-                # The SHA set still covers them; record the skip instead of
-                # pretending the run was scanned. Malformed metadata still fails.
-                if skipped is not None:
-                    skipped.append({'run':str(base),'reason':'archived copies cleaned; bytes covered by live assets',
-                                    'received_rows':len(records),'error':str(exc)[:200]})
+            resolved=[]
+            def resolve(declared, sha, role):
+                """The verified file that stands for one historical byte set.
+
+                The duplicate cleanup removed the redundant copies of archived
+                runs, so a run can be missing its own file while the library
+                still holds the canonical asset. That keeper is only accepted
+                when its bytes and its decodability are proven; without one the
+                history stays blocked instead of claiming complete coverage.
+                """
+                try:
+                    return _historical_file(base,str(declared),sha,role,boundaries)
+                except HistoricalBytesMissing:
+                    keeper=keepers.get(sha)
+                    if keeper is None:
+                        raise HistoryIntegrityBlocked(
+                            f'No verifiable keeper for missing historical bytes: {sha}') from None
+                    if hashlib.sha256(keeper.read_bytes()).hexdigest()!=sha or not _decodable_image(keeper):
+                        raise HistoryIntegrityBlocked(f'No verifiable keeper for missing historical bytes: {sha}')
+                    resolved.append(sha)
+                    return keeper
+            for original in run_files:
+                sha=original.stem
+                if original.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.avif'} and _SHA.fullmatch(sha):
+                    paths.add(resolve(original,sha,'images'))
+            for row in records:
+                path=resolve(row['original_path'],row['asset_sha'],'images')
+                paths.add(path)
+            # Valid derived tiles of older, never-imported batches are real images
+            # too: a new download identical to one of them is a repeat, not a new
+            # independent reference. Intact old tiles remain historical material.
+            derived=base/'derived.json'
+            if derived.is_file():
+                from .collage import VALID
+                data=json.loads(derived.read_text('utf8'))
+                items=data.get('items') if isinstance(data,dict) else None
+                if not isinstance(items,dict):raise ValueError('Historical derived records are invalid')
+                for parent_sha,record in (items or {}).items():
+                    if not isinstance(record,dict):continue
+                    if record.get('parent_sha')!=parent_sha:
+                        raise ValueError('Historical tile parent binding changed')
+                    for child in record.get('children') or []:
+                        if not isinstance(child,dict) or child.get('status')!=VALID:continue
+                        sha=str(child.get('child_sha') or '')
+                        if not sha:continue
+                        path=resolve(child.get('path') or '',sha,'derived')
+                        paths.add(path)
+            if resolved and skipped is not None:
+                # The run was read, not skipped: every missing byte set was
+                # proven against a retained keeper.
+                skipped.append({'run':str(base),'reason':'archived copies cleaned; every missing byte set resolved to a verified keeper',
+                                'received_rows':len(records),'resolved_shas':len(resolved)})
     return sorted(paths)
 
 
@@ -249,7 +305,7 @@ def _frozen_baseline(path, size, mtime, expected_sha):
         raise ValueError('Goal baseline SHA changed')
     baseline=json.loads(raw)
     if baseline.get('fingerprint_algorithm_version')!=FINGERPRINT_ALGORITHM_VERSION:
-        raise ValueError('Goal baseline fingerprints need explicit upgrade')
+        raise BaselineNeedsUpgrade('Goal baseline fingerprints need explicit upgrade')
     for item in baseline['items']:
         fp=item.get('fingerprint')
         if not _valid_cache_value(fp) or fp.get('asset_sha')!=item.get('sha'):
@@ -379,16 +435,20 @@ def _photo_relation(value, other, context=None):
 class _MatchContext:
     """Per-query caches: 128px pyramids and query crop templates.
 
-    Template crops depend only on the query image, so each (side, kind,
-    width, height) is resized once per query instead of once per historical
-    record. Historical pyramids live in a side cache keyed by asset SHA, so
-    observable record dicts stay unchanged and later queries reuse the work.
+    A template is a crop of one specific image, so its cache key names that
+    image's SHA. Only the candidate's own templates are reused across the
+    historical records of one scan; a template cut from a historical image is
+    rebuilt for that record. Reusing it would let one photo lend its template
+    to the next one and make the verdict depend on the order of the history.
+    Historical pyramids live in a side cache keyed by asset SHA, so observable
+    record dicts stay unchanged and later queries reuse the work.
     """
-    __slots__=('_templates','_pyramids')
+    __slots__=('_templates','_pyramids','_candidate')
 
-    def __init__(self, pyramids=None):
+    def __init__(self, pyramids=None, candidate=None):
         self._templates={}
         self._pyramids=pyramids if pyramids is not None else {}
+        self._candidate=candidate
 
     def features(self,record):
         import numpy as np
@@ -400,6 +460,7 @@ class _MatchContext:
         image=Image.frombytes('RGB',(128,128),bytes.fromhex(record['pixels']))
         arr=np.asarray(image)
         feature={
+            'asset_sha':key,
             'arr':arr,
             'image':None,
             'small32':cv2.resize(arr,(32,32),interpolation=cv2.INTER_AREA),
@@ -410,7 +471,8 @@ class _MatchContext:
         return feature
 
     def template(self,side,query,kind,width,height,resolution=None):
-        key=(side,kind,resolution,width,height)
+        sha=query.get('asset_sha')
+        key=(sha,kind,resolution,width,height)
         cached=self._templates.get(key)
         if cached is not None:
             return (cached, True) if cached is not False else (False, False)
@@ -422,10 +484,14 @@ class _MatchContext:
             template=cv2.resize(query['arr'],(width,height),interpolation=cv2.INTER_AREA)
         # The coarse proposal stage skips flat templates; the fine fit has always
         # scored every crop on the full pixels and must keep doing so.
-        if kind!='lanczos' and template.reshape(-1,3).std(axis=0).max()<3:
-            self._templates[key]=False
-            return False, False
-        self._templates[key]=template
+        if kind!='lanczos':
+            spread=float(cv2.meanStdDev(template)[1].max())
+            # Keep the original numerical decision at the threshold boundary.
+            if abs(spread-3)<1e-7:spread=template.reshape(-1,3).std(axis=0).max()
+            if spread<3:
+                if sha==self._candidate:self._templates[key]=False
+                return False, False
+        if sha==self._candidate:self._templates[key]=template
         return template, True
 
 
@@ -452,6 +518,8 @@ class ImageHistory:
         self.records={}
         self.known_shas=set()
         self._pyramids={}
+        self._fingerprints_by_sha={}
+        self.fingerprint_stats={'decoded':0,'content_reused':0,'hashed_bytes':0,'path_cache_hits':0}
         ordered=[]
         seen=set()
         for path in paths:
@@ -523,12 +591,24 @@ class ImageHistory:
         if (cached is not None and cached.get('size')==stat['size']
                 and cached.get('mtime_ns')==stat['mtime_ns']
                 and _valid_file_entry(cached)):
-            return {'asset_sha':cached['sha'],'path':key,'ratio':cached['ratio'],
-                    'dhash':cached['dhash'],'sample':cached['sample'],'pixels':cached['pixels']}
+            value={'asset_sha':cached['sha'],'path':key,'ratio':cached['ratio'],
+                   'dhash':cached['dhash'],'sample':cached['sample'],'pixels':cached['pixels']}
+            with self._lock:
+                self._fingerprints_by_sha.setdefault(cached['sha'],value)
+                self.fingerprint_stats['path_cache_hits']+=1
+            return value
         raw=path.read_bytes()
         if len(raw)>20*1024*1024:raise ValueError('Duplicate input exceeds image size limit')
         sha=hashlib.sha256(raw).hexdigest()
-        value=_fingerprint_from_raw(path,raw,sha)
+        with self._lock:
+            self.fingerprint_stats['hashed_bytes']+=len(raw)
+            features=self._fingerprints_by_sha.get(sha) or self.records.get(sha)
+            if features is None:
+                features=_fingerprint_from_raw(path,raw,sha)
+                self._fingerprints_by_sha[sha]=features
+                self.fingerprint_stats['decoded']+=1
+            else:self.fingerprint_stats['content_reused']+=1
+            value={**features,'path':key}
         self._cache_files[key]={'size':stat['size'],'mtime_ns':stat['mtime_ns'],'sha':sha,
                                 'ratio':value['ratio'],'dhash':value['dhash'],'sample':value['sample'],'pixels':value['pixels']}
         self._cache_dirty=True
@@ -558,7 +638,7 @@ class ImageHistory:
         records=[other for other in records if _valid_cache_value(other)]
         if not records:return None
         candidate_collage=None
-        context=_MatchContext(self._pyramids)
+        context=_MatchContext(self._pyramids, value['asset_sha'])
         # Build every historical pyramid once. The shared cache is then read-only
         # for the comparison workers, and only the query's crop templates are
         # per-worker state.
@@ -593,7 +673,7 @@ class ImageHistory:
         workers=min(4,max(1,(os.cpu_count() or 4)-1))
         indexes=list(range(start,len(records)))
         if workers<2 or len(indexes)<64:
-            context=_MatchContext(self._pyramids)
+            context=_MatchContext(self._pyramids, value['asset_sha'])
             for index in indexes:
                 relation=_photo_relation(value,records[index],context)
                 if relation:return index,records[index],relation
@@ -601,7 +681,7 @@ class ImageHistory:
         chunks=[indexes[i::workers] for i in range(workers)]
 
         def scan(chunk):
-            local=_MatchContext(self._pyramids)
+            local=_MatchContext(self._pyramids, value['asset_sha'])
             for index in chunk:
                 relation=_photo_relation(value,records[index],local)
                 if relation:return index,records[index],relation

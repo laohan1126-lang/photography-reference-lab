@@ -50,6 +50,95 @@ def ensure_active_project(project: dict) -> None:
         raise Problem(409, "项目已删除到回收区；请先恢复项目再继续修改")
 
 
+COLLECTION_SEARCH_STATES = {"idle", "queued", "running", "completed", "partial",
+                            "blocked", "failed", "cancelled"}
+COLLECTION_REVIEW_STATES = {"idle", "queued", "running", "completed", "partial",
+                            "blocked", "failed", "cancelled"}
+
+
+def collection_status(job: dict) -> str:
+    """Current stage activity wins; historical Review refs never certify a new Search."""
+    status = str(job.get("status") or "")
+    mode = job.get("collection_mode", "verified")
+    if status == "cancelled" or mode == "verified":
+        return status
+    search, review = collection_stage_states(job)
+    if search == "running" or review == "running":
+        return "running"
+    # Search-only completion survives an optional Review failure or cancellation.
+    if search == "completed" and mode == "search":
+        return "succeeded" if review == "completed" and job.get("review_imported_ids") and status == "succeeded" else "completed"
+    if search != "completed":
+        return {"queued":"queued", "partial":"partial", "failed":"failed"}.get(search, "blocked")
+    if review == "completed":
+        if job.get("review_imported_ids") and status in {"succeeded", "partial", "blocked", "failed"}:
+            return status
+        return "awaiting_review"  # A validated import, not Search's outcome, completes Review.
+    return {"idle":"awaiting_review", "queued":"awaiting_review", "partial":"partial",
+            "failed":"failed"}.get(review, "blocked")
+
+
+def collection_progress(job: dict, folder=None) -> dict:
+    """Real progress signals of a collection job.
+
+    ``recovering`` is true while the collector is inside a recovery attempt:
+    the run folder says so, and the attempt is bound to the recorded owner.
+    ``manual_action`` names the one thing only the owner can do, for example a
+    platform login. Nothing here retries, logs in or changes a decision on its
+    own; it only states what is true now.
+    """
+    from . import collection_queue
+    from .agent_collection import _process_is_owned_by
+    progress = {}
+    if folder is None:
+        job_id = str(job.get("id") or "")
+        if job_id:
+            try:
+                folder = collection_queue.run_directory(job_id)
+            except (OSError, ValueError, KeyError):
+                folder = None
+    if folder is not None:
+        try:
+            progress = collection_queue.read_json(Path(folder) / "progress.json", {}) or {}
+        except (OSError, ValueError, KeyError):
+            progress = {}
+    if not isinstance(progress, dict):progress = {}
+    owner = job.get("collection_process_owner") or {}
+    recorded_owner = progress.get("owner") or {}
+    attempt = job.get("search_attempt_id") or job.get("active_attempt_id")
+    recovering = (job.get("status") != "cancelled" and job.get("search_state") == "running"
+                  and progress.get("phase") == "browser_recovering"
+                  and bool(attempt) and progress.get("attempt_id") == attempt
+                  and progress.get("job_id") == job.get("id")
+                  and _process_is_owned_by(owner,recorded_owner))
+    summary = job.get("search_summary") or {}
+    stop_reason = str(job.get("search_stop_reason") or summary.get("stop_reason") or "")
+    manual_action = ""
+    if (job.get("status") != "cancelled" and job.get("search_state") in {"partial", "blocked", "failed"}
+            and (stop_reason in {"login_or_challenge", "sources_blocked"} or summary.get('source_blocked'))):
+        manual_action = "login_required"
+    return {"recovering": bool(recovering),
+            "manual_action": manual_action,
+            "phase": "browser_recovering" if recovering else ""}
+
+
+def collection_stage_states(job: dict) -> tuple[str, str]:
+    """The effective Search and Review states of a collection job.
+
+    A stage that still says it is running while the process that owned it is
+    gone is not running: the stored record keeps what happened, the projection
+    says what is true now, so every surface shows the same honest state.
+    """
+    from .agent_collection import _process_owner_active
+    search = str(job.get("search_state") or "idle")
+    review = str(job.get("review_state") or "idle")
+    if search == "running" and not _process_owner_active(job.get("collection_process_owner")):
+        search = "blocked"
+    if review == "running" and not _process_owner_active(job.get("review_process_owner")):
+        review = "blocked"
+    return search, review
+
+
 def _valid_sha256(value: object) -> bool:
     return (isinstance(value, str) and len(value) == 64
             and all(char in "0123456789abcdef" for char in value))
@@ -995,10 +1084,17 @@ class Library:
                 names.extend(request.search_aliases)
         names = [n for n in dict.fromkeys(names) if n]
 
-        from .collection_history import ImageHistory, historical_paths, FINGERPRINT_ALGORITHM_VERSION
+        from .collection_history import (FINGERPRINT_ALGORITHM_VERSION,
+                                         ImageHistory, historical_paths)
         root = Path(__file__).resolve().parents[1]
         history_roots = [Path(path) for path in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS', '[]'))]
-        paths = set(historical_paths(root, root/'.local/goals'/goal_id, history_roots=history_roots))
+        try:
+            paths = set(historical_paths(root, root/'.local/goals'/goal_id, history_roots=history_roots))
+        except (OSError,ValueError) as exc:
+            # The history cannot be proven complete: the Goal would admit
+            # images against an unproven baseline, so it is not created.
+            raise Problem(409, '历史图片或保留件校验失败；历史排重基线不完整，未建立Goal。',
+                          {'code':'history_integrity_blocked'}) from exc
         for aid, djson in con.execute("SELECT id, data FROM assets"):
             asset = json.loads(djson)
             if asset.get('storage_status') == 'purged':
@@ -1141,13 +1237,15 @@ class Library:
     def transition_job(self, ident: str, status: str, revision: int, detail: str, *, actor: str = "human") -> dict:
         transitions = {"blocked": {"running", "cancelled"}, "queued": {"running", "blocked", "cancelled"},
                        "running": {"blocked", "failed", "succeeded", "cancelled"}, "failed": {"running", "cancelled"},
-                       "succeeded": set(), "cancelled": set()}
+                       "succeeded": set(), "cancelled": set(), "completed":{"cancelled"},
+                       "partial":{"cancelled"}, "awaiting_review":{"cancelled"}}
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
             ensure_active_project(row_data(con, "projects", job["project_id"]))
             check_revision(job, revision)
-            if status not in transitions[job["status"]]:
-                raise Problem(409, f"不允许 {job['status']} → {status}")
+            current_status=collection_status(job) if job['kind']=='collection' else job['status']
+            if status not in transitions.get(current_status,set()):
+                raise Problem(409, f"不允许 {current_status} → {status}")
             if status == "succeeded":
                 if job["kind"] == "collection":
                     if not job.get("execution_report"):
@@ -1162,6 +1260,9 @@ class Library:
                 _settle_collection_time(job)
                 job.pop("active_attempt_id", None)
                 job.pop("collection_process_owner", None)
+                for stage in ('search','review'):
+                    if job.get(stage+'_state') in {'running','queued','idle'}:
+                        job[stage+'_state']='cancelled'
             job.update(status=status, detail=detail)
             return self._save_job(con, job, "job.transitioned", {"status": status, "detail": detail}, actor)
 
@@ -1539,7 +1640,7 @@ class Library:
             job = row_data(con, "jobs", ident)
             ensure_active_project(row_data(con, "projects", job["project_id"]))
             check_revision(job, revision)
-            if job["kind"] != "collection" or job["status"] not in {"blocked", "queued", "failed"}:
+            if job["kind"] != "collection" or job["status"] not in {"blocked", "queued", "failed", "partial"}:
                 raise Problem(409, "任务不可重复启动；请检查当前状态")
             job.update(status="running", active_attempt_id=attempt_id,
                        detail="检查本地 Agent 适配器；本轮尚未收到候选",
@@ -1561,7 +1662,7 @@ class Library:
             job = row_data(con, "jobs", ident)
             ensure_active_project(row_data(con, "projects", job["project_id"]))
             check_revision(job, revision)
-            if (job["kind"] != "collection" or job["status"] not in {"running", "blocked"}
+            if (job["kind"] != "collection" or collection_status(job) not in {"running", "blocked"}
                     or job.get("active_attempt_id") != attempt_id):
                 raise Problem(409, "原采集轮次已结束或被替代，不能恢复")
             job.update(status="running", detail="继续同一采集轮次；保留已完成的搜索与候选检查点",
@@ -1673,8 +1774,9 @@ class Library:
                 if job.get("active_attempt_id") == attempt_id:
                     job.pop("active_attempt_id", None)
                     job.pop("collection_process_owner", None)
-                if job["status"] == "running" and job.get("review_state") != "running":
-                    job["status"] = "blocked"
+                # A finished Search is not a failed job: the Review stage has
+                # its own state, and an unrun Review must not negate it.
+                job["status"] = collection_status(job)
                 if job.get("review_state") == "running":
                     job["search_detail"] = detail
                 else:
@@ -1705,8 +1807,7 @@ class Library:
                 job["review_process_owner"] = dict(owner)
             else:
                 job.pop("review_process_owner", None)
-            if job.get("search_state") != "running" and job["status"] in {"blocked", "failed", "queued"}:
-                job["status"] = "running"
+            job["status"] = "running"
             return self._save_job(con, job, "collection.review_started", {"attempt_id": attempt_id}, "worker")
 
     def resume_review_stage(self, ident: str, attempt_id: str, *, owner: dict | None = None) -> dict:
@@ -1743,8 +1844,7 @@ class Library:
                 job.pop("review_attempt_started_at", None)
                 job.pop("review_attempt_id", None)
                 job.pop("review_process_owner", None)
-                if job["status"] == "running" and job.get("search_state") != "running":
-                    job["status"] = "blocked"
+                job["status"] = collection_status(job)
                 job["detail"] = detail
             else:
                 job["review_detail"] = detail
@@ -1762,8 +1862,7 @@ class Library:
             job.pop("review_attempt_id", None)
             job.pop("review_process_owner", None)
             job.pop("review_attempt_started_at", None)
-            if job["status"] == "running" and job.get("search_state") != "running":
-                job["status"] = "blocked"
+            job["status"] = collection_status(job)
             return self._save_job(con, job, "collection.review_cancelled", {"detail": detail}, "human")
 
     def extend_search(self, ident: str, extra_target: int, detail: str = "") -> dict:
@@ -1813,7 +1912,7 @@ class Library:
                            search_resume_generation=int(job.get('search_resume_generation',0))+1,
                            search_stop_reason="", search_detail=detail or
                            f"继续加搜：累计目标 {total} 张；已下载候选保留且不会重复计数。")
-                if job["status"] in {"succeeded", "failed"}:
+                if job["status"] in {"succeeded", "completed", "failed", "awaiting_review", "partial"}:
                     job["status"] = "blocked"
                 job.pop("active_attempt_id", None)
                 job.pop("collection_process_owner", None)
@@ -1882,8 +1981,7 @@ class Library:
             job.pop("active_attempt_id", None)
             job.pop("collection_process_owner", None)
             job.pop("search_attempt_started_at", None)
-            if job["status"] == "running" and job.get("review_state") != "running":
-                job["status"] = "blocked"
+            job["status"] = collection_status(job)
             return self._save_job(con, job, "collection.search_cancelled", {"detail": detail}, "human")
 
     def record_review_import(self, ident: str, reference_ids: list[str], *, accepted: int,

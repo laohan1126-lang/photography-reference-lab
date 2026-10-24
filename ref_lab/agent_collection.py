@@ -159,6 +159,68 @@ def _process_identity(pid: int) -> dict | None:
         return {"pid": pid, "unknown": True}
 
 
+def _process_parent_pid(pid: int) -> int | None:
+    """Read the OS parent of one PID; unavailable information is not ownership proof."""
+    if os.name != 'nt':
+        try:return int(Path(f'/proc/{pid}/stat').read_text('ascii').rsplit(')',1)[1].split()[1])
+        except (OSError,ValueError,IndexError):return None
+    from ctypes import wintypes
+    class ProcessEntry(ctypes.Structure):
+        _fields_=[('dwSize',wintypes.DWORD),('cntUsage',wintypes.DWORD),
+                  ('th32ProcessID',wintypes.DWORD),('th32DefaultHeapID',ctypes.c_size_t),
+                  ('th32ModuleID',wintypes.DWORD),('cntThreads',wintypes.DWORD),
+                  ('th32ParentProcessID',wintypes.DWORD),('pcPriClassBase',wintypes.LONG),
+                  ('dwFlags',wintypes.DWORD),('szExeFile',wintypes.WCHAR*260)]
+    kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    kernel.CreateToolhelp32Snapshot.argtypes=[wintypes.DWORD,wintypes.DWORD]
+    kernel.CreateToolhelp32Snapshot.restype=wintypes.HANDLE
+    for name in ('Process32FirstW','Process32NextW'):
+        function=getattr(kernel,name)
+        function.argtypes=[wintypes.HANDLE,ctypes.POINTER(ProcessEntry)]
+        function.restype=wintypes.BOOL
+    kernel.CloseHandle.argtypes=[wintypes.HANDLE]
+    kernel.CloseHandle.restype=wintypes.BOOL
+    snapshot=kernel.CreateToolhelp32Snapshot(2,0)
+    if snapshot in (None,ctypes.c_void_p(-1).value):return None
+    try:
+        entry=ProcessEntry();entry.dwSize=ctypes.sizeof(entry)
+        available=kernel.Process32FirstW(snapshot,ctypes.byref(entry))
+        for _ in range(4096):
+            if not available:return None
+            if entry.th32ProcessID==pid:return int(entry.th32ParentProcessID)
+            available=kernel.Process32NextW(snapshot,ctypes.byref(entry))
+        return None
+    finally:kernel.CloseHandle(snapshot)
+
+
+def _process_is_owned_by(owner: dict | None, worker: dict | None) -> bool:
+    """Prove an identical process or a live descendant, rejecting PID reuse and unknown identity."""
+    def identity(record):
+        if not record or record.get('unknown'):return None
+        try:
+            pid=int(record['pid']);creation=int(record['creation']);executable=record['executable']
+            return (pid,creation,executable.casefold()) if pid>0 and executable else None
+        except (KeyError,TypeError,ValueError,AttributeError):return None
+    expected_owner=identity(owner);expected_worker=identity(worker)
+    if expected_owner is None or expected_worker is None:return False
+    current=identity(_process_identity(expected_worker[0]))
+    if current!=expected_worker:return False
+    visited=set()
+    for _ in range(32):
+        if current[0] in visited:return False
+        visited.add(current[0])
+        if current==expected_owner:
+            return (identity(_process_identity(expected_owner[0]))==expected_owner
+                    and identity(_process_identity(expected_worker[0]))==expected_worker)
+        parent_pid=_process_parent_pid(current[0])
+        if not parent_pid:return False
+        parent=identity(_process_identity(parent_pid))
+        if parent is None or parent[1]>current[1]:return False
+        if identity(_process_identity(current[0]))!=current:return False
+        current=parent
+    return False
+
+
 def _process_owner_active(owner: dict | None) -> bool:
     if not owner:
         return False
@@ -444,7 +506,9 @@ def _owner_record(pid: int, *, phase: str, pgid: int | None = None) -> dict:
 
 
 def collection_can_resume(library: Library, job: dict) -> bool:
-    if job.get("kind") != "collection" or job.get("status") in {"succeeded", "cancelled"}:
+    from .service import collection_status
+    status = collection_status(job)
+    if job.get("kind") != "collection" or status in {"succeeded", "cancelled"}:
         return False
     if job.get("review_attempt_id") and _process_owner_active(job.get("review_process_owner")):
         return False
@@ -452,20 +516,20 @@ def collection_can_resume(library: Library, job: dict) -> bool:
         return False
     run_dir = library.settings.data_dir / "agent-runs" / str(job["id"])
     if not run_dir.exists():
-        return job.get("status") in {"blocked", "queued", "failed"} or (job.get("status") == "running" and bool(job.get("active_attempt_id")))
+        return status in {"blocked", "queued", "failed", "partial"} or (status == "running" and bool(job.get("active_attempt_id")))
     lock = AttemptFileLock(run_dir / "attempt.lock")
     if not lock.acquire():
         return False
     lock.release()
-    if job.get("status") == "running":
+    if status == "running":
         return bool(job.get("active_attempt_id") or job.get("review_attempt_id"))
-    return job.get("status") in {"blocked", "queued", "failed"}
+    return status in {"blocked", "queued", "failed", "partial"}
 
 
 def review_can_resume(library: Library, job: dict) -> bool:
     if job.get("kind") != "collection" or job.get("status") == "cancelled":
         return False
-    if job.get("review_state") not in {"running", "blocked", "partial"}:
+    if job.get("review_state") not in {"running", "blocked", "partial", "failed"}:
         return False
     if job.get("review_attempt_id") and _process_owner_active(job.get("review_process_owner")):
         return False
@@ -480,6 +544,8 @@ def run_process(library: Library, job_id: str, attempt_id: str, command: list[st
     env.pop("LAB_COLLECTION_COMMAND", None)
     env.pop("LAB_COLLECTION_RECOVERY_MODE", None)
     env.pop("LAB_COLLECTION_IMPORTED_RESULT_SHA256", None)
+    env['LAB_COLLECTION_ATTEMPT_ID']=attempt_id
+    env['LAB_COLLECTION_JOB_ID']=job_id
     if imported_result_sha256:
         if not _is_sha256(imported_result_sha256):
             raise AttemptStop("collector_receipt_invalid", "已导入 ZIP 的 SHA256 回执格式无效。")

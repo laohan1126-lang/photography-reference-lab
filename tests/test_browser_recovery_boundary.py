@@ -130,14 +130,19 @@ def test_recovery_requires_actual_read_after_session_creation(tmp_path,monkeypat
     assert commands==["browsers","session","session","session","session","evaluate"]
     assert browser.session=="new"
 
-def test_api_projects_recovery_diagnostics(client,project,tmp_path,monkeypatch):
+def test_api_projects_recovery_diagnostics(client,library,project,tmp_path,monkeypatch):
     from ref_lab import collection_queue
+    from ref_lab.agent_collection import _owner_record
+    import os
     monkeypatch.setattr(collection_queue,"run_directory",lambda _:tmp_path)
     response=client.post(f"/api/projects/{project['id']}/jobs",json={"kind":"collection","target_count":30,"collection_mode":"search"})
     assert response.status_code==201
     job_id=response.json()["id"]
+    owner=_owner_record(os.getpid(),phase='running');attempt='fixture-recovery'
+    library.start_collection_attempt(job_id,response.json()['revision'],attempt,owner=owner)
     safe=errors.sanitize_diagnostics({"action":"navigate","code":"session_not_found","details":"Cookie: sid=fake-cookie","result":"failed"})
-    worker.save(tmp_path/"progress.json",{"phase":"browser_recovering","browser_errors":[safe]})
+    worker.save(tmp_path/"progress.json",{"phase":"browser_recovering","browser_errors":[safe],
+                'job_id':job_id,'attempt_id':attempt,'owner':owner})
     worker.save(tmp_path/"search-summary.json",{"status":"blocked","stop_reason":"old_attempt"})
     data=client.get(f"/api/jobs/{job_id}/candidates").json()
     assert data["search"]["phase"]=="browser_recovering"
@@ -145,9 +150,30 @@ def test_api_projects_recovery_diagnostics(client,project,tmp_path,monkeypatch):
     assert "fake-cookie" not in json.dumps(data)
     worker.save(tmp_path/"progress.json",{"phase":"finished"})
     worker.save(tmp_path/"search-summary.json",{"status":"blocked","stop_reason":"browser_unavailable","browser_errors":[safe]})
+    library.update_search_stage(job_id,attempt,'blocked',
+        {'status':'blocked','stop_reason':'browser_unavailable','counts':{'found':0}},'browser unavailable')
     data=client.get(f"/api/jobs/{job_id}/candidates").json()
     assert data["search"]["stop_reason"]=="browser_unavailable"
     assert data["search"]["browser_errors"]==[safe]
+
+
+@pytest.mark.parametrize('patch',[{'attempt_id':'old-attempt'},{'owner':{}},{'job_id':'another-job'}])
+def test_api_rejects_unbound_recovery_progress(client,library,project,tmp_path,monkeypatch,patch):
+    from ref_lab import collection_queue
+    from ref_lab.agent_collection import _owner_record
+    import os
+    monkeypatch.setattr(collection_queue,'run_directory',lambda _:tmp_path)
+    response=client.post(f"/api/projects/{project['id']}/jobs",json={
+        'kind':'collection','target_count':1,'collection_mode':'search'})
+    assert response.status_code==201
+    job=response.json();owner=_owner_record(os.getpid(),phase='running')
+    library.start_collection_attempt(job['id'],job['revision'],'current-attempt',owner=owner)
+    worker.save(tmp_path/'progress.json',{'phase':'browser_recovering','job_id':job['id'],
+                'attempt_id':'current-attempt','owner':owner,**patch})
+    data=client.get(f"/api/jobs/{job['id']}/candidates").json()
+    assert data['job']['recovering'] is False
+    assert data['search']['phase']!='browser_recovering'
+    assert data['search']['status']=='running'
 
 def test_lost_start_reply_cancels_exact_request_even_after_job_deadline(tmp_path,monkeypatch):
     browser=worker.Browser(tmp_path);browser.bsk="bsk";browser.browser_id="original"

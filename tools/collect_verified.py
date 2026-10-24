@@ -27,7 +27,7 @@ from PIL import Image
 from ref_lab.models import CandidatePackage
 from ref_lab.verified_collection import AntigravityCollectionAgent,AgentUnavailable,AgentCallFailed,CollectionVision,accepted,query_steps,reference_supported,scope_sha,_plan_name_records
 from ref_lab.storage import atomic_write
-from ref_lab.collection_history import ImageHistory,historical_paths
+from ref_lab.collection_history import (HistoryIntegrityBlocked,ImageHistory,historical_paths)
 from ref_lab import collection_queue
 from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
@@ -48,7 +48,38 @@ MAX_GOAL_NOTE_IMAGES=12
 MAX_IMAGES=200
 SAMPLE_PER_QUERY=8
 MAX_WINDOWS=3
-MAX_DETAIL_PAGES=96
+MAX_DETAIL_PAGES=144
+
+
+def _post_key(url):
+    try:parsed=urlsplit(str(url or ''))
+    except ValueError:return ''
+    if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password:return ''
+    path=parsed.path.rstrip('/')
+    if parsed.hostname.endswith('.xiaohongshu.com') or parsed.hostname=='xiaohongshu.com':
+        path=re.sub(r'^/(?:explore|search_result)/([a-f0-9]{24})$',r'/explore/\1',path)
+    return parsed.hostname.lower()+path
+
+
+def _rank_discovery_cards(cards,seen_posts,attempts,*,names,work_terms,other_terms):
+    return sorted(cards,key=lambda card:(bool(_post_key(card.get('page')) in seen_posts
+        or attempts.get(_post_key(card.get('page')),0)),classify_card(
+            card,names=names,work_terms=work_terms,other_terms=other_terms)['rank']))
+
+
+def _qualified_feedback(*,before,after,duplicates,received,cards,pending,detail_failures,blocked):
+    gain=max(0,after-before)
+    if blocked:reason,action='platform_blocked','stop_source'
+    elif detail_failures:reason,action='detail_failure','bounded_retry'
+    elif pending:reason,action='qualification_pending','continue'
+    elif gain:reason,action='qualified_candidates_received','continue'
+    elif duplicates:reason,action='history_duplicate_high','change_photography_intent'
+    elif cards:reason,action='no_qualified_yield','next_query'
+    else:reason,action='visible_candidates_exhausted','next_query'
+    return {'reason':reason,'action':action,'qualified_gain':gain,'pending':int(pending),
+            'new_originals':received,'duplicates':duplicates,
+            'duplicate_fraction':duplicates/max(1,duplicates+received),
+            'low_yield':not blocked and not detail_failures and not pending and not gain}
 
 
 class SourceBlocked(ValueError):
@@ -279,7 +310,7 @@ XHS_SORT_JS=r"""(() => {
 SEARCH_JS=r"""(() => {
  const visible=x=>{const r=x.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth
    &&(!x.checkVisibility||x.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))};
- const text=document.body.innerText;
+ const text=(document.body&&document.body.innerText)||'';
  const login=Array.from(document.querySelectorAll('[role="dialog"],.login-container,.login-box'))
    .some(x=>visible(x)&&/登录|登入|扫码|Log in|Sign up/.test(x.innerText));
  const challenge=Array.from(document.querySelectorAll('iframe[src*="captcha"]')).some(visible)||/访问过于频繁|验证后继续|Verify you are human/.test(text);
@@ -287,7 +318,21 @@ SEARCH_JS=r"""(() => {
  let cards=[];
  if(source==='xiaohongshu'){
   cards=Array.from(document.querySelectorAll('section')).filter(x=>x.querySelector('img'))
-   .map(x=>({text:x.innerText,page:x.querySelector('a[href*="/explore/"],a[href*="/search_result/"]')?.href}));
+    .map(x=>{const link=x.querySelector('a[href*="/explore/"],a[href*="/search_result/"]');
+     const href=link?link.href:'';
+     const id=(href.match(/\/(?:explore|search_result)\/([a-f0-9]{24})/)||[])[1]||'';
+     // The card keeps the URL the search page exposed, including the query
+     // parameters that page carried; nothing is composed or guessed here.
+     let observed=href;
+     if(id&&!href.includes('?')){
+      const rich=Array.from(x.querySelectorAll('a[href]')).find(a=>{
+       try{const u=new URL(a.href,location.href),original=new URL(href,location.href);
+        return u.origin===original.origin&&!u.username&&!u.password&&!!u.search
+         &&(u.pathname.match(/^\/(?:explore|search_result)\/([a-f0-9]{24})\/?$/)||[])[1]===id;
+       }catch{return false;}});
+      if(rich)observed=rich.href;
+     }
+     return {text:x.innerText,page:observed};});
  }else{
   cards=Array.from(document.images).filter(x=>x.naturalWidth>=200&&x.naturalHeight>=200)
    .map(x=>({text:[x.alt,x.getAttribute('aria-label'),x.closest('[data-test-id="pin"], [data-grid-item], [role="listitem"]')?.innerText].filter(Boolean).join('\n'),
@@ -296,7 +341,7 @@ SEARCH_JS=r"""(() => {
  }
  const seen=new Set();cards=cards.filter(x=>x.page&&!seen.has(x.page)&&seen.add(x.page)).slice(0,60);
  return {url:location.href,search:document.querySelector('input[placeholder],textarea[placeholder]')?.value,
-         visibleMain:text.slice(0,8000),cards,login_required:login,challenge,
+         visibleMain:text.slice(0,8000),cards,login_required:login,challenge,body_ready:!!document.body,
          sort_latest:source==='xiaohongshu'&&Array.from(document.querySelectorAll('.tags.active'))
            .some(x=>!x.closest('[aria-hidden="true"]')&&x.textContent.trim()==='最新')};
 })()"""
@@ -305,13 +350,13 @@ SEARCH_JS=r"""(() => {
 DETAIL_PROBE_JS=r"""(() => {
  const visible=x=>{const r=x.getBoundingClientRect();return r.width>0&&r.height>0
    &&(!x.checkVisibility||x.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}));};
- const text=(document.body.innerText||'').slice(0,4000);
+ const text=((document.body&&document.body.innerText)||'').slice(0,4000);
  const login=Array.from(document.querySelectorAll('[role="dialog"],.login-container,.login-box'))
    .some(x=>visible(x)&&/登录|登入|扫码|Log in|Sign up/.test(x.innerText));
  const challenge=Array.from(document.querySelectorAll('iframe[src*="captcha"]')).some(visible)
    ||/访问过于频繁|验证后继续|Verify you are human/.test(text);
  const notFound=/当前笔记暂时无法浏览|内容不存在|页面不见了|Note not found/i.test(text);
- return {url:location.href,login_required:login,challenge,not_found:notFound};
+ return {url:location.href,login_required:login,challenge,not_found:notFound,body_ready:!!document.body};
 })()"""
 
 
@@ -321,6 +366,11 @@ class Browser:
         self.folder=folder;self.session=None;self.start_request=None;self.bsk=None;self.browser_id=None
         self.env={**os.environ,'BSK_AUTO_START':'0'}
         self.timing=None;self.preview=None;self.preview_reused=0
+        self.preview_payloads={'created':0,'removed':0,'bytes':0}
+        self._preview_root=None
+        self._preview_owned=None
+        self.cover_cache_path=None;self._cover_entries=None
+        self.preview_payloads['metadata_hits']=0
         self.recovery_attempts=0;self.max_recovery_attempts=2
         self.recovery_budget_seconds=60.0;self.recovery_seconds_used=0.0
         self.recovery_start_time=None;self.recovery_active=False
@@ -333,11 +383,60 @@ class Browser:
         return timing.span(name,**fields) if timing is not None else nullcontext()
 
     def _probe_detail(self):
-        """Cheap binding/login/404 check for a just-opened detail page."""
-        data=json.loads(self.command('evaluate','--session',self.session,'--json',DETAIL_PROBE_JS))
-        if data.get('ok') is not True or not isinstance(data.get('value'),dict):
-            raise DetailItemError('Detail page read failed',code='detail_read_failed')
-        return data['value']
+        """Cheap binding/login/404 check for a just-opened detail page.
+
+        A page whose body is not built yet is read again a bounded number of
+        times.  An unfinished DOM is not a connection fault, and the wait stays
+        inside the deadline that already governs this Job.
+        """
+        value={}
+        for attempt in range(3):
+            data=json.loads(self.command('evaluate','--session',self.session,'--json',DETAIL_PROBE_JS))
+            if data.get('ok') is not True or not isinstance(data.get('value'),dict):
+                raise DetailItemError('Detail page read failed',code='detail_read_failed')
+            value=data['value']
+            if value.get('body_ready') is not False or attempt>=2:break
+            remaining=getattr(self,'deadline',float('inf'))-time.monotonic()
+            if remaining<=0:break
+            time.sleep(min(0.6,remaining))
+        return value
+
+    def _observed_note_url(self,url,note):
+        """The observed URL of this note, or nothing at all.
+
+        Nothing is composed here.  The URL is the one the search page exposed;
+        it must be HTTPS, carry no credentials, belong to the same source and
+        point at the very note the card referred to.  Anything else is refused
+        instead of guessed.
+        """
+        raw=url if isinstance(url,str) else ''
+        raw=raw.strip()
+        if not raw:return ''
+        try:parsed=urlsplit(raw)
+        except ValueError:return ''
+        if parsed.scheme!='https' or not parsed.hostname:return ''
+        if parsed.username or parsed.password:return ''
+        host=(parsed.hostname or '').lower()
+        if host!='xiaohongshu.com' and not host.endswith('.xiaohongshu.com'):return ''
+        match=re.fullmatch(r'/(?:explore|search_result)/([a-f0-9]{24})',parsed.path.rstrip('/'))
+        if not match or match.group(1)!=note:return ''
+        return raw
+
+    def _search_page_confirmed(self,source,query):
+        """Is the live page still the original search result page?
+
+        The source, the query, this session and visible cards must all still
+        match.  Only then has the browser not left the page, and stepping
+        back would move into an unrelated page.
+        """
+        try:
+            snapshot=self.snapshot()
+        except (ValueError,OSError,subprocess.SubprocessError,KeyError):
+            return False
+        evidence=self._return_state(snapshot,source,query)
+        evidence['stage']='after_unconfirmed_navigation'
+        self._record_return_check(evidence)
+        return bool(evidence.get('confirmed'))
 
     def can_recover(self)->bool:
         """Recovery keeps the total-Job deadline and a bounded attempt/time cap.
@@ -366,14 +465,15 @@ class Browser:
         params=parse_qs(parsed.query or '')
         expected_path='/search/pins' if source=='pinterest' else '/search_result'
         host=(parsed.hostname or '').lower()
-        source_ok=host.endswith('pinterest.com') if source=='pinterest' else host.endswith('xiaohongshu.com')
+        domain='pinterest.com' if source=='pinterest' else 'xiaohongshu.com'
+        source_ok=host==domain or host.endswith('.'+domain)
         url_query=(params.get('q') or params.get('keyword') or [''])[0]
         box=str(snapshot.get('search') or '')
         cards=snapshot.get('cards') or []
         blocked=bool(snapshot.get('login_required') or snapshot.get('challenge'))
         query_ok=bool(query) and (url_query==query or box==query)
         confirmed=bool(source_ok and parsed.path.rstrip('/')==expected_path and query_ok
-                       and cards and not blocked)
+                       and cards and not blocked and self.session)
         return {'confirmed':confirmed,'source':source,'host':host,'path':parsed.path.rstrip('/'),
                 'expected_path':expected_path,'query':query,'url_query':url_query,'search_box':box,
                 'cards':len(cards),'login_required':bool(snapshot.get('login_required')),
@@ -395,7 +495,7 @@ class Browser:
                                     str(step.get('query') or getattr(self,'active_query','') or ''))
         evidence['stage']=stage
         self._record_return_check(evidence)
-        if evidence['confirmed']:
+        if evidence['confirmed'] and time.monotonic()<getattr(self,'deadline',float('inf')):
             self.return_failed=False;self.return_error=None;self.return_issue_category=None
             return True
         return False
@@ -403,11 +503,9 @@ class Browser:
     def _go_back(self):
         """Step back through browser history without waiting for the SPA.
 
-        ``bsk navigate-back`` waits for load/commit up to the timeout; on
-        Xiaohongshu's SPA that wait regularly times out, and every timed-out
-        navigation leaves the extension with a background execution that later
-        blocks session cleanup. ``history.back()`` returns immediately and the
-        live page is verified afterwards, which is the real success signal.
+        The observed SPA return can succeed while a load/commit wait times out.
+        ``history.back()`` avoids that wait; the live source/query/content check
+        afterwards determines whether the return actually succeeded.
         """
         self.command('evaluate','--session',self.session,'--json',
                      '(()=>{history.back();return true})()',timeout=10)
@@ -426,7 +524,11 @@ class Browser:
         self.recovery_active=True
         if self.recovery_start_time is None:self.recovery_start_time=started
         old_deadline=getattr(self,'deadline',float('inf'))
-        self.deadline=min(old_deadline,started+self.recovery_budget_seconds)
+        # The recovery allowance is what is left of the cumulative budget, not
+        # a fresh window: 40 s already spent leaves 20 s, never a new 60 s.
+        # Normal collection time between two recoveries is not charged here.
+        remaining_budget=max(0.0,self.recovery_budget_seconds-self.recovery_seconds_used)
+        self.deadline=min(old_deadline,started+remaining_budget)
         try:
             if reason=='return' and step:
                 if self._verify_return(step,'before_repair'):
@@ -436,10 +538,27 @@ class Browser:
                                  '--wait-until','domcontentloaded','--timeout','15s',timeout=25)
                 except (BrowserError,OSError,subprocess.SubprocessError) as exc:
                     if not is_infrastructure_error(exc):raise
+                # A command timeout does not mean the page is wrong: the page is
+                # read and judged, and a correct page ends the recovery here.
                 if self._verify_return(step,'after_original_query'):
                     return True
-            return self._rebuild_session()
-        except (BrowserError,ValueError,OSError,subprocess.SubprocessError):
+            if not self._rebuild_session():
+                return False
+            if step:
+                # A rebuilt session sits on a blank page. Return to the original
+                # query and prove source, query, content and session before the
+                # run is declared recovered.
+                try:
+                    self.command('navigate',self.search_url(step),'--session',self.session,
+                                 '--wait-until','domcontentloaded','--timeout','15s',timeout=25)
+                except (BrowserError,OSError,subprocess.SubprocessError) as exc:
+                    if not is_infrastructure_error(exc):raise
+                if not self._verify_return(step,'after_rebuild'):
+                    return False
+            if time.monotonic() >= self.deadline:return False
+            self.return_failed=False;self.return_error=None;self.return_issue_category=None
+            return True
+        except (AgentUnavailable,BrowserError,ValueError,OSError,subprocess.SubprocessError):
             return False
         finally:
             self.deadline=old_deadline
@@ -466,9 +585,6 @@ class Browser:
         self._start_session(timeout=12)
         # Session creation alone does not prove that the extension can read a page.
         self.snapshot()
-        self.return_failed=False
-        self.return_error=None
-        self.return_issue_category=None
         return True
 
     def _record_error(self,err):
@@ -481,6 +597,12 @@ class Browser:
         save(self.folder/'browser-errors.json',errors)
 
     def command(self,*args,timeout=35):
+        if getattr(self,'_cleanup_active',False):
+            cancelling=(args[:2]==('session','request') and len(args)>2
+                        and args[2]==self.start_request and '--cancel' in args)
+            stopping=(args[:2]==('session','stop') and len(args)>2 and args[2]==self.session)
+            if not (cancelling or stopping):
+                raise AgentCallFailed('cleanup_operation_not_allowed',fatal=True)
         # Recovery belongs to the controller; replaying a dead session only wastes time.
         remaining=getattr(self,'deadline',float('inf'))-time.monotonic()
         if remaining<=0:
@@ -601,14 +723,83 @@ class Browser:
         time.sleep(1)
         return self.snapshot()
 
+    def _cover_metadata(self):
+        from ref_lab.collection_history import FINGERPRINT_ALGORITHM_VERSION,_cache_checksum
+        from ref_lab.collage import ALGORITHM_VERSION
+        if self._cover_entries is None:
+            self._cover_entries={}
+            path=self.cover_cache_path
+            try:
+                if path is None or path.is_symlink() or path.stat().st_size>8*1024*1024:return self._cover_entries
+                payload=read_json(path,{})
+                entries=payload.get('entries')
+                if (payload.get('algorithm_version')==FINGERPRINT_ALGORITHM_VERSION
+                        and payload.get('collage_version')==ALGORITHM_VERSION
+                        and isinstance(entries,dict) and len(entries)<=64
+                        and payload.get('checksum')==_cache_checksum(entries)):
+                    self._cover_entries=entries
+            except (OSError,ValueError,TypeError,AttributeError):pass
+        return self._cover_entries
+
+    def _cached_cover_match(self,card,history):
+        from ref_lab.collection_history import _photo_relation,_valid_cache_value
+        entry=self._cover_metadata().get(card['cover_url'])
+        try:
+            if (not isinstance(entry,dict) or entry.get('intrinsic')!=[card['cover_width'],card['cover_height']]):return None
+            fp=entry['fingerprint'];sha=entry['duplicate_of']
+            if not _valid_cache_value(fp) or fp.get('asset_sha')!=entry['preview_sha256']:return None
+            original=history.records.get(sha)
+            if original is None:return None
+            current=history._fingerprint(Path(original['path']))
+            if current['asset_sha']!=sha:return None
+            relation=({'reason':'same_bytes'} if fp['asset_sha']==sha else _photo_relation(fp,current))
+            if not relation or relation.get('state')=='needs_review':return None
+            self.preview_payloads['metadata_hits']+=1
+            return {**relation,'duplicate_of':sha,'reason':'visible_cover_matches_history',
+                    'preview_match':relation['reason'],'asset_role':'discovery_preview',
+                    'preview_sha256':fp['asset_sha'],'observed_cover_url':card['cover_url'],
+                    'observed_intrinsic_size':entry['intrinsic'],'preview_pixel_size':entry['pixels'],
+                    'preview_payload':'metadata_revalidated'}
+        except (OSError,ValueError,KeyError,TypeError,AttributeError):return None
+
+    def _remember_cover_match(self,card,history,path,match,pixels):
+        from ref_lab.collection_history import FINGERPRINT_ALGORITHM_VERSION,_cache_checksum
+        from ref_lab.collage import ALGORITHM_VERSION
+        # Cache only content-addressed CDN URLs; every reuse rechecks the pixel relation.
+        if (self.cover_cache_path is None or self.cover_cache_path.is_symlink()
+                or not re.search(r'/[0-9a-f]{32,64}\.[a-z]+$',urlsplit(card['cover_url']).path)
+                or match.get('reason') not in ('same_bytes','near_duplicate','crop_duplicate')
+                or match.get('state')=='needs_review' or match.get('duplicate_of') not in history.records):return
+        entries=self._cover_metadata()
+        fp={key:value for key,value in history._fingerprint(path).items() if key!='path'}
+        entries.pop(card['cover_url'],None)
+        entries[card['cover_url']]={'fingerprint':fp,'preview_sha256':fp['asset_sha'],
+            'duplicate_of':match['duplicate_of'],'intrinsic':[card['cover_width'],card['cover_height']],
+            'pixels':list(pixels)}
+        self._cover_entries=entries=dict(list(entries.items())[-64:])
+        try:save(self.cover_cache_path,{'algorithm_version':FINGERPRINT_ALGORITHM_VERSION,
+            'collage_version':ALGORITHM_VERSION,'entries':entries,'checksum':_cache_checksum(entries)})
+        except OSError:pass
+
     def check_duplicate(self,card,history):
         # shortcut: single primary-image Pins only; revisit when Pin galleries are collected.
-        self.preview=None
+        # The previous card's payload never outlives its own decision.
+        self._discard_preview()
         page=urlsplit(card.get('page',''));url=card.get('cover_url','');parsed=urlsplit(url)
         if (page.scheme!='https' or page.username or page.password or page.hostname not in ('pinterest.com','www.pinterest.com')
                 or not re.fullmatch(r'/pin/\d+/?',page.path) or parsed.scheme!='https' or parsed.username or parsed.password
                 or not (parsed.hostname=='pinimg.com' or (parsed.hostname or '').endswith('.pinimg.com'))
                 or min(card.get('cover_width',0),card.get('cover_height',0))<200):return None
+        # A cover address that the library already received, with a verified
+        # SHA behind it, is a known repeat: no bytes have to be transferred to
+        # say so. It says nothing about the other images of that post.
+        known=getattr(self,'known_sources',None) or {}
+        key=normalize_image_url(url)
+        if key and key in known and known[key] in getattr(history,'records',{}):
+            return {'duplicate_of':known[key],'reason':'known_source_url','source_address_precheck':True,
+                    'observed_cover_url':url,'preview_payload':'not_downloaded'}
+        cached=self._cached_cover_match(card,history)
+        if cached:return cached
         try:
             with httpx.stream('GET',url,timeout=5,follow_redirects=False) as response:
                 response.raise_for_status();content=bytearray()
@@ -624,49 +815,141 @@ class Browser:
                 ext={'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(image.format)
                 if ext is None:return None
                 image.verify()
-            previews=self.folder/'discovery-previews';previews.mkdir(exist_ok=True)
+            # The payload is temporary: it lives in the run's own staging area
+            # and is removed as soon as its decision was made.
+            incoming=Path(self.incoming_dir) if self.incoming_dir is not None else self.folder/'incoming'
+            previews=incoming/'previews'
+            if (incoming.is_symlink() or getattr(incoming,'is_junction',lambda:False)()
+                    or incoming.resolve()!=self.folder.resolve()/'incoming'):return None
+            if previews.is_symlink() or getattr(previews,'is_junction',lambda:False)():return None
+            previews.mkdir(parents=True,exist_ok=True)
             if previews.is_symlink() or not previews.resolve().is_relative_to(self.folder.resolve()):return None
-            path=previews/(sha+'.'+ext)
-            if path.is_symlink():return None
-            if not path.exists():atomic_write(path,raw)
-            elif path.read_bytes()!=raw:return None
+            self._preview_root=previews.resolve()
+            path=previews/(uuid4().hex+'.'+ext)
+            with path.open('xb') as stream:stream.write(raw)
+            self.preview_payloads['created']+=1
+            self._preview_owned=path.resolve()
             self.preview={'url':url,'sha':sha,'path':str(path.resolve())}
             match=history.match(path)
-            if match:return {**match,'reason':'visible_cover_matches_history','preview_match':match['reason'],
-                             'asset_role':'discovery_preview','preview_sha256':sha,'preview_path':str(path.resolve()),
+            if match:
+                self._remember_cover_match(card,history,path,match,pixels)
+                # The verdict is recorded; the payload is not kept for later.
+                self._discard_preview()
+                return {**match,'reason':'visible_cover_matches_history','preview_match':match['reason'],
+                             'asset_role':'discovery_preview','preview_sha256':sha,
+                             'preview_payload':'temporary_removed',
                              'observed_cover_url':url,'preview_pixel_size':list(pixels),
                              'observed_intrinsic_size':[card['cover_width'],card['cover_height']]}
-        except (OSError,ValueError,httpx.HTTPError,Image.DecompressionBombError):return None
+        except (OSError,ValueError,httpx.HTTPError,Image.DecompressionBombError):
+            self._discard_preview()
+            return None
         return None
+
+    def _discard_preview(self):
+        """Remove the temporary preview payload; the evidence keeps its SHA."""
+        preview=self.preview
+        self.preview=None
+        if not preview:return
+        try:
+            path=Path(preview.get('path') or '')
+            if path!=self._preview_owned:return
+            # Only this run's own staging payload is removed; an unrelated or
+            # externally owned path is never touched.
+            if (not self._preview_root or self._preview_root.is_symlink()
+                    or getattr(self._preview_root,'is_junction',lambda:False)()
+                    or self._preview_root.resolve()!=(self.folder/'incoming/previews').resolve()
+                    or path.parent!=self._preview_root):return
+            if path.is_file() and not path.is_symlink() and path.stat().st_nlink==1:
+                if hashlib.sha256(path.read_bytes()).hexdigest()!=preview.get('sha'):return
+                size=path.stat().st_size
+                path.unlink()
+                self.preview_payloads['removed']+=1
+                self.preview_payloads['bytes']+=size
+                self._preview_owned=None
+        except (OSError,ValueError):
+            pass
 
     def receive(self,card,step):
         page=card['page'];source=step['source']
         query=str(step.get('query') or getattr(self,'active_query','') or '')
         self.return_failed=False;self.return_error=None;self.return_issue_category=None
         entered_detail=source!='xiaohongshu'
+        left_search_page=False
         try:
             if source=='xiaohongshu':
                 match=re.search(r'/(?:explore|search_result)/([a-f0-9]{24})',urlsplit(page).path)
                 if not match:return []
                 note=match.group(1)
+                opened=False
                 with self._span('detail_click',source=source):
                     try:
                         self.command('click','--selector',f'a.cover[href*="{note}"]','--session',self.session)
+                        opened=True
                     except DetailItemError:
                         try:
                             self.command('click','--selector',f'a[href*="{note}"]','--session',self.session)
+                            opened=True
                         except DetailItemError:
-                            return []
-                with self._span('detail_dom_wait',source=source):
-                    probe=self._probe_detail()
-                entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',
-                                                 urlsplit(probe.get('url','')).path))
+                            opened=False
+                used_fallback=False
+                if not opened:
+                    # The card left the live grid. Open the URL the search page
+                    # itself exposed, once, inside this same detail attempt.
+                    target=self._observed_note_url(page,note)
+                    if not target:return []
+                    used_fallback=True
+                    try:
+                        with self._span('detail_navigate',source=source):
+                            self.command('navigate',target,'--session',self.session,
+                                         '--wait-until','domcontentloaded','--timeout','25s')
+                    except BrowserInfrastructureError:
+                        # The page may or may not have moved. Nothing is assumed
+                        # here: the live page below decides what happens next.
+                        pass
+                try:
+                    with self._span('detail_dom_wait',source=source):
+                        probe=self._probe_detail()
+                except (ValueError,OSError,subprocess.SubprocessError):
+                    # A failed read does not prove navigation stayed on the search page.
+                    left_search_page=not self._search_page_confirmed(source,query)
+                    raise
+                probe_url=str(probe.get('url') or '')
+                parsed=urlsplit(probe_url)
+                host=(parsed.hostname or '').lower()
+                host_ok=host=='xiaohongshu.com' or host.endswith('.xiaohongshu.com')
+                landed=re.search(r'/(?:explore|search_result)/([a-f0-9]{24})',parsed.path)
                 if probe.get('login_required') or probe.get('challenge'):
                     raise SourceBlocked('登录或验证门槛')
-                if probe.get('not_found') or '/404' in str(probe.get('url','')):
-                    self.return_failed=True
-                    return []
-                if not entered_detail:raise ValueError('Note did not open; search page preserved')
+                if used_fallback:
+                    if parsed.path.rstrip('/')=='/search_result':
+                        # The navigation may have timed out without moving.
+                        if self._search_page_confirmed(source,query):
+                            # Still the same source, query and session with
+                            # visible cards: keep the failure, capture nothing
+                            # and do not step back into an unrelated page.
+                            left_search_page=False
+                            return []
+                        left_search_page=True
+                        return []
+                    left_search_page=True
+                    if probe.get('not_found') or '/404' in probe_url:
+                        self.return_failed=True
+                        return []
+                    if not host_ok or not landed or landed.group(1)!=note:
+                        # A foreign page or another note is never captured.
+                        return []
+                    if probe.get('body_ready') is not True:
+                        # The page never became readable: it proves nothing.
+                        raise DetailItemError('Detail page read failed',code='detail_read_failed')
+                    entered_detail=True
+                else:
+                    if probe.get('not_found') or '/404' in probe_url:
+                        self.return_failed=True
+                        return []
+                    if probe.get('body_ready') is False:
+                        raise DetailItemError('Detail page read failed',code='detail_read_failed')
+                    entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',parsed.path))
+                    if not entered_detail:raise ValueError('Note did not open; search page preserved')
                 canonical='https://www.xiaohongshu.com/explore/'+note
                 errors=[]
                 rows=capture_note(self.bsk,self.session,self.folder,canonical,
@@ -685,11 +968,13 @@ class Browser:
             if detail.get('is_login_wall'):raise SourceBlocked('登录门槛')
             url=detail.get('image_url')
             if not url:return []
+            author_detail={'title':detail.get('title',''),'description':detail.get('desc','')}
             source_key=normalize_image_url(url)
             known_sources=getattr(self,'known_sources',None)
             if known_sources and source_key and source_key in known_sources:
                 return [{'asset_sha':known_sources[source_key],'page_url':page,'image_url':url,
                          'duplicate':True,'reason':'known_source_url',
+                         'author_detail':author_detail,
                          'source_text':detail.get('title','')+'\n'+detail.get('desc','')}]
             with self._span('detail_download',source=source):
                 raw,width,height,fmt,reused=self._pinterest_bytes(url)
@@ -701,6 +986,7 @@ class Browser:
                 return [{'asset_sha':sha,'page_url':page,'image_url':url,'duplicate':True,
                          'reason':'same_bytes_known','bytes_received':len(raw),
                          'width':width,'height':height,
+                         'author_detail':author_detail,
                          'source_text':detail.get('title','')+'\n'+detail.get('desc','')}]
             incoming=getattr(self,'incoming_dir',None)
             temp_dir=Path(incoming) if incoming is not None else self.folder/'incoming'
@@ -709,12 +995,13 @@ class Browser:
             with temporary.open('xb') as stream:stream.write(raw)
             return [{'asset_sha':sha,'original_path':str(temporary.resolve()),'page_url':page,'image_url':url,
                      'source_text':detail.get('title','')+'\n'+detail.get('desc',''),'width':width,'height':height,
-                     'author_detail':{'title':detail.get('title',''),'description':detail.get('desc','')},
+                     'author_detail':author_detail,
                      'ext':ext,'temporary':True,'bytes_received':len(raw),'preview_bytes_reused':reused}]
         finally:
+            self._discard_preview()
             # Restore the same search page; do not start another query or inspect a related feed.
             navigate_error=None
-            if entered_detail:
+            if entered_detail or left_search_page:
                 try:
                     with self._span('detail_return',source=source):
                         self._go_back()
@@ -725,7 +1012,7 @@ class Browser:
                     self.return_issue_category=('page_return'
                         if getattr(exc,'is_timeout',False) else 'connection')
                     if is_infrastructure_error(exc):self.return_error=exc
-            if entered_detail:
+            if entered_detail or left_search_page:
                 evidence=None
                 for attempt in range(3):
                     try:
@@ -738,7 +1025,10 @@ class Browser:
                         self.return_issue_category=self.return_issue_category or 'connection'
                         if is_infrastructure_error(exc) and self.return_error is None:self.return_error=exc
                     if evidence.get('confirmed'):break
-                    if attempt<2:time.sleep(0.7)
+                    if attempt<2:
+                        remaining=getattr(self,'deadline',float('inf'))-time.monotonic()
+                        if remaining<=0:break
+                        time.sleep(min(0.7,remaining))
                 evidence['stage']='after_history_back'
                 evidence['return_attempts']=attempt+1
                 evidence['navigate_back_error']=(type(navigate_error).__name__ if navigate_error is not None else None)
@@ -778,6 +1068,9 @@ class Browser:
                     with Image.open(io.BytesIO(raw)) as image:
                         image.load();width,height=image.size;fmt=image.format
                     self.preview_reused+=1
+                    # The bytes are in memory now; the temporary payload is not
+                    # kept for the rest of the Job.
+                    self._discard_preview()
                     return raw,width,height,fmt,True
             except (OSError,ValueError,Image.DecompressionBombError):
                 pass
@@ -792,14 +1085,19 @@ class Browser:
         return raw,width,height,fmt,False
 
     def close(self):
+        started=time.monotonic()
         old_deadline=getattr(self,'deadline',float('inf'))
-        self.deadline=time.monotonic()+10
+        self.deadline=(min(old_deadline,started+10) if self.recovery_active else started+10)
+        self._cleanup_active=True
+        state='cleanup_pending'
         try:
+            # A temporary preview payload never outlives the browser.
+            self._discard_preview()
             if self.start_request:
                 cancelled=json.loads(self.command('session','request',self.start_request,'--cancel','--json',timeout=10))
                 if cancelled.get('state')!='closed' or cancelled.get('cleanup_error'):
                     raise BrowserInfrastructureError('会话请求清理尚未确认',action='session',code='cleanup_pending')
-                self.start_request=None;self.session=None
+                self.start_request=None
             if self.session:
                 try:
                     self.command('session','stop',self.session,timeout=10)
@@ -807,12 +1105,18 @@ class Browser:
                     if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
                         raise
                 self.session=None
-            save(self.folder/'browser-session.json',{'browser_id':self.browser_id,'state':'closed'})
-        except Exception:
-            save(self.folder/'browser-session.json',{'browser_id':self.browser_id,
-                 'session_id':self.session,'start_request':self.start_request,'state':'cleanup_pending'})
-            raise
-        finally:self.deadline=old_deadline
+            state='closed'
+        except AgentUnavailable as exc:
+            raise BrowserInfrastructureError('会话清理时间预算已用尽',action='session',code='cleanup_pending') from exc
+        finally:
+            finished=time.monotonic()
+            self.deadline=old_deadline
+            self._cleanup_active=False
+            save(self.folder/'browser-session.json',{'browser_id':self.browser_id,'state':state,
+                 'session_id':self.session,'start_request':self.start_request,
+                 'cleanup':{'elapsed_seconds':max(0.,finished-started),
+                            'grace_allowed':not self.recovery_active,
+                            'grace_seconds':max(0.,finished-max(started,old_deadline))}})
 
 
 def restore_history_index(history, folder, received) -> dict:
@@ -850,6 +1154,27 @@ def restore_history_index(history, folder, received) -> dict:
     return result
 
 
+def _merge_repeat_evidence(by_sha,card,row,*,names,work_terms,other_terms):
+    """Fold the evidence of a repeat into the photo this Job already holds.
+
+    A repeat is not a new photo, so its bytes are not downloaded again and it
+    is not counted twice. But the new source can name the character or warn
+    about the picture, and that evidence belongs to the photo: it is merged
+    into the received row, whose own evidence stays in the trail. A photo the
+    library already owned is never turned into a new one here.
+    """
+    sha=row.get('asset_sha')
+    if not sha or sha not in by_sha:return False
+    from ref_lab.search_relevance import associate_detail
+    updated=associate_detail(card,row,names=names,work_terms=work_terms,other_terms=other_terms)
+    existing=by_sha[sha]
+    trail=existing.setdefault('discovery_evidence_history',[])
+    if not trail:trail.append(existing.get('relevance',{}))
+    trail.append(updated)
+    if is_confirmed({'relevance':updated}) and not is_confirmed(existing):existing['relevance']=updated
+    return True
+
+
 def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize_only=False,
             search_only=False)->tuple[dict,dict[str,bytes]]:
     project={**job['project_snapshot'],'notes':job.get('notes','')}
@@ -867,6 +1192,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     received=state['received'];audit=state['audit'];queries=state['queries'];checks=state['checks']
     pages=set(state['pages']);page_attempts=state['page_attempts'];searches=state['searches']
     duplicates=state['duplicates'];collisions=state['collisions'];gaps=state['gaps']
+    pages={_post_key('https://'+key) for key in pages}
+    normalized_attempts={}
+    for key,value in page_attempts.items():
+        normalized=_post_key('https://'+key)
+        normalized_attempts[normalized]=normalized_attempts.get(normalized,0)+value
+    page_attempts=normalized_attempts
     details=state['details'];windows=state['windows'];steps=state.get('steps',[])
     previous_elapsed=max(float(state.get('elapsed_seconds_total') or 0.0),
                          float(job.get('search_elapsed_seconds') or 0.0))
@@ -971,6 +1302,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     other_terms=[]
     skipped={'other_character':0,'non_photo':0,'exploration_budget':0}
     canonical_cache={'key':None,'value':None}
+    qualified_initial=True
+    qualified_resumed=bool(received) or 'qualified_timeline' in state
     def canonical_counts(force=False):
         """The one count used by the stop condition, summary and counts.json."""
         from ref_lab.collage import DerivedStore
@@ -989,6 +1322,12 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         return canonical_counts()['target_progress'] if search_only else len(candidates)
     def exploration():
         return exploration_count(received) if search_only else 0
+    def pending_qualifications(counts):
+        pending=int(getattr(getattr(collage_worker,'_queue',None),'unfinished_tasks',0))
+        if type_worker is not None:
+            pending+=int(getattr(type_worker.pending,'unfinished_tasks',0))
+            pending=max(pending,int(counts.get('type_pending',0))+int(counts.get('history_pending',0)))
+        return pending
     def limit_reason():
         if search_only:
             if confirmed()>=target:return 'target_reached'
@@ -1003,18 +1342,41 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if len(candidates)<target and details>=MAX_DETAIL_PAGES:return 'detail_budget_exhausted'
         return ''
     def checkpoint(phase='collecting'):
-        nonlocal displayed,displayed_received
+        nonlocal displayed,displayed_received,qualified_initial
+        if not search_only:
+            warned={'verified-'+row['asset_sha'][:20] for row in received if source_warnings(row)}
+            for candidate in list(candidates):
+                if candidate['id'] in warned:
+                    candidates.remove(candidate)
+                    images.pop(Path(candidate['file']).name,None)
+                    gap='来源含AI生成内容提示；该图保留原件与视觉回执，待人工确认：'+candidate['id']
+                    if gap not in gaps:gaps.append(gap)
         state.update(received=received,audit=audit,queries=queries,checks=checks,pages=sorted(pages),page_attempts=page_attempts,
                      searches=searches,duplicates=duplicates,collisions=collisions,gaps=gaps,details=details,windows=windows,
                      first_usable=first_usable,candidate_calls=calls(),references=getattr(agent,'references',None) or [],steps=steps,phase=phase)
         if search_only:state['search_errors']=received_errors
+        if search_only:
+            attempt=(os.environ.get('LAB_COLLECTION_ATTEMPT_ID') if os.environ.get('LAB_COLLECTION_JOB_ID')==job['id']
+                     else job.get('search_attempt_id') or job.get('active_attempt_id'))
+            collector_elapsed=time.monotonic()-started
+            cumulative=previous_elapsed+max(collector_elapsed,
+                time.time()-job['search_attempt_started_at'] if isinstance(job.get('search_attempt_started_at'),(int,float)) else 0.)
+            timing.qualified_checkpoint(state,canonical_counts(),job_id=job['id'],attempt_id=attempt,
+                collector_elapsed=collector_elapsed,cumulative_elapsed=cumulative,
+                initial=qualified_initial,resumed=qualified_resumed)
+            qualified_initial=False
         reference_files=state.setdefault('reference_files',{})
         for path in (folder/'reference-research').glob('source-*.*'):
             if path.suffix in ('.html','.json'):reference_files[str(path.relative_to(folder))]=hashlib.sha256(path.read_bytes()).hexdigest()
         save(folder/'collector-state.json',state)
         save(folder/'visual-audit.json',audit)
         model_calls,reported_tokens,reported_calls=_attempt_usage(folder)
+        from ref_lab.agent_collection import _owner_record
         save(folder/'progress.json',{'phase':phase,'stop_reason':stop_reason,'soft_target':target,
+             'job_id':job['id'],'attempt_id':(os.environ.get('LAB_COLLECTION_ATTEMPT_ID')
+                 if os.environ.get('LAB_COLLECTION_JOB_ID')==job['id'] else
+                 job.get('search_attempt_id') or job.get('active_attempt_id')),
+             'owner':(_owner_record(os.getpid(),phase='recovering') if phase=='browser_recovering' else None),
              'accepted':len(candidates),'received':len(received),'reviewed':reviewed,'duplicates':len(duplicates),
              'queries':len(queries),'visible_windows':windows,'detail_pages':details,
              'vision_cli_calls':model_calls if search_only else getattr(agent,'vision_cli_calls',calls()),
@@ -1154,8 +1516,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             with timing.span('browser_start'):browser.start()
         except BrowserInfrastructureError:
             checkpoint('browser_recovering')
-            if not (hasattr(browser,'recover') and browser.recover()):raise
+            try:
+                if not (hasattr(browser,'recover') and browser.recover()):raise
+            finally:checkpoint()
         known_sources=_known_image_sources(history,folder)
+        seen_posts=set(getattr(history,'seen_posts',set()))
+        for row in received:
+            seen_posts.add(_post_key(row.get('page_url')))
         for name,value in (('known_shas',getattr(history,'known_shas',None) if history is not None else None),
                            ('known_sources',known_sources),('incoming_dir',folder/'incoming')):
             if hasattr(browser,name):setattr(browser,name,value)
@@ -1168,7 +1535,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         while True:
             refine_due=pass_index>=max_passes
             if (not refine_due and search_only and job.get('goal_id') and total_steps<query_budget
-                    and poor_streak>=2 and not limit_reason()):
+                    and poor_streak>=2 and coverage(steps,searches,sources)['explored'] and not limit_reason()):
                 # Two low-yield queries in a row are enough evidence to change
                 # direction; waiting for every planned query to repeat first only
                 # re-downloads known duplicates.
@@ -1184,8 +1551,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                            and checks.get(step['source'],{}).get('status') not in ('login_required','blocked')]
                     if fresh:break
                 if not fresh:break
-                productive={step['source'] for step in steps if any(
-                    row.get('search_query')==step['query'] and is_confirmed(row) for row in received)}
+                productive={entry['source'] for entry in searches.values()
+                            if entry.get('feedback',{}).get('qualified_gain',0)>0}
                 fresh.sort(key=lambda step:step['source'] not in productive)
                 fresh=fresh[:query_budget-total_steps]
                 state.setdefault('query_plan_history',[]).append({'reason':'automatic_goal_refinement',
@@ -1211,8 +1578,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             if stop_reason:break
             kept=0;reason='';before=len(candidates)
             feedback_before={'duplicates':len(duplicates),'received':len(received),
+                             'qualified':confirmed(),
                              'rejected':canonical_counts().get('type_rejected',0),'details':len(state.get('operation_errors',[]))}
             should_advance=True
+            snapshot={}
             try:
                 restored_window=search.get('window',0)
                 for window in range(restored_window,MAX_WINDOWS):
@@ -1250,8 +1619,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         reason='target_reached' if search_only else 'coverage_checked_after_target';break
                     inspected=0;new_cards=0;window_before=len(received);kept_before=len(candidates)
                     confirmed_before=confirmed()
-                    ranked=sorted(snapshot.get('cards',[]),key=lambda c:classify_card(
-                        c,names=name_records,work_terms=work_terms,other_terms=other_terms)['rank'])
+                    ranked=_rank_discovery_cards(snapshot.get('cards',[]),seen_posts,page_attempts,
+                        names=name_records,work_terms=work_terms,other_terms=other_terms)
+                    window_posts=set()
                     for card in ranked:
                         if not search_only:
                             while pending and pending.pending[0][1] is not None and pending.pending[0][1].done():finish_one()
@@ -1260,11 +1630,24 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         if inspected>=SAMPLE_PER_QUERY or stop_reason:break
                         parsed=urlsplit(card['page'])
                         if parsed.scheme!='https' or not parsed.hostname:continue
-                        page_key=parsed.hostname+parsed.path
-                        if page_key in pages:continue
+                        page_key=_post_key(card['page'])
+                        if not page_key or page_key in window_posts:continue
+                        window_posts.add(page_key)
+                        if page_key in pages and (not search_only or page_attempts.get(page_key,0)>=3):continue
                         new_cards+=1
                         relevance=classify_card(card,names=name_records,work_terms=work_terms,
                                                 other_terms=other_terms)
+                        if (search_only and relevance['tier'] in ('other_character','non_photo')
+                                and history is not None and hasattr(browser,'check_duplicate')):
+                            known_sha=known_sources.get(normalize_image_url(card.get('cover_url')))
+                            if known_sha in by_sha and known_sha in getattr(history,'records',{}):
+                                duplicate=browser.check_duplicate(card,history)
+                                if duplicate and duplicate.get('duplicate_of')==known_sha and duplicate.get('state')!='needs_review':
+                                    _merge_repeat_evidence(by_sha,card,{'asset_sha':known_sha,'source_text':card.get('text','')},names=name_records,
+                                                          work_terms=work_terms,other_terms=other_terms)
+                                    save(folder/'received.json',received)
+                                    duplicates.append({'page_url':card['page'],**duplicate})
+                                    pages.add(page_key);checkpoint();continue
                         if search_only and relevance['tier']=='other_character':
                             skipped['other_character']+=1;pages.add(page_key);continue
                         if search_only and relevance['tier']=='non_photo' and not is_confirmed({'relevance':relevance}):
@@ -1282,28 +1665,36 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             with timing.span('discovery_preview'):duplicate=browser.check_duplicate(card,history)
                             if duplicate:
                                 current=by_sha.get(duplicate.get('duplicate_of'))
-                                if search_only and current is not None and duplicate.get('state')!='needs_review' and is_confirmed({'relevance':relevance}):
-                                    from ref_lab.search_relevance import associate_detail
-                                    updated=associate_detail(card,{},names=name_records,work_terms=work_terms,other_terms=other_terms)
-                                    updated['image_match']=duplicate
-                                    trail=current.setdefault('discovery_evidence_history',[])
-                                    if not trail:trail.append(current.get('relevance',{}))
-                                    trail.append(updated)
-                                    if not is_confirmed(current):current['relevance']=updated
+                                if current is not None and duplicate.get('state')!='needs_review':
+                                    _merge_repeat_evidence(by_sha,card,{'asset_sha':current['asset_sha'],'source_text':card.get('text','')},
+                                        names=name_records,work_terms=work_terms,other_terms=other_terms)
+                                    current['discovery_evidence_history'][-1]['image_match']=duplicate
                                     save(folder/'received.json',received)
                                 duplicates.append({'page_url':card['page'],**duplicate})
                                 pages.add(page_key);save(folder/'duplicates.json',duplicates);checkpoint();continue
                         if page_attempts.get(page_key,0)>=3:
-                            pages.add(page_key);gaps.append('原帖读取重试已耗尽：'+page_key);continue
+                            pages.add(page_key);gaps.append('本轮该帖详情尝试已达上限；未声称帖内图片已全部处理：'+page_key);continue
                         inspected+=1
                         state.setdefault('deferred_cards',{}).pop(page_key,None)
-                        if page_key not in page_attempts:details+=1
+                        details+=1
                         page_attempts[page_key]=page_attempts.get(page_key,0)+1;per_note=0
+                        state.setdefault('detail_schedule',[]).append({'page':page_key,'query':query,
+                            'source':source,'window':window+1,'previously_seen':page_key in seen_posts,
+                            'attempt':page_attempts[page_key],'detail_index':details})
+                        seen_posts.add(page_key)
                         checkpoint()
                         try:
                             browser.note_image_limit=(min(MAX_GOAL_NOTE_IMAGES,agent.candidate_limit-len(received))
                                                       if search_only and job.get('goal_id') else 3)
                             with timing.span('browser_receive'):rows=browser.receive(card,step)
+                            observation=state.setdefault('post_observations',{}).setdefault(page_key,{'images':[]})
+                            observed={item['image_url']:item for item in observation['images']}
+                            for row in rows:
+                                if re.fullmatch(r'[0-9a-f]{64}',str(row.get('asset_sha',''))):
+                                    image_url=str(row.get('image_url') or '')
+                                    observed[image_url]={'image_url':image_url,'asset_sha':row['asset_sha']}
+                            observation.update(images=list(observed.values()),last_observed_at=time.time(),
+                                attempts=page_attempts[page_key],coverage='partial_or_unknown')
                         except SourceBlocked:
                             checks[source]={'source':source,'status':'blocked','detail':'已停止受登录/验证限制的来源，尝试其他授权来源。'}
                             reason='login_or_challenge';break
@@ -1313,6 +1704,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         except DetailItemError as exc:
                             state.setdefault('operation_errors',[]).append({'action':'detail','page':page_key,
                                 'code':exc.code,'attempt':page_attempts[page_key],'result':'skip_card'})
+                            if getattr(browser,'return_failed',False):
+                                raise getattr(browser,'return_error',None) or BrowserInfrastructureError(
+                                    '详情失败后返回搜索页未确认',action='navigate-back',code='return_unconfirmed') from exc
                             continue
                         except ValueError as exc:
                             if is_infrastructure_error(exc):
@@ -1338,8 +1732,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             checkpoint('return_pending')
                             recovered=False
                             if hasattr(browser,'can_recover') and browser.can_recover():
+                                # The progress file states that a recovery attempt
+                                # is running: the owner and the page can tell a
+                                # recovering Job from a searching one.
+                                checkpoint('browser_recovering')
                                 try:recovered=browser.recover(step,reason='return')
                                 except Exception:recovered=False
+                                checkpoint()
                             if recovered:
                                 code=(getattr(return_issue,'code','') if return_issue is not None else '')
                                 errors=collection_queue.read_json(folder/'browser-errors.json',[])
@@ -1367,19 +1766,25 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                        **({'source_address_precheck':True} if reason=='known_source_url' else {'temporary_copy_removed':True})}
                                 if row.get('bytes_received'):
                                     entry['bytes_received']=row['bytes_received']
+                                # The bytes are known, so no download happens, but
+                                # the sighting may still carry the name or the
+                                # warning the first one did not have. The merge
+                                # only folds discovery evidence into the received
+                                # row: it grants no Review acceptance and never
+                                # touches the visual evidence.
+                                if _merge_repeat_evidence(
+                                        by_sha,card,row,names=name_records,
+                                        work_terms=work_terms,other_terms=other_terms):
+                                    save(folder/'received.json',received)
                                 duplicates.append(entry)
                                 save(folder/'duplicates.json',duplicates);checkpoint();continue
                             if sha in seen:
                                 _discard_temporary(row)
-                                if search_only and sha in by_sha:
-                                    from ref_lab.search_relevance import associate_detail
-                                    updated=associate_detail(card,row,names=name_records,work_terms=work_terms,other_terms=other_terms)
-                                    existing=by_sha[sha]
-                                    trail=existing.setdefault('discovery_evidence_history',[])
-                                    if not trail:trail.append(existing.get('relevance',{}))
-                                    trail.append(updated)
-                                    if is_confirmed({'relevance':updated}) and not is_confirmed(existing):existing['relevance']=updated
-                                    save(folder/'received.json',received)
+                                if sha in by_sha:
+                                    if _merge_repeat_evidence(
+                                            by_sha,card,row,names=name_records,
+                                            work_terms=work_terms,other_terms=other_terms):
+                                        save(folder/'received.json',received)
                                 duplicates.append({'asset_sha':sha,'page_url':row['page_url'],'duplicate_of':sha,'reason':'same_bytes_this_run'});continue
                             if search_only:
                                 if confirmed()>=target or per_note>=browser.note_image_limit:
@@ -1467,17 +1872,19 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             type_worker.drain(timeout=min(60,max(0,getattr(agent,'deadline',time.monotonic())-time.monotonic()-30)))
                         if confirmed()>=target:
                             reason='target_reached';break
-                        if confirmed()>confirmed_before:
+                        if pending_qualifications(canonical_counts()):
+                            reason='qualification_pending'
+                        elif confirmed()>confirmed_before:
                             reason='target_named_candidates_found'
                         elif len(received)>window_before:
-                            reason='exploration_candidates_found'
+                            reason='no_qualified_yield'
                         else:
                             reason='no_new_valid_candidates'
                     else:
                         reason=reason or ('verified_matches' if len(candidates)>before else 'no_verified_match_change_name_or_source')
-                    if search_only and confirmed()==confirmed_before and len(received)==window_before and source=='xiaohongshu' and sort_mode!='latest':
-                        # Bounded fallback: if relevance sort found no usable name hit in this
-                        # window, allow exactly one later XHS query to try 最新. Never loop.
+                    if (search_only and confirmed()==confirmed_before and not pending_qualifications(canonical_counts())
+                            and source=='xiaohongshu' and sort_mode!='latest'):
+                        # With no qualified gain and no pending qualification, try 最新 once.
                         latest_fallback_sources.add(source)
                     search['window']=window+1;search.pop('snapshot',None);checkpoint()
                     if pass_index<len(steps) and not coverage(steps,searches,sources)['explored']:
@@ -1539,6 +1946,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     rejected=canonical_counts().get('type_rejected',0)-feedback_before['rejected'],
                     detail_failures=len(state.get('operation_errors',[]))-feedback_before['details'],
                     blocked=reason=='login_or_challenge')
+                if search_only:
+                    current_counts=canonical_counts()
+                    search['feedback']=_qualified_feedback(before=feedback_before['qualified'],after=confirmed(),
+                        duplicates=len(duplicates)-feedback_before['duplicates'],received=len(received)-feedback_before['received'],
+                        cards=len((snapshot or {}).get('cards',[])),pending=pending_qualifications(current_counts),
+                        detail_failures=len(state.get('operation_errors',[]))-feedback_before['details'],
+                        blocked=reason=='login_or_challenge')
                 if sys.exc_info()[0] is None:
                     if not search.get('observed') or reason in ('browser_unavailable','browser_recovered'):
                         search['done']=False
@@ -1559,9 +1973,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     query_log.append({**entry,'attempt':int(state.get('search_attempts',1)),'at':time.time()})
                     if len(query_log)>120:del query_log[:len(query_log)-120]
                 if search_only:
-                    new_rows=len(received)-feedback_before['received']
-                    if (new_rows==0 and search.get('feedback',{}).get('reason') in
-                            ('history_duplicate_high','no_new_results','name_coverage_insufficient')):
+                    if search.get('feedback',{}).get('low_yield'):
                         poor_streak+=1
                     else:
                         poor_streak=0
@@ -1616,8 +2028,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if search_only and not interrupted:
             if stop_reason=='target_reached' and confirmed_total<target:
                 # A target_reached reason must be backed by confirmed names, never downloads alone.
-                stop_reason='relevance_unconfirmed' if not confirmed_total else 'target_partial'
-            elif confirmed_total<target and stop_reason in ('search_plan_exhausted','no_new_valid_candidates'):
+                stop_reason=('qualified_count_decreased' if job.get('goal_id') else
+                             'relevance_unconfirmed' if not confirmed_total else 'target_partial')
+            elif not job.get('goal_id') and confirmed_total<target and stop_reason in ('search_plan_exhausted','no_new_valid_candidates'):
                 stop_reason=('relevance_unconfirmed' if received and not confirmed_total
                              else ('target_partial' if confirmed_total else stop_reason))
         if search_only:
@@ -1659,6 +2072,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'collage_seconds':round(getattr(collage_worker,'seconds',0.0),3),
                                               'collage_processed':int(getattr(collage_worker,'processed',0)),
                                               'preview_bytes_reused':int(getattr(browser,'preview_reused',0)),
+                                              'preview_payloads':dict(getattr(browser,'preview_payloads',{})),
                                               'history_restore':history_restore,
                                               'incoming_cleaned':incoming_cleanup,
                                               'duplicates_pre_download':sum(1 for r in duplicates
@@ -1684,6 +2098,13 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             try:browser.close()
             except (ValueError,OSError,subprocess.SubprocessError):
                 gaps.append('本轮浏览器会话清理未确认，请检查自有会话。')
+            summary['browser_cleanup']=read_json(folder/'browser-session.json',{}).get('cleanup',{})
+            summary['elapsed_seconds']=round(time.monotonic()-started,3)
+            elapsed_total=previous_elapsed+max(summary['elapsed_seconds'],
+                time.time()-job['search_attempt_started_at'] if isinstance(job.get('search_attempt_started_at'),(int,float)) else 0.)
+            summary['cumulative_elapsed_seconds']=round(elapsed_total,3)
+            state['elapsed_seconds_total']=elapsed_total
+            save(folder/'search-summary.json',summary)
             save(folder/'received.json',received);save(folder/'search-errors.json',received_errors)
             save(folder/'duplicates.json',duplicates);save(folder/'reference-collisions.json',collisions)
             save(folder/'counts.json',{
@@ -1724,7 +2145,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 'model_calls':summary['model_calls'],'tokens':summary['tokens'],
                 'vision_cli_calls':summary['model_calls'],'usage_complete':summary['usage_complete'],
                 'preview_bytes_reused':int(getattr(browser,'preview_reused',0))})
+            summary['preview_payloads']=dict(getattr(browser,'preview_payloads',{}))
             checkpoint('finished')
+            summary['qualified_timeline']=state['qualified_timeline']
+            save(folder/'search-summary.json',summary)
             search_summary_result=summary
         else:
             completed={r['asset_sha'] for r in audit}
@@ -1809,10 +2233,17 @@ def _review_package(job,project,folder,state,received,items,human,*,status,stop_
                     started,agent,prepare_error='',sample_limit=0):
     target=min(int(job.get('target_count') or 12),100)
     candidates=[];images={};errors=[]
+    warned=set()
     for row in received:
         sha=row['asset_sha'];item=items.get(sha)
         if not item or item.get('status')!='accepted':continue
         if (human.get(sha) or {}).get('decision')=='reject':continue
+        if source_warnings(row):
+            # A platform warning blocks the qualified count, also when the
+            # photo was accepted before the warning appeared on a repeat.
+            warned.add(sha)
+            errors.append(f'{sha[:12]}：平台来源提示可能含AI生成内容，待人工确认。')
+            continue
         try:
             value=CollectionVision.model_validate(item['review'])
             references=item.get('references') or []
@@ -1833,6 +2264,7 @@ def _review_package(job,project,folder,state,received,items,human,*,status,stop_
         sha=row['asset_sha'];item=items.get(sha) or {};decision=(human.get(sha) or {}).get('decision')
         if decision=='keep':counts['human_keep']+=1
         elif decision=='reject':counts['human_reject']+=1
+        elif item.get('status')=='accepted' and sha in warned:counts['blocked']+=1
         elif item.get('status')=='accepted':counts['accepted']+=1
         elif item.get('status') in ('rejected','duplicate'):counts['rejected']+=1
         elif item.get('status')=='blocked':counts['blocked']+=1
@@ -2065,12 +2497,32 @@ def _promote_temporary(folder:Path,row):
 
 
 def cleanup_incoming(folder:Path)->dict:
-    """Remove only this run's leftover temporary downloads after failure/exit."""
+    """Remove only this run's leftover temporary downloads after failure/exit.
+
+    The preview staging area belongs to the same temporary lifetime: a
+    confirmed duplicate must not stay on disk as a second copy of a picture
+    the library already owns.
+    """
     incoming=Path(folder)/'incoming'
-    if not incoming.is_dir() or incoming.is_symlink():return {'files':0,'bytes':0}
+    if (not incoming.is_dir() or incoming.is_symlink()
+            or getattr(incoming,'is_junction',lambda:False)()):return {'files':0,'bytes':0}
     files=0;size=0
     for path in incoming.glob('*'):
+        if path.is_dir():
+            if path.is_symlink() or getattr(path,'is_junction',lambda:False)() or path.name!='previews':continue
+            for preview in path.glob('*'):
+                if not preview.is_file() or preview.is_symlink():continue
+                if not re.fullmatch(r'[0-9a-f]{32}\.(jpg|png|webp|avif)',preview.name):continue
+                if preview.stat().st_nlink!=1:continue
+                try:
+                    size+=preview.stat().st_size;preview.unlink();files+=1
+                except OSError:
+                    pass
+            try:path.rmdir()
+            except OSError:pass
+            continue
         if not path.is_file() or path.is_symlink():continue
+        if path.stat().st_nlink!=1:continue
         try:
             size+=path.stat().st_size;path.unlink();files+=1
         except OSError:
@@ -2086,10 +2538,13 @@ def _known_image_sources(history,current:Path)->dict:
     judged. A matching address skips that one known transmission; it never
     skips a whole post.
     """
-    known=getattr(history,'known_shas',None) if history is not None else None
+    if history is None:return {}
+    known=set(getattr(history,'known_shas',()) or ())|set(getattr(history,'records',{}))
     if not known:return {}
-    roots=[ROOT/'.local/collection-runs',ROOT/'.local/backups']
+    roots=list(dict.fromkeys(base/'.local'/kind for base in
+        [ROOT,*getattr(history,'discovery_roots',[])] for kind in ('collection-runs','backups')))
     sources={}
+    seen_posts=set()
     current=Path(current).resolve()
     candidates=[]
     for root in roots:
@@ -2106,12 +2561,26 @@ def _known_image_sources(history,current:Path)->dict:
         except (OSError,ValueError):continue
         records=payload.get('candidates',[]) if isinstance(payload,dict) else payload
         if not isinstance(records,list):continue
+        try:prior=read_json(resolved.parent/'collector-state.json',{})
+        except (OSError,ValueError):prior={}
+        if isinstance(prior,dict):
+            attempts_by_page=prior.get('page_attempts')
+            for page,attempts in (attempts_by_page if isinstance(attempts_by_page,dict) else {}).items():
+                key=_post_key('https://'+page)
+                if key and isinstance(attempts,int) and attempts>0:seen_posts.add(key)
+            observations=prior.get('post_observations')
+            for observation in (observations if isinstance(observations,dict) else {}).values():
+                if isinstance(observation,dict) and isinstance(observation.get('images'),list):
+                    records.extend(observation['images'])
         for row in records:
             if not isinstance(row,dict):continue
             sha=row.get('asset_sha')
             if not isinstance(sha,str) or sha not in known:continue
+            post=_post_key(row.get('page_url'))
+            if post:seen_posts.add(post)
             key=normalize_image_url(row.get('image_url'))
             if key:sources.setdefault(key,sha)
+    history.seen_posts=seen_posts
     return sources
 
 
@@ -2195,6 +2664,7 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
                     'cumulative_elapsed_seconds','continue','query_history','canonical',
                     'usable_independent_named','collage','collage_errors','collage_seconds',
                     'collage_processed','preview_bytes_reused','history_restore',
+                    'preview_payloads',
                     'skipped_other_character','skipped_non_photo','skipped_exploration_budget',
                     'incoming_cleaned','duplicates_pre_download','duplicates_temp_cleaned',
                     'known_source_images','history_skipped_runs','history_files'):
@@ -2203,25 +2673,52 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
     return summary
 
 
+def _publish_same_bytes(source:Path,target:Path,expected_sha:str)->bool:
+    """Publish the same bytes without keeping a second physical copy.
+
+    A hard link shares physical bytes. If linking is unavailable, the caller
+    links the page to the verified original instead of writing another copy.
+    """
+    from ref_lab.integrity import sha_matches
+    if source.is_symlink() or target.is_symlink() or not sha_matches(source,expected_sha):
+        raise ValueError('Gallery original SHA or boundary changed')
+    if target.exists():
+        if not sha_matches(target,expected_sha):raise ValueError('Immutable gallery image conflict')
+        return True
+    try:
+        os.link(source,target)
+        if not os.path.samefile(source,target):raise ValueError('Gallery link identity changed')
+    except OSError:
+        if target.exists():
+            if not sha_matches(target,expected_sha):raise ValueError('Immutable gallery image conflict')
+            return True
+        return False
+    return sha_matches(target,expected_sha)
+
+
 def render_search_gallery(folder,rows,*,running=False):
     """Read-only fallback view of acquired originals plus their usable crops.
 
-    Every referenced file is copied next to the page and its SHA is verified
-    before the link is written, so the page never points at a missing or changed
-    image. Existing copies are reused; the previous version re-read every original
-    twice on every checkpoint, which was pure duplicated disk I/O.
+    Every referenced original is SHA-verified. A hard link next to the page
+    shares storage; without link support the page references the original.
     """
     from ref_lab.collage import DerivedStore, VALID, record_is_current
     from ref_lab.integrity import sha_matches
     public=folder/'public';public.mkdir(exist_ok=True);figures=[]
+    if public.is_symlink() or getattr(public,'is_junction',lambda:False)() or public.resolve().parent!=folder.resolve():raise ValueError('Gallery boundary changed')
     records=DerivedStore(folder).items()
     problems=[]
     def ensure(source: Path, expected_sha: str):
+        if not source.resolve().is_relative_to(folder.resolve()) or not any(
+                not (folder/role).is_symlink() and not getattr(folder/role,'is_junction',lambda:False)()
+                and source.resolve().is_relative_to((folder/role).resolve()) for role in ('images','derived')):
+            raise ValueError('Gallery original outside run')
         target=public/source.name
-        if not target.exists():
-            try:atomic_write(target,source.read_bytes())
-            except OSError:
-                problems.append({'file':source.name,'reason':'copy_failed'});return None
+        try:
+            if not _publish_same_bytes(source,target,expected_sha):
+                return Path(os.path.relpath(source,public)).as_posix()
+        except (OSError,ValueError):
+            problems.append({'file':source.name,'reason':'original_or_gallery_invalid'});return None
         if not sha_matches(target,expected_sha):
             problems.append({'file':target.name,'reason':'sha_mismatch'});return None
         return target.name
@@ -2290,10 +2787,17 @@ def render_search_gallery(folder,rows,*,running=False):
 def render_result(folder,manifest,images,*,running=False):
     """A read-only view of the original Agent output, without Root selection."""
     public=folder/'public';public.mkdir(exist_ok=True);figures=[]
+    if public.is_symlink() or getattr(public,'is_junction',lambda:False)() or public.resolve().parent!=folder.resolve():raise ValueError('Gallery boundary changed')
     for i,candidate in enumerate(manifest['candidates'],1):
         name=Path(candidate['file']).name;raw=images[name];target=public/name
         if target.exists() and target.read_bytes()!=raw:raise ValueError('Immutable gallery image conflict')
-        if not target.exists():atomic_write(target,raw)
+        source=folder/'images'/name
+        if ((folder/'images').is_symlink() or getattr(folder/'images','is_junction',lambda:False)()
+                or source.is_symlink() or not source.resolve().is_relative_to(folder.resolve()/'images')):
+            raise ValueError('Gallery original outside run')
+        if not source.exists():atomic_write(source,raw)
+        if not _publish_same_bytes(source,target,hashlib.sha256(raw).hexdigest()):
+            name=Path(os.path.relpath(source,public)).as_posix()
         figures.append('<article><h2>'+str(i)+' · '+html.escape(candidate['title'])+'</h2><img src="'+html.escape(name,quote=True)+'" alt="AGY摄影参考'+str(i)+'"><p>'+html.escape(candidate['notes'])+'</p><a target="_blank" rel="noreferrer" href="'+html.escape(candidate['source']['page_url'],quote=True)+'">查看来源帖子</a></article>')
     report=manifest['execution_report']
     body='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AGY本轮摄影参考</title><style>body{margin:0;background:#f5f3ed;color:#242824;font:16px/1.7 system-ui}main{max-width:960px;margin:auto;padding:24px}h1{font-size:26px}h2{font-size:20px}article{border-top:1px solid #ccc;padding:24px 0}img{display:block;max-width:100%;max-height:84vh;margin:auto}a{color:#205f43}</style><main><h1>AGY本轮摄影参考 · '+str(len(figures))+'张</h1><p>本轮自动核验通过的原图与原说明。角色/服装为模型判断，具体版本名和摄影署名未全部核实；个人喜好由你决定，无需评分提交。</p>'+(''.join(figures) or '<p>本轮没有可交付的已核验图片。</p>')+'<details><summary>本轮结果与停止原因</summary><p>'+html.escape(report['summary'])+'</p><ul>'+''.join('<li>'+html.escape(g)+'</li>' for g in report['gaps'])+'</ul></details></main></html>'
@@ -2330,14 +2834,23 @@ def write_result(path,manifest,images,*,previous_result=None,allow_omitted=()):
 
 def _write_run_info(folder,job,agent,workers,*,mode):
     if (folder/'run-info.json').exists():return
+    target=min(int(job.get('target_count') or 12)+max(0,int(job.get('search_extra_target') or 0)),100)
     save(folder/'run-info.json',{'job_id':job['id'],'mode':mode,
          'adapter_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
          'agent_contract_sha256':hashlib.sha256((ROOT/'ref_lab/verified_collection.py').read_bytes()).hexdigest(),
          'reference_research_sha256':hashlib.sha256((ROOT/'ref_lab/automatic_references.py').read_bytes()).hexdigest(),
          'model':agent.model,'query_budget':MAX_GOAL_QUERIES if mode=='search_only' and job.get('goal_id') else MAX_QUERIES,
+         'candidate_budget':min(MAX_IMAGES,max(24,target*3) if mode=='search_only' else max(20,target*2)),
+         'search_timeout_seconds':job.get('search_timeout_seconds'),
          'windows_per_query':MAX_WINDOWS,'detail_page_budget':MAX_DETAIL_PAGES,
-         'visual_call_budget':min(MAX_IMAGES,max(20,min(int(job.get('target_count') or 12),100)*2)),
+         'visual_call_budget':min(MAX_IMAGES,max(20,target*2)),
          'vision_workers':workers,'pid':os.getpid(),'started_at':time.time(),'binding':job_binding(job,agent.model)})
+
+
+def _validated_history_paths(*args,**kwargs):
+    try:return historical_paths(*args,**kwargs)
+    except (OSError,ValueError) as exc:
+        raise HistoryIntegrityBlocked('History bytes or keeper validation failed') from exc
 
 
 def _history_for_search(folder):
@@ -2345,12 +2858,13 @@ def _history_for_search(folder):
     canonical=(ROOT/common).resolve().parent
     history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
     skipped_history=[]
-    paths=historical_paths(ROOT,folder,history_roots=history_roots,skipped=skipped_history)
+    paths=_validated_history_paths(ROOT,folder,history_roots=history_roots,skipped=skipped_history)
     goal=read_json(folder/'goal.json',{})
     if goal:
         from ref_lab.collection_history import goal_baseline
         baseline=goal_baseline(folder,goal)
     history=ImageHistory(paths,cache_path=ROOT/'.local/history-fingerprints.json',lazy=not bool(goal))
+    history.discovery_roots=history_roots
     history.skipped_runs=skipped_history
     if skipped_history:
         save(folder/'history-skips.json',skipped_history[-20:])
@@ -2414,19 +2928,25 @@ def main():
                 history=_history_for_search(folder)
             except (AgentUnavailable,OSError,ValueError,KeyError) as exc:
                 from ref_lab.collection_stages import _summary_blocked
-                _summary_blocked(job['id'],getattr(exc,'category','history_index_unavailable'),
-                                 '历史基线或索引无法验证；未启动浏览器或模型：'+type(exc).__name__,
+                category=getattr(exc,'category','history_index_unavailable')
+                detail=('历史原件缺失且无可验证保留件；排重基线不完整，未启动浏览器或模型。'
+                        if category=='history_integrity_blocked'
+                        else '历史基线或索引无法验证；未启动浏览器或模型：'+type(exc).__name__)
+                _summary_blocked(job['id'],category,detail,
                                  target=int(job.get('target_count') or 0),
                                  found=len(collection_queue._received_rows(folder)))
                 return
             save(folder/'history-index.json',{'images':list(history.records.values()),
+                                              'fingerprint_stats':getattr(history,'fingerprint_stats',{}),
                                               'lazy':not bool(job.get('goal_id')),'ready':history.ready,'known_shas':history.known_count,
                                               'historical_images':history.known_count})
             try:
-                summary,_=collect(job,agent,Browser(folder),folder,history=history,workers=1,search_only=True)
+                browser=Browser(folder);browser.cover_cache_path=ROOT/'.local/cover-duplicate-cache.json'
+                summary,_=collect(job,agent,browser,folder,history=history,workers=1,search_only=True)
             finally:
                 history.close(wait=False,timeout=3)
                 save(folder/'history-index.json',{'images':list(history.records.values()),
+                                                  'fingerprint_stats':getattr(history,'fingerprint_stats',{}),
                                                   'lazy':not bool(job.get('goal_id')),'ready':history.ready,
                                                   'known_shas':history.known_count,
                                                   'history_errors':history.errors,
@@ -2450,8 +2970,18 @@ def main():
                 common=Path(subprocess.check_output(['git','rev-parse','--git-common-dir'],cwd=ROOT,text=True).strip())
                 canonical=(ROOT/common).resolve().parent
                 history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
-                history=ImageHistory(historical_paths(ROOT,folder,history_roots=history_roots),
-                                     cache_path=ROOT/'.local/history-fingerprints.json')
+                try:
+                    history=ImageHistory(_validated_history_paths(ROOT,folder,history_roots=history_roots),
+                                         cache_path=ROOT/'.local/history-fingerprints.json')
+                except HistoryIntegrityBlocked as exc:
+                    # The review may not run on an unproven history: the
+                    # candidates stay, the stage stops with a named reason.
+                    _review_state(folder,phase='blocked',stop_reason='history_integrity_blocked',
+                                  detail='历史原件缺失且无可验证保留件；排重基线不完整，审核未启动。')
+                    save(folder/'review-summary.json',{'version':1,'status':'blocked',
+                         'stop_reason':'history_integrity_blocked','counts':{'found':len(save_state['received']),
+                         'accepted':0,'blocked':len(save_state['received']),'pending':0,'rejected':0}})
+                    raise SystemExit('history_integrity_blocked: 历史原件缺失且无可验证保留件；排重基线不完整，审核未启动。')
             from ref_lab.agent_collection import stage_timeout_seconds
             deadline=time.monotonic()+max(30.0,stage_timeout_seconds('review',int(job.get('target_count') or 12))-10)
             previous=None
@@ -2519,6 +3049,7 @@ def main():
             print('Existing verified result reused; no new collection')
             return
         agent=AntigravityCollectionAgent(folder,target_count=int(job.get('target_count') or 12));browser=Browser(folder)
+        browser.cover_cache_path=ROOT/'.local/cover-duplicate-cache.json'
         if not (folder/'run-info.json').exists():save(folder/'run-info.json',{'job_id':job['id'],'adapter_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
              'agent_contract_sha256':hashlib.sha256((ROOT/'ref_lab/verified_collection.py').read_bytes()).hexdigest(),
              'reference_research_sha256':hashlib.sha256((ROOT/'ref_lab/automatic_references.py').read_bytes()).hexdigest(),
@@ -2533,8 +3064,15 @@ def main():
             canonical=(ROOT/common).resolve().parent
             history_roots=[canonical,*[Path(p) for p in json.loads(os.environ.get('LAB_COLLECTION_HISTORY_ROOTS','[]'))]]
             with agent.timing.span('history_index'):
-                history=ImageHistory(historical_paths(ROOT,folder,history_roots=history_roots),cache_path=ROOT/'.local/history-fingerprints.json')
-            save(folder/'history-index.json',{'images':list(history.records.values()),'historical_images':history.known_count})
+                try:
+                    history=ImageHistory(_validated_history_paths(ROOT,folder,history_roots=history_roots),cache_path=ROOT/'.local/history-fingerprints.json')
+                except HistoryIntegrityBlocked as exc:
+                    save(folder/'history-index.json',{'ready':False,'history_errors':[
+                        {'code':'history_integrity_blocked','error':str(exc)[:200]}]})
+                    raise SystemExit('history_integrity_blocked: 历史原件缺失且无可验证保留件；排重基线不完整，未启动采集。')
+            history.discovery_roots=history_roots
+            save(folder/'history-index.json',{'images':list(history.records.values()),'historical_images':history.known_count,
+                                             'fingerprint_stats':getattr(history,'fingerprint_stats',{})})
         print('Read-only gallery (updates during collection): '+str(folder/'public/index.html'),flush=True)
         manifest,images=collect(job,agent,browser,folder,history=history,workers=args.vision_workers)
         with agent.timing.span('final_export'):

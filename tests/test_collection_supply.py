@@ -44,7 +44,10 @@ def test_observed_cover_can_exclude_old_pin_without_polluting_original_history(t
     found=browser.check_duplicate(pin(),history)
     assert found['duplicate_of']==hashlib.sha256(old.read_bytes()).hexdigest()
     assert found['asset_role']=='discovery_preview' and found['preview_sha256']==hashlib.sha256(raw).hexdigest()
-    assert Path(found['preview_path']).read_bytes()==raw
+    # The evidence row survives; a confirmed duplicate keeps no payload on disk.
+    assert found['preview_payload']=='temporary_removed'
+    staged=tmp_path/'incoming'/'previews'
+    assert not (staged.is_dir() and list(staged.glob('*'))), 'the temporary payload was kept'
     assert requested==[pin()['cover_url']] and len(history.records)==1
     assert not (tmp_path/'images').exists()
 

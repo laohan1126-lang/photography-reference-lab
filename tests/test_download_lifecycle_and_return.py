@@ -279,7 +279,8 @@ def test_unknown_bytes_are_promoted_only_after_history_judgement(tmp_path, monke
     assert summary["incoming_cleaned"]["files"] == 0
 
 
-def test_page_return_fault_is_handled_before_heavy_history_compare(tmp_path):
+@pytest.mark.parametrize('detail_error', [False, True])
+def test_page_return_fault_is_handled_before_heavy_history_compare(tmp_path, detail_error):
     page = "https://www.xiaohongshu.com/explore/" + "a" * 24
 
     class Browser:
@@ -322,6 +323,8 @@ def test_page_return_fault_is_handled_before_heavy_history_compare(tmp_path):
             self.return_error = BrowserInfrastructureError("timed out", action="navigate-back",
                                                            code="command_timeout", is_timeout=True)
             self.return_issue_category = "page_return"
+            if detail_error:
+                raise worker.DetailItemError('Detail page read failed', code='detail_read_failed')
             return []
 
     class NoCompareHistory:
@@ -336,7 +339,10 @@ def test_page_return_fault_is_handled_before_heavy_history_compare(tmp_path):
                                 search_only=True, history=NoCompareHistory())
     state = json.loads((tmp_path / "collector-state.json").read_text("utf8"))
     assert summary["stop_reason"] == "command_timeout"
-    assert state.get("return_pending_rows")
+    if detail_error:
+        assert any(e.get('code') == 'detail_read_failed' for e in state['operation_errors'])
+    else:
+        assert state.get("return_pending_rows")
 
 # --- concurrency and promotion bookkeeping -------------------------------
 
@@ -407,7 +413,7 @@ def test_asset_store_falls_back_when_the_source_cannot_be_linked(tmp_path):
     assert stored.read_bytes() == raw and store.verify(meta)
 
 
-def test_cleaned_archived_run_is_skipped_without_hiding_live_bytes(tmp_path):
+def test_cleaned_archived_run_is_resolved_by_a_verified_keeper(tmp_path):
     from ref_lab.collection_history import historical_paths
 
     root = tmp_path / "root"
@@ -427,8 +433,14 @@ def test_cleaned_archived_run_is_skipped_without_hiding_live_bytes(tmp_path):
     assert [str(p) for p in paths] == [str(asset.resolve())]
     assert len(skipped) == 1
     assert skipped[0]["received_rows"] == 1
+    assert "verified keeper" in skipped[0]["reason"]
 
-    # A run that still holds files must fail loudly instead of silently hiding them.
+    # A run that still holds files must fail loudly when no keeper can prove
+    # its bytes: the history may not claim a complete duplicate check over an
+    # original nobody can verify any more.
+    unproven = hashlib.sha256(b"bytes without a keeper").hexdigest()
+    (run / "received.json").write_text(json.dumps([
+        {"asset_sha": unproven, "original_path": str(run / "images" / f"{unproven}.png")}]), "utf8")
     stale = run / "images" / "not-the-sha.png"
     stale.parent.mkdir()
     stale.write_bytes(raw)

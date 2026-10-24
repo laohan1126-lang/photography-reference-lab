@@ -35,7 +35,8 @@ from .models import (AnalysisImport, AnalysisResult, CandidateDecisionInput, Can
                      ReferenceTransferInput, ContactBoardInput, ArchiveInspirationInput, StudyCandidateEdit)
 
 from .security import BodyLimitMiddleware, COOKIE, csrf_for, make_session, valid_session
-from .service import Library, Problem
+from .service import (Library, Problem, collection_progress, collection_stage_states,
+                      collection_status)
 
 
 class Login(Strict):
@@ -483,30 +484,40 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     @app.post("/api/notes", status_code=201)
     def create_global_note(data: NoteInput): return library.add_note(None, data)
 
-    def job_view(job: dict) -> dict:
+    def job_view(job: dict, *, disk_counts=None) -> dict:
         if job.get("kind") != "collection":
             return job
         from .agent_collection import collection_can_resume, review_can_resume
         mode = job.get("collection_mode", "verified")
+        # One projection for every surface: a finished Search whose Review
+        # never ran is not a blocked job, and an older record that said so is
+        # corrected on read without rewriting the stored row.
+        status = collection_status(job)
+        search_state, review_state = collection_stage_states(job)
+        signals = collection_progress(job)
+        if status == 'running' and signals['recovering']:status = 'recovering'
+        elif signals['manual_action'] and review_state != 'running':status = 'waiting_human'
         search_counts = job.get("search_counts") or {}
         if job.get('goal_id'):
             try:
-                disk = candidate_snapshot(job['id'], limit=1)['counts']
+                disk = disk_counts if disk_counts is not None else candidate_snapshot(job['id'], limit=1)['counts']
                 search_counts = {**search_counts, **disk}
             except Exception:
                 search_counts = {**search_counts, 'usable_named':0, 'usable_independent':0,
                                  'goal_shas':[], 'verification_error':'evidence_unavailable'}
         review_counts = job.get("review_counts") or {}
-        can_review = (mode != "verified" and job.get('status') != 'cancelled'
-                      and job.get("search_state") in {"completed", "partial", "blocked", "failed", "cancelled"}
+        can_review = (mode != "verified" and status != 'cancelled'
+                      and search_state in {"completed", "partial", "blocked", "failed", "cancelled"}
                       and int(search_counts.get("found", 0) or 0) > 0
-                      and job.get("review_state") in {None, "idle", "completed", "partial", "blocked", "cancelled"})
-        return {**job, "search_counts":search_counts, "can_resume": collection_can_resume(library, job),
+                      and review_state in {None, "idle", "completed", "partial", "blocked", "failed", "cancelled"})
+        return {**job, "status": status, "search_state": search_state, "review_state": review_state,
+                "recovering": signals["recovering"], "manual_action": signals["manual_action"],
+                "search_counts":search_counts, "can_resume": collection_can_resume(library, job),
                 "search_target_total": int(job.get("target_count") or 0) + int(job.get("search_extra_target") or 0),
-                "can_resume_search": (mode != "verified" and job.get("search_state") in {"running", "blocked", "failed"}
+                "can_resume_search": (mode != "verified" and search_state in {"running", "partial", "blocked", "failed"}
                                       and collection_can_resume(library, job)),
                 "can_resume_review": (mode != "verified" and review_can_resume(library, job)),
-                "can_start_review": can_review,
+                "can_start_review": can_review and not signals['recovering'],
                 "is_split_mode": mode != "verified"}
 
     @app.get("/api/jobs")
@@ -639,7 +650,13 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         job = library.job(job_id)
         if job["kind"] != "collection":
             raise Problem(409, "不是采集任务")
-        return {**candidate_snapshot(job_id, offset=offset, limit=limit), "job": job_view(job)}
+        snapshot = candidate_snapshot(job_id, offset=offset, limit=limit)
+        view = job_view(job,disk_counts=snapshot['counts'])
+        snapshot['search'] = {**snapshot['search'], 'status':view['search_state'],
+                              'phase':'browser_recovering' if view['recovering'] else '',
+                              'manual_action':view['manual_action']}
+        snapshot['review'] = {**snapshot['review'], 'status':view['review_state']}
+        return {**snapshot, "job":view}
 
     @app.get('/api/jobs/{job_id}/goal-results', response_class=HTMLResponse)
     def goal_results(job_id: str):
@@ -673,9 +690,15 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
                 'width':item.get('width'), 'height':item.get('height')}, ensure_ascii=False, indent=2))
             parts.append(f'<article><h2>{index}</h2><img src="{html.escape(item["original_url"], quote=True)}" alt="摄影参考 {index}"><details><summary>原件、来源、名称与读图证据</summary><pre>{evidence}</pre></details></article>')
         count = snapshot['counts']['usable_named']
+        view = job_view(job,disk_counts=snapshot['counts'])
+        search_label = ('恢复中' if view['recovering'] else '等待人工登录／验证' if view['manual_action']
+                        else {'completed':'搜索完成','partial':'部分完成','failed':'搜索失败',
+                              'blocked':'搜索受阻','running':'搜索中','cancelled':'已取消',
+                              'idle':'未开始','queued':'排队中'}.get(view['search_state'],view['search_state']))
         return ('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Goal摄影成果</title>'
             '<style>body{max-width:960px;margin:auto;padding:24px;font:16px/1.7 system-ui}img{max-width:100%;max-height:85vh}pre{white-space:pre-wrap;overflow-wrap:anywhere}article{margin:32px 0}</style>'
             f'<h1>{html.escape(job["goal_id"])} · {count}/{job["target_count"]}</h1>'
+            f'<p role="status">{html.escape(search_label)} · 审核：{html.escape(view["review_state"])}</p>'
             '<p>本Goal新增、去重、画质通过且有实际读图证据的真人摄影；名称关联仅为文字证据。人工选择和现场卡验收独立。</p>'
             + (''.join(parts) or '<p>尚无合格成果；已下载候选保留在任务候选图库。</p>') + '</html>')
 

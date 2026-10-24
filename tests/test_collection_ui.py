@@ -12,18 +12,28 @@ from test_ui_components import component_factory  # reuse the explicitly labelle
 def test_browser_recovery_details_are_visible_without_claiming_completion(
         component_factory,library,project,tmp_path,monkeypatch):
     from ref_lab import collection_queue
+    from ref_lab.agent_collection import _owner_record
     from ref_lab.browser_recovery import sanitize_diagnostics
     monkeypatch.setattr(collection_queue,"run_directory",lambda _:tmp_path)
     job=library.create_job(project["id"],JobInput(kind="collection",collection_mode="search",target_count=30))
+    owner=_owner_record(os.getpid(),phase='running');attempt='fixture-ui-recovery'
+    library.start_collection_attempt(job['id'],job['revision'],attempt,owner=owner)
     error=sanitize_diagnostics({"action":"navigate","code":"timeout","details":"Authorization: Bearer fake-private","result":"failed"})
     collection_queue.write_json(tmp_path/"progress.json",{"phase":"browser_recovering","browser_errors":[error]})
     page=component_factory()
     page.evaluate("id=>openCandidateQueue(id,{autoStart:false})",job["id"])
+    expect(page.locator('#cq-status')).not_to_contain_text('正在恢复浏览器连接')
+    assert '搜索完成' not in page.locator('#cq-status').inner_text()
+    collection_queue.write_json(tmp_path/'progress.json',{'phase':'browser_recovering','browser_errors':[error],
+                                'job_id':job['id'],'attempt_id':attempt,'owner':owner})
+    page.evaluate("id=>openCandidateQueue(id,{autoStart:false})",job['id'])
     expect(page.locator("#cq-status")).to_contain_text("正在恢复浏览器连接")
     assert "fake-private" not in page.locator("#cq-status").inner_text()
     collection_queue.write_json(tmp_path/"progress.json",{"phase":"finished"})
     collection_queue.write_json(tmp_path/"search-summary.json",
                                 {"status":"blocked","stop_reason":"browser_unavailable","browser_errors":[error]})
+    library.update_search_stage(job['id'],attempt,'blocked',
+        {'status':'blocked','stop_reason':'browser_unavailable','counts':{'found':0}},'browser unavailable')
     page.evaluate("id=>openCandidateQueue(id,{autoStart:false})",job["id"])
     expect(page.locator("#cq-status")).to_contain_text("浏览器连接失败，尚未完成搜索")
     expect(page.locator("#cq-status")).to_contain_text("navigate")
@@ -153,6 +163,12 @@ def test_candidate_queue_shows_acquired_originals_and_keeps_human_decision(
                                    'error': 'synthetic source assessment blocked'}}}), encoding='utf8')
     monkeypatch.setattr(collection_queue, 'run_directory', lambda job_id: folder)
     job = library.create_job(project['id'], JobInput(kind='collection', target_count=2, collection_mode='search'))
+    from ref_lab.agent_collection import _owner_record
+    attempt='fixture-ui-completed'
+    library.start_collection_attempt(job['id'],job['revision'],attempt,
+                                     owner=_owner_record(os.getpid(),phase='running'))
+    summary=json.loads((folder/'search-summary.json').read_text('utf8'))
+    library.update_search_stage(job['id'],attempt,'completed',summary,'synthetic search completed')
     page = component_factory()
     page.evaluate('id => openCandidateQueue(id,{autoStart:false})', job['id'])
     expect(page.locator('#cq-grid .candidate-card')).to_have_count(2)
