@@ -219,12 +219,14 @@ def _project_reference_shas(data_dir: Path, project_id: str) -> set[str]:
     shas = set()
     for sha, blob in rows:
         if not isinstance(sha, str) or not _SHA.fullmatch(sha):
-            continue
+            raise HistoryIntegrityBlocked(f'Project reference metadata has an invalid asset SHA: {data_dir}')
         try:
-            record = json.loads(blob) if isinstance(blob, (str, bytes)) else {}
-        except ValueError:
-            continue
-        if isinstance(record, dict) and record.get('detached_at'):
+            record = json.loads(blob)
+        except (ValueError, TypeError) as exc:
+            raise HistoryIntegrityBlocked(f'Project reference metadata cannot be decoded: {data_dir}') from exc
+        if not isinstance(record, dict):
+            raise HistoryIntegrityBlocked(f'Project reference metadata is not an object: {data_dir}')
+        if record.get('detached_at'):
             continue
         shas.add(sha)
     return shas

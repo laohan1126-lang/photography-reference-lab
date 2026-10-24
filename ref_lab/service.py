@@ -27,6 +27,42 @@ class Problem(Exception):
         super().__init__(message)
 
 
+def _preflight_search_goal(job: dict, root: Path, folder: Path):
+    """Validate source and saved run bindings before any continuation writes."""
+    if not job.get('goal_id'):
+        return None
+    from .collection_history import BaselineNeedsUpgrade, DEDUP_SCOPE_VERSION, goal_baseline
+    source = root / '.local/goals' / job['goal_id'] / 'goal.json'
+    try:
+        goal = json.loads(source.read_text('utf8'))
+        baseline = source.with_name('baseline.json').read_bytes()
+        if hashlib.sha256(baseline).hexdigest() != goal.get('baseline_sha'):
+            raise ValueError('Goal baseline SHA changed')
+        goal_baseline(source.parent, goal)
+        if (goal.get('project_id') != job.get('project_id')
+                or goal.get('dedup_scope_version') != DEDUP_SCOPE_VERSION):
+            raise BaselineNeedsUpgrade('Goal project binding changed')
+        target = int(job.get('target_count') or 0) + int(job.get('search_extra_target') or 0)
+        if goal.get('goal_id') != job['goal_id'] or goal.get('target') != target:
+            raise ValueError('Goal identity or target differs from job')
+        run_goal = folder / 'goal.json'
+        if run_goal.exists():
+            existing = json.loads(run_goal.read_text('utf8'))
+            for key in ('goal_id', 'project_id', 'dedup_scope_version', 'baseline_sha', 'baseline_shas'):
+                if existing.get(key) != goal.get(key):
+                    raise ValueError('Saved run Goal binding changed')
+        run_baseline = folder / 'baseline.json'
+        if run_baseline.exists() and run_baseline.read_bytes() != baseline:
+            raise ValueError('Saved run baseline changed')
+    except BaselineNeedsUpgrade as exc:
+        raise Problem(409, 'Goal历史基线缺少项目查重范围绑定或算法版本已过期；不能按新规则续跑，请新建Goal。旧成果与回执仍可查看。',
+                      {'code': 'goal_scope_binding_invalid'}) from exc
+    except (OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
+        raise Problem(409, 'Goal历史基线或运行绑定校验失败；保留旧成果与回执，未启动。',
+                      {'code': 'goal_baseline_invalid'}) from exc
+    return goal, baseline
+
+
 def fresh_id() -> str:
     return uuid4().hex
 
@@ -1898,6 +1934,8 @@ class Library:
                 total = base + already + int(extra_target)
                 if total > 100:
                     raise Problem(422, f"累计目标最多 100 张；当前 {base + already} 张，不能再加 {extra_target} 张")
+                root = Path(__file__).resolve().parents[1]
+                _preflight_search_goal(job, root, root/'.local/collection-runs'/ident/'current')
                 updates = []
                 if job.get('goal_id'):
                     if not job['goal_id'].startswith('auto-'):
@@ -1964,6 +2002,8 @@ class Library:
                     or not search_ok
                     or job.get('review_state') == 'running' or job['status'] == 'cancelled'):
                 raise Problem(409, "当前任务不可继续补足")
+            root = Path(__file__).resolve().parents[1]
+            _preflight_search_goal(job, root, root/'.local/collection-runs'/ident/'current')
             previous = float(job.get('search_timeout_seconds') or 900)
             job.update(search_state='idle', search_stop_reason='', status='blocked',
                        search_timeout_seconds=previous + additional_seconds,

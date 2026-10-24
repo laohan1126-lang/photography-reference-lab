@@ -23,7 +23,7 @@ from .agent_collection import (AttemptFileLock, AttemptStop, _owner_record, _pre
                                run_process, stage_timeout_seconds)
 from .collection_queue import read_json
 from .imports import import_candidates, read_archive
-from .service import Library, Problem
+from .service import Library, Problem, _preflight_search_goal
 
 _LAUNCH_LOCK = threading.RLock()
 _ARTIFACT_LOCK = threading.RLock()
@@ -36,46 +36,18 @@ def _folder(job_id: str) -> Path:
 
 def _artifacts(library: Library, job_id: str) -> tuple[Path, Path, Path]:
     folder = _folder(job_id)
-    folder.mkdir(mode=0o700, parents=True, exist_ok=True)
     task_dir = folder / "task"
     task_file = task_dir / "AGENT_TASK.md"
     with _ARTIFACT_LOCK:
-        _prepare_task(library, job_id, task_dir, task_file)
         current_job = library.job(job_id)
-        goal_id = current_job.get('goal_id')
-        job_project_id = current_job.get('project_id')
-        if goal_id:
-            source = collection_queue.ROOT/'.local/goals'/goal_id/'goal.json'
-            goal = json.loads(source.read_text('utf8'))
-            baseline = source.with_name('baseline.json').read_bytes()
-            if hashlib.sha256(baseline).hexdigest() != goal.get('baseline_sha'):
-                raise Problem(409, 'Goal历史基线完整性失败；未启动')
+        prepared_goal = _preflight_search_goal(current_job, collection_queue.ROOT, folder)
+        folder.mkdir(mode=0o700, parents=True, exist_ok=True)
+        _prepare_task(library, job_id, task_dir, task_file)
+        if prepared_goal is not None:
+            goal, baseline = prepared_goal
             from .storage import atomic_write
             atomic_write(folder/'baseline.json', baseline)
-            from .collection_history import BaselineNeedsUpgrade, DEDUP_SCOPE_VERSION, goal_baseline
-            try:
-                goal_baseline(folder, goal)
-            except BaselineNeedsUpgrade as exc:
-                # A baseline frozen under older matching rules, or one without
-                # a project duplicate-scope binding, cannot admit an image
-                # under the current rules. Say so instead of failing the
-                # request with an internal error: the old results stay
-                # readable, their admission is simply no longer proven.
-                raise Problem(409, 'Goal历史基线缺少项目查重范围绑定或算法版本已过期；不能按新规则续跑，请新建Goal。旧成果与回执仍可查看。',
-                              {'code': 'goal_scope_binding_invalid'}) from exc
-            except ValueError as exc:
-                # Any other baseline failure is a validation failure, not a
-                # routine version upgrade: say what actually went wrong.
-                raise Problem(409, 'Goal历史基线校验失败；该Goal的准入结论不可信，未启动。') from exc
-            if goal.get('project_id') != job_project_id or goal.get('dedup_scope_version') != DEDUP_SCOPE_VERSION:
-                raise Problem(409, 'Goal与本项目查重范围绑定不一致；未启动',
-                              {'code': 'goal_scope_binding_invalid'})
-            target = int(library.job(job_id).get('target_count') or 0) + int(library.job(job_id).get('search_extra_target') or 0)
-            if goal.get('target') != target:
-                raise Problem(409, 'Goal与数据库目标不一致；未启动')
             existing = collection_queue.read_json(folder/'goal.json', None)
-            if existing is not None and existing.get('baseline_sha') != goal.get('baseline_sha'):
-                raise Problem(409, 'Goal历史基线发生变化；拒绝覆盖')
             if existing is None or existing.get('target') != goal.get('target'):
                 collection_queue.write_json(folder/'goal.json', goal)
     return folder, task_dir, task_file
