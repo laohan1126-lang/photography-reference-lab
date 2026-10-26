@@ -1,8 +1,8 @@
 :root {
   color-scheme: light;
-  --paper:#f8f5ef; --white:#fffdf9; --ink:#25394a; --muted:#607384; --soft:#e8eef3;
-  --line:#cfdae3; --blue:#315f83; --blue-dark:#264a67; --blue-pale:#e3edf5;
-  --warn:#8a623d; --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+  --paper:#f8f5ef; --white:#fffcf7; --ink:#302e2b; --muted:#68615a; --soft:#eee8e0;
+  --line:#ded8ce; --blue:#97334b; --blue-dark:#7c263c; --blue-pale:#f2e3e5;
+  --warn:#8a623d; --serif:"Noto Serif SC","Source Han Serif SC","STZhongsong","Songti SC",SimSun,Georgia,serif;
   --sans:"Noto Sans SC","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;
   --mono:"Cascadia Mono","JetBrains Mono",Consolas,monospace;
   --type-small:11px; --type-body:15px; --type-section:26px; --type-display:clamp(32px,4vw,48px);
@@ -25,12 +25,12 @@ h1,h2,h3 {font-weight:560; line-height:1.35}
 :focus-visible {outline:2px solid var(--blue); outline-offset:4px}
 h1[tabindex="-1"]:focus {outline:none}
 [id^="skill-"] {scroll-margin-top:calc(var(--header) + var(--space-4))}
-::selection {background:#d4e3ef}
+::selection {background:#ead0d4}
 .skip-link {position:fixed; top:-100px; left:18px; z-index:100; padding:10px 16px; background:var(--white); border:1px solid var(--line)}
 .skip-link:focus {top:14px}
-.site-header {position:sticky; top:0; z-index:20; background:#f3f6f8f2; border-bottom:1px solid var(--line); backdrop-filter:blur(14px)}
+.site-header {position:sticky; top:0; z-index:20; background:#f8f5eff2; border-bottom:1px solid var(--line); backdrop-filter:blur(14px)}
 .header-inner {position:relative; height:var(--header); max-width:var(--page); margin:auto; padding:0 var(--gutter); display:flex; align-items:center; gap:32px}
-.brand-mark {font:600 30px/1 var(--serif); letter-spacing:-.04em}
+.brand-mark {font:600 36px/1 Georgia,serif; color:var(--blue); letter-spacing:-.06em}
 .brand-mark span {color:var(--blue)}
 .header-title {font:600 14px var(--serif); letter-spacing:.08em; white-space:nowrap}
 .search-field {display:flex; align-items:center; gap:10px; width:min(430px,34vw); margin-left:auto; padding:6px 0; color:var(--muted); border-bottom:1px solid transparent}
@@ -53,7 +53,7 @@ kbd {font:11px var(--mono); padding:0 6px; border:1px solid var(--line); color:v
 .masthead h1 {margin:20px 0 18px; font:500 var(--type-display)/1.22 var(--serif); letter-spacing:.005em}
 .masthead h1 em {font-style:normal; color:var(--blue)}
 .intro {max-width:570px; color:var(--muted); font-size:var(--type-body)}
-.next-practice {padding:24px 28px 24px 30px; border-left:2px solid var(--blue); background:linear-gradient(90deg,#e7eff5 0,transparent 100%)}
+.next-practice {padding:24px 28px 24px 30px; border-left:2px solid var(--blue); background:linear-gradient(90deg,#f2e3e5 0,transparent 100%)}
 .next-practice .eyebrow {color:var(--muted)}
 .next-practice h2 {margin:8px 0; font:500 20px/1.55 var(--serif)}
 .next-practice p {color:var(--muted); font-size:12px; line-height:1.7}
@@ -74,7 +74,7 @@ kbd {font:11px var(--mono); padding:0 6px; border:1px solid var(--line); color:v
 .domain-card:nth-child(7n + 1),.domain-card:nth-child(7n + 5) {grid-column:span 4}
 .domain-card:nth-child(7n + 2),.domain-card:nth-child(7n + 6) {grid-column:span 2}
 .domain-link {display:block}
-.domain-image {position:relative; overflow:hidden; background:var(--soft); aspect-ratio:1.18}
+.domain-image {position:relative; overflow:hidden; border-radius:6px; background:var(--soft); aspect-ratio:1.18}
 .domain-card:nth-child(4n + 2) .domain-image {aspect-ratio:.92}
 .domain-card:nth-child(4n + 3) .domain-image {aspect-ratio:1.42}
 .domain-image img {width:100%; height:100%; object-fit:cover; transition:transform 360ms ease}

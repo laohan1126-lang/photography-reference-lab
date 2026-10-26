@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from .learning_content import router as learning_content_router
 
 
-STATIC_FILES = {"learning.css", "learning.js",
+STATIC_FILES = {"learning.css", "learning.js", "studio.css", "studio.js",
                 "learning-gateways.css", "learning-gateways.js", "learning-icons.json",
                 "learning-atlas.json", "learning-action-directing.json"}
 

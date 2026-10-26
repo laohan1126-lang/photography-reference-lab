@@ -77,6 +77,7 @@ def component_factory(client, library):
             markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
             page.add_style_tag(content=(ROOT/'web/styles.css').read_text(encoding='utf-8'))
+            page.add_style_tag(content=(ROOT/'web/studio.css').read_text(encoding='utf-8'))
             page.evaluate('''fragment => {
                 if(fragment)location.hash=fragment;
                 window.fetch = async(path, options={}) => {
@@ -104,6 +105,7 @@ def component_factory(client, library):
                 new MutationObserver(replace).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src']});
             }''', fragment)
             page.add_script_tag(content=(ROOT/'web/library-browser.js').read_text(encoding='utf-8'))
+            page.add_script_tag(content=(ROOT/'web/studio.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/app.js').read_text(encoding='utf-8'))
             page.locator('#application').wait_for(state='visible')
             page.locator('#library-grid' if 'view=library' in fragment else '#filmstrip').wait_for(state='attached')
@@ -133,6 +135,42 @@ def screenshot(page, name):
     folder=Path(os.environ.get('LAB_TEST_ARTIFACTS','.local/test-artifacts'))
     folder.mkdir(parents=True,exist_ok=True)
     page.screenshot(path=str(folder/name),full_page=True)
+
+
+@pytest.mark.parametrize('has_project', [False, True])
+def test_studio_cover_action_preserves_project_entry_and_keyboard_access(component_factory, library, has_project):
+    project = library.create_project(ProjectInput(character='封面入口回归')) if has_project else None
+    page = component_factory()
+    cover = page.locator('.studio-masthead')
+    cover.locator('summary').focus()
+    page.keyboard.press('Enter')
+    assert not cover.evaluate('(node) => node.open')
+    page.keyboard.press('Enter')
+    page.locator('#studio-collect').click()
+    expect(page.locator('#editor')).to_be_visible()
+    if project:
+        expect(page.locator('[name="project_id"]')).to_have_value(project['id'])
+        assert page.locator('[name="collection_mode"] option').count() == 2
+    else:
+        expect(page.locator('[name="character"]')).to_be_visible()
+    assert library.jobs() == []
+
+
+def test_studio_reduced_motion_does_not_cancel_unrelated_effects_or_change_the_photo(ui):
+    page, library, project = ui
+    original = page.locator('#main-image').get_attribute('src')
+    page.evaluate('''() => {
+        const marker = document.createElement('span');
+        document.body.append(marker);
+        window.unrelatedEffect = marker.animate([{opacity:1},{opacity:.9}], {duration:60000});
+    }''')
+    page.locator('#studio-collect').hover()
+    page.emulate_media(reduced_motion='reduce')
+    expect(page.locator('.muse-figure')).to_have_css('animation-name', 'none')
+    assert page.evaluate('window.unrelatedEffect.playState') == 'running'
+    expect(page.locator('#main-image')).to_have_attribute('src', original)
+    assert library.jobs() == []
+    page.evaluate('window.unrelatedEffect.cancel()')
 
 
 def choose(page, key):

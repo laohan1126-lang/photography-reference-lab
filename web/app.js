@@ -185,6 +185,7 @@ document.addEventListener('click', e => {
 });
 function renderHeader() {
     const p=state.project, local=projectViews.includes(state.view);
+    window.StudioMotion?.setView(state.view);
     $('view-tabs').hidden=!local;
     if (local&&p) {
         $('project-header').innerHTML=`<div><span class="eyebrow">MY SHOOTING PROJECT</span><h1>${esc(p.character)} ${p.costume?`<span class="muted">/ ${esc(p.costume)}</span>`:''}</h1><p>${esc(p.brief||p.work||'先挑喜欢的参考，再把最值得拍的几张做成现场卡。')}</p></div><div class="header-actions"><button id="collect-project" class="primary">找一批参考</button><button id="import-reference">导入参考</button><details class="project-tools"><summary>项目设置与导出</summary><button id="edit-project">角色与要求</button><button id="export-pack">离线拍摄包</button><button id="show-events">变更记录</button><button id="archive-project" class="danger">删除项目</button></details></div>`;
@@ -1377,24 +1378,24 @@ async function finishScreeningSessionModal() {
         const content = `
         <div class="session-summary-dialog">
             <p class="form-help">已汇总本轮记录的最终选择。保留与淘汰不自动推导光线、机位或长期偏好；确认后保存可追溯的反馈与总结。</p>
-            <div class="stats-grid" style="display:flex;gap:12px;margin:12px 0;">
-                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+            <div class="stats-grid" style="display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;">
+                <div class="stat-box" style="flex:1;padding:8px 0;min-width:65px;">
                     <div style="font-size:20px;font-weight:bold;">${stats.viewed || 0}</div>
                     <small>有选择记录的图片</small>
                 </div>
-                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                <div class="stat-box" style="flex:1;padding:8px 0;min-width:65px;">
                     <div style="font-size:20px;font-weight:bold;color:var(--accent);">${stats.keep || 0}</div>
                     <small>保留(K)</small>
                 </div>
-                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                <div class="stat-box" style="flex:1;padding:8px 0;min-width:65px;">
                     <div style="font-size:20px;font-weight:bold;color:var(--gold);">${stats.inspiration || 0}</div>
                     <small>灵感(I)</small>
                 </div>
-                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                <div class="stat-box" style="flex:1;padding:8px 0;min-width:65px;">
                     <div style="font-size:20px;font-weight:bold;">${stats.maybe || 0}</div>
                     <small>待定(M)</small>
                 </div>
-                <div class="stat-box" style="flex:1;background:var(--soft);padding:8px 12px;border-radius:6px;text-align:center;">
+                <div class="stat-box" style="flex:1;padding:8px 0;min-width:65px;">
                     <div style="font-size:20px;font-weight:bold;color:var(--danger);">${stats.reject || 0}</div>
                     <small>淘汰(X)</small>
                 </div>
@@ -1481,7 +1482,7 @@ async function renderProfile() {
             </div>`;
         }).join('');
         return `
-        <div class="dimension-card" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px;">
+        <div class="dimension-card" style="border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:12px;">
             <h4 style="margin:0 0 10px 0;font-size:14px;color:var(--ink);">${esc(catNames[category] || category)}</h4>
             ${bars}
         </div>`;
@@ -1512,12 +1513,12 @@ async function renderProfile() {
             </div>
             <p class="form-help">这些数值为默认或历史启发式权重，尚未验证为你的偏好，当前不用于个性化排序。新总结仅保留反馈，不按关键词改权重。</p>
             ${dimensionRows}
-            <div style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px;">
+            <div style="border-top:1px solid var(--line);padding:14px 0;margin-top:14px;">
                 <h4 style="margin:0 0 8px 0;">已确认的选择总结</h4>
                 <ul style="margin:0;padding-left:18px;">${hypothesesHtml}</ul>
             </div>
         </div>
-        <div style="flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;align-self:flex-start;">
+        <div style="flex:1;padding:0 0 0 16px;align-self:flex-start;">
             <h3 style="margin:0 0 10px 0;">版本历史与可审计回滚</h3>
             <p class="form-help">历史画像绝不丢失。如果某轮筛选改变过大，随时可以安全回滚到任意历史版本。</p>
             <div class="history-list">${historyHtml}</div>
@@ -1551,6 +1552,7 @@ $('login-form').addEventListener('submit',async e=>{
     catch(error){$('login-error').textContent=error.message;}finally{button.disabled=false;}
 });
 $('new-project').onclick=()=>projectEditor();
+$('studio-collect').onclick=()=>state.project?collectionEditor():projectEditor();
 if ($('optimize-skill-btn')) $('optimize-skill-btn').onclick = optimizeSkillFromRejectionReasons;
 $('lock-library').onclick=async()=>{
     if (state.noAuth) { toast('当前已开启完全免密模式，无需锁定'); return; }

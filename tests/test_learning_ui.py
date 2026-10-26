@@ -222,6 +222,8 @@ def test_learning_api_private_csrf_allowlist_and_no_owner_library_mutation(learn
     with TestClient(app, base_url=origin) as client:
         public = client.get("/static/learning-atlas.json")
         assert public.status_code == 200
+        assert client.get('/static/studio.js').status_code == 200
+        assert client.get('/static/studio.css').status_code == 200
         assert len(public.json()["skills"]) >= 246
         before_db = library_db.read_bytes() if library_db.exists() else None
         for path in ("/api/learning-state", f"/api/learning-state/{LOW_VIEW_SKILL}", "/api/learning-photos/example.jpg"):
