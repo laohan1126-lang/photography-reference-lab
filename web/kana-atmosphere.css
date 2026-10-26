@@ -1,0 +1,125 @@
+/* Kana / living atmosphere. Presentation-only layer; the source photograph stays unmodified.
+   The original illustration paints the workspace, rather than occupying a decorative image card. */
+body.kana-workbench {
+  --canvas:#f5f9ff;
+  --paper:var(--canvas);
+  --panel:#fafdff;
+  --stage:#f2f8ff;
+  background:linear-gradient(145deg,#f5f9ff 0%,#f2f7ff 40%,#f9f9ff 78%,#f7f8fe 100%);
+}
+.kana-workbench .workspace {position:relative;isolation:isolate}
+.kana-workbench .workspace::before {
+  content:"";
+  position:absolute;
+  z-index:-2;
+  pointer-events:none;
+  left:-4vw;
+  top:-60px;
+  width:min(1030px,82vw);
+  height:1020px;
+  background:url('/static/private/kana/summer.webp') left top/100% auto no-repeat;
+  opacity:.17;filter:blur(34px) saturate(1.12);
+  -webkit-mask-image:radial-gradient(ellipse 49% 65% at 50% 40%,#000 2%,rgba(0,0,0,.72) 48%,transparent 100%);
+  mask-image:radial-gradient(ellipse 49% 65% at 50% 40%,#000 2%,rgba(0,0,0,.72) 48%,transparent 100%);
+  transform-origin:35% 25%;
+  animation:kana-atmosphere-breathe 25s ease-in-out infinite alternate;
+}
+html[data-studio-view="inspiration"] .kana-workbench .workspace::before {
+  background-image:url('/static/private/kana/rain.webp');opacity:.17;
+}
+.kana-workbench:has(.kana-asset-missing) .workspace::before {background-image:none}
+.kana-workbench .sidebar {background:rgba(249,251,255,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.kana-workbench .topbar {position:relative;z-index:2;background:none}
+.kana-workbench .kana-masthead {
+  height:212px;min-height:212px;margin-bottom:0;
+  background:transparent;overflow:visible;border:0;isolation:isolate;
+}
+.kana-workbench .kana-art-scene {
+  position:absolute;z-index:-1;pointer-events:none;
+  inset:-100px 15% -235px 24%;overflow:visible;background:none;opacity:1;
+  -webkit-mask-image:radial-gradient(ellipse 66% 65% at 52% 41%,#000 0%,rgba(0,0,0,.92) 38%,transparent 92%);
+  mask-image:radial-gradient(ellipse 66% 65% at 52% 41%,#000 0%,rgba(0,0,0,.92) 38%,transparent 92%);
+}
+.kana-workbench .kana-art-scene img {
+  width:min(680px,69vw);max-width:none;height:auto;
+  left:49%;top:-34px;opacity:.70;
+  transform:translate(calc(-50% + var(--kana-x,0px)),var(--kana-y,0px));
+  transition:transform .35s ease-out;
+  filter:saturate(1.08);
+  -webkit-mask-image:radial-gradient(ellipse 49% 43% at 50% 31%,#000 5%,rgba(0,0,0,.85) 37%,transparent 99%);
+  mask-image:radial-gradient(ellipse 49% 43% at 50% 31%,#000 5%,rgba(0,0,0,.85) 37%,transparent 99%);
+}
+.kana-workbench .kana-art-scene::after {content:none}
+.kana-workbench .kana-lettering {width:fit-content;max-width:51%;z-index:2;padding:0 0 12px}
+.kana-workbench .kana-signature>img {width:265px;height:100px;filter:drop-shadow(0 2px 0 #fff7ff90)}
+.kana-workbench .kana-signature>span {font-size:10px;color:#68799d;transform:rotate(-6deg)}
+.kana-workbench .kana-lettering h2 {font-size:24px;margin:3px 0 0 15px;color:#1e3659;letter-spacing:.08em}
+.kana-workbench .kana-lettering h2 em img {width:159px;height:50px}
+.kana-workbench .kana-cover-tools {top:66px;right:3.4%;width:175px;background:none;align-items:flex-end}
+.kana-workbench .kana-cover-note {color:#50759d}
+.kana-workbench .kana-ink-line {bottom:-5px;height:24px;stroke:#d88caf;stroke-width:1.1}
+.kana-workbench .project-header,.kana-workbench .kana-view-line,.kana-workbench .toolbar,.kana-workbench .review-layout {position:relative;z-index:1;background:transparent}
+.kana-workbench .kana-view-line {border-color:#c6d7e4a0}
+.kana-workbench .detail-panel,.kana-workbench .image-stage,.kana-workbench .image-column,.kana-workbench .stage-and-cues {background:transparent}
+/* A faint color echo belongs to the CURRENT photograph, not the character banner.
+   The real reference remains fully visible, sharp, and at its original aspect ratio. */
+.kana-workbench .image-stage {isolation:isolate}
+.kana-workbench .kana-photo-atmosphere {
+  position:absolute;inset:-3% 3%;width:94%;height:106%;object-fit:cover;
+  filter:blur(38px) saturate(1.18);opacity:.21;z-index:-1;
+  pointer-events:none;
+  -webkit-mask-image:radial-gradient(ellipse 52% 62% at 50% 50%,#000 5%,transparent 100%);
+  mask-image:radial-gradient(ellipse 52% 62% at 50% 50%,#000 5%,transparent 100%);
+  transition:opacity .35s ease;
+}
+.kana-workbench .image-stage>#main-image {position:relative;z-index:1}
+.kana-workbench .image-stage>.stage-counter,.kana-workbench .image-stage>.stage-nav {z-index:3}
+@keyframes kana-atmosphere-breathe {from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(15px,-15px,0) scale(1.025)}}
+@media (min-width:901px) and (max-height:810px) {
+  .kana-workbench .kana-masthead {height:155px;min-height:155px}
+  .kana-workbench .kana-lettering h2 {font-size:20px}
+  .kana-workbench .kana-signature>img {width:204px;height:74px}
+  .kana-workbench .kana-lettering h2 em img {width:129px;height:37px}
+  .kana-workbench .kana-cover-tools {top:30px}
+  .kana-workbench .kana-art-scene {inset:-95px 15% -210px 25%}
+  .kana-workbench .kana-art-scene img {top:-58px;width:min(640px,68vw)}
+}
+@media (max-width:900px) {
+  .kana-workbench .workspace::before {left:-11vw;top:-35px;width:98vw;height:780px;opacity:.16}
+  .kana-workbench .kana-masthead {height:174px;min-height:174px}
+  .kana-workbench .kana-signature>img {width:177px;height:65px}
+  .kana-workbench .kana-lettering h2 {font-size:17px}
+  .kana-workbench .kana-lettering h2 em img {width:117px;height:39px}
+  .kana-workbench .kana-art-scene {inset:-80px 11% -200px 22%}
+  .kana-workbench .kana-art-scene img {top:-30px;width:min(580px,80vw)}
+  .kana-workbench .kana-cover-tools {top:44px}
+}
+@media (max-width:700px) {
+  .kana-workbench .workspace::before {
+    left:0;width:100%;top:-15px;height:690px;opacity:.18;
+    background-size:auto 720px;background-position:center top;
+    -webkit-mask-image:radial-gradient(ellipse 74% 68% at 57% 23%,#000 8%,transparent 87%);
+    mask-image:radial-gradient(ellipse 74% 68% at 57% 23%,#000 8%,transparent 87%);
+  }
+  .kana-workbench .kana-masthead {height:183px;min-height:183px}
+  .kana-workbench .kana-lettering {justify-content:flex-start;padding-top:20px;max-width:65%}
+  .kana-workbench .kana-signature>img {width:160px;height:67px}
+  .kana-workbench .kana-lettering h2 {margin-top:3px;font-size:14px}
+  .kana-workbench .kana-lettering h2 em img {width:90px;height:29px}
+  .kana-workbench .kana-art-scene {inset:-68px 0 -115px 22%}
+  .kana-workbench .kana-art-scene img {top:13px;left:50%;width:285px;opacity:.58}
+  .kana-workbench .kana-cover-tools {left:24px;bottom:12px;top:auto}
+  .kana-workbench .kana-ink-line {bottom:0}
+  .kana-workbench .kana-photo-atmosphere {filter:blur(26px);opacity:.13}
+  /* Dropdowns are anchored to the screen's safe width, not a narrow right-side button. */
+  .kana-workbench .project-tools {position:static}
+  .kana-workbench .project-tools[open]>button {right:12px;width:160px}
+  .kana-workbench .toolbar .filter-more[open] select {
+    position:absolute;right:8px;top:100%;width:180px;max-width:calc(100vw - 24px);
+    z-index:12;background:#f9fbff;box-shadow:0 14px 36px #2e47752b;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .kana-workbench .workspace::before {animation:none!important}
+  .kana-workbench .kana-photo-atmosphere {transition:none!important}
+}

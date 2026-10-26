@@ -68,6 +68,29 @@
     content.append(text); editor.showModal();
   });
 
+  // Soft, bounded echo of the current, untouched source photo.
+  const auraBound = new WeakSet();
+  function syncPhotoAtmosphere() {
+    const stage=byId('image-stage'), source=byId('main-image');
+    if (!stage || !source || auraBound.has(source)) return;
+    auraBound.add(source);
+    const echo=document.createElement('img');
+    echo.className='kana-photo-atmosphere';
+    echo.alt=''; echo.setAttribute('aria-hidden','true');
+    echo.decoding='async'; echo.hidden=true;
+    stage.prepend(echo);
+    function update() {
+      if (source.isConnected && source.complete && source.naturalWidth>0 && !source.hidden) {
+        const url=source.currentSrc||source.src;
+        if (echo.src!==url) echo.src=url;
+        echo.hidden=false;
+      } else echo.hidden=true;
+    }
+    source.addEventListener('load',update);
+    source.addEventListener('error',()=>{echo.hidden=true;});
+    new MutationObserver(update).observe(source,{attributes:true,attributeFilter:['src','hidden']});
+    update();
+  }
   // The adapter deliberately moves the original nodes AFTER app.js binds them.
   // The WeakMap identifies each renderer incarnation, not an arbitrary flag.
   const arranged = new WeakMap();
@@ -146,12 +169,13 @@
       queued = false;
       observer.disconnect();
       arrangeInspector();
+      syncPhotoAtmosphere();
       fitViewport();
       byId('project-header')?.querySelectorAll('p').forEach(p => p.title = p.textContent);
       if (byId('view')) observer.observe(byId('view'), {subtree:true, childList:true});
     });
   });
-  if (kana && byId('view')) { observer.observe(byId('view'), {subtree:true,childList:true}); arrangeInspector(); }
+  if (kana && byId('view')) { observer.observe(byId('view'), {subtree:true,childList:true}); arrangeInspector(); syncPhotoAtmosphere(); }
 
   // A bounded, visible visual response. Decorative geometry, not a fake mascot.
   const orbit = document.createElement('span');
@@ -220,7 +244,7 @@
       this.frame('—');
       if(art){
         const file=next==='inspiration'?'rain.webp':'summer.webp';
-        const path=`/static/private/kana/${file}`;
+        const path=window.__KANA_OFFLINE_ASSETS?.[file] || `/static/private/kana/${file}`;
         if(art.getAttribute('src')!==path){art.dataset.assetReady='false';art.src=path;}
       }
       requestAnimationFrame(()=>{enter(byId('project-header'));arrangeInspector();});

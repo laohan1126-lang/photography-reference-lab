@@ -18,6 +18,7 @@ def kana_ui(component_factory,client,library,project):
     # Existing component_factory explicitly loads the legacy presentation layer.
     # Load the new scoped adapter after real app.js has bound its real controls.
     page.add_style_tag(content=(ROOT/'web/kana.css').read_text(encoding='utf-8'))
+    page.add_style_tag(content=(ROOT/'web/kana-atmosphere.css').read_text(encoding='utf-8'))
     page.add_script_tag(content=(ROOT/'web/kana.js').read_text(encoding='utf-8'))
     page.wait_for_function("document.querySelector('#detail-panel').dataset.kanaOrganized==='true'")
     return page,library,project
