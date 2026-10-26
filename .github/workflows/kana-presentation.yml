@@ -10,7 +10,7 @@ permissions:
 jobs:
   kana-ui:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -20,7 +20,22 @@ jobs:
         with:
           node-version: '22'
       - run: python -m pip install -e '.[test]'
-      - run: python -m playwright install --with-deps chromium
+      - name: Select actual browser without an unnecessary second download
+        shell: bash
+        run: |
+          browser=""
+          for candidate in chromium chromium-browser google-chrome google-chrome-stable; do
+            if command -v "$candidate" >/dev/null 2>&1; then
+              browser="$(command -v "$candidate")"
+              break
+            fi
+          done
+          if [ -n "$browser" ]; then
+            "$browser" --version
+            echo "LAB_CHROMIUM=$browser" >> "$GITHUB_ENV"
+          else
+            python -m playwright install --with-deps chromium
+          fi
       - run: node --check web/kana.js
       - run: |
           mkdir -p test-results
