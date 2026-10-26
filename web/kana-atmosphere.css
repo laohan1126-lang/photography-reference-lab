@@ -60,6 +60,9 @@ html[data-studio-view="inspiration"] .kana-workbench .workspace::before {
 .kana-workbench .kana-ink-line {bottom:-5px;height:24px;stroke:#d88caf;stroke-width:1.1}
 .kana-workbench .project-header,.kana-workbench .kana-view-line,.kana-workbench .toolbar,.kana-workbench .review-layout {position:relative;z-index:1;background:transparent}
 .kana-workbench .kana-view-line {border-color:#c6d7e4a0}
+/* Native details must never leak absolutely positioned descendants while closed. */
+.kana-workbench .project-tools:not([open])>button,
+.kana-workbench .filter-more:not([open])>select {display:none!important}
 .kana-workbench .detail-panel,.kana-workbench .image-stage,.kana-workbench .image-column,.kana-workbench .stage-and-cues {background:transparent}
 /* A faint color echo belongs to the CURRENT photograph, not the character banner.
    The real reference remains fully visible, sharp, and at its original aspect ratio. */
@@ -112,12 +115,16 @@ html[data-studio-view="inspiration"] .kana-workbench .workspace::before {
   .kana-workbench .kana-ink-line {bottom:0}
   .kana-workbench .kana-photo-atmosphere {filter:blur(26px);opacity:.13}
   /* Dropdowns are anchored to the screen's safe width, not a narrow right-side button. */
+  .kana-workbench .project-header{position:relative}
   .kana-workbench .project-tools {position:static}
-  .kana-workbench .project-tools[open]>button {right:12px;width:160px}
+  .kana-workbench .project-tools[open]>button {left:auto;right:12px;width:160px}
   .kana-workbench .toolbar .filter-more[open] select {
     position:absolute;right:8px;top:100%;width:180px;max-width:calc(100vw - 24px);
     z-index:12;background:#f9fbff;box-shadow:0 14px 36px #2e47752b;
   }
+}
+@media (max-width:360px) {
+  .kana-workbench .kana-art-scene img {left:43%;width:250px}
 }
 @media (prefers-reduced-motion:reduce) {
   .kana-workbench .workspace::before {animation:none!important}
