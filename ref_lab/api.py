@@ -129,7 +129,7 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
             f"img-src {image_sources}; connect-src 'self'; object-src 'none'; "
             "base-uri 'none'; frame-ancestors 'none'"
         )
-        response.headers["Cache-Control"] = "private, no-store" if path.startswith("/api/") else "no-cache"
+        response.headers["Cache-Control"] = "private, no-store" if path.startswith(("/api/", "/static/private/kana/")) else "no-cache"
         return response
 
     app.add_middleware(BodyLimitMiddleware, limit=settings.max_body_bytes)
@@ -786,8 +786,23 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
 
     @app.get("/static/{filename}")
     def static(filename: str):
-        if filename not in {"app.js", "styles.css", "library-browser.js"} | LEARNING_STATIC_FILES: raise Problem(404, "Static file not found")
+        if filename not in {"app.js", "styles.css", "library-browser.js", "kana.css", "kana.js"} | LEARNING_STATIC_FILES: raise Problem(404, "Static file not found")
         return FileResponse(settings.web_dir / filename, headers={"Cache-Control": "no-cache, must-revalidate"})
+
+    @app.get("/static/ui-art/{filename}")
+    def kana_lettering(filename: str):
+        if filename not in {"kana-wordmark.svg", "kana-frame.svg"}: raise Problem(404, "Static file not found")
+        path = settings.web_dir / "ui-art" / filename
+        if not path.is_file() or path.is_symlink() or not path.resolve().is_relative_to(settings.web_dir.resolve()): raise Problem(404, "Static file not found")
+        return FileResponse(path, headers={"Cache-Control": "no-cache, must-revalidate"})
+
+    @app.get("/static/private/kana/{filename}")
+    def kana_art(filename: str, request: Request):
+        if filename not in {"summer.webp", "rain.webp", "portrait.webp"}: raise Problem(404, "Static file not found")
+        if not request.state.authenticated: raise Problem(401, "请先解锁私人参考库")
+        path = settings.web_dir / "private" / "kana" / filename
+        if not path.is_file() or path.is_symlink() or not path.resolve().is_relative_to(settings.web_dir.resolve()): raise Problem(404, "Static file not found")
+        return FileResponse(path, headers={"Cache-Control": "private, no-store"})
 
     app.include_router(preview_router(settings.web_dir))
     app.include_router(learning_state_router(settings.web_dir, settings.data_dir))

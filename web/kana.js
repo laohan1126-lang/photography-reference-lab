@@ -57,6 +57,10 @@
   art?.addEventListener('load', assetState);
   art?.addEventListener('error', assetState);
   if (art?.complete) assetState();
+  const application = byId('application');
+  if (application && art) new MutationObserver(() => {
+    if (!application.hidden && art.complete && !art.naturalWidth) art.src = art.src;
+  }).observe(application, {attributes:true, attributeFilter:['hidden']});
   notice?.addEventListener('click', () => {
     const editor = byId('editor');
     if (!editor || editor.open) return;
