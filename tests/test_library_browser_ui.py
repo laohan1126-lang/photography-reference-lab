@@ -1,10 +1,11 @@
 """Actual Chromium DOM and API bridge with synthetic image fixtures."""
 from playwright.sync_api import expect
 from conftest import add_reference
-from test_ui_components import component_factory, screenshot
+from test_ui_components import component_factory, screenshot, open_navigation
 
 
 def go_gallery(page):
+    page.locator('#toggle-project-nav').click()
     page.get_by_role('button',name='图库 · 跨项目找图',exact=True).click()
     expect(page.locator('#library-status')).not_to_have_text('正在查找…')
 
@@ -15,6 +16,7 @@ def test_bounded_project_navigation_search_pin_and_directory(component_factory,c
         client.post('/api/projects',json={'character':f'检索项目{i:02d}'})
     page=component_factory()
     assert page.locator('#project-list [data-project-open]').count()==8
+    page.locator('#toggle-project-nav').click()
     page.locator('#project-search').fill('检索项目01')
     assert page.locator('#project-list [data-project-open]').count()==1
     page.locator('#project-list [data-project-pin]').click()
@@ -25,7 +27,20 @@ def test_bounded_project_navigation_search_pin_and_directory(component_factory,c
     assert page.locator('#project-list [data-project-open]').count()==8
     page.locator('#all-projects').click()
     assert page.locator('#project-directory-list [data-project-open]').count()==30
-    assert page.locator('#project-directory-list .project-link strong').first.evaluate('(el)=>getComputedStyle(el).color')=='rgb(39, 55, 71)'
+    contrast = page.locator('#project-directory-list .project-link strong').first.evaluate('''el => {
+        const numbers = color => color.match(/[\\d.]+/g).map(Number);
+        const luminance = rgb => rgb.slice(0,3).map(value => {
+            value /= 255;
+            return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+        }).reduce((sum,value,index) => sum + value * [.2126,.7152,.0722][index],0);
+        let background = el;
+        while (background.parentElement && numbers(getComputedStyle(background).backgroundColor)[3] === 0)
+            background = background.parentElement;
+        const foreground = luminance(numbers(getComputedStyle(el).color));
+        const behind = luminance(numbers(getComputedStyle(background).backgroundColor));
+        return (Math.max(foreground,behind) + .05) / (Math.min(foreground,behind) + .05);
+    }''')
+    assert contrast >= 4.5
     screenshot(page,'project-directory-synthetic.png')
     page.locator('#project-directory-next').click()
     assert page.locator('#project-directory-list [data-project-open]').count()==5
@@ -62,6 +77,7 @@ def test_gallery_combined_filters_saved_search_and_mobile(component_factory,clie
     expect(reopened.locator('#library-filter-form [name=viewpoint]')).to_have_value('low_angle')
     reopened.set_viewport_size({'width':390,'height':844})
     assert reopened.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    reopened.locator('#toggle-project-nav').click()
     expect(reopened.locator('#all-projects')).to_be_visible()
     reopened.locator('#all-projects').click()
     expect(reopened.locator('#project-directory-search')).to_be_visible()
@@ -103,6 +119,7 @@ def test_late_gallery_response_cannot_overwrite_another_view(component_factory,c
     page.get_by_label('跨项目搜索图片',exact=True).fill('slow')
     page.get_by_role('button',name='查找',exact=True).click()
     page.wait_for_function('typeof window.releaseGallery === "function"')
+    open_navigation(page)
     page.get_by_role('button',name='摄影笔记',exact=True).click()
     page.evaluate('window.releaseGallery()')
     expect(page.locator('#project-header')).to_contain_text('摄影笔记')

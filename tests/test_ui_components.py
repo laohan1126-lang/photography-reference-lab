@@ -20,6 +20,11 @@ from tools.import_dot_drive_batch import candidate_data
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def open_navigation(page):
+    if page.locator('#toggle-project-nav').get_attribute('aria-expanded') != 'true':
+        page.locator('#toggle-project-nav').click()
+
+
 def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, client, library):
     asset = library.ingest_asset(image_bytes(83))
     source = {"编号": "P366", "Drive文件ID": "drive-fixture-123", "图片文件名": "P366.jpg",
@@ -36,7 +41,9 @@ def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, 
     expect(page.locator('[data-study-reason="composition"]')).to_have_attribute("aria-pressed", "true")
     page.locator('[data-study-reason="pose"]').click()
     expect(page.locator('[data-study-reason="pose"]')).to_have_attribute("aria-pressed", "true")
+    page.locator('#toggle-project-nav').click()
     page.locator('[data-view="inspiration"]').click()
+    page.locator('#toggle-project-nav').click()
     page.locator('[data-view="study"]').click()
     expect(page.locator('[data-study-reason="composition"]')).to_have_attribute("aria-pressed", "true")
     expect(page.locator('[data-study-reason="pose"]')).to_have_attribute("aria-pressed", "true")
@@ -142,14 +149,11 @@ def screenshot(page, name):
 def test_studio_cover_action_preserves_project_entry_and_keyboard_access(component_factory, library, has_project, entry):
     project = library.create_project(ProjectInput(character='封面入口回归')) if has_project else None
     page = component_factory()
-    cover = page.locator('.studio-masthead')
-    cover.locator('summary').focus()
-    page.keyboard.press('Enter')
-    assert not cover.evaluate('(node) => node.open')
-    page.keyboard.press('Enter')
     if entry == 'studio':
-        page.locator('#studio-collect').click()
+        page.locator('#studio-collect').focus()
+        page.keyboard.press('Enter')
     else:
+        page.locator('#toggle-project-nav').click()
         page.get_by_role('button', name='采集任务', exact=True).click()
         page.locator('#create-collection').click()
     expect(page.locator('#editor')).to_be_visible()
@@ -187,11 +191,63 @@ def test_studio_reduced_motion_does_not_cancel_unrelated_effects_or_change_the_p
     }''')
     page.locator('#studio-collect').hover()
     page.emulate_media(reduced_motion='reduce')
-    expect(page.locator('.muse-figure')).to_have_css('animation-name', 'none')
+    expect(page.locator('.selection-lettering h2')).to_have_css('animation-name', 'none')
     assert page.evaluate('window.unrelatedEffect.playState') == 'running'
     expect(page.locator('#main-image')).to_have_attribute('src', original)
     assert library.jobs() == []
     page.evaluate('window.unrelatedEffect.cancel()')
+
+
+def test_saved_decisions_have_distinct_truthful_stage_cues(component_factory, client, library, project):
+    for seed in range(4):
+        add_reference(client,project,seed)
+    page=component_factory()
+    page.context.tracing.start(screenshots=True,snapshots=True)
+    page.evaluate('''() => {
+        window.savedCues=[];
+        const original=StudioMotion.commit;
+        StudioMotion.commit=(choice,ref)=>{
+            original(choice,ref);
+            const effect=document.querySelector('.stage-effect');
+            savedCues.push({choice,id:ref.id,frames:effect.getAnimations()[0].effect.getKeyframes()});
+        };
+    }''')
+    for choice in ['keep','inspiration','maybe','reject']:
+        original_id=page.evaluate('state.activeId')
+        page.locator(f'[data-decision="{choice}"]').click()
+        if choice=='reject':
+            page.locator('#reject-skip-btn').click()
+        idle(page)
+        assert page.evaluate('savedCues.at(-1).id')==original_id
+        if choice=='inspiration':
+            assert library.inspirations()['total']==1
+        else:
+            assert library.reference(original_id)['decision']==choice
+    cues=page.evaluate('savedCues')
+    assert [cue['choice'] for cue in cues]==['keep','inspiration','maybe','reject']
+    assert len({cue['frames'][-1]['transform'] for cue in cues})==4
+    folder=Path(os.environ.get('LAB_TEST_ARTIFACTS','.local/test-artifacts'))
+    folder.mkdir(parents=True,exist_ok=True)
+    page.context.tracing.stop(path=str(folder/'semantic-decisions.zip'))
+
+
+def test_reduced_saved_cue_keeps_truth_without_moving_or_duplicating_the_photo(ui):
+    page,library,project=ui
+    original_id=page.evaluate('state.activeId')
+    page.emulate_media(reduced_motion='reduce')
+    page.evaluate('''() => {
+        const original=StudioMotion.commit;
+        StudioMotion.commit=(choice,ref)=>{
+            original(choice,ref);
+            const effect=document.querySelector('.stage-effect');
+            window.savedCue={text:effect.textContent,images:effect.querySelectorAll('img').length,animations:effect.getAnimations().length};
+        };
+    }''')
+    choose(page,'maybe')
+    assert library.reference(original_id)['decision']=='maybe'
+    cue=page.evaluate('savedCue')
+    assert '待定 M' in cue['text']
+    assert cue['images']==0 and cue['animations']==0
 
 
 def choose(page, key):
@@ -210,6 +266,12 @@ def test_ui_selection_preference_filters_and_responsive_layout(ui):
     screenshot(page,'desktop-component-synthetic.png')
     page.set_viewport_size({'width':390,'height':844})
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    expect(page.locator('#studio-take-counter')).to_have_text(page.locator('#stage-counter').inner_text())
+    page.locator('#toggle-project-nav').click()
+    expect(page.locator('#project-search')).to_be_visible()
+    page.keyboard.press('Escape')
+    expect(page.locator('#toggle-project-nav')).to_be_focused()
+    expect(page.locator('#project-navigation')).to_be_hidden()
     screenshot(page,'mobile-component-synthetic.png')
     page.get_by_role('button',name='现场卡',exact=True).click()
     page.get_by_text('还没有已确认的现场卡',exact=True).wait_for()
@@ -242,11 +304,13 @@ def test_ui_agent_draft_then_explicit_acceptance(ui):
 
 def test_ui_new_character_editable_note_and_blocked_job(ui):
     page, library, project=ui
+    open_navigation(page)
     page.get_by_role('button',name='新建角色项目',exact=True).click()
     page.get_by_label('角色名 *',exact=True).fill('有马加奈')
     page.get_by_label('补充要求',exact=True).fill('日常人像和自然互动')
     page.get_by_role('button',name='建立项目',exact=True).click()
     page.locator('#editor').wait_for(state='hidden')
+    open_navigation(page)
     page.get_by_role('button',name='摄影笔记',exact=True).click()
     page.get_by_role('button',name='＋ 写摄影笔记',exact=True).click()
     page.get_by_label('笔记标题 *',exact=True).fill('引导笔记')
@@ -260,6 +324,7 @@ def test_ui_new_character_editable_note_and_blocked_job(ui):
     page.get_by_role('button',name='保存笔记',exact=True).click()
     page.locator('#editor').wait_for(state='hidden')
     expect(page.locator('[data-note]')).to_contain_text('保留有效的引导')
+    open_navigation(page)
     page.get_by_role('button',name='采集任务',exact=True).click()
     # Keep the historical task-package handoff covered directly; the primary
     # collection editor now creates split Search/Review jobs.
@@ -366,6 +431,7 @@ def test_global_library_zero_projects_upload_and_multi_role_use(component_factor
         page.locator('#editor select[name=project_id]').select_option(project['id'])
         page.locator('#editor button[type=submit]').click()
         page.locator('#editor').wait_for(state='hidden')
+        open_navigation(page)
         page.get_by_role('button',name='♡ 我的审美库',exact=True).click()
         expect(page.locator('#detail-panel')).to_contain_text(project['character'])
     left=library.references(first['id'])['items'][0];right=library.references(second['id'])['items'][0]
@@ -381,11 +447,17 @@ def test_global_library_zero_projects_upload_and_multi_role_use(component_factor
 
 def test_stale_edit_conflict_does_not_claim_success_or_advance(ui, client):
     page,library,project=ui
+    page.evaluate('''() => {
+        window.savedCues=[];
+        const original=StudioMotion.commit;
+        StudioMotion.commit=(choice,ref)=>{savedCues.push(choice);original(choice,ref);};
+    }''')
     current=page.evaluate('state.activeId')
     ref=library.reference(current)
     response=client.patch(f'/api/references/{current}',json={'expected_revision':ref['revision'],'decision':'reject'})
     assert response.status_code==200
     choose(page,'keep')
+    assert page.evaluate('savedCues') == []
     assert library.reference(current)['decision']=='reject'
     assert page.evaluate('state.activeId')==current
     expect(page.locator('#toast')).to_contain_text('修改')

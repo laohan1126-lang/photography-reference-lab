@@ -358,6 +358,7 @@ function renderReferenceView() {
     $('reference-content').hidden=!state.refs.length;
     $('reference-empty').hidden=!!state.refs.length;
     if (!state.refs.length) {
+        window.StudioMotion?.frame?.('0 / 0');
         const titles={field:'还没有已确认的现场卡',selected:'先选出值得拍的参考',filtered:'没有被预检过滤的候选',inspiration:state.recycled?'没有已移除收藏':'这里留给长期喜欢的画面',study:'还没有匹配的待筛摄影参考',recycle:'没有已淘汰图片'};
         $('reference-empty').innerHTML=empty(titles[state.view]||'没有匹配的候选','可以改变筛选条件。现场卡只来自你挑选并检查过的独立图片。');
     }
@@ -395,6 +396,7 @@ function renderActiveReference() {
     if (counter) {
         const curNum = state.total ? state.offset + index + 1 : 0;
         counter.textContent = `${curNum} / ${state.total || state.refs.length}`;
+        window.StudioMotion?.frame?.(counter.textContent);
     }
 
     // Mobile split view: if card exists, show 1/3 cues on the left, 2/3 image on the right
@@ -808,6 +810,7 @@ async function decide(choice, rejectionReason = null, aestheticNegative = false)
             if(choice==='reject'){body.rejection_reason=rejectionReason || '';body.is_aesthetic_negative=aestheticNegative;}
             updated=await api(`/api/references/${ref.id}`,{method:'PATCH',body});
         }
+        window.StudioMotion?.commit?.(choice, ref);
         const next=state.autoAdvance?state.refs[index+1]?.id:ref.id;
         const removed=!matchesCurrentView(updated);
         state.refs=state.refs.map(r=>r.id===ref.id?updated:r).filter(matchesCurrentView);

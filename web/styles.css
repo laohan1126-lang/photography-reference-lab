@@ -1,27 +1,27 @@
-/* Rain-garden atelier: warm paper, cherry ink and a neutral photo review stage. */
+/* Photography selection: open paper, red annotations, intact source photographs. */
 :root {
-  --canvas:#f8f5ef;
+  --canvas:#fffdf7;
   --paper:var(--canvas);
-  --rail:#f0eee6;
-  --stage:#e5ebe5;
-  --panel:#fffcf7;
-  --soft:#eee8e0;
-  --line:#ded8ce;
-  --line-strong:#bdb3a5;
-  --ink:#302e2b;
-  --muted:#68615a;
-  --faint:#766c63;
-  --accent:#97334b;
-  --accent-fill:#97334b;
-  --accent-hover:#7c263c;
-  --accent-soft:#97334b0d;
+  --rail:#14365f;
+  --stage:#f0eee7;
+  --panel:#fffdf7;
+  --soft:#f2eee4;
+  --line:#d5c9b2;
+  --line-strong:#a99b81;
+  --ink:#20324a;
+  --muted:#5a6471;
+  --faint:#6c6a61;
+  --accent:#a32b42;
+  --accent-fill:#a32b42;
+  --accent-hover:#882438;
+  --accent-soft:#a32b4210;
   --on-accent:#fffaf4;
-  --gold:#97334b;
-  --ok:#416f57;
-  --warn:#916226;
-  --danger:#b34450;
+  --gold:#9b7028;
+  --ok:#315b46;
+  --warn:#825b23;
+  --danger:#a12d31;
   --serif:"Noto Serif SC","Source Han Serif SC","STZhongsong","Songti SC",SimSun,Georgia,serif;
-  --sans:"Noto Sans SC","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+  --sans:"HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
   --mono:"Cascadia Mono","JetBrains Mono",Consolas,ui-monospace,monospace;
   --radius:6px;
   --shadow:0 24px 70px #46362b24;
@@ -951,37 +951,6 @@ details>summary { cursor:pointer }
 
 /* Phone shooting mode: decisions stay under the thumb, field cues sit beside the photo. */
 @media(max-width:768px) {
-  body,.workspace { padding-bottom:calc(84px + env(safe-area-inset-bottom,14px))!important }
-  .decision-bar {
-    position:fixed!important;
-    bottom:0!important;
-    left:0!important;
-    right:0!important;
-    z-index:1000!important;
-    margin:0!important;
-    display:grid!important;
-    grid-template-columns:repeat(4,1fr)!important;
-    gap:6px!important;
-    padding:8px 10px calc(8px + env(safe-area-inset-bottom,12px))!important;
-    background:#f8f5eff5!important;
-    border:0!important;
-    border-top:1px solid var(--line)!important
-  }
-  .decision-bar button {
-    min-height:50px!important;
-    padding:6px 2px!important;
-    border:1px solid var(--line-strong)!important;
-    font-size:12.5px!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    text-align:center!important
-  }
-  .decision-bar small { display:none!important }
-  .decision-bar strong { font-size:12.5px!important; white-space:nowrap!important }
-  .decision-bar .chosen { border-color:var(--ink)!important }
-  .decision-bar button[data-decision="reject"] { border-color:#b3445066!important }
   .stage-and-cues { width:100%; position:relative }
   .stage-and-cues.has-card { display:flex!important; flex-direction:row!important; align-items:stretch!important; gap:8px!important; height:min(60vh,500px)!important; margin-bottom:6px!important }
   .stage-and-cues.has-card .mobile-cues-panel {
@@ -997,7 +966,7 @@ details>summary { cursor:pointer }
   }
   .stage-and-cues.has-card .image-stage { flex:1 1 64%!important; width:64%!important; height:100%!important; min-height:unset!important }
   .stage-and-cues:not(.has-card) .mobile-cues-panel { display:none!important }
-  .stage-and-cues:not(.has-card) .image-stage { width:100%!important; height:min(58vh,480px)!important }
+  .stage-and-cues:not(.has-card) .image-stage { width:100% }
   .image-stage>img { max-height:100%!important; object-fit:contain!important }
   .stage-nav { opacity:.7; width:38px; height:60px; font-size:32px }
   .cues-title { font-size:10.5px; font-weight:600; letter-spacing:.12em; color:var(--accent); margin-bottom:4px }
@@ -1067,3 +1036,225 @@ details>summary { cursor:pointer }
 .candidate-body .compact-row { flex-wrap:wrap; gap:6px; margin-top:auto }
 .candidate-body .badge { white-space:normal }
 @media(max-width:720px){ .candidate-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:56vh } }
+
+
+/* Selection surface: one open sheet, photo first, observations after the choice. */
+.selection-desk {--display:"STZhongsong","Noto Serif SC","SimSun",serif;--hand:"STKaiti","KaiTi",serif}
+.selection-desk .app-shell {display:block}
+.selection-desk .sidebar {height:60px;position:relative;display:flex;flex-direction:row;align-items:center;gap:40px;padding:0 4vw;overflow:visible;border:0;border-bottom:1px solid #c6a75d;z-index:40;background:var(--rail);color:#fffdf4}
+.selection-desk .brand-mark {font:italic 37px/.8 "Adobe Garamond Pro",Georgia,serif}
+.selection-desk .brand>span:last-child {font:500 14px var(--sans);letter-spacing:.08em}
+.selection-desk .brand small {font-size:8px;letter-spacing:.17em}
+.selection-desk .sidebar .photography-branches {margin:0;border:0;align-items:center;gap:24px;flex:1}
+.selection-desk .photography-branches>* {padding:10px 0;font-size:12px}
+.selection-desk .project-nav-toggle {display:block;background:none;border:0;padding:12px 0;font-size:12px;color:#fffdf4}
+.selection-desk #project-navigation {display:none;position:absolute;right:4vw;top:59px;width:min(400px,92vw);max-height:calc(100svh - 95px);overflow:auto;background:var(--panel);padding:25px 28px;box-shadow:0 20px 40px #292a2620;border:1px solid var(--line)}
+.selection-desk .sidebar.nav-open #project-navigation {display:block}
+.selection-desk #project-navigation .side-heading {margin-bottom:12px}
+.selection-desk #project-list {margin:12px 0}
+.selection-desk #global-nav {margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
+.selection-desk .side-note,.selection-desk #lock-library {display:none}
+.selection-desk .workspace {display:grid;grid-template-columns:260px minmax(0,1fr) 215px;column-gap:24px;padding:0 4vw 32px;max-width:1600px;margin:auto;min-width:0}
+.selection-desk .topbar {display:none}
+.selection-desk .topbar #connection-status {font:9px var(--sans);letter-spacing:0}
+.selection-title {display:contents}
+.selection-lettering {grid-row:1;grid-column:1;position:relative;display:block;min-width:0;padding:13px 0 9px}
+.selection-index {font:9px/1.8 var(--mono);letter-spacing:.1em;color:var(--muted)}
+.selection-lettering h2 {display:flex;align-items:baseline;font:400 44px/1.1 var(--display);letter-spacing:-.1em;margin:0;animation:selection-ink 650ms cubic-bezier(.2,.8,.2,1) both;white-space:nowrap}
+.selection-lettering h2 span {display:inline-block;transform:translateY(4px) rotate(-8deg);font:400 1.06em var(--hand);color:var(--accent);margin:0 .05em}
+.selection-lettering h2 i {font:italic 1em "Adobe Garamond Pro",Georgia,serif;color:var(--accent);margin-left:4px}
+.selection-note {display:block;font:12px/1.4 var(--display);letter-spacing:.16em;margin-top:8px;color:var(--accent)}
+.selection-note i {font:8px var(--mono);font-style:normal;letter-spacing:.1em;color:var(--muted);margin-left:9px}
+.selection-current {grid-row:2;grid-column:3;justify-self:end;align-self:center;display:flex;align-items:baseline;gap:12px;min-width:72px}
+.selection-current small {font-size:9px;letter-spacing:.16em}
+.selection-current strong {font:italic 24px/1 "Adobe Garamond Pro",Georgia,serif;font-variant-numeric:tabular-nums}
+.selection-search {grid-row:1;grid-column:3;align-self:center;display:grid;grid-template-columns:1fr 32px;gap:3px 20px;border:0;border-bottom:1px solid var(--accent);border-radius:0;padding:12px 0;min-width:187px;color:var(--accent);background:none;text-align:left}
+.selection-search>span {font-size:15px;letter-spacing:.08em}
+.selection-search i {font:26px/1 Georgia,serif;grid-row:span 2;align-self:center;text-align:right;transition:transform 180ms}
+.selection-search small {font-size:9px;color:var(--muted);letter-spacing:.06em}
+.selection-search:hover {background:transparent;border-color:var(--ink)}
+.selection-search:hover i {transform:translate(4px,-4px)}
+.selection-desk .project-header {grid-row:1;grid-column:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:0;padding:17px 0 10px;margin:0;gap:8px;border:0}
+.selection-desk .project-header .eyebrow {display:none}
+.selection-desk .project-header h1 {font:400 25px/1.3 var(--display);margin:0 0 4px;letter-spacing:.06em}
+.selection-desk .project-header p {margin:0;max-width:760px;font-size:12px;line-height:1.7}
+.selection-desk .header-actions>button {background:none;border:0;border-bottom:1px solid var(--line-strong);border-radius:0;font-size:12px;padding:4px 0;margin:0 14px 0 0;color:var(--ink)}
+.selection-desk .header-actions .primary {color:var(--accent)}
+.selection-desk .project-tools summary {font-size:11px;padding:4px}
+.selection-statistics {grid-row:2;grid-column:1;align-self:start;position:relative;font-size:12px;padding:10px 0}
+.selection-statistics>summary {width:fit-content;color:var(--muted)}
+.selection-desk .stats {gap:16px;padding:18px 0 10px;flex-wrap:wrap}
+.selection-desk .stat {display:flex;align-items:baseline;gap:7px;padding:0;min-width:0;margin:0}
+.selection-desk .stat strong {font:italic 20px/1 Georgia,serif;color:var(--ink)}
+.selection-desk .stat span {margin:0;font-size:9px;letter-spacing:.05em}
+.selection-desk .view-tabs {grid-row:2;grid-column:2;margin:0;gap:22px;align-self:center;border:0}
+.selection-desk .view-tabs button {font-size:12px;padding:10px 0 9px}
+.selection-desk #view {grid-column:1/-1;border-top:1px solid var(--line);padding-top:12px}
+.selection-desk .toolbar {margin:0 0 12px;gap:16px;min-height:36px}
+.selection-desk .toolbar input {width:240px;border:0;border-bottom:1px solid var(--line-strong);border-radius:0;background:none;padding:7px 0;font-size:12px}
+.selection-desk .toolbar select {border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 0;font-size:12px}
+.selection-desk .toolbar>button.quiet {border:0!important;font-size:11px;padding:5px 0}
+.selection-desk .desktop-shortcut-hint {font-size:8px;letter-spacing:0}
+.selection-desk .review-layout {display:grid;grid-template-columns:minmax(190px,.42fr) minmax(0,1.65fr);column-gap:30px;align-items:start}
+.selection-desk .image-column,.selection-desk .detail-panel {display:contents}
+.selection-desk .image-column>* {order:4}
+.selection-desk .detail-panel>* {grid-column:1/-1;order:8;max-width:920px;width:100%;justify-self:center}
+.selection-desk #stage-and-cues {grid-column:2;grid-row:1;order:0;width:100%;max-width:none;display:block}
+.selection-desk .image-stage {height:clamp(420px,calc(100svh - 365px),650px);min-height:0;border:0;isolation:isolate;background:radial-gradient(ellipse 46% 72% at 50% -2%,#f4d99f83 0%,#4c475b64 45%,transparent 75%),linear-gradient(145deg,#131f3c 0%,#252033 55%,#311824 100%)}
+.selection-desk .image-stage>img {object-fit:contain;position:relative;z-index:1}
+.selection-desk .image-stage::before,.selection-desk .image-stage::after {content:"";position:absolute;top:0;bottom:0;width:18%;pointer-events:none;z-index:0;background:repeating-linear-gradient(90deg,#57172a00 0 13px,#d27b6b18 24px,#1c101a35 42px),linear-gradient(90deg,#5f1728 0%,#7b2334 35%,#3d1a2b 100%);box-shadow:inset -8px 0 18px #100d224c}
+.selection-desk .image-stage::before {left:0;clip-path:polygon(0 0,100% 0,78% 72%,52% 100%,0 100%);border-right:2px solid #c7a15d}
+.selection-desk .image-stage::after {right:0;transform:scaleX(-1);clip-path:polygon(0 0,100% 0,78% 72%,52% 100%,0 100%);border-right:2px solid #c7a15d}
+.selection-desk .stage-counter {background:var(--canvas);color:var(--ink);top:0;left:0;padding:7px 11px;font-size:9px;letter-spacing:.1em}
+.selection-desk .stage-nav {color:var(--ink);background:var(--canvas);height:52px;width:35px;font-size:30px;z-index:5}
+.selection-desk .stage-nav:hover {background:var(--panel);color:var(--accent)}
+.selection-desk .decision-bar {grid-column:1;grid-row:1;align-self:center;justify-self:stretch;order:1;max-width:none;display:flex;flex-direction:column;width:100%;margin:0;padding:0;border:0;gap:0}
+.selection-desk .decision-bar::before {content:"这一帧，怎么留？";font:400 22px/1.5 var(--display);color:var(--ink);margin-bottom:18px;letter-spacing:.04em}
+.selection-desk .decision-bar button {position:relative;min-height:70px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;gap:3px;border:0;border-radius:0;border-bottom:1px solid var(--line);padding:12px 12px 12px 22px;background:none;color:var(--ink);transition:background 180ms,border-color 180ms,transform 180ms}
+.selection-desk .decision-bar button strong {font-size:13px;font-weight:500}
+.selection-desk .decision-bar button small {font-size:11px;color:var(--muted)}
+.selection-desk .decision-bar button.chosen {color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-soft)}
+.selection-desk .decision-bar button:hover {background:var(--soft);border-bottom-color:var(--accent)}
+.selection-desk .decision-bar button::after {content:"";width:12px;height:12px;position:absolute;left:15px;top:15px;border:1px solid var(--accent);border-width:1px 0 0 1px;transform:scale(.5);opacity:0;transition:transform 180ms,opacity 180ms;pointer-events:none}
+.selection-desk .decision-bar button:hover::after {transform:scale(1);opacity:1}
+.selection-desk .image-caption {grid-column:2;grid-row:2;order:2;padding:8px 0;font-size:9px}
+.selection-desk .filmstrip {grid-column:2;grid-row:3;order:3;background:none;border:0;padding:12px 0 8px;gap:10px}
+.selection-desk .filmstrip .thumb {flex:0 0 68px;height:82px;background:none;border:0;border-bottom:2px solid transparent;box-shadow:none;padding:0 0 6px;transition:transform 160ms,border-color 160ms}
+.selection-desk .filmstrip .thumb img {object-fit:contain;background:var(--stage)}
+.selection-desk .filmstrip .thumb::before {display:none}
+.selection-desk .filmstrip .thumb:hover {transform:translateY(-3px)}
+.selection-desk .filmstrip .thumb.active,.selection-desk .filmstrip .thumb[aria-current="true"] {border-bottom-color:var(--accent);outline:none;box-shadow:none}
+.selection-desk .filmstrip .frame-number {font-size:8px;background:var(--canvas);color:var(--muted)}
+.selection-desk .image-nav {grid-column:2;grid-row:4;order:4;margin-top:3px}
+.selection-desk .pagination {grid-column:2;grid-row:5;order:5;margin:10px 0 28px}
+.selection-desk .detail-heading {order:6;max-width:920px;padding:25px 0 0;border-top:1px solid var(--line)}
+.selection-desk .detail-heading h2 {font:400 24px/1.4 var(--display);margin:8px 0;max-width:900px}
+.selection-desk .curation-hint {order:7;font-size:11px;padding:12px 0;background:none;border:0;margin:0}
+.selection-desk .detail-panel .guide-section,.selection-desk .detail-panel .next-step,.selection-desk .detail-panel .export-share-box {border:0;border-top:1px solid var(--line);border-radius:0;background:none;padding:20px 0;margin:10px 0}
+.selection-desk .advanced-panel {border:0;border-top:1px solid var(--line);border-radius:0;background:none;padding:14px 0}
+.selection-desk .detail-panel .source-link {order:7;font-size:12px;margin:4px 0 15px}
+.selection-desk .workspace-footer {grid-column:1/-1;margin-top:36px}
+.selection-desk .studio-pointer {display:none}
+.selection-desk .studio-progress {background:var(--accent);height:2px}
+.selection-desk .stage-effect {position:absolute;inset:0;z-index:15;pointer-events:none;background:var(--stage);display:flex;align-items:center;justify-content:center}
+.selection-desk .stage-effect img {width:100%;height:100%;object-fit:contain}
+.selection-desk .stage-effect span {position:absolute;bottom:18px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--panel);border-bottom:2px solid var(--accent);padding:9px 18px;font:12px var(--sans);color:var(--ink)}
+.selection-desk .stage-effect[data-choice="inspiration"] span {border-color:var(--gold)}
+.selection-desk .stage-effect[data-choice="maybe"] span {border-color:var(--muted)}
+.selection-desk .stage-effect[data-choice="reject"] span {border-color:var(--danger)}
+.selection-desk .lightbox {background:#1d1e1b;color:#f6f3ed}
+.selection-desk .lightbox-bar button {color:#f6f3ed;border-color:#77746e}
+@keyframes selection-ink {from {opacity:0;clip-path:inset(0 100% 0 0);transform:translateY(10px)} to {opacity:1;clip-path:inset(0 -10px 0 0);transform:translateY(0)}}
+@media(max-width:900px) {
+ .selection-note {display:block;font:12px/1.4 var(--display);letter-spacing:.16em;margin-top:8px;color:var(--accent)}
+.selection-note i {font:8px var(--mono);font-style:normal;letter-spacing:.1em;color:var(--muted);margin-left:9px}
+ .selection-desk .desktop-shortcut-hint {display:none}
+ .selection-desk .header-actions {gap:8px;max-width:none}
+ .selection-desk .toolbar {gap:10px}
+}
+@media(max-width:650px) {
+ .selection-desk .sidebar {height:60px;padding:0 5vw;gap:14px}
+ .selection-desk .brand>span:last-child {font-size:12px;letter-spacing:0}
+ .selection-desk .brand-mark {font-size:32px}
+ .selection-desk .brand {gap:7px}
+ .selection-desk .brand small {font-size:6px;letter-spacing:.12em}
+ .selection-desk .sidebar .photography-branches {gap:0;flex:1;justify-content:flex-end}
+ .selection-desk .photography-branches>span {display:none}
+ .selection-desk .photography-branches>a {font-size:10px}
+ .selection-desk .project-nav-toggle {font-size:10px;padding:10px 0}
+ .selection-desk #project-navigation {top:59px;right:4vw;padding:20px;z-index:45}
+ .selection-desk .workspace {display:block;padding:0 5vw 24px}
+ .selection-desk .topbar {height:27px;min-height:27px;font-size:6px;letter-spacing:0}
+ .selection-desk .topbar #connection-status {font-size:8px}
+ .selection-title {display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:96px;padding:0 0 10px;border-bottom:1px solid var(--line)}
+ .selection-lettering {display:block;position:relative;padding-top:14px;padding-bottom:3px}
+ .selection-index {position:absolute;top:0;left:0;font-size:8px;white-space:nowrap;width:auto;letter-spacing:.06em}
+ .selection-lettering h2 {font-size:33px}
+ .selection-search {min-width:140px;grid-template-columns:1fr 24px;gap:4px;padding:10px 0}
+ .selection-search>span {font-size:13px;letter-spacing:.02em}
+ .selection-search small {font-size:10px}
+ .selection-search i {font-size:23px}
+ .selection-current {display:none}
+ .selection-current small {font-size:9px;letter-spacing:0}
+ .selection-current strong {font-size:18px}
+ .selection-desk .project-header {padding:12px 0 8px;gap:10px;flex-direction:row;align-items:start}
+ .selection-desk .project-header>div:first-child {min-width:0;flex:1}
+ .selection-desk .project-header h1 {font-size:21px;letter-spacing:0}
+ .selection-desk .project-header p {font-size:12px;line-height:1.6}
+ .selection-desk .header-actions {max-width:35%;gap:5px;justify-content:flex-end;margin-top:0}
+ .selection-desk .header-actions>button {font-size:11px;padding:4px 0;margin:0 2px}
+ .selection-desk .project-tools summary {font-size:10px;padding:4px 0}
+ .selection-statistics {display:block;padding:5px 0 8px;font-size:12px}
+ .selection-desk .stats {display:flex;justify-content:space-between;gap:7px;overflow:visible;padding:11px 0 9px}
+ .selection-desk .stat {display:block;text-align:left}
+ .selection-desk .stat strong {font-size:18px;display:block;margin-bottom:4px}
+ .selection-desk .stat span {font-size:8px;letter-spacing:0}
+ .selection-desk .view-tabs {gap:15px;margin-bottom:10px}
+ .selection-desk .view-tabs button {font-size:12px;min-height:32px;flex:0 0 auto;padding:4px 0 7px}
+ .selection-desk .toolbar {gap:8px;margin-bottom:10px;min-height:0}
+ .selection-desk .toolbar input {width:calc(100% - 128px);font-size:12px}
+ .selection-desk .toolbar select {width:120px;font-size:12px}
+ .selection-desk .toolbar>button.quiet,.selection-desk .toolbar .filter-more {font-size:11px}
+ .selection-desk .toolbar>button.quiet {min-height:24px;padding:0}
+ .selection-desk .toolbar .spacer {display:none}
+ .selection-desk .filter-more summary {font-size:11px;padding:0;min-height:24px;display:flex;align-items:center}
+ .selection-desk .review-layout {display:flex;flex-direction:column;align-items:stretch;gap:0}
+ .selection-desk .image-stage {height:340px;min-height:0}
+ .selection-desk .image-stage::before,.selection-desk .image-stage::after {display:block;width:10%}
+ .selection-desk .decision-bar {display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+ .selection-desk .decision-bar::before {display:none}
+ .selection-desk .decision-bar button {display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px;min-height:75px;padding:9px 4px}
+ .selection-desk .decision-bar button strong {font-size:12px}
+ .selection-desk .decision-bar button small {font-size:11px;max-width:82px;line-height:1.5;letter-spacing:0}
+ .selection-desk .decision-bar button::after {left:5px;top:7px;width:6px;height:6px}
+ .selection-desk .image-nav {display:flex!important;font-size:10px}
+ .selection-desk .image-caption {font-size:8px;flex-wrap:wrap}
+ .selection-desk .image-caption button {font-size:11px}
+ .selection-desk .filmstrip {gap:8px}
+ .selection-desk .filmstrip .thumb {flex-basis:58px;height:74px}
+ .selection-desk .detail-heading h2 {font-size:21px}
+ .selection-desk .detail-panel>*,.selection-desk .detail-heading {max-width:100%}
+}
+@media(max-width:350px) {
+ .selection-current {display:none}
+ .selection-search {margin-left:auto}
+ .selection-desk .sidebar {gap:10px}
+ .selection-desk .view-tabs {gap:11px}
+}
+@media(prefers-reduced-motion:reduce) {
+ .selection-desk *, .selection-desk *::before, .selection-desk *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ .selection-desk .filmstrip .thumb:hover,.selection-search:hover i {transform:none}
+}
+
+/* Kana costume system: blue/white hat, gold braid, red hair and heart pin (owner 3.jpg). */
+.kana-hat {display:block;width:42px;height:36px;overflow:visible}
+.hat-body {fill:#23548b;stroke:#fffdf4;stroke-width:1.4}
+.hat-band {fill:#fffdf4;stroke:#dab35f;stroke-width:1}
+.hat-cord {fill:none;stroke:#e2bb68;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.hat-pin {fill:#b43150;stroke:#e2bb68;stroke-width:.8}
+.kana-journal .sidebar .brand,.kana-journal .photography-branches>* {color:#fffdf4}
+.kana-journal .brand small {color:#e1c98f}
+.kana-journal .photography-branches>span {border-color:#f3cd73}
+.kana-journal .sidebar::after {content:"";position:absolute;left:0;right:0;bottom:4px;height:2px;border-top:1px solid #c4a05e;opacity:.6;pointer-events:none}
+.kana-journal #project-navigation {color:var(--ink)}
+.kana-journal .selection-index {color:#a32b42;font:italic 12px/1.6 "Adobe Garamond Pro",Georgia,serif;letter-spacing:.2em}
+.kana-journal .selection-lettering h2 {margin-top:2px;letter-spacing:-.06em}
+.kana-journal .selection-lettering h2 span {color:#a32b42;transform:translateY(2px) rotate(-5deg)}
+.kana-journal .selection-search {border-color:#a32b42;position:relative;padding-left:15px}
+.kana-journal .selection-search::before {content:"";position:absolute;left:0;top:17px;width:7px;height:7px;background:#a32b42;transform:rotate(45deg);transition:transform 180ms;border-radius:2px 2px 0 2px}
+.kana-journal .selection-search:hover::before {transform:rotate(135deg)}
+.kana-journal .view-tabs button.active {color:#a32b42;border-bottom:2px solid #a32b42}
+.kana-journal .decision-bar button::after {border-color:#a32b42}
+.kana-journal .filmstrip .thumb[aria-current="true"] {border-bottom-color:#a32b42}
+.kana-journal .selection-current {position:relative;padding-left:32px}
+.kana-journal .selection-current::before {content:"";position:absolute;left:0;top:2px;width:20px;height:18px;background:linear-gradient(#fffdf4,#fffdf4) center 10px/14px 3px no-repeat,linear-gradient(#254c7b,#254c7b) center 2px/14px 14px no-repeat,linear-gradient(#b6924d,#b6924d) center bottom/20px 4px no-repeat;clip-path:polygon(15% 0,85% 0,85% 75%,100% 80%,100% 100%,0 100%,0 80%,15% 75%)}
+.kana-journal .stage-effect span {border-bottom-width:3px;border-image:linear-gradient(90deg,#1d4a7d,#dbb266 40%,#a32b42 70%) 1}
+.kana-journal .decision-bar button[data-last-decision="keep"]::after {opacity:1;transform:rotate(-8deg) scale(1)}
+@media(max-width:650px) {
+ .kana-journal .brand-mark {width:35px}
+ .kana-journal .kana-hat {width:35px;height:31px}
+ .kana-journal .selection-note {font-size:11px;margin-top:5px;letter-spacing:.08em}
+ .kana-journal .selection-note i {display:none}
+ .kana-journal .selection-search {min-width:140px;padding-left:13px}
+ .kana-journal .selection-index {font-size:9px;letter-spacing:.13em}
+}

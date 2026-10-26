@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#f8f5ef">
+  <meta name="theme-color" content="#fffdf7">
   <title>参考实验室 · Photography Reference Lab</title>
-  <link rel="stylesheet" href="/static/styles.css?v=20261026-rain-garden">
-  <link rel="stylesheet" href="/static/studio.css?v=20261026-prelude">
-  <script src="/static/studio.js?v=20261026-prelude" defer></script>
+  <link rel="stylesheet" href="/static/styles.css?v=20261027-kana-stage">
+  <link rel="stylesheet" href="/static/studio.css?v=20261027-kana-stage">
+  <script src="/static/studio.js?v=20261027-kana-stage" defer></script>
   <script src="/static/library-browser.js?v=20261002" defer></script>
   <script src="/static/app.js?v=20261002" defer></script>
 </head>
-<body>
+<body class="selection-desk kana-journal">
   <div id="login-screen" class="login-screen" hidden>
     <section class="login-card">
       <span class="eyebrow">PHOTOGRAPHY REFERENCE LAB</span>
@@ -27,8 +27,10 @@
   </div>
   <div id="application" class="app-shell" hidden>
     <aside class="sidebar">
-      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark">R<span>.</span></span><span>参考实验室<small>REFERENCE LAB</small></span></a>
+      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark"><svg class="kana-hat" viewBox="0 0 64 52" aria-hidden="true"><path class="hat-body" d="M15 36V10c8-6 26-6 34 0v26l8 5c-12 8-38 8-50 0Z"/><path class="hat-band" d="M16 28q16 6 32 0v8q-16 7-32 0Z"/><path class="hat-cord" d="M17 12q14 7 30 0M13 39q20 9 38 0M22 17v8m4-6 5 3-5 3m12-6-3 3 3 3"/><path class="hat-pin" d="m32 30 2 3 4 .3-3 2.7 1 4-4-2-4 2 1-4-3-2.7 4-.3Z"/></svg></span><span>参考实验室<small>REFERENCE LAB</small></span></a>
       <nav class="photography-branches" aria-label="摄影工作区"><span aria-current="page">拍摄参考</span><a id="learning-link" href="/learning" aria-label="摄影学习">摄影学习 ↗</a></nav>
+      <button id="toggle-project-nav" class="project-nav-toggle" type="button" aria-controls="project-navigation" aria-expanded="false" aria-label="打开项目与资料">项目与资料 ↗</button>
+      <div id="project-navigation">
       <div class="side-heading"><span>拍摄项目</span><span><button id="archived-projects" class="icon-button" aria-label="查看已删除项目" hidden>↺</button><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></span></div>
       <label class="project-search-label">搜索项目<input id="project-search" type="search" maxlength="400" placeholder="角色、服装或作品"></label>
       <small id="project-nav-count" class="project-nav-count"></small>
@@ -36,23 +38,19 @@
       <button id="all-projects" class="quiet">全部项目</button>
       <nav id="global-nav" aria-label="我的资料"><button data-view="library">图库 · 跨项目找图</button><button data-view="study">◌ 待筛摄影参考</button><button data-view="inspiration">♡ 我的审美库</button><button data-view="profile">审美画像</button><button data-view="jobs">采集任务</button><button data-view="notes">摄影笔记</button></nav>
 
+      </div>
       <div class="side-note"><span class="status-dot"></span><strong>YOUR PRIVATE ATELIER</strong><p>把喜欢留下。<br>把下一次，拍得更像自己。</p></div>
       <button id="lock-library" class="quiet">锁定参考库</button>
     </aside>
     <main class="workspace">
-      <header class="topbar"><span>REFERENCE LAB <span aria-hidden="true">/</span> 摄影手帖</span><span id="connection-status">已连接本地数据源</span></header>
-      <details class="studio-masthead" data-studio-scene open>
-        <summary><span>摄影手帖 <span aria-hidden="true">/</span> 取景前奏</span><span class="cover-toggle" aria-hidden="true"></span></summary>
-        <div class="studio-spread">
-          <span class="studio-backword" aria-hidden="true">Prelude</span>
-          <div class="studio-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div class="studio-copy"><span class="eyebrow">A PRELUDE TO YOUR NEXT FRAME</span><h2><span>把心动</span><em>拍成下一幕</em></h2><p>从喜欢的画面里，找到自己的拍摄节奏。</p><div class="studio-actions"><button id="studio-collect" class="primary">开始取景 <span aria-hidden="true">↗</span></button><a href="/learning">去学一点摄影 <span aria-hidden="true">→</span></a></div></div>
-          <figure class="studio-art"><img class="muse-figure" src="/api/learning-preview/P9002.jpg" alt="戴礼帽、持金色小号的红发角色，作为私人界面插画"><figcaption>ILLUSTRATION · PRIVATE STUDY</figcaption></figure>
-          <span class="studio-folio" aria-hidden="true">LOOK. KEEP. MAKE IT YOURS.</span>
-        </div>
-      </details>
+      <header class="topbar"><span>REFERENCE LAB <span aria-hidden="true">/</span> 只为下一次拍摄</span><span id="connection-status">已连接本地数据源</span></header>
+      <section class="selection-title" data-studio-scene aria-label="有马加奈的摄影舞台">
+        <div class="selection-lettering"><span class="selection-index" data-theme-name>ARIMA KANA</span><h2 data-theme-name>有马<span>加奈</span><i aria-hidden="true">.</i></h2><span class="selection-note">摄影舞台 <i>PHOTO STAGE</i></span></div>
+        <div class="selection-current"><small>当前画面</small><strong id="studio-take-counter">—</strong></div>
+        <button id="studio-collect" class="selection-search" type="button"><span>开始取景</span><i aria-hidden="true">↗</i><small>任意角色，自由输入</small></button>
+      </section>
       <section id="project-header" class="project-header"></section>
-      <div id="stats" class="stats" aria-label="项目统计"></div>
+      <details class="selection-statistics"><summary>项目统计</summary><div id="stats" class="stats" aria-label="项目统计"></div></details>
       <nav id="view-tabs" class="view-tabs" aria-label="工作区视图">
         <button data-view="references" class="active">挑参考</button><button data-view="selected">角色精选</button><button data-view="field">现场卡</button><button data-view="filtered">已过滤候选</button><button data-view="recycle">已淘汰 / 恢复</button>
       </nav>
