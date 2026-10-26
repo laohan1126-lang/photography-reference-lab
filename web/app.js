@@ -509,9 +509,9 @@ function archivedProjectsDialog() {
         closeModal();await loadProjects(p.id);toast('项目已恢复');
     });
 }
-function projectEditor(project = null) { if (!safeDiscard())
-    return; const root = modal(project ? '角色、要求与器材' : '新建角色项目', `<form><p class="form-help">只有角色名是必填。额外要求直接写成自然语言，不需要套固定分类。修改要求会让旧资料卡重新等待核对。</p><div class="form-grid">${label('角色名 *', 'character', project?.character || '', 'text', 'required maxlength="120"')}${label('出自作品（选填）', 'work', project?.work || '', 'text', 'maxlength="400"')}${label('服装／皮肤版本（选填）', 'costume', project?.costume || '', 'text', 'maxlength="400"')}<div class="full">${area('补充要求', 'brief', project?.brief || '', 'placeholder="例如：漫展拍摄，想多看站姿和回眸，不要复杂布景；要自然，但保留角色的疏离感。" maxlength="12000"')}</div><div class="full"><details><summary>我的器材与拍摄条件</summary>${area('设备／环境限制', 'gear', project?.gear || '', 'placeholder="留空则使用当前预设：A7M4、50mm、24–240mm、V100 一灯与柔光附件。" maxlength="12000"')}</details></div></div><div class="form-actions"><button class="primary" type="submit">${project ? '保存修改' : '建立项目'}</button></div></form>`); formSubmit(root, async (data) => { if (!project && !data.gear)
-    delete data.gear; const p = await api(project ? `/api/projects/${project.id}` : '/api/projects', { method: project ? 'PUT' : 'POST', body: project ? { ...data, expected_revision: project.revision } : data }); closeModal(); resetFilters(); state.view="references"; await loadProjects(p.id); toast('角色项目已保存'); }); }
+function projectEditor(project = null, startSearch = false) { if (!safeDiscard())
+    return; const root = modal(project ? '角色、要求与器材' : startSearch ? '输入角色，开始找图' : '新建角色项目', `<form><p class="form-help">只有角色名是必填。额外要求直接写成自然语言，不需要套固定分类。修改要求会让旧资料卡重新等待核对。</p><div class="form-grid">${label('角色名 *', 'character', project?.character || '', 'text', 'required maxlength="120"')}${label('出自作品（选填）', 'work', project?.work || '', 'text', 'maxlength="400"')}${label('服装／皮肤版本（选填）', 'costume', project?.costume || '', 'text', 'maxlength="400"')}<div class="full">${area('补充要求', 'brief', project?.brief || '', 'placeholder="例如：漫展拍摄，想多看站姿和回眸，不要复杂布景；要自然，但保留角色的疏离感。" maxlength="12000"')}</div><div class="full"><details><summary>我的器材与拍摄条件</summary>${area('设备／环境限制', 'gear', project?.gear || '', 'placeholder="留空则使用当前预设：A7M4、50mm、24–240mm、V100 一灯与柔光附件。" maxlength="12000"')}</details></div></div><div class="form-actions"><button class="primary" type="submit">${project ? '保存修改' : startSearch ? '下一步：设置搜图' : '建立项目'}</button></div></form>`); formSubmit(root, async (data) => { if (!project && !data.gear)
+    delete data.gear; const p = await api(project ? `/api/projects/${project.id}` : '/api/projects', { method: project ? 'PUT' : 'POST', body: project ? { ...data, expected_revision: project.revision } : data }); closeModal(); resetFilters(); state.view="references"; await loadProjects(p.id); toast('角色项目已保存'); if (startSearch) collectionEditor(p.id); }); }
 function openImage(ref) { if (!ref?.asset || ref.file_available === false)
     return; $('lightbox-title').textContent = `${ref.title} · ${ref.asset.width} × ${ref.asset.height}`; $('lightbox-image').src = `/api/assets/${ref.asset_sha}/original`; $('lightbox').classList.remove('actual'); $('lightbox').showModal(); }
 function paragraphs(text) { return `<p>${esc(text)}</p>`; }
@@ -1285,7 +1285,7 @@ async function openCandidateQueue(jobId,{autoStart=true}={}){
     candidateQueueTimer=setInterval(()=>refreshCandidateQueue(jobId,projectId),1000);
 }
 function collectionEditor(projectId=state.project?.id) {
-    if(!state.projects.length){projectEditor();return;}
+    if(!state.projects.length){projectEditor(null,true);return;}
     const root=modal('建立搜图任务（自动合格摄影准入）',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${select('运行方式','collection_mode',{search:'标准搜图：自动图片类型核验与合格准入',search_review:'搜图 + AI 审核：搜索不等待审核'},'search')}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('持续目标编号（选填，留空自动创建新目标）','goal_id','','text','maxlength="100"')}${label('期望目标数量（合格真人摄影，质量优先，不凑数）','target_count',30,'number','min="1" max="100" required')}${label('额外检索别名（选填，中/日/英，逗号分隔）','search_aliases','','text','maxlength="600" placeholder="例如：Maki Nishikino, 西木野真姫"')}<p class="form-help">默认建议 30 张；单轮最多 100 张。系统自动建立全历史排重基线，完成搜索、下载、拼图拆分、原件展示与逐张视觉模型核验；只有具有角色名称关联、经真实读图确认的合格独立真人摄影才计入目标成果。刷新和正常重启后保持。</p><p id="collection-budget" class="form-help" role="status"></p><div class="form-actions"><button type="submit" class="primary">开始搜图</button></div></form>`);
     const budgetInput=root.querySelector('[name="target_count"]');
     const showBudget=()=>{
@@ -1311,7 +1311,7 @@ async function renderJobs() {
         const queueButtons=split?`<button data-action="queue">候选图库</button>${j.can_start_review?'<button data-action="start-review" class="quiet">启动AI审核</button>':''}${j.status!=='cancelled'&&['completed','partial','blocked','failed','cancelled'].includes(j.search_state)?`<button data-action="continue-search" class="quiet">${j.goal_id?`继续补足 ${j.target_count} 张 · 追加900秒`:'补足原目标 / 额外加搜'}</button>`:''}`:'';
         return `<article class="job-card" data-job="${j.id}"><div class="compact-row">${badge(j.kind==='collection'?'搜图':'制卡')}${split?badge('搜索 '+searchStageWord(j)):badge(statuses[j.status],j.status)}${split?badge('审核 '+reviewStageWord(j)):(j.kind==='collection'&&j.collection_outcome?badge({complete:'目标已达',partial:'部分完成',blocked:'待恢复'}[j.collection_outcome]):'')}</div><h3>${esc(j.project_snapshot?.character||state.projects.find(p=>p.id===j.project_id)?.character||'历史项目')}</h3><p>${esc(split?stageLine:j.detail)}</p>${split?`<p>累计预算 ${j.search_timeout_seconds||0} 秒 · 已用 ${Math.round(j.search_elapsed_seconds||0)} 秒</p>`:`<p>${stageLine}</p>`}<small>${esc(j.created_at.slice(0,16).replace('T',' '))}</small><div class="compact-row">${queueButtons}${split?'<button data-action="handoff" class="quiet">任务与结果</button>':`<button data-action="handoff">${j.kind==='collection'&&j.can_resume&&j.collection_attempt_count?'继续本次采集':'任务与结果'}</button>`}${j.kind==='collection'&&j.imported_ids.length?'<button data-action="candidates">挑这批图片</button>':''}${j.kind==='analysis'&&j.reference_ids.length?'<button data-action="reference">查看这张参考</button>':''}${!['succeeded','cancelled'].includes(j.status)?'<button data-action="cancel" class="quiet">取消</button>':''}</div><details><summary>要求、来源检查与缺口</summary><pre>${esc(JSON.stringify({project:j.project_snapshot,notes:j.notes,report:j.execution_report,search:j.search_summary,review:j.review_summary},null,2))}</pre></details></article>`;
     }).join('')||empty('从一轮具体需求开始','任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。')}</div>`;
-    $('create-collection').onclick=()=>collectionEditor();$('refresh-jobs').onclick=()=>renderJobs().catch(showError);
+    $('create-collection').onclick=()=>projectEditor(null,true);$('refresh-jobs').onclick=()=>renderJobs().catch(showError);
     listen('view','[data-action]','click',async(e,n)=>{
         const job=jobs.find(j=>j.id===n.closest('[data-job]').dataset.job);
         if(n.dataset.action==='handoff')return job.is_split_mode?openCandidateQueue(job.id,{autoStart:false}):jobHandoff(job.id);
@@ -1552,7 +1552,7 @@ $('login-form').addEventListener('submit',async e=>{
     catch(error){$('login-error').textContent=error.message;}finally{button.disabled=false;}
 });
 $('new-project').onclick=()=>projectEditor();
-$('studio-collect').onclick=()=>state.project?collectionEditor():projectEditor();
+$('studio-collect').onclick=()=>projectEditor(null,true);
 if ($('optimize-skill-btn')) $('optimize-skill-btn').onclick = optimizeSkillFromRejectionReasons;
 $('lock-library').onclick=async()=>{
     if (state.noAuth) { toast('当前已开启完全免密模式，无需锁定'); return; }

@@ -138,7 +138,8 @@ def screenshot(page, name):
 
 
 @pytest.mark.parametrize('has_project', [False, True])
-def test_studio_cover_action_preserves_project_entry_and_keyboard_access(component_factory, library, has_project):
+@pytest.mark.parametrize('entry', ['studio', 'jobs'])
+def test_studio_cover_action_preserves_project_entry_and_keyboard_access(component_factory, library, has_project, entry):
     project = library.create_project(ProjectInput(character='封面入口回归')) if has_project else None
     page = component_factory()
     cover = page.locator('.studio-masthead')
@@ -146,14 +147,34 @@ def test_studio_cover_action_preserves_project_entry_and_keyboard_access(compone
     page.keyboard.press('Enter')
     assert not cover.evaluate('(node) => node.open')
     page.keyboard.press('Enter')
-    page.locator('#studio-collect').click()
-    expect(page.locator('#editor')).to_be_visible()
-    if project:
-        expect(page.locator('[name="project_id"]')).to_have_value(project['id'])
-        assert page.locator('[name="collection_mode"] option').count() == 2
+    if entry == 'studio':
+        page.locator('#studio-collect').click()
     else:
-        expect(page.locator('[name="character"]')).to_be_visible()
+        page.get_by_role('button', name='采集任务', exact=True).click()
+        page.locator('#create-collection').click()
+    expect(page.locator('#editor')).to_be_visible()
+    character = page.locator('[name="character"]')
+    expect(character).to_be_visible()
+    expect(character).to_have_value('')
+    assert page.locator('[name="project_id"]').count() == 0
+    character.fill('自由输入的新角色')
+    page.locator('[name="work"]').fill('回归作品')
+    page.locator('[name="costume"]').fill('自定服装')
+    page.locator('[name="brief"]').fill('想找回眸和坐姿')
+    assert len(library.projects()) == int(has_project)
     assert library.jobs() == []
+    page.get_by_role('button', name='下一步：设置搜图', exact=True).click()
+    expect(page.locator('[name="collection_mode"]')).to_be_visible()
+    created = next(p for p in library.projects() if p['character'] == '自由输入的新角色')
+    assert (created['work'], created['costume'], created['brief']) == ('回归作品', '自定服装', '想找回眸和坐姿')
+    expect(page.locator('[name="project_id"]')).to_have_value(created['id'])
+    assert library.jobs() == []
+    if project:
+        assert library.project(project['id'])['character'] == '封面入口回归'
+    page.get_by_role('button', name='开始搜图', exact=True).click()
+    page.locator('#cq-grid').wait_for(state='attached')
+    assert len(library.jobs()) == 1
+    assert library.jobs()[0]['project_id'] == created['id']
 
 
 def test_studio_reduced_motion_does_not_cancel_unrelated_effects_or_change_the_photo(ui):

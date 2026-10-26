@@ -107,8 +107,7 @@ def test_orphaned_running_job_offers_same_job_resume(component_factory, library,
 def test_collection_editor_offers_two_modes_and_opens_live_candidate_queue(
         component_factory, library, project):
     page = component_factory()
-    page.get_by_role('button', name='采集任务', exact=True).click()
-    page.get_by_role('button', name='＋ 建立搜图任务', exact=True).click()
+    page.get_by_role('button', name='找一批参考', exact=True).click()
     mode = page.get_by_label('运行方式', exact=True)
     assert mode.locator('option').count() == 2
     assert mode.locator('option').nth(0).get_attribute('value') == 'search'
