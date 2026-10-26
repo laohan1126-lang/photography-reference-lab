@@ -3,87 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#fffdf7">
-  <title>参考实验室 · Photography Reference Lab</title>
-  <link rel="stylesheet" href="/static/styles.css?v=20261027-kana-stage">
-  <link rel="stylesheet" href="/static/studio.css?v=20261027-kana-stage">
+  <meta name="theme-color" content="#f7faff">
+  <title>参考实验室 · Kana's Focus Diary</title>
+  <link rel="stylesheet" href="/static/styles.css?v=kana-direct-16">
+  <link rel="stylesheet" href="/static/studio.css?v=kana-direct-16">
+  <link rel="stylesheet" href="/static/kana.css?v=kana-direct-16">
   <script src="/static/studio.js?v=20261027-kana-stage" defer></script>
+  <script src="/static/kana.js?v=kana-direct-16" defer></script>
   <script src="/static/library-browser.js?v=20261002" defer></script>
   <script src="/static/app.js?v=20261002" defer></script>
 </head>
-<body class="selection-desk kana-journal">
+<body class="kana-workbench">
   <div id="login-screen" class="login-screen" hidden>
     <section class="login-card">
-      <span class="eyebrow">PHOTOGRAPHY REFERENCE LAB</span>
-      <h1>让喜欢的画面，<br>成为自己的拍摄方法。</h1>
-      <p>私人审美库 · 独立大图筛选 · 可执行的现场卡</p>
-      <form id="login-form">
-        <label>访问口令<input id="login-token" type="password" autocomplete="current-password" required placeholder="输入本机访问口令"></label>
-        <button class="primary" type="submit">进入我的参考库</button>
-      </form>
-      <small>此部署显式启用了口令保护；正常启动直接进入参考库，无需口令。</small>
+      <h1>留住喜欢的画面。</h1>
+      <form id="login-form"><label>访问口令<input id="login-token" type="password" autocomplete="current-password" required placeholder="输入访问口令"></label><button class="primary" type="submit">进入参考库</button></form>
       <p id="login-error" class="error-text" role="alert"></p>
     </section>
   </div>
   <div id="application" class="app-shell" hidden>
     <aside class="sidebar">
-      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark"><svg class="kana-hat" viewBox="0 0 64 52" aria-hidden="true"><path class="hat-body" d="M15 36V10c8-6 26-6 34 0v26l8 5c-12 8-38 8-50 0Z"/><path class="hat-band" d="M16 28q16 6 32 0v8q-16 7-32 0Z"/><path class="hat-cord" d="M17 12q14 7 30 0M13 39q20 9 38 0M22 17v8m4-6 5 3-5 3m12-6-3 3 3 3"/><path class="hat-pin" d="m32 30 2 3 4 .3-3 2.7 1 4-4-2-4 2 1-4-3-2.7 4-.3Z"/></svg></span><span>参考实验室<small>REFERENCE LAB</small></span></a>
+      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark" aria-hidden="true">R<span>.</span></span><span>参考实验室<small>THE REFERENCE DIARY</small></span></a>
       <nav class="photography-branches" aria-label="摄影工作区"><span aria-current="page">拍摄参考</span><a id="learning-link" href="/learning" aria-label="摄影学习">摄影学习 ↗</a></nav>
-      <button id="toggle-project-nav" class="project-nav-toggle" type="button" aria-controls="project-navigation" aria-expanded="false" aria-label="打开项目与资料">项目与资料 ↗</button>
+      <button id="toggle-project-nav" class="project-nav-toggle" type="button" aria-controls="project-navigation" aria-expanded="false" aria-label="打开项目与资料">项目与资料 <span aria-hidden="true">＋</span></button>
       <div id="project-navigation">
-      <div class="side-heading"><span>拍摄项目</span><span><button id="archived-projects" class="icon-button" aria-label="查看已删除项目" hidden>↺</button><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></span></div>
-      <label class="project-search-label">搜索项目<input id="project-search" type="search" maxlength="400" placeholder="角色、服装或作品"></label>
-      <small id="project-nav-count" class="project-nav-count"></small>
-      <nav id="project-list" aria-label="角色项目"></nav>
-      <button id="all-projects" class="quiet">全部项目</button>
-      <nav id="global-nav" aria-label="我的资料"><button data-view="library">图库 · 跨项目找图</button><button data-view="study">◌ 待筛摄影参考</button><button data-view="inspiration">♡ 我的审美库</button><button data-view="profile">审美画像</button><button data-view="jobs">采集任务</button><button data-view="notes">摄影笔记</button></nav>
-
+        <div class="side-heading"><span>拍摄项目</span><span><button id="archived-projects" class="icon-button" aria-label="查看已删除项目" hidden>↺</button><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></span></div>
+        <label class="project-search-label">搜索项目<input id="project-search" type="search" maxlength="400" placeholder="角色、服装或作品"></label>
+        <small id="project-nav-count" class="project-nav-count"></small>
+        <nav id="project-list" aria-label="角色项目"></nav>
+        <button id="all-projects" class="quiet">全部项目</button>
+        <nav id="global-nav" aria-label="我的资料"><button data-view="library">跨项目图库</button><button data-view="study">待筛摄影参考</button><button data-view="inspiration">我的审美库</button><button data-view="profile">审美画像</button><button data-view="jobs">采集任务</button><button data-view="notes">摄影笔记</button></nav>
+        <button id="lock-library" class="quiet">锁定参考库</button>
       </div>
-      <div class="side-note"><span class="status-dot"></span><strong>YOUR PRIVATE ATELIER</strong><p>把喜欢留下。<br>把下一次，拍得更像自己。</p></div>
-      <button id="lock-library" class="quiet">锁定参考库</button>
     </aside>
     <main class="workspace">
-      <header class="topbar"><span>REFERENCE LAB <span aria-hidden="true">/</span> 只为下一次拍摄</span><span id="connection-status">已连接本地数据源</span></header>
-      <section class="selection-title" data-studio-scene aria-label="有马加奈的摄影舞台">
-        <div class="selection-lettering"><span class="selection-index" data-theme-name>ARIMA KANA</span><h2 data-theme-name>有马<span>加奈</span><i aria-hidden="true">.</i></h2><span class="selection-note">摄影舞台 <i>PHOTO STAGE</i></span></div>
-        <div class="selection-current"><small>当前画面</small><strong id="studio-take-counter">—</strong></div>
-        <button id="studio-collect" class="selection-search" type="button"><span>开始取景</span><i aria-hidden="true">↗</i><small>任意角色，自由输入</small></button>
+      <header class="topbar"><span>摄影参考 / 我的取景手帖</span><span id="connection-status">连接中</span></header>
+      <section class="kana-masthead" data-studio-scene aria-label="加奈的取景手帖">
+        <div class="kana-art-scene" aria-hidden="true"><img id="kana-theme-image" src="/static/private/kana/summer.webp" alt="" draggable="false"></div>
+        <div class="kana-lettering">
+          <div class="kana-signature" aria-label="Kana's"><img src="/static/ui-art/kana-wordmark.svg" alt="Kana's"><span lang="ja">好きな瞬間を、<br>ひとつずつ。</span></div>
+          <h2><span>把喜欢，留在</span><em><img src="/static/ui-art/kana-frame.svg" alt="这一帧。"></em></h2>
+        </div>
+        <div class="kana-cover-tools"><span class="kana-cover-note" lang="ja">君だけの、フォーカス。</span><button id="studio-collect" class="kana-find" type="button">开始取景 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 20 3M5 3h15v15"/></svg></button><span class="kana-find-note">任意角色，自由找图</span></div>
+        <svg class="kana-ink-line" viewBox="0 0 1440 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 14C250 24 350 2 580 12S940 25 1120 12 1320 6 1440 14"/></svg>
+        <button id="kana-asset-notice" type="button" hidden>主题素材未安装 · 查看说明</button>
       </section>
       <section id="project-header" class="project-header"></section>
-      <details class="selection-statistics"><summary>项目统计</summary><div id="stats" class="stats" aria-label="项目统计"></div></details>
-      <nav id="view-tabs" class="view-tabs" aria-label="工作区视图">
-        <button data-view="references" class="active">挑参考</button><button data-view="selected">角色精选</button><button data-view="field">现场卡</button><button data-view="filtered">已过滤候选</button><button data-view="recycle">已淘汰 / 恢复</button>
-      </nav>
+      <div class="kana-view-line">
+        <nav id="view-tabs" class="view-tabs" aria-label="工作区视图"><button data-view="references" class="active">挑参考</button><button data-view="selected">角色精选</button><button data-view="field">现场卡</button><button data-view="filtered">已过滤候选</button><button data-view="recycle">已淘汰 / 恢复</button></nav>
+        <details class="selection-statistics"><summary>项目统计</summary><div id="stats" class="stats" aria-label="项目统计"></div></details>
+        <div class="kana-take"><small>正在看</small><strong id="studio-take-counter">—</strong></div>
+      </div>
       <div id="view"></div>
-      <footer class="workspace-footer">
-        <span>先选择，再分析。未知不等于通过。</span>
-        <button id="optimize-skill-btn" class="optimize-skill-btn" title="整理人工淘汰理由；不会同步 Skill">查看人工淘汰理由</button>
-        <span id="version">v0.2</span>
-      </footer>
+      <footer class="workspace-footer"><span>你的选择，是下一次拍摄的开始。</span><button id="optimize-skill-btn" class="optimize-skill-btn" title="整理人工淘汰理由；不会同步 Skill">查看人工淘汰理由</button><span id="version">v0.2</span></footer>
     </main>
   </div>
-  <dialog id="reject-dialog" class="reject-dialog">
-    <div class="reject-card">
-      <h3>标记淘汰 · 记录原因（可选）</h3>
-      <p class="muted" style="margin:0;font-size:12px;">直接按 <strong>Enter</strong> 快速淘汰（无需填写）；理由保留为你的判断，不自动同步 Skill 或推导摄影事实。</p>
-      <div class="quick-tags">
-        <button type="button" class="quick-tag" data-tag="无关角色/非目标角色">无关角色</button>
-        <button type="button" class="quick-tag" data-tag="背景杂乱/路人多">背景杂乱</button>
-        <button type="button" class="quick-tag" data-tag="打光过曝/面部油光">打光过曝</button>
-        <button type="button" class="quick-tag" data-tag="动作僵硬/无张力">动作僵硬</button>
-        <button type="button" class="quick-tag" data-tag="C服买家秀/非成片">买家秀/非成片</button>
-        <button type="button" class="quick-tag" data-tag="AI假图/非真人">AI假图/非真人</button>
-        <button type="button" class="quick-tag" data-tag="无全身姿态参考">缺乏姿态参考</button>
-      </div>
-      <input id="reject-reason-input" type="text" placeholder="输入排除原因（选填，如：角度重复、过曝）..." autocomplete="off">
-      <label class="check"><input type="checkbox" id="reject-aesthetic">这次是审美不喜欢（明确记录为负反馈；质量或错角色不勾选）</label>
-      <div class="button-row" style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-        <button id="reject-skip-btn" class="quiet">直接淘汰 (Enter)</button>
-        <button id="reject-confirm-btn" class="danger">记录理由并淘汰</button>
-        <button id="reject-cancel-btn" class="quiet" style="margin-left:auto;">取消 (Esc)</button>
-      </div>
-    </div>
-  </dialog>
+  <dialog id="reject-dialog" class="reject-dialog"><div class="reject-card"><h3>标记淘汰</h3><p class="muted">理由选填；Enter 直接淘汰，Esc 取消。</p><div class="quick-tags"><button type="button" class="quick-tag" data-tag="无关角色/非目标角色">无关角色</button><button type="button" class="quick-tag" data-tag="背景杂乱/路人多">背景杂乱</button><button type="button" class="quick-tag" data-tag="打光过曝/面部油光">光线问题</button><button type="button" class="quick-tag" data-tag="动作僵硬/无张力">动作僵硬</button><button type="button" class="quick-tag" data-tag="C服买家秀/非成片">买家秀</button><button type="button" class="quick-tag" data-tag="AI假图/非真人">非真人</button><button type="button" class="quick-tag" data-tag="无全身姿态参考">缺乏姿态参考</button></div><input id="reject-reason-input" type="text" placeholder="淘汰原因（选填）" autocomplete="off"><label class="check"><input type="checkbox" id="reject-aesthetic">这是审美不喜欢；质量问题或错角色不勾选</label><div class="button-row"><button id="reject-skip-btn" class="quiet">直接淘汰 (Enter)</button><button id="reject-confirm-btn" class="danger">记录理由并淘汰</button><button id="reject-cancel-btn" class="quiet">取消 (Esc)</button></div></div></dialog>
   <dialog id="editor" class="editor-dialog"><div class="dialog-header"><h2 id="editor-title"></h2><button id="editor-close" class="icon-button" aria-label="关闭对话框">×</button></div><div id="editor-content"></div></dialog>
   <dialog id="lightbox" class="lightbox"><div class="lightbox-bar"><span id="lightbox-title"></span><button id="lightbox-zoom">切换原尺寸</button><button id="lightbox-close">关闭</button></div><div class="lightbox-image"><img id="lightbox-image" alt="独立来源图片"></div></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
