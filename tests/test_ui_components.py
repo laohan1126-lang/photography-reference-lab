@@ -21,8 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def open_navigation(page):
-    if page.locator('#toggle-project-nav').get_attribute('aria-expanded') != 'true':
-        page.locator('#toggle-project-nav').click()
+    # On desktop the approved editorial shell keeps the complete project rail visible.
+    toggle = page.locator('#toggle-project-nav')
+    if toggle.is_visible() and toggle.get_attribute('aria-expanded') != 'true':
+        toggle.click()
 
 
 def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, client, library):
@@ -41,9 +43,9 @@ def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, 
     expect(page.locator('[data-study-reason="composition"]')).to_have_attribute("aria-pressed", "true")
     page.locator('[data-study-reason="pose"]').click()
     expect(page.locator('[data-study-reason="pose"]')).to_have_attribute("aria-pressed", "true")
-    page.locator('#toggle-project-nav').click()
+    open_navigation(page)
     page.locator('[data-view="inspiration"]').click()
-    page.locator('#toggle-project-nav').click()
+    open_navigation(page)
     page.locator('[data-view="study"]').click()
     expect(page.locator('[data-study-reason="composition"]')).to_have_attribute("aria-pressed", "true")
     expect(page.locator('[data-study-reason="pose"]')).to_have_attribute("aria-pressed", "true")
@@ -83,7 +85,7 @@ def component_factory(client, library):
             page.expose_binding('__testRequest', request)
             markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
-            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css','kana-painting.css']:
+            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css','kana-editorial.css']:
                 page.add_style_tag(content=(ROOT/'web'/filename).read_text(encoding='utf-8'))
             page.evaluate('''fragment => {
                 if(fragment)location.hash=fragment;
@@ -154,7 +156,7 @@ def test_studio_cover_action_preserves_project_entry_and_keyboard_access(compone
         page.locator('#studio-collect').focus()
         page.keyboard.press('Enter')
     else:
-        page.locator('#toggle-project-nav').click()
+        open_navigation(page)
         page.get_by_role('button', name='采集任务', exact=True).click()
         page.locator('#create-collection').click()
     expect(page.locator('#editor')).to_be_visible()
@@ -268,7 +270,7 @@ def test_ui_selection_preference_filters_and_responsive_layout(ui):
     page.set_viewport_size({'width':390,'height':844})
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     expect(page.locator('#studio-take-counter')).to_have_text(page.locator('#stage-counter').inner_text())
-    page.locator('#toggle-project-nav').click()
+    open_navigation(page)
     expect(page.locator('#project-search')).to_be_visible()
     page.keyboard.press('Escape')
     expect(page.locator('#toggle-project-nav')).to_be_focused()
