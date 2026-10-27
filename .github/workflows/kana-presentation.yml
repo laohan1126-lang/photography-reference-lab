@@ -2,7 +2,7 @@ name: Kana presentation regression
 on:
   push:
     branches: ['codex/kana-direct-ui-20261027', 'codex/kana-immersive-atmosphere-20261027', 'codex/kana-approved-artboard-20261027']
-    paths: ['web/**', 'ref_lab/api.py', 'tests/test_kana_presentation.py', 'tests/test_kana_static.py', '.github/workflows/kana-presentation.yml']
+    paths: ['web/**', 'ref_lab/api.py', 'tests/test_kana_presentation.py', 'tests/test_kana_static.py', 'tests/test_kana_artboard.py', '.github/workflows/kana-presentation.yml']
   pull_request:
     paths: ['web/kana*', 'ref_lab/api.py', 'tests/test_kana_presentation.py', 'tests/test_kana_static.py']
 permissions:
@@ -40,7 +40,7 @@ jobs:
       - run: |
           mkdir -p test-results
           git rev-parse HEAD > test-results/commit.txt
-          python -m pytest -q tests/test_kana_presentation.py tests/test_kana_static.py --junitxml=test-results/kana-results.xml
+          python -m pytest -q tests/test_kana_presentation.py tests/test_kana_static.py tests/test_kana_artboard.py --junitxml=test-results/kana-results.xml
         env:
           LAB_TEST_ARTIFACTS: test-results/browser
       - uses: actions/upload-artifact@v4
