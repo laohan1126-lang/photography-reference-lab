@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/studio.css?v=kana-direct-16">
   <link rel="stylesheet" href="/static/kana.css?v=kana-direct-16">
   <link rel="stylesheet" href="/static/kana-atmosphere.css?v=kana-atmosphere-17">
-  <link rel="stylesheet" href="/static/kana-painting.css?v=approved-concept-1">
+  <link rel="stylesheet" href="/static/kana-editorial.css?v=approved-layout-v2">
   <script src="/static/studio.js?v=20261027-kana-stage" defer></script>
   <script src="/static/kana.js?v=kana-direct-16" defer></script>
   <script src="/static/library-browser.js?v=20261002" defer></script>
@@ -24,39 +24,60 @@
     </section>
   </div>
   <div id="application" class="app-shell" hidden>
-    <aside class="sidebar">
-      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark" aria-hidden="true">R<span>.</span></span><span>参考实验室<small>THE REFERENCE DIARY</small></span></a>
-      <nav class="photography-branches" aria-label="摄影工作区"><span aria-current="page">拍摄参考</span><a id="learning-link" href="/learning" aria-label="摄影学习">摄影学习 ↗</a></nav>
+    <aside class="sidebar" aria-label="摄影参考库主导航">
+      <a class="brand" href="/" aria-label="参考实验室首页"><span class="brand-mark" aria-hidden="true">R<span>.</span></span><span>参考实验室<small>REFERENCE LAB</small></span></a>
+      <nav class="photography-branches" aria-label="摄影工作区"><span aria-current="page"><span aria-hidden="true">▣</span> 拍摄参考</span><a id="learning-link" href="/learning" aria-label="摄影学习"><span aria-hidden="true">◎</span> 摄影学习</a></nav>
       <button id="toggle-project-nav" class="project-nav-toggle" type="button" aria-controls="project-navigation" aria-expanded="false" aria-label="打开项目与资料">项目与资料 <span aria-hidden="true">＋</span></button>
-      <div id="project-navigation">
+      <div id="project-navigation" class="kana-directory">
         <div class="side-heading"><span>拍摄项目</span><span><button id="archived-projects" class="icon-button" aria-label="查看已删除项目" hidden>↺</button><button id="new-project" class="icon-button" aria-label="新建角色项目">＋</button></span></div>
         <label class="project-search-label">搜索项目<input id="project-search" type="search" maxlength="400" placeholder="角色、服装或作品"></label>
         <small id="project-nav-count" class="project-nav-count"></small>
         <nav id="project-list" aria-label="角色项目"></nav>
         <button id="all-projects" class="quiet">全部项目</button>
-        <nav id="global-nav" aria-label="我的资料"><button data-view="library">跨项目图库</button><button data-view="study">待筛摄影参考</button><button data-view="inspiration">我的审美库</button><button data-view="profile">审美画像</button><button data-view="jobs">采集任务</button><button data-view="notes">摄影笔记</button></nav>
+        <nav id="global-nav" aria-label="我的资料"><button data-view="library">⌗ 跨项目图库</button><button data-view="study">✧ 待筛摄影参考</button><button data-view="inspiration">♡ 我的审美库</button><button data-view="profile">◉ 审美画像</button><button data-view="jobs">◷ 采集任务</button><button data-view="notes">✎ 摄影笔记</button></nav>
         <button id="lock-library" class="quiet">锁定参考库</button>
       </div>
+        <p class="kana-sidebar-signature" aria-hidden="true">Find your<br><em>favorite frame.</em><span>✦</span></p>
     </aside>
     <main class="workspace">
-      <header class="topbar"><span>摄影参考 / 我的取景手帖</span><span id="connection-status">连接中</span></header>
-      <section class="kana-masthead" data-studio-scene aria-label="加奈的取景手帖">
+      <header class="topbar"><span>✦ PHOTO REFERENCE / MY PRIVATE ATELIER</span><span id="connection-status">连接中</span></header>
+      <section class="kana-masthead" data-studio-scene aria-label="有马加奈的摄影手帖">
         <div class="kana-art-scene" aria-hidden="true"><img id="kana-theme-image" src="/static/private/kana/summer.webp" alt="" draggable="false"></div>
+        <div class="kana-hero-star kana-hero-star-a" aria-hidden="true">✧</div>
+        <div class="kana-hero-star kana-hero-star-b" aria-hidden="true">✦</div>
+        <div class="kana-hero-film" aria-hidden="true"></div>
         <div class="kana-lettering">
-          <div class="kana-signature" aria-label="Kana's"><img src="/static/ui-art/kana-wordmark.svg" alt="Kana's"><span lang="ja">好きな瞬間を、<br>ひとつずつ。</span></div>
-          <h2><span>把喜欢，留在</span><em><img src="/static/ui-art/kana-frame.svg" alt="这一帧。"></em></h2>
+          <span class="kana-doodle" lang="ja">この一枚、どうする？</span>
+          <div class="kana-display-artist" aria-label="Arima Kana">
+            <span class="kana-display-arima">ARIMA</span>
+            <span class="kana-display-kana">Kana<span aria-hidden="true">♡</span></span>
+          </div>
+          <h2>有马<span>加奈</span><i aria-hidden="true">.</i></h2>
+          <p class="kana-subtitle">把喜欢的每一帧，收进自己的摄影手帖。</p>
         </div>
-        <div class="kana-cover-tools"><span class="kana-cover-note" lang="ja">君だけの、フォーカス。</span><button id="studio-collect" class="kana-find" type="button">开始取景 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 20 3M5 3h15v15"/></svg></button><span class="kana-find-note">任意角色，自由找图</span></div>
-        <svg class="kana-ink-line" viewBox="0 0 1440 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 14C250 24 350 2 580 12S940 25 1120 12 1320 6 1440 14"/></svg>
+        <div class="kana-cover-tools">
+          <span class="kana-cover-note" lang="ja">いい写真、見つけよっ！ <i aria-hidden="true">♡</i></span>
+          <button id="studio-collect" class="kana-find" type="button">开始取景 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 20 3M5 3h15v15"/></svg></button>
+          <span class="kana-find-note">任意角色，自由找图</span>
+        </div>
+        <svg class="kana-ink-line" viewBox="0 0 1440 28" preserveAspectRatio="none" aria-hidden="true"><path d="M0 18C205 5 368 27 576 13S890 22 1062 13 1308 8 1440 19"/></svg>
         <button id="kana-asset-notice" type="button" hidden>主题素材未安装 · 查看说明</button>
       </section>
-      <section id="project-header" class="project-header"></section>
-      <div class="kana-view-line">
-        <nav id="view-tabs" class="view-tabs" aria-label="工作区视图"><button data-view="references" class="active">挑参考</button><button data-view="selected">角色精选</button><button data-view="field">现场卡</button><button data-view="filtered">已过滤候选</button><button data-view="recycle">已淘汰 / 恢复</button></nav>
-        <details class="selection-statistics"><summary>项目统计</summary><div id="stats" class="stats" aria-label="项目统计"></div></details>
-        <div class="kana-take"><small>正在看</small><strong id="studio-take-counter">—</strong></div>
+      <div class="kana-canvas-wrap">
+        <div class="kana-canvas-nav">
+          <nav id="view-tabs" class="view-tabs" aria-label="工作区视图"><button data-view="references" class="active">✦ 挑参考</button><button data-view="selected">角色精选</button><button data-view="field">现场卡</button><button data-view="filtered">已过滤候选</button><button data-view="recycle">已淘汰 / 恢复</button></nav>
+          <div class="kana-take"><small>NOW VIEWING</small><strong id="studio-take-counter">—</strong></div>
+        </div>
+        <div class="kana-work-grid">
+          <aside class="kana-index" aria-label="当前项目与浏览上下文">
+            <h3><span aria-hidden="true">✦</span> 这一帧，怎么留？</h3>
+            <section id="project-header" class="project-header"></section>
+            <details class="selection-statistics"><summary>项目统计 <span aria-hidden="true">⌄</span></summary><div id="stats" class="stats" aria-label="项目统计"></div></details>
+            <p class="kana-index-note">精选喜欢的画面，<em>留给下一次拍摄。</em></p>
+          </aside>
+          <div id="view"></div>
+        </div>
       </div>
-      <div id="view"></div>
       <footer class="workspace-footer"><span>你的选择，是下一次拍摄的开始。</span><button id="optimize-skill-btn" class="optimize-skill-btn" title="整理人工淘汰理由；不会同步 Skill">查看人工淘汰理由</button><span id="version">v0.2</span></footer>
     </main>
   </div>

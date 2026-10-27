@@ -1,0 +1,275 @@
+/* KANA / editorial canvas v2. Design source: user's accepted one-painting mockup.
+   Unlike the prior additive skin this layout owns the desktop spatial architecture. */
+body.kana-workbench {
+ --canvas:#fff9fc; --paper:#fff9fc; --panel:#fffafc; --soft:#fceaf3;
+ --ink:#293453; --muted:#8e748e; --faint:#b795aa;
+ --line:#eadbe8; --line-strong:#e5bbcF;
+ --accent:#db276c; --accent-fill:#e12871; --accent-hover:#b41d59;
+ --on-accent:#fff; --gold:#dca058; --stage:#fff6fc;
+ background:linear-gradient(135deg,#ffeaf3 0%,#fff9fb 44%,#f8f3ff 85%,#f8fcff);
+ color:var(--ink);
+}
+.kana-workbench button { -webkit-tap-highlight-color:transparent }
+.kana-workbench .app-shell { display:grid;grid-template-columns:226px minmax(0,1fr);padding:0;min-height:100svh;overflow:clip }
+.kana-workbench .sidebar {
+ position:relative;inset:auto;width:auto;height:100%;min-height:100svh;max-height:none;overflow:visible;z-index:18;
+ display:flex;flex-direction:column;align-items:stretch;padding:29px 13px 16px 20px;gap:17px;
+ border:0;background:linear-gradient(169deg,#fff9ffe0,#fff6fadd 52%,#fff9fbdf);
+ box-shadow:none;backdrop-filter:blur(24px);isolation:isolate;
+}
+.kana-workbench .sidebar::before {
+ content:"";position:absolute;z-index:-1;pointer-events:none;inset:0;
+ background:radial-gradient(circle at 12% 11%,#ffe2f096,transparent 48%),
+ radial-gradient(circle at 30% 77%,#d7d1ff72,transparent 42%);
+}
+.kana-workbench .brand {gap:11px;margin:0;padding:0 0 13px 7px;width:auto;flex:none}
+.kana-workbench .brand-mark {font:italic 48px/.9 Georgia,serif;color:#e32972;width:39px}
+.kana-workbench .brand small {letter-spacing:.25em;font-size:7px;color:#987d94}
+.kana-workbench .brand>span:last-child {font-size:14px}
+.kana-workbench .sidebar .photography-branches {display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:0;align-items:stretch}
+.kana-workbench .photography-branches>* {
+ width:100%;min-height:43px;display:flex;align-items:center;gap:11px;font-size:13px;
+ border:0;border-radius:7px;padding:10px 12px;color:#5e597f;transition:transform .25s,color .25s,background .25s;
+}
+.kana-workbench .photography-branches>[aria-current] {background:#f9d4e7;color:#c92268;transform:rotate(-2deg);box-shadow:0 3px 12px #ec6baf1a}
+.kana-workbench .photography-branches>[aria-current]::after {display:none}
+.kana-workbench .photography-branches>a:hover {transform:translateX(4px);color:#df2671}
+.kana-workbench .project-nav-toggle {display:none}
+.kana-workbench #project-navigation {
+ display:block;position:static;top:auto;right:auto;width:100%;max-width:none;max-height:none;
+ overflow:visible;padding:0;margin:1px 0 0;background:none;border:0;box-shadow:none;border-radius:0;
+}
+.kana-workbench #project-navigation .side-heading {padding:6px 5px 7px;color:#ca668e}
+.kana-workbench #project-list {max-height:32svh;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#e9c0d3 transparent;margin:6px 0 1px}
+.kana-workbench #project-navigation .project-link {border:0;border-radius:7px;background:transparent;font-size:12px;min-height:39px;line-height:1.5}
+.kana-workbench #project-navigation .project-link.selected {background:linear-gradient(90deg,#fbd9e6cc,transparent);color:#c62469}
+.kana-workbench .project-search-label input {font-size:11px;background:none;border:0;border-bottom:1px solid #e7c3d4;border-radius:0}
+.kana-workbench #project-nav-count {font-size:10px}
+.kana-workbench #all-projects {border:0;text-align:left}
+.kana-workbench #global-nav {margin-top:12px;padding-top:10px;border-top:1px solid #f0d6e5;display:grid;grid-template-columns:1fr;gap:0}
+.kana-workbench #global-nav button {text-align:left;min-height:36px;padding:8px 4px;background:none;border:0;font-size:11px;color:#755c7c}
+.kana-workbench #global-nav button:hover {color:#dd2f78;transform:translateX(3px)}
+.kana-workbench .kana-sidebar-signature {font:italic 13px/1.3 Georgia,serif;color:#bd8aa9;margin:auto 3px 10px;padding-top:12px}
+.kana-workbench .kana-sidebar-signature em {font-size:21px;color:#d23c7f}
+.kana-workbench .kana-sidebar-signature span {margin-left:7px;color:#eca3ba}
+.kana-workbench .workspace {position:relative;isolation:isolate;display:block;width:100%;max-width:none;padding:0 23px 22px;overflow:visible}
+.kana-workbench .workspace::before {left:20%;top:30px;width:65%;height:820px;background-image:url('/static/private/kana/summer.webp');background-size:cover;background-position:center top;filter:blur(55px) saturate(1.2);opacity:.10;z-index:-3}
+.kana-workbench .topbar {position:absolute;inset:13px 24px auto auto;min-height:0;height:auto;font-size:8px;z-index:10;letter-spacing:.2em;border:0;background:none}
+.kana-workbench .topbar>span:first-child{display:none}
+.kana-workbench #connection-status{color:#6eaa93;font-size:9px}
+.kana-workbench .kana-masthead {
+ position:relative;z-index:1;isolation:isolate;
+ height:330px;min-height:330px;margin:0 -23px;padding:0 34px;overflow:visible;
+ border:0;background:transparent;
+}
+.kana-workbench .kana-masthead::before {
+ content:"";position:absolute;inset:0 -10px -40px;z-index:-3;pointer-events:none;
+ background:linear-gradient(90deg,#fffafce8 0%,#fffbfcba 24%,transparent 57%),
+ radial-gradient(ellipse 67% 79% at 72% 27%,#e0e7ff87 2%,transparent 97%);
+}
+.kana-workbench .kana-art-scene{
+ position:absolute;z-index:-1;inset:-75px 0 -95px 29%;opacity:1;
+ overflow:visible;background:none;border:0;pointer-events:none;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,#0008 8%,#000 27%,#000 90%,transparent 100%);
+ mask-image:linear-gradient(90deg,transparent 0%,#0008 8%,#000 27%,#000 90%,transparent 100%);
+}
+.kana-workbench .kana-art-scene img{
+ position:absolute;left:59%;top:-138px;width:min(1230px,99vw);height:auto;max-width:none;opacity:.95;
+ transform:translate(calc(-50% + var(--kana-x,0px)),var(--kana-y,0px));
+ filter:saturate(1.15);transition:transform .35s ease-out;
+ -webkit-mask-image:linear-gradient(180deg,#000 0 38%,#000d 53%,transparent 97%);
+ mask-image:linear-gradient(180deg,#000 0 38%,#000d 53%,transparent 97%);
+}
+.kana-workbench .kana-masthead::after {
+ content:"";z-index:-1;position:absolute;inset:15px 0 0;pointer-events:none;
+ background:radial-gradient(ellipse 48% 71% at 75% 20%,#fff8ff34,transparent 82%);
+}
+.kana-workbench .kana-lettering{z-index:3;position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;width:52%;max-width:52%;padding:22px 0 0;gap:0}
+.kana-workbench .kana-doodle{font:italic 12px/1.3 "Yu Mincho","Songti SC",serif;color:#d23776;transform:rotate(-7deg) translateX(140px);letter-spacing:.05em;white-space:nowrap}
+.kana-workbench .kana-display-artist{height:185px;position:relative;margin-top:2px}
+.kana-workbench .kana-display-arima {display:block;white-space:nowrap;letter-spacing:-.105em;color:#c01658;font:italic 400 clamp(69px,7.4vw,148px)/1 "Bodoni MT",Didot,"Times New Roman",serif;transform:rotate(-7deg);transform-origin:left bottom;text-shadow:0 3px 0 #fff9ffb5}
+.kana-workbench .kana-display-kana {position:absolute;top:74px;left:104px;white-space:nowrap;color:#da165c;
+ font:italic 500 clamp(64px,6.8vw,120px)/.95 "Brush Script MT","URW Chancery L","Segoe Script","Apple Chancery",cursive;
+ transform:rotate(-13deg);text-shadow:0 2px 0 #fff9ffcc}
+.kana-workbench .kana-display-kana>span {font:italic 35px/1 Georgia,serif;color:#f36e9d;position:absolute;right:-32px;top:32px;transform:rotate(14deg)}
+.kana-workbench .kana-lettering h2{display:block;margin:-12px 0 0 8px;font:italic 500 23px/1.25 "Songti SC",serif;color:#312f58;letter-spacing:.07em}
+.kana-workbench .kana-lettering h2 span{font-weight:400;color:#cf1f68}
+.kana-workbench .kana-lettering h2 i{font:italic 32px Georgia,serif;color:#ed739f}
+.kana-workbench .kana-subtitle {margin:7px 0 0 10px;font-size:10px;letter-spacing:.06em;color:#706884}
+.kana-workbench .kana-cover-tools{z-index:3;right:19px;top:140px;width:176px;display:flex;align-items:center;gap:8px;background:none;padding:0}
+.kana-workbench .kana-cover-note{display:block;color:#da2267;text-align:center;font:italic 16px/1.6 "Yu Mincho","Songti SC",serif;max-width:174px;transform:rotate(-7deg)}
+.kana-workbench .kana-cover-note i{font-size:21px}
+.kana-workbench .kana-find{border:0;background:#d7266c;color:white;min-height:40px;width:146px;padding:8px 14px;border-radius:5px;font-weight:600;font-size:13px;transform:rotate(-4deg);box-shadow:0 10px 22px #c43d7970;transition:transform .22s,box-shadow .22s}
+.kana-workbench .kana-find:hover{background:#bb1c5a;transform:rotate(0deg) translateY(-4px);box-shadow:0 13px 28px #c43d7980}
+.kana-workbench .kana-find-note{font-size:9px;color:#8c7592}
+.kana-workbench .kana-hero-film {position:absolute;inset:auto -20px -30px -35px;height:77px;opacity:.12;transform:rotate(-6deg);pointer-events:none;z-index:-1;background:
+ repeating-linear-gradient(90deg,#d9327280 0 15px,transparent 15px 33px),linear-gradient(#d9327277,#d9327277);
+ border-top:5px dashed #cc4583aa;border-bottom:5px dashed #cc4583aa}
+.kana-workbench .kana-hero-star{position:absolute;z-index:4;color:#ffd59c;font:35px/1 Georgia,serif;pointer-events:none;animation:kana-editorial-float 6s ease-in-out infinite}
+.kana-workbench .kana-hero-star-a{top:34px;left:18%;font-size:32px}
+.kana-workbench .kana-hero-star-b{top:204px;right:22%;font-size:20px;animation-delay:-2s}
+.kana-workbench .kana-ink-line{position:absolute;bottom:-14px;left:0;width:100%;height:33px;stroke:#dd4080;opacity:.5;pointer-events:none}
+.kana-workbench .kana-canvas-wrap{position:relative;z-index:3;margin:-2px 0 0}
+.kana-workbench .kana-canvas-wrap::before{content:"";position:absolute;z-index:-1;inset:-40px -19px -30px;pointer-events:none;background:linear-gradient(180deg,#fff6f9c0,rgba(255,249,252,.78) 45%,#fffbffbe);border-radius:0 0 30px 20px}
+.kana-workbench .kana-canvas-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 8px 10px 12px;border:0;min-height:42px}
+.kana-workbench .view-tabs{display:flex;gap:18px;flex-wrap:nowrap;white-space:nowrap}
+.kana-workbench .view-tabs button{font-size:12px;letter-spacing:0;color:#544666;background:none;border:0;padding:5px 3px 8px;transition:transform .25s,color .25s}
+.kana-workbench .view-tabs button:hover{transform:translateY(-3px);color:#d52868}
+.kana-workbench .view-tabs button.active{color:#d31e69;border-bottom:2px solid #df347f}
+.kana-workbench .kana-take{display:flex;align-items:baseline;gap:8px}
+.kana-workbench .kana-take small{color:#a9879a;font:8px monospace;letter-spacing:.1em}
+.kana-workbench .kana-take strong{font:italic 29px/1 Georgia,serif;color:#5b5989}
+.kana-workbench .kana-work-grid{display:grid;grid-template-columns:183px minmax(0,1fr);gap:14px}
+.kana-workbench .kana-index{position:relative;min-width:0;padding:17px 8px 8px 8px;background:none}
+.kana-workbench .kana-index::after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,#fff9fc7a,transparent);border-radius:12px;pointer-events:none}
+.kana-workbench .kana-index h3{font:italic 19px/1.5 "Songti SC",serif;color:#563e68;margin:0 0 14px;letter-spacing:.03em}
+.kana-workbench .kana-index h3 span{color:#d32870}
+.kana-workbench .project-header{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-height:0;margin:0 0 7px;padding:0;border:0}
+.kana-workbench .project-header>div:first-child {max-width:100%;width:100%;flex:none}
+.kana-workbench .project-header h1{font:italic 23px/1.3 "Songti SC",serif;color:#c52666;white-space:normal}
+.kana-workbench .project-header p{font-size:10px;max-width:100%;white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6}
+.kana-workbench .header-actions{display:flex;flex-wrap:wrap;gap:6px}
+.kana-workbench .header-actions button{font-size:10px;min-height:30px;padding:4px 8px;background:none;border-color:#efd7e1}
+.kana-workbench .header-actions .primary{color:#d32669;border:0;background:#fbe4ee;font-weight:600}
+.kana-workbench .header-actions .primary:hover{background:#f7d3e3}
+.kana-workbench .selection-statistics{display:block;margin-top:14px;padding:10px 0 12px;border-top:1px solid #f1dce7;border-bottom:1px solid #f1dce7}
+.kana-workbench .selection-statistics>summary{font-size:11px;cursor:pointer;color:#96708c;list-style:none}
+.kana-workbench .selection-statistics>summary span{float:right}
+.kana-workbench .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.kana-workbench .stats>.stat{border:0;padding:2px;background:none;box-shadow:none}
+.kana-workbench .stats>.stat strong{font:italic 19px Georgia,serif;color:#d22e77}
+.kana-workbench .stats>.stat span{font-size:9px;color:#937c94}
+.kana-workbench .kana-index-note{font-size:11px;color:#a47d99;margin:18px 0 0;line-height:1.9}
+.kana-workbench .kana-index-note em{font:italic 14px "Songti SC",serif;color:#c93c7e}
+.kana-workbench #view{min-width:0;position:relative}
+.kana-workbench .toolbar{padding:3px 0 8px;min-height:35px;gap:13px;display:flex;align-items:center;flex-wrap:nowrap}
+.kana-workbench .toolbar>input{flex:1 1 170px;width:180px;max-width:250px;min-width:115px;min-height:30px;border:0;border-bottom:1px solid #e2c6d8;background:#ffffff36;font-size:11px}
+.kana-workbench .toolbar>select{flex:none;width:115px;border:0;border-bottom:1px solid #e2c6d8;background:none;font-size:10px}
+.kana-workbench .toolbar>button{font-size:9px;white-space:nowrap}
+.kana-workbench .toolbar>small{display:none}
+.kana-workbench .review-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(258px,1fr);gap:18px;align-items:start;margin-top:2px;min-height:0}
+.kana-workbench .image-column{min-width:0;position:relative}
+.kana-workbench .image-stage{height:var(--kana-stage-height,calc(100svh - 510px));min-height:230px;overflow:hidden;position:relative;background:#fff1f796!important;box-shadow:0 15px 35px #bb639e27!important;border:6px solid #fffdfdec!important;border-radius:3px;transform:rotate(-.65deg)}
+.kana-workbench .image-stage #main-image{position:relative;z-index:2;max-width:100%;object-fit:contain;transform:none;filter:none}
+.kana-workbench .kana-photo-atmosphere{opacity:.27;filter:blur(27px) saturate(1.25)}
+.kana-workbench .stage-counter{background:#fff9f9eb;color:#943767;font:italic 12px Georgia,serif}
+.kana-workbench .image-stage .stage-nav{background:#fffbffb5;backdrop-filter:blur(8px);color:#9b6586;border-radius:50%}
+.kana-workbench .image-caption,.kana-workbench .image-nav,.kana-workbench .pagination{font-size:10px;color:#927991}
+.kana-workbench .filmstrip{display:flex;gap:7px;min-height:64px;height:64px;padding:6px 1px;margin-top:5px}
+.kana-workbench .filmstrip button{width:43px;flex:0 0 43px;height:51px;min-height:51px;border-radius:3px!important;transform:rotate(-3deg);opacity:.92;box-shadow:0 4px 12px #8a446b3b}
+.kana-workbench .filmstrip button:nth-child(2n){transform:rotate(3deg)}
+.kana-workbench .filmstrip button:hover{opacity:1;transform:rotate(0) translateY(-4px)}
+.kana-workbench .detail-panel{position:relative;min-width:0;max-height:var(--kana-panel-height,calc(100svh - 400px));overflow-y:auto;padding:6px 7px 8px 10px;background:none;scrollbar-width:thin;scrollbar-color:#edc4d4 transparent}
+.kana-workbench .detail-panel::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;background:radial-gradient(ellipse at 76% 9%,#fffdfecf,transparent 73%)}
+.kana-workbench .detail-heading{margin:0 0 7px}
+.kana-workbench .detail-heading::before{content:"✦ 开始取景";display:block;font:italic 20px "Songti SC",serif;color:#da2169;margin:0 0 6px}
+.kana-workbench .detail-heading h2{font-size:11px;color:#6a5269;line-height:1.35}
+.kana-workbench .detail-panel .decision-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:7px 0 8px}
+.kana-workbench .decision-bar button{border:1px solid #f0cbdc;background:#fff9fcbe;color:#cb346f;border-radius:50px;min-height:47px;display:flex;align-items:center;justify-content:center;gap:3px;padding:5px;font-size:10px;box-shadow:0 4px 12px #e1689723}
+.kana-workbench .decision-bar button strong{font-size:12px}
+.kana-workbench .decision-bar button[data-decision=keep]{background:#e72b74;border-color:#e72b74;color:white}
+.kana-workbench .decision-bar button[data-decision=inspiration]{background:#fce5f0;color:#bd306c}
+.kana-workbench .decision-bar button:hover{transform:translateY(-2px);box-shadow:0 9px 15px #d3528433}
+.kana-workbench .kana-primary-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 8px;margin:4px 0 7px;padding:6px 0;background:none;border:0}
+.kana-workbench .kana-primary-tools>button{border:0;border-radius:24px;background:#fff7fbb5;color:#77536c;padding:4px 7px;min-height:30px;font-size:10px}
+.kana-workbench .kana-primary-tools>button:hover{background:#ffe0ef;color:#ce2970}
+.kana-workbench .next-step{border:0;margin:5px 0}
+.kana-workbench #make-card{background:#ed2773;color:#fff;border:0;border-radius:22px;min-height:36px;width:100%;font-size:11px}
+.kana-workbench .kana-secondary{background:none}
+.kana-workbench .kana-secondary>details{border:0;border-top:1px solid #f1dbe7;background:none;padding:5px 0}
+.kana-workbench .kana-secondary summary{font-size:10px;color:#886f83}
+.kana-workbench .workspace-footer{border:0;background:none}
+.kana-workbench .kana-file-details .export-share-box{border:0;background:none}
+.kana-workbench .image-stage::before,.kana-workbench .image-stage::after{display:none}
+@keyframes kana-editorial-float {50%{transform:translateY(8px) rotate(12deg);opacity:.6}}
+@media (min-width:701px) and (max-height:830px) {
+ .kana-workbench .kana-masthead{height:265px;min-height:265px}
+ .kana-workbench .kana-display-artist{height:157px}
+ .kana-workbench .kana-display-arima{font-size:clamp(68px,6.5vw,105px)}
+ .kana-workbench .kana-display-kana{font-size:clamp(61px,6vw,92px);top:63px}
+ .kana-workbench .kana-lettering{padding-top:13px}
+ .kana-workbench .kana-art-scene img{width:min(1050px,98vw);top:-133px}
+ .kana-workbench .kana-cover-tools{top:100px}
+ .kana-workbench .kana-canvas-nav{min-height:34px;padding-bottom:6px}
+ .kana-workbench .image-stage{height:var(--kana-stage-height,calc(100svh - 443px));min-height:205px}
+ .kana-workbench .detail-panel{max-height:var(--kana-panel-height,calc(100svh - 380px))}
+}
+@media (min-width:701px) and (max-width:1230px) {
+ .kana-workbench .app-shell{grid-template-columns:180px minmax(0,1fr)}
+ .kana-workbench .sidebar{padding-left:12px;padding-right:8px}
+ .kana-workbench .workspace{padding-inline:12px}
+ .kana-workbench .kana-masthead{margin:0 -12px;padding-inline:23px}
+ .kana-workbench .kana-work-grid{grid-template-columns:145px minmax(0,1fr);gap:7px}
+ .kana-workbench .kana-index{padding:14px 5px}
+ .kana-workbench .review-layout{grid-template-columns:minmax(0,1.55fr) minmax(235px,1fr);gap:12px}
+ .kana-workbench .kana-art-scene img{width:990px;left:67%}
+ .kana-workbench .kana-display-arima{font-size:76px}
+ .kana-workbench .kana-display-kana{font-size:73px}
+ .kana-workbench .kana-cover-tools{right:8px}
+}
+@media(max-width:700px){
+ .kana-workbench .app-shell{display:block;padding-top:54px;overflow:clip}
+ .kana-workbench .sidebar{position:absolute;inset:0 0 auto;width:100%;height:54px;min-height:0;padding:4px 12px;display:flex;flex-direction:row;align-items:center;gap:11px;z-index:40;overflow:visible;background:#fff9fbf7}
+ .kana-workbench .sidebar::before,.kana-workbench .kana-sidebar-signature{display:none}
+ .kana-workbench .brand{padding:0;gap:9px}
+ .kana-workbench .brand-mark{font-size:29px;width:27px}
+ .kana-workbench .brand>span:last-child{font-size:11px}
+ .kana-workbench .brand small{font-size:5px}
+ .kana-workbench .sidebar .photography-branches{margin-left:auto;display:flex;flex-direction:row;gap:5px}
+ .kana-workbench .photography-branches>*{min-height:39px;width:auto;padding:7px;font-size:9px}
+ .kana-workbench .photography-branches>[aria-current]{display:none}
+ .kana-workbench .project-nav-toggle{display:flex;margin:0;width:34px;min-height:38px;font-size:0;justify-content:center;padding:0;background:none}
+ .kana-workbench .project-nav-toggle span{font-size:23px}
+ .kana-workbench #project-navigation{display:none;position:absolute;top:52px;right:6px;width:min(360px,calc(100vw - 12px));max-height:79svh;overflow:auto;padding:17px;background:#fff8fd;box-shadow:0 20px 44px #bd699a40;border:1px solid #f0cbdc;z-index:51}
+ .kana-workbench .sidebar.nav-open #project-navigation{display:block}
+ .kana-workbench .workspace{padding:0 11px 30px}
+ .kana-workbench .topbar{top:5px;right:13px}
+ .kana-workbench .kana-masthead{height:244px;min-height:244px;margin:0 -11px;padding:0 13px}
+ .kana-workbench .kana-art-scene{inset:-35px -3% -70px 24%}
+ .kana-workbench .kana-art-scene img{width:580px;left:56%;top:-25px;opacity:.83}
+ .kana-workbench .kana-lettering{width:75%;max-width:75%;padding-top:15px}
+ .kana-workbench .kana-display-artist{height:131px}
+ .kana-workbench .kana-display-arima{font-size:62px;letter-spacing:-.13em}
+ .kana-workbench .kana-display-kana{font-size:65px;left:64px;top:55px}
+ .kana-workbench .kana-doodle{font-size:8px;transform:rotate(-7deg) translateX(73px)}
+ .kana-workbench .kana-lettering h2{font-size:15px;margin:0}
+ .kana-workbench .kana-subtitle{font-size:8px;max-width:170px;line-height:1.3}
+ .kana-workbench .kana-cover-tools{top:auto;bottom:7px;right:7px;width:100px}
+ .kana-workbench .kana-cover-note{display:none}
+ .kana-workbench .kana-find{min-height:30px;width:96px;padding:5px;font-size:10px;gap:6px}
+ .kana-workbench .kana-find-note{display:none}
+ .kana-workbench .kana-hero-film{height:30px;bottom:-14px}
+ .kana-workbench .kana-canvas-nav{overflow-x:auto;padding:5px 2px;min-height:38px}
+ .kana-workbench .view-tabs{gap:14px}
+ .kana-workbench .view-tabs button{font-size:10px}
+ .kana-workbench .kana-take{display:none}
+ .kana-workbench .kana-work-grid{display:flex;flex-direction:column;gap:3px}
+ .kana-workbench .kana-index{padding:1px 2px}
+ .kana-workbench .kana-index h3,.kana-workbench .kana-index-note{display:none}
+ .kana-workbench .project-header{display:flex;flex-direction:row;align-items:center;padding:7px 2px;gap:6px}
+ .kana-workbench .project-header>div:first-child{flex:1;min-width:0}
+ .kana-workbench .project-header h1{font-size:13px;margin:0}
+ .kana-workbench .project-header p{display:none}
+ .kana-workbench .header-actions{gap:3px;flex-wrap:nowrap}
+ .kana-workbench .header-actions button{font-size:9px;min-height:27px;padding:3px}
+ .kana-workbench .selection-statistics{display:none}
+ .kana-workbench .toolbar{padding:3px 0 8px;overflow-x:auto}
+ .kana-workbench .toolbar>input{min-width:135px;flex:1 0 135px}
+ .kana-workbench .toolbar>select{min-width:98px}
+ .kana-workbench .review-layout{display:flex;flex-direction:column;gap:8px}
+ .kana-workbench .image-stage{height:var(--kana-mobile-stage-height,330px);min-height:240px;transform:none;border-width:3px!important}
+ .kana-workbench .detail-panel{width:100%;max-height:none;padding:0 3px;overflow:visible}
+ .kana-workbench .detail-heading::before{font-size:17px}
+ .kana-workbench .decision-bar{position:fixed!important;inset:auto 7px 7px!important;z-index:35;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ padding:7px;background:#fff9fbe8;backdrop-filter:blur(18px);box-shadow:0 8px 28px #bd427e4c;border-radius:18px;margin:0!important;gap:3px!important}
+ .kana-workbench .decision-bar button{min-height:49px;border-radius:15px;font-size:9px;padding:3px}
+ .kana-workbench .decision-bar button strong{font-size:10px}
+ .kana-workbench .decision-bar button small{font-size:7px}
+ .kana-workbench .filmstrip{height:56px;min-height:56px}
+ .kana-workbench .filmstrip button{min-height:44px;height:44px;width:37px;flex-basis:37px}
+ .kana-workbench .image-nav{padding-bottom:6px}
+}
+@media(prefers-reduced-motion:reduce){
+ .kana-workbench .kana-hero-star{animation:none!important}
+ .kana-workbench .kana-display-arima,.kana-workbench .kana-display-kana{transition:none!important}
+}
