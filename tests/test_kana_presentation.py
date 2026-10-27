@@ -45,6 +45,7 @@ def test_kana_primary_controls_are_right_and_in_view(kana_ui,width,height):
     assert page.locator('.kana-work-grid').is_visible()
     assert page.locator('.kana-index').is_visible()
     assert page.locator('.kana-display-arima').inner_text() == 'ARIMA'
+    assert page.locator('.kana-display-kana-logo').evaluate('n => n.complete && n.naturalWidth > 0')
     assert page.locator('#project-navigation').is_visible()
     assert page.locator('#image-stage').evaluate("n=>['none','normal','\"\"'].includes(getComputedStyle(n,'::before').content)")
     out=Path(os.environ.get('LAB_TEST_ARTIFACTS',str(ROOT/'.local/kana-tests')));out.mkdir(parents=True,exist_ok=True)

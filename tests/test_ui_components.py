@@ -85,6 +85,11 @@ def component_factory(client, library):
             page.expose_binding('__testRequest', request)
             markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
+            # Static concept lettering is in Git as SVG paths, not a font binary.
+            svg = ROOT / 'web/ui-art/kana-display-logo.svg'
+            if svg.exists():
+                logo = 'data:image/svg+xml;base64,' + base64.b64encode(svg.read_bytes()).decode()
+                page.eval_on_selector('.kana-display-kana-logo', '(node, uri) => node.src = uri', logo)
             for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css','kana-editorial.css']:
                 page.add_style_tag(content=(ROOT/'web'/filename).read_text(encoding='utf-8'))
             page.evaluate('''fragment => {

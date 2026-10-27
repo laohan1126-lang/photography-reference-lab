@@ -10,7 +10,7 @@ def test_kana_static_resources_and_private_access(tmp_path):
     web = tmp_path / 'web'
     files = {
         'kana.css': b'body{}', 'kana-atmosphere.css': b'body{}', 'kana-painting.css': b'body{color:pink}', 'kana.js': b'void 0;',
-        'ui-art/kana-wordmark.svg': b'<svg/>', 'ui-art/kana-frame.svg': b'<svg/>',
+        'ui-art/kana-wordmark.svg': b'<svg/>', 'ui-art/kana-display-logo.svg': b'<svg/>', 'ui-art/kana-frame.svg': b'<svg/>',
         'private/kana/summer.webp': b'synthetic summer',
         'private/kana/rain.webp': b'synthetic rain',
         'private/kana/portrait.webp': b'synthetic portrait',
@@ -22,7 +22,7 @@ def test_kana_static_resources_and_private_access(tmp_path):
     (web / 'private' / 'kana' / 'other.webp').write_bytes(b'private')
     settings = Settings(tmp_path / 'data', TOKEN, public_origin='http://testserver', web_dir=web)
     with TestClient(create_app(settings)) as client:
-        for name in ('kana.css', 'kana-atmosphere.css', 'kana-painting.css', 'kana.js', 'ui-art/kana-wordmark.svg', 'ui-art/kana-frame.svg'):
+        for name in ('kana.css', 'kana-atmosphere.css', 'kana-painting.css', 'kana.js', 'ui-art/kana-wordmark.svg', 'ui-art/kana-display-logo.svg', 'ui-art/kana-frame.svg'):
             response = client.get('/static/' + name)
             assert response.status_code == 200
             assert response.content == files[name]
