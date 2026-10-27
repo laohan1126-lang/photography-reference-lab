@@ -43,6 +43,12 @@ jobs:
           python -m pytest -q tests/test_kana_presentation.py tests/test_kana_static.py --junitxml=test-results/kana-results.xml
         env:
           LAB_TEST_ARTIFACTS: test-results/browser
+      - name: Export public frontend for local original-art design QA
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p test-results
+          tar -czf test-results/frontend-sources.tar.gz web tests/test_ui_components.py tests/test_kana_presentation.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
