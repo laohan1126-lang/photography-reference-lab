@@ -1,7 +1,7 @@
 name: Kana presentation regression
 on:
   push:
-    branches: ['codex/kana-direct-ui-20261027', 'codex/kana-immersive-atmosphere-20261027']
+    branches: ['codex/kana-direct-ui-20261027', 'codex/kana-immersive-atmosphere-20261027', 'codex/kana-approved-artboard-20261027']
     paths: ['web/**', 'ref_lab/api.py', 'tests/test_kana_presentation.py', 'tests/test_kana_static.py', '.github/workflows/kana-presentation.yml']
   pull_request:
     paths: ['web/kana*', 'ref_lab/api.py', 'tests/test_kana_presentation.py', 'tests/test_kana_static.py']
@@ -36,7 +36,7 @@ jobs:
           else
             python -m playwright install --with-deps chromium
           fi
-      - run: node --check web/kana.js
+      - run: node --check web/kana.js && node --check web/kana-artboard.js
       - run: |
           mkdir -p test-results
           git rev-parse HEAD > test-results/commit.txt

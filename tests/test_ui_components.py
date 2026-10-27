@@ -83,7 +83,7 @@ def component_factory(client, library):
             page.expose_binding('__testRequest', request)
             markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
-            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css']:
+            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css','kana-artboard.css']:
                 page.add_style_tag(content=(ROOT/'web'/filename).read_text(encoding='utf-8'))
             page.evaluate('''fragment => {
                 if(fragment)location.hash=fragment;
@@ -115,6 +115,7 @@ def component_factory(client, library):
             page.add_script_tag(content=(ROOT/'web/studio.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/kana.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/app.js').read_text(encoding='utf-8'))
+            page.add_script_tag(content=(ROOT/'web/kana-artboard.js').read_text(encoding='utf-8'))
             page.locator('#application').wait_for(state='visible')
             page.locator('#library-grid' if 'view=library' in fragment else '#filmstrip').wait_for(state='attached')
             return page

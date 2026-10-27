@@ -1,0 +1,302 @@
+/* ARIMA KANA • approved one-painting concept: immersive editorial review surface.
+   Product data, source pixels, API state and actual review controls are untouched. */
+body.kana-workbench.kana-artboard {
+ --canvas:#fff9fc;--paper:#fff9fc;--panel:#fff9fe;--stage:#fdf8fc;--soft:#fbe8ef;
+ --ink:#343552;--muted:#64627c;--faint:#a78ba5;--line:#e8cddf;--line-strong:#d9acc7;
+ --accent:#ce2058;--accent-fill:#ce2058;--accent-hover:#b5164e;--on-accent:#fff;
+ --gold:#d8ad68;--shadow:0 14px 50px rgba(144,46,95,.13);
+ background:radial-gradient(ellipse 80% 49% at 62% 4%,#ffdeed 0%,transparent 92%),
+ radial-gradient(ellipse 36% 51% at 95% 80%,#e3edff 0%,transparent 90%),#fffafd;
+ color:var(--ink);font-family:'Noto Sans CJK SC','Microsoft YaHei',sans-serif;
+}
+.kana-artboard * {box-sizing:border-box}
+.kana-artboard .app-shell{display:block!important;padding-top:0!important;min-height:100vh;position:relative;isolation:isolate}
+.kana-artboard .app-shell::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+ background:radial-gradient(ellipse 60% 45% at 70% 1%,#ffd6e6 3%,transparent 87%),
+ radial-gradient(ellipse 36% 51% at 93% 48%,#ccefff77,transparent 85%),
+ radial-gradient(ellipse 40% 65% at 6% 75%,#ffe0edb5,transparent 93%)}
+/* The left rail is a translucent editorial margin; no hard separating panel. */
+body.kana-artboard .sidebar {position:fixed!important;left:0;top:0;bottom:0;right:auto;inset:auto!important;
+ width:202px!important;height:100vh!important;z-index:40!important;display:block!important;overflow-y:auto!important;overflow-x:hidden!important;
+ padding:20px 13px 26px 19px!important;box-shadow:none!important;border:0!important;
+ background:linear-gradient(115deg,#ffffffba 0%,#fff9f9b2 67%,#fff4fb42 100%)!important;
+ backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px);scrollbar-width:thin;scrollbar-color:#e7b4c5 transparent}
+.kana-artboard .sidebar::before{content:"☆";color:#f09eba;font-size:25px;position:absolute;right:12px;top:98px;animation:kana-float 5s ease-in-out infinite}
+.kana-artboard .brand{display:flex!important;align-items:center!important;gap:9px!important;padding:5px 0 19px!important;margin:0!important;color:#29355a!important}
+.kana-artboard .brand-mark{font:italic 33px/1 Georgia,serif!important; color:#d32c64!important;background:transparent!important;border:0!important;width:37px!important}
+.kana-artboard .brand>span:last-child{font-size:13px!important;white-space:nowrap}
+.kana-artboard .brand small{letter-spacing:.16em!important;font-size:7px!important;color:#9e8fa0!important}
+.kana-artboard .sidebar .photography-branches{display:flex!important;flex-direction:column!important;gap:4px!important;margin:0 0 14px!important;padding:0!important;border:0!important}
+.kana-artboard .photography-branches>* {width:100%;text-align:left;padding:10px 12px!important;font-size:12px!important;white-space:nowrap;border:0!important;color:#555671!important;border-radius:8px!important}
+.kana-artboard .photography-branches>[aria-current]{font-weight:700;color:#cc2058!important;background:linear-gradient(95deg,#df2e69ec,#f26794c9)!important;color:white!important;box-shadow:0 6px 20px #e8478452;transform:rotate(-2deg);margin-bottom:4px}
+.kana-artboard .project-nav-toggle {display:none!important}
+.kana-artboard #project-navigation {position:static!important;display:block!important;min-height:0!important;max-height:none!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important;opacity:1!important;visibility:visible!important;transform:none!important}
+.kana-artboard #project-navigation .side-heading {font-size:11px;color:#c72e5c;letter-spacing:.1em;margin:8px 0 5px!important}
+.kana-artboard #project-list {display:block!important;max-height:30vh!important;overflow-y:auto!important;padding:0!important;scrollbar-width:thin}
+.kana-artboard #project-navigation .project-link {background:none!important;border:0!important;border-bottom:1px solid #e9d7db78!important;box-shadow:none!important;padding:7px 5px!important;min-height:38px!important;font-size:12px!important}
+.kana-artboard #project-navigation .project-link:hover {background:#fff0f6ad!important}
+.kana-artboard .project-search-label input {border-radius:19px!important;background:#ffffff9e!important;border-color:#ead6e4!important;height:35px!important;font-size:11px!important}
+.kana-artboard #global-nav{display:flex!important;flex-direction:column!important;gap:0!important;margin:10px 0!important;padding:8px 0!important;border-top:1px solid #eed9e39e}
+.kana-artboard #global-nav button{font-size:11px!important;padding:9px 7px!important;text-align:left!important;background:none!important;border:0!important;color:#5a526b!important}
+.kana-artboard #global-nav button:hover,.kana-artboard #global-nav button.active{color:#d32060!important;background:#fff3f8!important}
+.kana-artboard .workspace {position:relative!important;margin:0 0 0 202px!important;max-width:none!important;min-width:0!important;padding:0 30px 28px!important;overflow:visible!important;isolation:isolate}
+.kana-artboard .workspace::before {content:"";position:absolute!important;top:0;left:4%;width:96%;height:780px;opacity:.15!important;z-index:-2!important;pointer-events:none!important;
+ background-image:url('/static/private/kana/summer.webp')!important;background-size:cover!important;background-position:52% 11%!important;filter:blur(53px) saturate(.9)!important;
+ mask-image:linear-gradient(to bottom,black,transparent 85%)!important;animation:kana-float 23s ease-in-out infinite alternate}
+html[data-studio-view='inspiration'] .kana-artboard .workspace::before{background-image:url('/static/private/kana/rain.webp')!important}
+.kana-artboard .topbar {height:35px!important;display:flex!important;justify-content:space-between!important;padding:7px 4px!important;font:9px/1.5 'Noto Sans CJK SC',sans-serif!important;color:#76677d!important;border:0!important;background:none!important;letter-spacing:.14em}
+.kana-artboard .topbar::before{content:'✦';display:block;position:absolute;right:24%;top:27px;color:#f4a8ba;font-size:17px}
+/* Hero image bleeds through the composition and never becomes a boxed card. */
+.kana-artboard .kana-masthead{position:relative!important;height:270px!important;min-height:270px!important;margin:0 -30px!important;padding:0!important;background:transparent!important;border:0!important;overflow:visible!important;isolation:isolate}
+.kana-artboard .kana-masthead::before{content:"";position:absolute;z-index:-1;pointer-events:none;left:2%;right:0;top:-36px;height:356px;background:
+ radial-gradient(ellipse 60% 68% at 76% 20%,#ffe2ed9e,transparent 88%),radial-gradient(ellipse 46% 65% at 55% 95%,#fffefc 12%,transparent 94%);
+ filter:blur(14px)}
+.kana-artboard .kana-art-scene {position:absolute!important;z-index:0!important;left:33%!important;right:-12px!important;top:-38px!important;bottom:-120px!important;overflow:visible!important;opacity:1!important;filter:none!important;
+ background:none!important;mask-image:linear-gradient(90deg,transparent 0%,black 22%,black 84%,transparent 100%)!important;pointer-events:none}
+.kana-artboard .kana-art-scene::after{content:none!important;display:none!important}
+.kana-artboard .kana-art-scene img{position:absolute!important;left:56%!important;top:-74px!important;width:750px!important;max-width:none!important;height:auto!important;opacity:.84!important;filter:saturate(1.02) contrast(.99)!important;
+ transform:translate(calc(-50% + var(--kana-x,0px)),var(--kana-y,0px))!important;
+ mask-image:radial-gradient(ellipse 58% 38% at 51% 28%,black 12%,#000e 42%,transparent 94%)!important}
+.kana-artboard .kana-editorial-lettering{position:absolute;z-index:4;left:52px;top:4px;pointer-events:none;width:480px;max-width:58%}
+.kana-artboard .kana-editorial-lettering .eyebrow-jp{font:italic 13px/1.2 'Noto Serif CJK JP',serif;letter-spacing:.14em;color:#d82860;display:block;margin-left:126px;transform:rotate(-10deg)}
+.kana-artboard .kana-editorial-lettering .artboard-arima{display:block;width:310px;max-width:93%;height:auto;filter:drop-shadow(0 1px 2px #fffbff)}
+.kana-artboard .kana-editorial-lettering .artboard-kana{display:block;width:288px;height:auto;margin:-52px 0 0 98px;transform:rotate(-12deg);filter:drop-shadow(0 1px 2px #ffffff)}
+.kana-artboard .kana-editorial-lettering .artboard-cn{display:block;margin:-19px 0 0 28px;font:italic 19px/1.2 'Noto Serif CJK SC',serif;letter-spacing:.18em;color:#3b416e;transform:rotate(-8deg)}
+.kana-artboard .kana-editorial-lettering .artboard-sub{display:block;margin:28px 0 0 0;font:10px/1.8 'Noto Serif CJK SC',serif;color:#5b5675;letter-spacing:.12em}
+.kana-artboard .kana-editorial-lettering .artboard-underline{width:340px;height:55px;display:block;margin:-11px 0 0 1px;opacity:.8}
+.kana-artboard .kana-lettering {display:none!important} /* old headline; replacement retains native accessible text */
+.kana-artboard .kana-cover-tools{position:absolute!important;right:26px!important;top:24px!important;bottom:auto!important;z-index:6!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;gap:9px!important;width:190px!important}
+.kana-artboard .kana-cover-note {font:italic 15px/1.4 'Noto Serif CJK JP',serif!important;color:#cc3261!important;letter-spacing:.08em;transform:rotate(-5deg)}
+.kana-artboard .kana-find {background:#ed5285db!important;box-shadow:0 8px 28px #f062936b!important;border:0!important;border-radius:5px 17px 8px 5px!important;min-height:38px!important;padding:10px 16px!important;color:white!important;font-size:13px!important}
+.kana-artboard .kana-find:hover{transform:translateY(-2px) rotate(-2deg)!important}
+.kana-artboard .kana-ink-line{display:none!important}
+.kana-artboard .kana-decorative-prints{position:absolute;right:8px;bottom:7px;z-index:3;display:flex;gap:0;transform:rotate(10deg);pointer-events:none}
+.kana-artboard .kana-decorative-prints img{width:65px;height:78px;object-fit:cover;border:5px solid white;border-bottom-width:15px;box-shadow:0 8px 18px #552a4c4d;border-radius:2px;transform:rotate(-13deg)}
+.kana-artboard .kana-decorative-prints img:last-child{transform:translate(-17px,12px) rotate(13deg)}
+.kana-artboard .kana-masthead .kana-floating-heart{position:absolute;bottom:2px;left:55%;z-index:1;color:#ef8ba7;font-size:28px;animation:kana-heartbeat 4.3s ease-in-out infinite;pointer-events:none}
+/* Title/actions are still real business controls, merely moved to a tiny readable editorial line. */
+.kana-artboard .project-header{position:relative!important;z-index:8!important;margin:0 0 2px!important;padding:0 7px 3px!important;min-height:34px!important;border:0!important;background:none!important;box-shadow:none!important;display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important}
+.kana-artboard .project-header>div:first-child{display:flex!important;gap:9px;align-items:baseline;min-width:0!important}
+.kana-artboard .project-header .eyebrow{display:none!important}
+.kana-artboard .project-header h1{font:500 14px/1.2 'Noto Serif CJK SC',serif!important;color:#bc3162;margin:0!important;white-space:nowrap}
+.kana-artboard .project-header p{font:10px/1.4 'Noto Sans CJK SC',sans-serif!important;margin:0!important;max-width:330px;color:#746b84!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kana-artboard .header-actions{display:flex!important;gap:11px!important;align-items:center!important;white-space:nowrap}
+.kana-artboard .header-actions>button,.kana-artboard .project-tools summary{font-size:10px!important;color:#bd2762!important;padding:2px 6px!important;background:none!important;border:0!important;box-shadow:none!important}
+.kana-artboard .header-actions .primary{font-weight:700!important}
+.kana-artboard .kana-view-line{position:relative!important;z-index:10!important;min-height:39px!important;margin:0!important;padding:2px 2px!important;background:linear-gradient(90deg,#fffafdca,transparent 85%)!important;border:0!important;border-bottom:1px solid #efcddd99!important;display:flex!important;align-items:center!important}
+.kana-artboard .view-tabs{display:flex!important;gap:3px!important;border:0!important;white-space:nowrap!important;flex:1;overflow-x:auto;scrollbar-width:none}
+.kana-artboard .view-tabs button{border:0!important;padding:9px 13px!important;font-size:12px!important;color:#5d556a!important;letter-spacing:.02em;background:transparent!important;min-width:0!important}
+.kana-artboard .view-tabs button.active{color:#d42263!important;font-weight:700!important;border-bottom:2px solid #d42263!important}
+.kana-artboard .selection-statistics{position:relative!important;font-size:9px!important}
+.kana-artboard .kana-take{font-size:12px!important;color:#c72763!important}
+.kana-artboard #view{position:relative!important;z-index:9!important;margin:0!important}
+.kana-artboard #view .toolbar{display:flex!important;align-items:center!important;gap:12px!important;min-height:42px!important;margin:0!important;padding:4px 0!important;background:transparent!important;border:0!important;border-bottom:0!important;flex-wrap:nowrap!important}
+.kana-artboard .toolbar input{border:0!important;border-bottom:1px solid #ddb8c8!important;border-radius:0!important;background:transparent!important;font:11px/1.5 'Noto Sans CJK SC',sans-serif!important;max-width:260px;min-width:110px;padding:5px 9px!important}
+.kana-artboard .toolbar select,.kana-artboard .toolbar .filter-more summary{font-size:10px!important;background:none!important;border:0!important;color:#6a5b75!important}
+.kana-artboard .toolbar .spacer{flex:1!important}
+.kana-artboard .toolbar .desktop-shortcut-hint{font-size:9px!important;color:#9e7d96!important}
+/* The photo is a work object within the one-picture environment. */
+.kana-artboard .review-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(258px,32%)!important;gap:18px!important;align-items:start!important;margin-top:4px!important;position:relative!important;z-index:2!important}
+.kana-artboard .image-column{min-width:0!important;position:relative!important;z-index:3!important}
+.kana-artboard .stage-and-cues{margin:0!important;overflow:visible!important}
+.kana-artboard .image-stage{position:relative!important;height:var(--kana-stage-height,410px)!important;min-height:280px!important;max-height:none!important;overflow:hidden!important;isolation:isolate!important;border:4px solid #ffffffd9!important;border-radius:4px 10px 3px 6px!important;background:#fff6f9ab!important;box-shadow:0 9px 24px #6e42632d,0 0 0 1px #e9d4dfa8!important;transform:rotate(.36deg)!important}
+.kana-artboard .image-stage #main-image{z-index:2!important;position:relative!important;filter:none!important;border:0!important;object-fit:contain!important;background:#201f31!important}
+.kana-artboard .image-stage .kana-photo-atmosphere{z-index:0!important;opacity:.14!important}
+.kana-artboard .image-stage .stage-counter{z-index:5!important;top:6px!important;left:9px!important;font:11px/1.4 Georgia,serif!important;color:#8b3d64!important;background:#fff7fbdb!important;padding:4px 10px!important}
+.kana-artboard .image-stage .stage-nav{z-index:6!important;border-radius:50%!important;width:37px!important;height:37px!important;background:#fff6f5cf!important;color:#d32c68!important;box-shadow:0 2px 7px #3a213b46!important}
+.kana-artboard .filmstrip{height:67px!important;min-height:67px!important;gap:7px!important;padding:8px 9px 7px!important;border:0!important;box-shadow:none!important;background:transparent!important}
+.kana-artboard .filmstrip button{flex:0 0 47px!important;width:47px!important;height:50px!important;border-radius:5px!important;opacity:.68!important;box-shadow:0 4px 11px #6e3b5b1f!important;transform:rotate(-2deg)!important}
+.kana-artboard .filmstrip button:nth-child(even){transform:rotate(3deg)!important}
+.kana-artboard .filmstrip button:hover{opacity:1!important;transform:translateY(-3px) rotate(0deg)!important}
+.kana-artboard .filmstrip button.selected{outline:2px solid #d72a6e!important;opacity:1!important;transform:translateY(-2px) rotate(0deg)!important}
+.kana-artboard .image-caption{padding:4px 8px!important;font-size:11px!important;color:#685971!important;background:transparent!important}
+.kana-artboard .image-nav{margin:0 5px!important;padding:0!important;font-size:10px!important}
+/* A single translucent decision surface, not panel inside panel. */
+.kana-artboard .detail-panel{position:relative!important;z-index:3!important;max-height:var(--kana-panel-height,620px)!important;overflow:auto!important;padding:9px 12px 15px!important;background:linear-gradient(115deg,#ffffffda,#fffbfecc 68%,#fffdfbdc)!important;border:0!important;border-radius:19px 10px 22px 11px!important;box-shadow:0 10px 35px #d28aa220!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.kana-artboard .detail-panel::before{content:"✧";position:absolute;right:12px;top:8px;font-size:20px;color:#f4a3b8;pointer-events:none}
+.kana-artboard .detail-heading{margin:0 0 11px!important;order:0!important}
+.kana-artboard .detail-heading::before{content:"✧ 这一帧，心动了吗？"!important;font:600 17px/1.5 'Noto Serif CJK SC',serif!important;color:#c52261!important;letter-spacing:.04em!important;margin:2px 0 5px!important}
+.kana-artboard .detail-heading h2{color:#584b69!important;font-size:12px!important}
+.kana-artboard .detail-heading .detail-meta{font-size:9px!important;color:#998aa2!important}
+.kana-artboard .decision-bar{order:1!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin:0!important;padding:4px 0 8px!important;border:0!important;background:none!important}
+.kana-artboard .decision-bar button{position:relative!important;min-width:0!important;min-height:77px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;border:1px solid #f0c1d3!important;border-radius:50%!important;background:#fff9fcbb!important;padding:8px 4px!important;color:#b93b68!important;box-shadow:0 2px 9px #e4a6c01f!important;gap:4px!important;transition:transform .24s ease,box-shadow .24s ease,background .24s ease!important}
+.kana-artboard .decision-bar button:hover{transform:translateY(-4px) rotate(-2deg)!important;background:white!important;box-shadow:0 6px 18px #e49ab94d!important}
+.kana-artboard .decision-bar button strong{font:700 12px/1.4 'Noto Sans CJK SC',sans-serif!important}
+.kana-artboard .decision-bar button small{font-size:9px!important;color:#8e7f94!important}
+.kana-artboard .decision-bar button[data-decision="keep"]::before{content:"♥";font-size:23px;line-height:1;color:#d8286b}
+.kana-artboard .decision-bar button[data-decision="maybe"]::before{content:"○";font-size:23px;line-height:1;color:#9a8da7}
+.kana-artboard .decision-bar button[data-decision="reject"]::before{content:"×";font-size:23px;line-height:1;color:#b74974}
+.kana-artboard .decision-bar button[data-decision="inspiration"]{grid-column:1/-1!important;min-height:24px!important;height:auto!important;border:0!important;border-radius:0!important;padding:4px!important;color:#c54c81!important;font-size:10px!important;box-shadow:none!important;background:none!important;align-items:flex-start!important;justify-content:flex-start!important}
+.kana-artboard .decision-bar button[data-decision="inspiration"]::before{content:"♡";display:inline;margin-right:4px;position:absolute;left:0;top:4px}
+.kana-artboard .decision-bar button[data-decision="inspiration"] strong{font-size:10px!important;padding-left:13px!important;font-weight:500!important}
+.kana-artboard .decision-bar button[data-decision="inspiration"] small{display:none!important}
+.kana-artboard .kana-primary-tools{order:3!important;display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:0 0 10px!important;padding:9px 0!important;border-top:1px solid #f1dce5!important;border-bottom:1px solid #f1dce5!important}
+.kana-artboard .kana-primary-tools button{flex:1 1 42%!important;border:0!important;border-radius:18px!important;background:#f8f0f6b2!important;font-size:10px!important;color:#66566e!important;padding:8px 9px!important}
+.kana-artboard .next-step{order:2!important;margin:2px 0 9px!important;padding:0!important;background:none!important;box-shadow:none!important;border:0!important}
+.kana-artboard #make-card {background:linear-gradient(105deg,#d52d67,#ea6c98)!important;color:#fff!important;border:0!important;border-radius:6px 15px 6px 6px!important;padding:7px 13px!important;font-size:11px!important;box-shadow:0 5px 12px #d9477842!important}
+.kana-artboard .detail-panel .guide-section,.kana-artboard .detail-panel .advanced-panel,.kana-artboard .detail-panel .export-share-box{background:none!important;box-shadow:none!important;border:0!important;border-bottom:1px solid #f3dfe999!important;padding:7px 0!important;margin:0!important;font-size:10px!important}
+.kana-artboard .detail-panel .advanced-panel summary,.kana-artboard .detail-panel .guide-section h3{font-size:10px!important;color:#ae507b!important;padding:4px 0!important;letter-spacing:.03em}
+.kana-artboard .detail-panel .advanced-panel:not([open]){min-height:28px!important}
+.kana-artboard .detail-panel .recommendation-tags .tag,.kana-artboard .detail-panel .badge{font-size:9px!important;background:#fff4f9!important;border-radius:15px!important}
+.kana-artboard .curation-hint{display:none!important}
+/* Shared ink, film and stars break the invisible container grid. */
+.kana-artboard .workspace::after{content:"";position:absolute;z-index:0;pointer-events:none;left:-120px;top:725px;width:440px;height:140px;opacity:.44;
+ background:repeating-linear-gradient(90deg,transparent 0 18px,#ffffffce 19px 23px,transparent 24px 47px),linear-gradient(120deg,#f397bc55,#e8a2c172);
+ transform:rotate(-16deg);clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.kana-artboard .kana-heart-trace{position:fixed;z-index:100;pointer-events:none;color:#e63b76;font-size:15px;transform:translate(-50%,-50%);filter:drop-shadow(0 1px 1px #fff);animation:kana-scatter .8s cubic-bezier(.15,.6,.4,1) both}
+.kana-artboard .stage-effect{z-index:60!important}
+@keyframes kana-scatter{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-18deg)}30%{opacity:.85}100%{opacity:0;transform:translate(calc(-50% + var(--dx,15px)),calc(-50% + var(--dy,-28px))) scale(1.45) rotate(35deg)}}
+@keyframes kana-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes kana-heartbeat{0%,100%{opacity:.4;transform:rotate(-15deg) scale(.85)}50%{opacity:.9;transform:rotate(13deg) scale(1.1)}}
+/* Tablet: keep the artwork but give operative controls priority. */
+@media(max-width:1220px){
+ body.kana-artboard .sidebar{width:170px!important;padding-left:12px!important}
+ .kana-artboard .workspace{margin-left:170px!important;padding:0 18px 22px!important}
+ .kana-artboard .kana-masthead{margin:0 -18px!important;height:222px!important;min-height:222px!important}
+ .kana-artboard .kana-editorial-lettering{left:27px;top:4px;width:330px}
+ .kana-artboard .kana-editorial-lettering .artboard-arima{width:230px}
+ .kana-artboard .kana-editorial-lettering .artboard-kana{width:210px;margin:-46px 0 0 83px}
+ .kana-artboard .kana-editorial-lettering .artboard-cn{font-size:15px;margin-top:-15px}
+ .kana-artboard .kana-editorial-lettering .artboard-sub{font-size:9px;margin-top:17px}
+ .kana-artboard .kana-editorial-lettering .artboard-underline{width:215px}
+ .kana-artboard .kana-art-scene img{width:620px!important;top:-50px!important}
+ .kana-artboard .kana-cover-tools{right:11px!important;top:21px!important}
+ .kana-artboard .review-layout{grid-template-columns:minmax(0,1fr) minmax(230px,32%)!important;gap:11px!important}
+ .kana-artboard .detail-panel{padding-inline:9px!important}
+ .kana-artboard .kana-decorative-prints{display:none}
+}
+@media(min-width:901px) and (max-height:800px){
+ .kana-artboard .kana-masthead{height:158px!important;min-height:158px!important}
+ .kana-artboard .kana-editorial-lettering{top:-3px}
+ .kana-artboard .kana-editorial-lettering .artboard-arima{width:240px}
+ .kana-artboard .kana-editorial-lettering .artboard-kana{width:205px;margin-top:-51px}
+ .kana-artboard .kana-editorial-lettering .artboard-cn{font-size:15px;margin-top:-14px}
+ .kana-artboard .kana-editorial-lettering .artboard-sub{margin-top:9px;font-size:9px}
+ .kana-artboard .kana-editorial-lettering .artboard-underline{display:none}
+ .kana-artboard .kana-art-scene img{width:680px!important;top:-112px!important}
+ .kana-artboard .kana-cover-tools{top:12px!important}
+ .kana-artboard .filmstrip{height:55px!important;min-height:55px!important}
+ .kana-artboard .filmstrip button{height:42px!important;width:43px!important;flex-basis:43px!important}
+ .kana-artboard .detail-panel{padding-top:4px!important}
+}
+/* Mobile: original app navigation and sticky decisions remain functional. */
+@media(max-width:900px){
+ .kana-artboard .app-shell{padding-top:53px!important}
+ body.kana-artboard .sidebar{position:absolute!important;inset:0 0 auto!important;left:0!important;top:0!important;width:100%!important;height:53px!important;min-height:0!important;display:flex!important;flex-direction:row!important;align-items:center!important;overflow:visible!important;padding:0 15px!important;gap:18px!important;background:#fff6fbdc!important}
+ .kana-artboard .sidebar::before{display:none}
+ .kana-artboard .sidebar .photography-branches{display:flex!important;flex-direction:row!important;margin:0!important;gap:12px!important}
+ .kana-artboard .photography-branches>*{font-size:10px!important;padding:7px 9px!important}
+ .kana-artboard .project-nav-toggle{display:block!important;margin-left:auto!important;background:none!important;border:0!important;font-size:11px!important}
+ .kana-artboard #project-navigation{display:none!important;position:absolute!important;left:0!important;right:0!important;top:53px!important;z-index:55!important;max-height:80vh!important;overflow:auto!important;padding:14px 22px!important;background:#fff7fcf5!important;box-shadow:0 10px 25px #71395e2a!important}
+ .kana-artboard .sidebar.nav-open #project-navigation{display:block!important}
+ .kana-artboard #project-list{max-height:28vh!important}
+ .kana-artboard .workspace{margin:0!important;padding:0 17px 24px!important}
+ .kana-artboard .topbar{height:23px!important;font-size:8px!important}
+ .kana-artboard .kana-masthead{height:220px!important;min-height:220px!important;margin:0 -17px!important}
+ .kana-artboard .kana-art-scene{left:21%!important;right:0!important;top:-42px!important;bottom:-70px!important}
+ .kana-artboard .kana-art-scene img{width:480px!important;top:-66px!important;left:61%!important;opacity:.68!important}
+ .kana-artboard .kana-editorial-lettering{left:20px;top:6px;width:280px;max-width:61%}
+ .kana-artboard .kana-cover-tools{top:auto!important;bottom:8px!important;right:18px!important;gap:5px!important}
+ .kana-artboard .kana-cover-note{font-size:11px!important}
+ .kana-artboard .kana-find{font-size:11px!important;min-height:31px!important;padding:6px 11px!important}
+ .kana-artboard .project-header p{display:none!important}
+ .kana-artboard .project-header{margin-bottom:1px!important}
+ .kana-artboard .header-actions{gap:4px!important}
+ .kana-artboard .header-actions>button,.kana-artboard .project-tools summary{font-size:9px!important}
+ .kana-artboard .view-tabs button{padding:8px 9px!important;font-size:11px!important}
+ .kana-artboard .toolbar{overflow-x:auto!important;max-width:100%;min-height:46px!important}
+ .kana-artboard .toolbar input{max-width:160px}
+ .kana-artboard .review-layout{display:block!important}
+ .kana-artboard .image-stage{height:var(--kana-stage-height,380px)!important;min-height:260px!important}
+ .kana-artboard .detail-panel{margin-top:12px!important;max-height:none!important;overflow:visible!important}
+ .kana-artboard .decision-bar{grid-template-columns:repeat(4,1fr)!important;gap:4px!important}
+ .kana-artboard .decision-bar button[data-decision="inspiration"]{grid-column:auto!important;min-height:58px!important;border-radius:50%!important;background:#fff9fc!important;border:1px solid #f0c1d3!important;justify-content:center!important;align-items:center!important}
+ .kana-artboard .decision-bar button[data-decision="inspiration"]::before{display:none}
+ .kana-artboard .decision-bar button[data-decision="inspiration"] strong{padding:0!important}
+ .kana-artboard .decision-bar button{min-height:54px!important}
+ .kana-artboard .kana-secondary{display:block!important}
+ .kana-artboard .workspace::after{display:none}
+}
+@media(max-width:560px){
+ .kana-artboard .sidebar .photography-branches{display:none!important}
+ .kana-artboard .kana-masthead{height:195px!important;min-height:195px!important}
+ .kana-artboard .kana-editorial-lettering{left:12px;top:9px;width:215px}
+ .kana-artboard .kana-editorial-lettering .eyebrow-jp{font-size:9px;margin-left:47px}
+ .kana-artboard .kana-editorial-lettering .artboard-arima{width:178px}
+ .kana-artboard .kana-editorial-lettering .artboard-kana{width:167px;margin:-32px 0 0 43px}
+ .kana-artboard .kana-editorial-lettering .artboard-cn{font-size:11px;margin-top:-16px;margin-left:10px}
+ .kana-artboard .kana-editorial-lettering .artboard-sub{margin-top:20px;font-size:8px;max-width:150px}
+ .kana-artboard .kana-editorial-lettering .artboard-underline{width:150px}
+ .kana-artboard .kana-art-scene{left:8%!important;right:-12%!important;top:-55px!important;bottom:-98px!important}
+ .kana-artboard .kana-art-scene img{width:370px!important;left:69%!important;top:-50px!important;opacity:.65!important}
+ .kana-artboard .kana-cover-tools{bottom:4px!important;right:9px!important;width:130px!important}
+ .kana-artboard .kana-cover-note{display:none}
+ .kana-artboard .kana-decorative-prints{display:none}
+ .kana-artboard .project-header h1{font-size:11px!important}
+ .kana-artboard .header-actions button{font-size:8px!important}
+ .kana-artboard .kana-view-line{min-height:37px!important}
+ .kana-artboard .view-tabs button{font-size:10px!important;padding:7px 6px!important}
+ .kana-artboard .toolbar .desktop-shortcut-hint{display:none!important}
+ .kana-artboard .toolbar select{font-size:9px!important}
+ .kana-artboard .image-stage{min-height:225px!important;height:var(--kana-stage-height,320px)!important}
+ .kana-artboard .filmstrip{height:55px!important;min-height:55px!important}
+ .kana-artboard .filmstrip button{height:42px!important;width:38px!important;flex-basis:38px!important}
+ .kana-artboard .detail-panel{padding-bottom:80px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .kana-artboard .workspace::before,.kana-artboard .sidebar::before,.kana-artboard .kana-floating-heart{animation:none!important}
+ .kana-artboard .kana-heart-trace{display:none!important}
+}
+/* Visual QA corrections: constrain workspace width and keep K/M/X in one row. */
+@media(min-width:901px){
+  body.kana-artboard .workspace{width:calc(100% - 202px)!important}
+  .kana-artboard .kana-masthead{height:223px!important;min-height:223px!important}
+}
+@media(min-width:901px) and (max-width:1220px){
+  body.kana-artboard .workspace{width:calc(100% - 170px)!important}
+}
+.kana-artboard .decision-bar{grid-template-areas:'keep maybe reject' 'inspiration inspiration inspiration'!important}
+.kana-artboard .decision-bar [data-decision="keep"]{grid-area:keep}
+.kana-artboard .decision-bar [data-decision="maybe"]{grid-area:maybe}
+.kana-artboard .decision-bar [data-decision="reject"]{grid-area:reject}
+.kana-artboard .decision-bar [data-decision="inspiration"]{grid-area:inspiration}
+.kana-artboard .image-stage #main-image {background:transparent!important}
+@media(min-width:901px) and (max-height:800px){
+  .kana-artboard .kana-masthead{height:130px!important;min-height:130px!important}
+}
+@media(max-width:900px){
+ body.kana-artboard .workspace{width:100%!important}
+ .kana-artboard .decision-bar{grid-template-areas:'keep inspiration maybe reject'!important}
+}
+/* Clip decorative art at the viewport; do not let it create horizontal scrolling. */
+body.kana-artboard .app-shell{overflow-x:clip!important}
+@media(max-width:900px){
+ .kana-artboard .sidebar .project-nav-toggle{flex:0 0 auto!important;width:auto!important;min-width:88px!important;max-width:128px!important;white-space:nowrap!important;word-break:keep-all!important;text-align:right!important;font-size:11px!important;padding:5px 0!important}
+ .kana-artboard .sidebar .brand{max-width:210px!important;flex-shrink:0!important}
+ .kana-artboard .kana-art-scene {overflow:clip!important;right:0!important}
+}
+@media(max-width:560px){
+ .kana-artboard .sidebar .brand{max-width:175px!important}
+ .kana-artboard .kana-art-scene img{width:335px!important;left:64%!important}
+}
+/* The image environment gently borrows hue from the selected photo, never recolors its bytes. */
+.kana-artboard .image-stage .kana-photo-atmosphere {opacity:.27!important;filter:blur(46px) saturate(1.16)!important}
+.kana-artboard .review-layout::before{content:"";position:absolute;z-index:-1;inset:-18px -18px 5px -18px;pointer-events:none;
+ background:radial-gradient(ellipse 43% 34% at 70% 5%,#ffe4ef8c,transparent 95%),radial-gradient(ellipse 62% 31% at 20% 82%,#ffd9e47a,transparent 90%)}
+.kana-artboard .kana-cover-note {max-width:190px;text-align:right;font-size:18px!important;line-height:1.5!important;letter-spacing:.06em!important}
+@media(max-width:900px){
+ .kana-artboard .toolbar>*{flex-shrink:0!important;white-space:nowrap!important}
+ .kana-artboard .detail-panel .decision-bar {position:fixed!important;bottom:0!important;left:0!important;right:0!important;width:100%!important;
+  z-index:95!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  background:#fff9fcf2!important;backdrop-filter:blur(17px);-webkit-backdrop-filter:blur(17px);
+  border-top:1px solid #f0cbdd!important;box-shadow:0 -5px 17px #87456321!important;
+  padding:7px 11px calc(9px + env(safe-area-inset-bottom))!important;margin:0!important;gap:6px!important}
+ .kana-artboard .detail-panel .decision-bar button{min-height:47px!important;height:47px!important;border-radius:14px!important;padding:4px 2px!important}
+ .kana-artboard .detail-panel .decision-bar button::before{font-size:16px!important}
+ .kana-artboard .detail-panel .decision-bar button small{font-size:9px!important}
+ .kana-artboard .detail-panel .decision-bar [data-decision="inspiration"]{min-height:47px!important;height:47px!important;border:1px solid #f0c1d3!important;align-items:center!important;justify-content:center!important}
+}
+@media(max-width:900px){
+  /* backdrop-filter establishes a containing block for fixed descendants; mobile dock must attach to viewport */
+  .kana-artboard .detail-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
