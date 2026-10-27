@@ -83,7 +83,7 @@ def component_factory(client, library):
             page.expose_binding('__testRequest', request)
             markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
-            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css']:
+            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css','kana-painting.css']:
                 page.add_style_tag(content=(ROOT/'web'/filename).read_text(encoding='utf-8'))
             page.evaluate('''fragment => {
                 if(fragment)location.hash=fragment;
