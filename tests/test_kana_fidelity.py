@@ -7,7 +7,7 @@ from test_ui_components import component_factory
 ROOT=Path(__file__).resolve().parents[1]
 
 def test_single_owner_stylesheet():
-    html=(ROOT/'web/index.html').read_text()
+    html=(ROOT/'web/index.html').read_text(encoding='utf-8')
     styles=re.findall(r'href="/static/([^?\"]+)\?',html)
     assert styles==['styles.css','kana-editorial.css']
     assert not any(x in html for x in ('studio.js?','studio.css?','kana.css?','kana-atmosphere.css?','kana-painting.css?'))
