@@ -64,7 +64,16 @@
   const sourceBound=new WeakSet();
   function bindImage(){const source=byId('main-image'),stage=byId('image-stage');if(!source||!stage||sourceBound.has(source))return;sourceBound.add(source);const echo=document.createElement('img');echo.className='photo-echo';echo.alt='';echo.setAttribute('aria-hidden','true');stage.prepend(echo);const update=()=>{echo.hidden=!(source.complete&&source.naturalWidth&&!source.hidden);if(!echo.hidden&&echo.getAttribute('src')!==source.getAttribute('src'))echo.src=source.currentSrc||source.src;};source.addEventListener('load',update);source.addEventListener('error',()=>echo.hidden=true);new MutationObserver(update).observe(source,{attributes:true,attributeFilter:['src','hidden']});update();for(const [id,i] of [['stage-prev-btn','left'],['stage-next-btn','right']])byId(id)?.replaceChildren(svg(i));}
   function fitViewport(){const stage=byId('image-stage');if(!stage)return;const top=stage.getBoundingClientRect().top+scrollY;const minimum=innerWidth<=700?240:230;const available=Math.max(minimum,Math.min(560,innerHeight-top-(innerWidth<=700?100:137)));stage.style.setProperty('--photo-height',available+'px');}
-  function moveFilters(){const view=byId('view'),slot=byId('canvas-filter-slot');const toolbar=view?.querySelector(':scope > .toolbar');if(toolbar&&slot){slot.replaceChildren(toolbar);}else if(!view?.querySelector('#reference-content')&&slot?.firstChild){slot.replaceChildren();}}
+  function moveFilters(){
+    const view=byId('view'),slot=byId('canvas-filter-slot');
+    if(!view||!slot)return;
+    // Only the review search toolbar belongs in the project index. Notes/jobs
+    // also use .toolbar; moving theirs would let a later observer delete it.
+    const isReview=Boolean(view.querySelector('#reference-content'));
+    const toolbar=view.querySelector(':scope > .toolbar');
+    if(isReview&&toolbar?.querySelector('#search-ref'))slot.replaceChildren(toolbar);
+    else if(!isReview&&slot.firstChild)slot.replaceChildren();
+  }
   let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();moveFilters();organizeInspector();bindImage();fitViewport();observer.observe(byId('view'),{childList:true,subtree:true});});});
   if(byId('view'))observer.observe(byId('view'),{childList:true,subtree:true});
   addEventListener('resize',()=>{syncNavigation();fitViewport();if(innerWidth>700)closeNav();});addEventListener('load',fitViewport);document.fonts?.ready.then(fitViewport);
