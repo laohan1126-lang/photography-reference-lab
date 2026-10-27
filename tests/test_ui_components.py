@@ -21,10 +21,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def open_navigation(page):
-    # On desktop the approved editorial shell keeps the complete project rail visible.
+    # Desktop has a persistent project index; mobile moves navigation into its drawer.
     toggle = page.locator('#toggle-project-nav')
-    if toggle.is_visible() and toggle.get_attribute('aria-expanded') != 'true':
+    if page.viewport_size['width'] <= 700 and toggle.is_visible() and toggle.get_attribute('aria-expanded') != 'true':
         toggle.click()
+    more = page.locator('.global-more')
+    if more.count() and not more.evaluate('n => n.open'):
+        more.locator('summary').click()
 
 
 def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, client, library):
@@ -85,13 +88,14 @@ def component_factory(client, library):
             page.expose_binding('__testRequest', request)
             markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
-            # Static concept lettering is in Git as SVG paths, not a font binary.
-            svg = ROOT / 'web/ui-art/kana-display-logo.svg'
-            if svg.exists():
-                logo = 'data:image/svg+xml;base64,' + base64.b64encode(svg.read_bytes()).decode()
-                page.eval_on_selector('.kana-display-kana-logo', '(node, uri) => node.src = uri', logo)
-            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css','kana-editorial.css']:
+            # Match the active HTML resources exactly, not abandoned theme layers.
+            for filename in ['styles.css','kana-editorial.css']:
                 page.add_style_tag(content=(ROOT/'web'/filename).read_text(encoding='utf-8'))
+            for node in page.locator('img[src^="/static/ui-art/"]').element_handles():
+                name = node.get_attribute('src').split('/static/', 1)[1]
+                asset = ROOT / 'web' / name
+                if asset.is_file():
+                    node.evaluate('(n,u)=>n.src=u', 'data:image/svg+xml;base64,' + base64.b64encode(asset.read_bytes()).decode())
             page.evaluate('''fragment => {
                 if(fragment)location.hash=fragment;
                 window.fetch = async(path, options={}) => {
@@ -119,7 +123,6 @@ def component_factory(client, library):
                 new MutationObserver(replace).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src']});
             }''', fragment)
             page.add_script_tag(content=(ROOT/'web/library-browser.js').read_text(encoding='utf-8'))
-            page.add_script_tag(content=(ROOT/'web/studio.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/kana.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/app.js').read_text(encoding='utf-8'))
             page.locator('#application').wait_for(state='visible')
@@ -334,8 +337,7 @@ def test_ui_new_character_editable_note_and_blocked_job(ui):
     expect(page.locator('[data-note]')).to_contain_text('保留有效的引导')
     open_navigation(page)
     page.get_by_role('button',name='采集任务',exact=True).click()
-    # Keep the historical task-package handoff covered directly; the primary
-    # collection editor now creates split Search/Review jobs.
+    # The primary collection editor creates split Search/Review jobs; keep the old handoff covered.
     new_project=next(p for p in library.projects() if p['character']=='有马加奈')
     job=library.create_job(new_project['id'],JobInput(kind='collection',notes='中文、日文检索；优先手势清楚的独立图片'))
     page.evaluate('id => jobHandoff(id)',job['id'])
@@ -370,7 +372,6 @@ def exercise_stable_strip(page, library, project, auto):
     assert page.evaluate('originalStrip.scrollLeft')==before
     for key in ['k','m']:
         chosen=page.evaluate("document.querySelector('#filmstrip [aria-current=true]').dataset.ref")
-        # Focus a non-input before pressing shortcuts; no hidden bypass or forced click.
         page.locator('#filmstrip [aria-current=true]').focus()
         page.keyboard.press(key)
         idle(page)
@@ -481,8 +482,6 @@ def test_image_load_recovers_after_transient_error(ui):
 
 def test_browser_wait_does_not_require_unsafe_eval(component_factory):
     page = component_factory()
-    # The real site sends this in its HTTP header. Exercise a false first poll
-    # under the same eval restriction even in the component-only environment.
     page.evaluate('''() => {
         const policy = document.createElement('meta');
         policy.httpEquiv = 'Content-Security-Policy';
@@ -499,12 +498,10 @@ def test_ui_batch_selection_copy_and_contact_board_entry(component_factory, clie
     source = add_reference(client, project, 91)
     target = client.post("/api/projects", json={"character": "转移目标角色"}).json()
     page = component_factory(f"view=references&project={project['id']}")
-
     advanced(page, "跨项目复用与模特沟通")
     page.get_by_role("button", name="加入批量选择", exact=True).click()
     expect(page.locator("#selection-actions")).to_have_text("已选 1 · 批量/沟通板")
     assert page.locator(f'#filmstrip [data-ref="{source["id"]}"]').evaluate("n => n.classList.contains('batch-selected')")
-
     page.locator("#selection-actions").click()
     page.locator("#selection-transfer").click()
     page.get_by_label("目标项目", exact=True).select_option(target["id"])
@@ -513,14 +510,12 @@ def test_ui_batch_selection_copy_and_contact_board_entry(component_factory, clie
     page.get_by_role("button", name="执行", exact=True).click()
     page.locator("#editor").wait_for(state="hidden")
     idle(page)
-
     copied = library.references(target["id"])["items"]
     assert len(copied) == 1
     assert copied[0]["asset_sha"] == source["asset_sha"]
     assert copied[0]["decision"] == "pending"
     assert copied[0]["review"] is None and copied[0]["card"] is None
     assert library.reference(source["id"]).get("detached_at") is None
-
     page.locator("#selection-actions").click()
     page.locator("#selection-board").click()
     expect(page.locator("#editor")).to_contain_text("每页最多 4 张")

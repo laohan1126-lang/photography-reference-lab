@@ -1,15 +1,14 @@
 from fastapi.testclient import TestClient
-
 from ref_lab.api import create_app
 from ref_lab.config import Settings
-
 TOKEN = 'test-only-access-token-not-a-live-credential-123'
-
 
 def test_kana_static_resources_and_private_access(tmp_path):
     web = tmp_path / 'web'
     files = {
-        'kana.css': b'body{}', 'kana-atmosphere.css': b'body{}', 'kana-painting.css': b'body{color:pink}', 'kana-editorial.css': b'body{color:hotpink}', 'kana.js': b'void 0;',
+        'kana.css': b'body{}', 'kana-atmosphere.css': b'body{}',
+        'kana-painting.css': b'body{color:pink}', 'kana-editorial.css': b'body{color:hotpink}',
+        'kana.js': b'void 0;',
         'ui-art/kana-wordmark.svg': b'<svg/>', 'ui-art/kana-display-logo.svg': b'<svg/>', 'ui-art/kana-frame.svg': b'<svg/>',
         'private/kana/summer.webp': b'synthetic summer',
         'private/kana/rain.webp': b'synthetic rain',
@@ -22,7 +21,7 @@ def test_kana_static_resources_and_private_access(tmp_path):
     (web / 'private' / 'kana' / 'other.webp').write_bytes(b'private')
     settings = Settings(tmp_path / 'data', TOKEN, public_origin='http://testserver', web_dir=web)
     with TestClient(create_app(settings)) as client:
-        for name in ('kana.css', 'kana-atmosphere.css', 'kana-painting.css', 'kana-editorial.css', 'kana.js', 'ui-art/kana-wordmark.svg', 'ui-art/kana-display-logo.svg', 'ui-art/kana-frame.svg'):
+        for name in (name for name in files if not name.startswith('private/')):
             response = client.get('/static/' + name)
             assert response.status_code == 200
             assert response.content == files[name]
@@ -38,19 +37,12 @@ def test_kana_static_resources_and_private_access(tmp_path):
         (web / 'private' / 'kana' / 'rain.webp').unlink()
         assert client.get('/static/private/kana/rain.webp').status_code == 404
 
-
 def test_login_retries_private_art_on_actual_http(tmp_path):
-    import os
-    import shutil
-    import socket
-    import threading
-    import time
+    import os,shutil,socket,threading,time
     from pathlib import Path
-
     from PIL import Image
     from playwright.sync_api import expect, sync_playwright
     import uvicorn
-
     web = tmp_path / 'web'
     shutil.copytree(Path(__file__).resolve().parents[1] / 'web', web,
                     ignore=shutil.ignore_patterns('private'))
@@ -67,8 +59,7 @@ def test_login_retries_private_art_on_actual_http(tmp_path):
     thread.start()
     try:
         for _ in range(100):
-            if server.started:
-                break
+            if server.started: break
             time.sleep(.1)
         assert server.started
         with sync_playwright() as p:

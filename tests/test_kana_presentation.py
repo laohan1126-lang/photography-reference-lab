@@ -1,6 +1,4 @@
-"""Real business renderer + TestClient + Chromium, using synthetic reference pixels.
-No owner's images/databases/network model calls. Not a Windows runtime test.
-"""
+"""Real business renderer + TestClient + Chromium; synthetic reference pixels, not Windows QA."""
 from __future__ import annotations
 import json,os
 from pathlib import Path
@@ -8,14 +6,12 @@ import pytest
 from playwright.sync_api import expect
 from test_ui_components import component_factory
 from conftest import add_reference
-
 ROOT=Path(__file__).resolve().parents[1]
 
 @pytest.fixture
 def kana_ui(component_factory,client,library,project):
     for i in range(3):add_reference(client,project,i)
     page=component_factory()
-    # Shared component harness loads the same presentation layers as index.html.
     page.wait_for_function("document.querySelector('#detail-panel').dataset.kanaOrganized==='true'")
     return page,library,project
 
@@ -41,11 +37,9 @@ def test_kana_primary_controls_are_right_and_in_view(kana_ui,width,height):
     assert len(metrics['controls'])>=10,metrics
     assert all(x['right'] and x['top']>=0 and x['bottom']<=height+1 and x['visible'] and x['unclipped'] and x['hit'] for x in metrics['controls']),metrics
     assert page.locator('.kana-hat').count()==0
-    # Verify the accepted page architecture, not only CSS colors.
-    assert page.locator('.kana-work-grid').is_visible()
-    assert page.locator('.kana-index').is_visible()
-    assert page.locator('.kana-display-arima').inner_text() == 'ARIMA'
-    assert page.locator('.kana-display-kana-logo').evaluate('n => n.complete && n.naturalWidth > 0')
+    assert page.locator('.canvas-workspace').is_visible()
+    assert page.locator('.canvas-index').is_visible()
+    assert page.locator('#canvas-title img').evaluate('n => n.complete && n.naturalWidth > 0')
     assert page.locator('#project-navigation').is_visible()
     assert page.locator('#image-stage').evaluate("n=>['none','normal','\"\"'].includes(getComputedStyle(n,'::before').content)")
     out=Path(os.environ.get('LAB_TEST_ARTIFACTS',str(ROOT/'.local/kana-tests')));out.mkdir(parents=True,exist_ok=True)
@@ -79,7 +73,7 @@ def test_kana_reduced_motion_and_missing_art(kana_ui):
     page,_,_=kana_ui
     page.emulate_media(reduced_motion='reduce')
     page.locator('#studio-collect').hover()
-    assert page.locator('.kana-pointer-orbit').evaluate('n=>n.hidden')
+    assert page.locator('.canvas-orbit').evaluate('n=>n.hidden')
     page.evaluate("document.querySelector('#kana-theme-image').src='data:image/png;base64,AAAA'")
     expect(page.locator('#kana-asset-notice')).to_be_visible()
     expect(page.locator('[data-decision=keep]')).to_be_visible()
@@ -93,7 +87,7 @@ def test_kana_reduced_motion_and_missing_art(kana_ui):
 @pytest.mark.parametrize('width,height',[(390,844),(320,720)])
 def test_kana_mobile_controls_are_reachable(kana_ui,width,height):
     page,_,_=kana_ui;page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(250)
-    page.evaluate("document.querySelector('.workspace').getAnimations({subtree:true}).filter(a=>a.animationName==='kana-atmosphere-breathe').forEach(a=>{a.pause();a.currentTime=12500})")
+    page.evaluate("document.querySelector('.workspace').getAnimations({subtree:true}).filter(a=>['canvas-breathe','ribbon-drift'].includes(a.animationName)).forEach(a=>{a.pause();a.currentTime=12500})")
     page.wait_for_timeout(50)
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     for name in ['keep','inspiration','maybe','reject']:

@@ -27,4 +27,5 @@ testpaths = ["tests"]
 addopts = "-ra"
 
 [tool.setuptools.data-files]
-"share/photography-reference-lab/web" = ["web/index.html", "web/app.js", "web/styles.css", "web/studio.css", "web/studio.js", "web/library-browser.js", "web/learning.html", "web/learning.css", "web/learning.js", "web/learning-gateways.css", "web/learning-gateways.js", "web/learning-atlas.json", "web/learning-icons.json", "web/learning-icons-LICENSE.txt"]
+"share/photography-reference-lab/web" = ["web/index.html", "web/kana-editorial.css", "web/kana.js", "web/app.js", "web/styles.css", "web/studio.css", "web/studio.js", "web/library-browser.js", "web/learning.html", "web/learning.css", "web/learning.js", "web/learning-gateways.css", "web/learning-gateways.js", "web/learning-atlas.json", "web/learning-icons.json", "web/learning-icons-LICENSE.txt"]
+"share/photography-reference-lab/web/ui-art" = ["web/ui-art/kana-display-logo.svg", "web/ui-art/kana-wordmark.svg", "web/ui-art/kana-frame.svg"]

@@ -1,13 +1,5 @@
 # 当前任务
 
-- 最新视觉候选：**有马加奈整页画布式重构 V2**。[新任务记录](2026-10-27-kana-editorial-recomposition.md)，分支 `codex/kana-painting-accepted-concept-20261027`；更换了导航和动态工作区 DOM，使用原画 + ARIMA/固定 SVG Kana 字形，右侧真实 K/I/M/X 与制卡动作保留，修复 CSS/SVG 静态资源 404。对代码提交 `9296ceffc` 的 Chromium/API 专项 CI [40476375311](https://github.com/laohan1126-lang/photography-reference-lab/actions/runs/40476375311) 10 passed。使用用户原画的 6 宽度本地视觉 QA 已做（不是正式 Windows HTTP 验收），独立审图与用户审美 PENDING。未部署/未合并 main、未公开私有图片。\n\n- 当前候选运行：[加奈整页绘画式 UI](2026-10-27-kana-painting-concept.md)。分支 `codex/kana-painting-accepted-concept-20261027`，基线60016a7；修复绘画CSS真实404、装饰层溢出与短屏工具空间，10项针对性检查均有通过证据，5视口 Windows Edge 实测通过。实际只读备份预览 `http://127.0.0.1:18778/` 已打开；主人审美与生图一致性 PENDING，完整仓库回归未跑，main与日用库不动。Git/远端SHA见事务 `01a17c57-78d5-70b3-aa4a-6eee8cc37a92`，Notion关闭。
-
-- 本轮续作已完成实现与针对性验证：[整幅原画氛围版](2026-10-27-kana-atmosphere.md)。首屏工具、错误提示、导出菜单和手机动画溢出已修；资源/布局10项、采集界面9项通过，43项浏览器初跑的8项失败均已针对性复验通过，最终手机+历史流程3项通过。五视口实际页面及未选/卡片草稿状态可见性验证通过。当前候选等待用户审查，独立Astra审图因先前DENIED仍未验证；实际只读预览 `http://127.0.0.1:18777/`，日用库与main不动。提交/推送和远端SHA由事务`01a17b43-98e9-77f2-b651-0abc77da4faa`回执另证。
-
-- 新版整幅原画氛围版 Windows 接入与修复：[任务记录](2026-10-27-kana-atmosphere.md)，分支 `codex/kana-immersive-atmosphere-20261027`。已恢复私有静态资源/登录保护，修复首屏工具裁切、归档错误被折叠、导出菜单遮挡和手机动画中途溢出；旧浏览器测试入口已同步，原业务断言保留。资源/布局10项、采集界面9项通过；43项浏览器首跑35通过8失败，修复后失败项已逐项通过（最终手机+历史3项通过）。五视口实际备份预览几何/命中与交互通过。预览 `http://127.0.0.1:18777/` 为只读独立备份，等待主人审美审查；独立Astra审图未执行，不部署日用入口、不合并main。Git/远端SHA以当前事务回执为准，私有素材/截图不进Git。
-
-- Kana atmospheric integration: [continuous scene background and photo glow](2026-10-27-kana-atmosphere.md), preview branch `codex/kana-immersive-atmosphere-20261027`; private art stays out of public Git. This restores user-requested full-image environment instead of a tiny masthead image. User aesthetic acceptance PENDING; not merged to main or deployed.
-
-- 当前 UI：用户已明确拒绝 UI Studio 1.5 的帘子、帽子、未采用真实素材、左侧判断与首屏操作溢出。直接重设计任务见 [Kana direct redesign](2026-10-27-kana-direct-redesign.md)。分支 `codex/kana-direct-ui-20261027`，从 `b805b2a8f7e4ba5e869b1d6595ca7cd727e88dc1` 隔离；不合并 main、不部署、不改真实数据。
-- 本次状态：代码候选与本地离线 Chromium 展示层验证已完成；远端真实业务组件回归以该提交的 Actions 为准。用户审美仍 PENDING，独立外部审图未执行，不能记作通过。
-- 原任务索引已逐字保存在 [CURRENT-before-kana-20261027.md](CURRENT-before-kana-20261027.md)，其他采集/恢复任务的既有状态不变。
+- **加奈主稿保真重构 V3**：[本轮任务与差异账本](2026-10-27-kana-fidelity-locked.md)，分支 `codex/kana-fidelity-locked-20261027`。用户明确拒绝旧版的视觉还原和标题重叠。当前改为公共业务样式 + 单一画布主题、固定主稿字标、原始制服画面、中央真图和右侧真实操作。业务不改、私有原画不提交、main 不合并、未部署。
+- 本地验证为真实业务脚本 + TestClient/Chromium 组件桥接；相关旧业务 22 项通过，几何/素材/呈现专项 16 项通过，真实 HTTP 浏览器登录因本环境管理策略未执行（未绕过）。远端 CI 以当前提交的 Kana fidelity verification 回执为准。完整主稿保真仍是 PARTIAL：人物原姿势、竖幅照片和绘画装饰细节差异已记录；用户审美与独立审图未通过，不用技术测试冒充视觉验收。
+- 之前任务索引逐字保存在 [CURRENT-before-fidelity-20261027.md](CURRENT-before-fidelity-20261027.md)。旧版被拒绝的事实保留，其余采集/数据任务状态不变。
