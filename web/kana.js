@@ -57,6 +57,10 @@
   art?.addEventListener('load', assetState);
   art?.addEventListener('error', assetState);
   if (art?.complete) assetState();
+  const application = byId('application');
+  if (application && art) new MutationObserver(() => {
+    if (!application.hidden && art.complete && !art.naturalWidth) art.src = art.src;
+  }).observe(application, {attributes:true, attributeFilter:['hidden']});
   notice?.addEventListener('click', () => {
     const editor = byId('editor');
     if (!editor || editor.open) return;
@@ -103,6 +107,8 @@
     arranged.set(panel, heading);
     // Study / global inspiration have their own domain-specific controls.
     if (!panel.querySelector('[data-decision]') && !panel.querySelector('#edit-card')) return;
+    const archiveError = panel.querySelector('#archive-error');
+    if (archiveError) heading.append(archiveError);
     const tools = document.createElement('div');
     tools.className = 'kana-primary-tools';
     tools.setAttribute('role', 'group');
@@ -152,9 +158,13 @@
       const documentTop = stage.getBoundingClientRect().top + scrollY;
       const available = Math.max(240, Math.min(720, innerHeight-documentTop-115));
       stage.style.setProperty('--kana-stage-height', `${available}px`);
-      if(panel)panel.style.setProperty('--kana-panel-height',`${Math.max(300,innerHeight-panel.getBoundingClientRect().top-scrollY-16)}px`);
+      if(panel){
+        const room=innerHeight-panel.getBoundingClientRect().top-scrollY-8;
+        panel.style.setProperty('--kana-panel-height',`${Math.max(300,room)}px`);
+        panel.classList.toggle('kana-compact',room<460);
+      }
     } else {
-      stage?.style.removeProperty('--kana-stage-height');panel?.style.removeProperty('--kana-panel-height');
+      stage?.style.removeProperty('--kana-stage-height');panel?.style.removeProperty('--kana-panel-height');panel?.classList.remove('kana-compact');
       if(stage && innerWidth<=700)stage.style.setProperty('--kana-mobile-stage-height',`${Math.max(190,Math.min(440,innerHeight-stage.getBoundingClientRect().top-scrollY-100))}px`);
     }
   }

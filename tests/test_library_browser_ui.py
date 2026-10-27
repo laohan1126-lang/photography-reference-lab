@@ -1,12 +1,12 @@
 """Actual Chromium DOM and API bridge with synthetic image fixtures."""
 from playwright.sync_api import expect
 from conftest import add_reference
-from test_ui_components import component_factory, screenshot, open_navigation
+from test_ui_components import component_factory, screenshot, open_navigation, advanced
 
 
 def go_gallery(page):
-    page.locator('#toggle-project-nav').click()
-    page.get_by_role('button',name='图库 · 跨项目找图',exact=True).click()
+    open_navigation(page)
+    page.locator('#global-nav [data-view="library"]').click()
     expect(page.locator('#library-status')).not_to_have_text('正在查找…')
 
 
@@ -23,6 +23,7 @@ def test_bounded_project_navigation_search_pin_and_directory(component_factory,c
     expect(page.locator('#project-list [data-project-pin]')).to_have_attribute('aria-pressed','true')
     page.locator('#project-list [data-project-open]').click()
     expect(page.locator('#project-header')).to_contain_text('检索项目01')
+    open_navigation(page)
     page.locator('#project-search').fill('')
     assert page.locator('#project-list [data-project-open]').count()==8
     page.locator('#all-projects').click()
@@ -135,12 +136,14 @@ def test_ai_suggestion_is_visible_in_project_detail_and_human_correction_wins(co
     q.run_one(Analyzer())
     page = component_factory()
     expect(page.locator('#reference-classification-summary')).to_contain_text('仰拍')
+    advanced(page,'摄影分类')
     page.locator('#reference-classification-edit').click()
     expect(page.locator('#photo-classification-status')).to_contain_text('AI 初步分类')
     expect(page.locator('#editor [name=pose]')).to_have_value('standing')
     page.locator('#editor [name=viewpoint]').select_option('high_angle')
     page.get_by_role('button',name='保存摄影分类',exact=True).click()
     expect(page.locator('#editor')).not_to_be_visible()
+    advanced(page,'摄影分类')
     page.locator('#reference-classification-edit').click()
     expect(page.locator('#photo-classification-status')).to_contain_text('已由你修正')
     expect(page.locator('#editor [name=viewpoint]')).to_have_value('high_angle')
@@ -155,6 +158,7 @@ def test_editor_merges_late_ai_into_untouched_fields(component_factory, client, 
     q = ClassificationQueue(LibraryBrowser(library))
     q.discover()
     page = component_factory()
+    advanced(page,'摄影分类')
     page.locator('#reference-classification-edit').click()
     page.locator('#editor [name=viewpoint]').select_option('high_angle')
     q.run_one(Analyzer())
@@ -169,6 +173,7 @@ def test_human_conflict_in_classification_editor_is_not_silently_overwritten(com
     from ref_lab.library_browser import AnnotationInput, LibraryBrowser
     ref = add_reference(client, project)
     page = component_factory()
+    advanced(page,'摄影分类')
     page.locator('#reference-classification-edit').click()
     page.locator('#editor [name=viewpoint]').select_option('high_angle')
     LibraryBrowser(library).annotate(ref['asset_sha'],

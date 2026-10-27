@@ -19,7 +19,7 @@ from ref_lab.api import create_app
 from ref_lab.config import Settings
 from ref_lab.models import CandidateInput, Card, JobInput, ProjectInput, ReferenceEdit, Source, VisualReview
 from conftest import TOKEN, card_data, image_bytes, review_data
-from test_ui_components import advanced, choose, idle, exercise_stable_strip
+from test_ui_components import advanced, choose, idle, exercise_stable_strip, open_navigation
 from test_personal_library import candidate_zip
 
 
@@ -76,7 +76,7 @@ def browser_page():
 def unlock(page, url):
     page.goto(url)
     page.get_by_label("访问口令").fill(TOKEN)
-    page.get_by_role("button", name="进入我的参考库").click()
+    page.locator('#login-form button').click()
     page.locator("#main-image").wait_for()
 
 
@@ -181,11 +181,13 @@ def test_browser_agent_result_accept_and_offline_pack(live_site,browser_page,tmp
 def test_browser_notes_collection_download_import(live_site,browser_page,tmp_path):
     url,library,project=live_site
     page,errors=browser_page;unlock(page,url)
+    open_navigation(page)
     page.get_by_role('button',name='新建角色项目',exact=True).click()
     page.get_by_label('角色名 *',exact=True).fill('有马加奈')
     page.get_by_label('补充要求',exact=True).fill('自然动作，服装版本以后再补')
     page.get_by_role('button',name='建立项目',exact=True).click()
     page.locator('#editor').wait_for(state='hidden')
+    open_navigation(page)
     page.get_by_role('button',name='摄影笔记',exact=True).click()
     page.get_by_role('button',name='＋ 写摄影笔记',exact=True).click()
     page.get_by_label('笔记标题 *',exact=True).fill('引导笔记')
@@ -252,7 +254,8 @@ def test_mobile_no_auth_open_save_reload_and_gallery(live_site, browser_page):
     page.locator('#stage-prev-btn').click()
     expect(page.locator('#filmstrip [aria-current=true]')).to_have_attribute('data-ref', ident)
     expect(page.locator('[data-decision=keep]')).to_have_class('chosen')
-    page.get_by_role('button', name='图库 · 跨项目找图', exact=True).click()
+    open_navigation(page)
+    page.locator('#global-nav [data-view="library"]').click()
     expect(page.locator('.library-tile')).to_have_count(3)
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     assert not login_requests

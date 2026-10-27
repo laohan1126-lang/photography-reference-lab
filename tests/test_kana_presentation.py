@@ -15,11 +15,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def kana_ui(component_factory,client,library,project):
     for i in range(3):add_reference(client,project,i)
     page=component_factory()
-    # Existing component_factory explicitly loads the legacy presentation layer.
-    # Load the new scoped adapter after real app.js has bound its real controls.
-    page.add_style_tag(content=(ROOT/'web/kana.css').read_text(encoding='utf-8'))
-    page.add_style_tag(content=(ROOT/'web/kana-atmosphere.css').read_text(encoding='utf-8'))
-    page.add_script_tag(content=(ROOT/'web/kana.js').read_text(encoding='utf-8'))
+    # Shared component harness loads the same presentation layers as index.html.
     page.wait_for_function("document.querySelector('#detail-panel').dataset.kanaOrganized==='true'")
     return page,library,project
 
@@ -34,15 +30,16 @@ def test_kana_primary_controls_are_right_and_in_view(kana_ui,width,height):
     page.wait_for_timeout(350)
     metrics=page.evaluate("""() => {
       const image=document.querySelector('#image-stage').getBoundingClientRect();
+      const panel=document.querySelector('#detail-panel').getBoundingClientRect();
       return {overflow:document.documentElement.scrollWidth>innerWidth,
         image:{top:image.top,bottom:image.bottom},
         controls:[...document.querySelectorAll('.decision-bar button,.kana-primary-tools button,#make-card')].map(n=>{
-          const r=n.getBoundingClientRect();return {id:n.id||n.dataset.decision,right:r.left>=image.right,top:r.top,bottom:r.bottom,visible:!!n.offsetWidth};})};
+          const r=n.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {id:n.id||n.dataset.decision,right:r.left>=image.right,top:r.top,bottom:r.bottom,visible:!!n.offsetWidth,unclipped:r.top>=panel.top&&r.bottom<=panel.bottom,hit:!!hit&&(hit===n||n.contains(hit))};})};
     }""")
     assert not metrics['overflow'],metrics
     assert metrics['image']['bottom']<=height+1,metrics
     assert len(metrics['controls'])>=10,metrics
-    assert all(x['right'] and x['top']>=0 and x['bottom']<=height+1 and x['visible'] for x in metrics['controls']),metrics
+    assert all(x['right'] and x['top']>=0 and x['bottom']<=height+1 and x['visible'] and x['unclipped'] and x['hit'] for x in metrics['controls']),metrics
     assert page.locator('.kana-hat').count()==0
     assert page.locator('#image-stage').evaluate("n=>['none','normal','\"\"'].includes(getComputedStyle(n,'::before').content)")
     out=Path(os.environ.get('LAB_TEST_ARTIFACTS',str(ROOT/'.local/kana-tests')));out.mkdir(parents=True,exist_ok=True)
@@ -88,6 +85,8 @@ def test_kana_reduced_motion_and_missing_art(kana_ui):
 @pytest.mark.parametrize('width,height',[(390,844),(320,720)])
 def test_kana_mobile_controls_are_reachable(kana_ui,width,height):
     page,_,_=kana_ui;page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(250)
+    page.evaluate("document.querySelector('.workspace').getAnimations({subtree:true}).filter(a=>a.animationName==='kana-atmosphere-breathe').forEach(a=>{a.pause();a.currentTime=12500})")
+    page.wait_for_timeout(50)
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     for name in ['keep','inspiration','maybe','reject']:
         box=page.locator(f'[data-decision={name}]').bounding_box()

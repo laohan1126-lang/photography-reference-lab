@@ -1,13 +1,15 @@
 """Real HTTP/cookie gallery journey, not the component TestClient bridge."""
 from playwright.sync_api import expect
 from test_browser import live_site, browser_page, unlock
+from test_ui_components import open_navigation
 
 
 def test_library_gallery_http_static_scripts_cookie_reload(live_site, browser_page):
     url, library, project = live_site
     page, _ = browser_page
     unlock(page, url)
-    page.get_by_role('button', name='图库 · 跨项目找图', exact=True).click()
+    open_navigation(page)
+    page.locator('#global-nav [data-view="library"]').click()
     expect(page.locator('.library-tile')).to_have_count(3)
     page.locator('.library-preview').first.click()
     page.locator('#editor select[name=viewpoint]').select_option('low_angle')

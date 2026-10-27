@@ -83,8 +83,8 @@ def component_factory(client, library):
             page.expose_binding('__testRequest', request)
             markup = re.sub(r'<link[^>]*>|<script[^>]*>.*?</script>', '', (ROOT/'web/index.html').read_text(encoding='utf-8'))
             page.set_content(markup)
-            page.add_style_tag(content=(ROOT/'web/styles.css').read_text(encoding='utf-8'))
-            page.add_style_tag(content=(ROOT/'web/studio.css').read_text(encoding='utf-8'))
+            for filename in ['styles.css','studio.css','kana.css','kana-atmosphere.css']:
+                page.add_style_tag(content=(ROOT/'web'/filename).read_text(encoding='utf-8'))
             page.evaluate('''fragment => {
                 if(fragment)location.hash=fragment;
                 window.fetch = async(path, options={}) => {
@@ -113,6 +113,7 @@ def component_factory(client, library):
             }''', fragment)
             page.add_script_tag(content=(ROOT/'web/library-browser.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/studio.js').read_text(encoding='utf-8'))
+            page.add_script_tag(content=(ROOT/'web/kana.js').read_text(encoding='utf-8'))
             page.add_script_tag(content=(ROOT/'web/app.js').read_text(encoding='utf-8'))
             page.locator('#application').wait_for(state='visible')
             page.locator('#library-grid' if 'view=library' in fragment else '#filmstrip').wait_for(state='attached')
@@ -191,7 +192,7 @@ def test_studio_reduced_motion_does_not_cancel_unrelated_effects_or_change_the_p
     }''')
     page.locator('#studio-collect').hover()
     page.emulate_media(reduced_motion='reduce')
-    expect(page.locator('.selection-lettering h2')).to_have_css('animation-name', 'none')
+    assert page.locator('.workspace').evaluate("n => getComputedStyle(n,'::before').animationName") == 'none'
     assert page.evaluate('window.unrelatedEffect.playState') == 'running'
     expect(page.locator('#main-image')).to_have_attribute('src', original)
     assert library.jobs() == []
@@ -246,7 +247,7 @@ def test_reduced_saved_cue_keeps_truth_without_moving_or_duplicating_the_photo(u
     choose(page,'maybe')
     assert library.reference(original_id)['decision']=='maybe'
     cue=page.evaluate('savedCue')
-    assert '待定 M' in cue['text']
+    assert '已标记待定' in cue['text']
     assert cue['images']==0 and cue['animations']==0
 
 
@@ -432,7 +433,7 @@ def test_global_library_zero_projects_upload_and_multi_role_use(component_factor
         page.locator('#editor button[type=submit]').click()
         page.locator('#editor').wait_for(state='hidden')
         open_navigation(page)
-        page.get_by_role('button',name='♡ 我的审美库',exact=True).click()
+        page.locator('#global-nav [data-view="inspiration"]').click()
         expect(page.locator('#detail-panel')).to_contain_text(project['character'])
     left=library.references(first['id'])['items'][0];right=library.references(second['id'])['items'][0]
     assert left['asset_sha']==right['asset_sha']

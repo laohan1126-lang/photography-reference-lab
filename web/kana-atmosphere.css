@@ -59,11 +59,14 @@ html[data-studio-view="inspiration"] .kana-workbench .workspace::before {
 .kana-workbench .kana-cover-note {color:#50759d}
 .kana-workbench .kana-ink-line {bottom:-5px;height:24px;stroke:#d88caf;stroke-width:1.1}
 .kana-workbench .project-header,.kana-workbench .kana-view-line,.kana-workbench .toolbar,.kana-workbench .review-layout {position:relative;z-index:1;background:transparent}
+.kana-workbench .project-header:has(.project-tools[open]) {z-index:10}
 .kana-workbench .kana-view-line {border-color:#c6d7e4a0}
 /* Native details must never leak absolutely positioned descendants while closed. */
 .kana-workbench .project-tools:not([open])>button,
 .kana-workbench .filter-more:not([open])>select {display:none!important}
 .kana-workbench .detail-panel,.kana-workbench .image-stage,.kana-workbench .image-column,.kana-workbench .stage-and-cues {background:transparent}
+.kana-workbench .detail-panel>* {flex-shrink:0}
+.kana-workbench .detail-panel.kana-compact .detail-heading::before {display:none}
 /* A faint color echo belongs to the CURRENT photograph, not the character banner.
    The real reference remains fully visible, sharp, and at its original aspect ratio. */
 .kana-workbench .image-stage {isolation:isolate}
@@ -99,7 +102,7 @@ html[data-studio-view="inspiration"] .kana-workbench .workspace::before {
 }
 @media (max-width:700px) {
   .kana-workbench .workspace::before {
-    left:0;width:100%;top:-15px;height:690px;opacity:.18;
+    left:0;width:calc(100% - 32px);top:-15px;height:690px;opacity:.18;
     background-size:auto 720px;background-position:center top;
     -webkit-mask-image:radial-gradient(ellipse 74% 68% at 57% 23%,#000 8%,transparent 87%);
     mask-image:radial-gradient(ellipse 74% 68% at 57% 23%,#000 8%,transparent 87%);

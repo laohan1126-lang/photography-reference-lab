@@ -22,6 +22,7 @@ from playwright.sync_api import expect
 from browser_assertions import wait_until
 from conftest import TOKEN
 from test_browser import browser_page, unlock  # shared real-HTTP browser fixture
+from test_ui_components import open_navigation
 from ref_lab.api import create_app
 from ref_lab.config import Settings
 from ref_lab.db import SCHEMA
@@ -106,13 +107,15 @@ def real_curation_journey(page,library):
     wait_until(page, '!state.busy')
     assert library.inspirations()['total']==1
     assert library.reference(selected)['review'] is None
+    open_navigation(page)
     page.get_by_role('button',name='新建角色项目',exact=True).click()
     page.get_by_label('角色名 *',exact=True).fill('隔离验收用第二项目')
     page.get_by_label('补充要求',exact=True).fill('仅验证引用关系，不做真实图像判断')
     page.get_by_role('button',name='建立项目',exact=True).click()
     page.locator('#editor').wait_for(state='hidden')
     second=library.projects()[0]
-    page.get_by_role('button',name='♡ 我的审美库',exact=True).click()
+    open_navigation(page)
+    page.locator('#global-nav [data-view="inspiration"]').click()
     page.get_by_role('button',name='引用到拍摄项目',exact=True).click()
     page.get_by_label('拍摄项目',exact=True).select_option(second['id'])
     page.get_by_role('button',name='引用并查看',exact=True).click()
