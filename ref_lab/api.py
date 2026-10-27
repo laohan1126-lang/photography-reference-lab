@@ -786,12 +786,12 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
 
     @app.get("/static/{filename}")
     def static(filename: str):
-        if filename not in {"app.js", "styles.css", "library-browser.js", "kana.css", "kana-atmosphere.css", "kana-painting.css", "kana.js"} | LEARNING_STATIC_FILES: raise Problem(404, "Static file not found")
+        if filename not in {"app.js", "styles.css", "library-browser.js", "kana.css", "kana-atmosphere.css", "kana-painting.css", "kana-editorial.css", "kana.js"} | LEARNING_STATIC_FILES: raise Problem(404, "Static file not found")
         return FileResponse(settings.web_dir / filename, headers={"Cache-Control": "no-cache, must-revalidate"})
 
     @app.get("/static/ui-art/{filename}")
     def kana_lettering(filename: str):
-        if filename not in {"kana-wordmark.svg", "kana-frame.svg"}: raise Problem(404, "Static file not found")
+        if filename not in {"kana-wordmark.svg", "kana-display-logo.svg", "kana-frame.svg"}: raise Problem(404, "Static file not found")
         path = settings.web_dir / "ui-art" / filename
         if not path.is_file() or path.is_symlink() or not path.resolve().is_relative_to(settings.web_dir.resolve()): raise Problem(404, "Static file not found")
         return FileResponse(path, headers={"Cache-Control": "no-cache, must-revalidate"})
