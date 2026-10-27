@@ -332,3 +332,32 @@ body.kana-workbench {
  .kana-workbench .toolbar .filter-more[open]>select{position:absolute;top:100%;right:0;width:155px;background:#fff9ff;z-index:15;border:1px solid #ebcada;border-radius:5px;box-shadow:0 10px 25px #b46e9e42}
  .kana-workbench .toolbar>button{font-size:9px;min-height:24px}
 }
+
+
+/* Six original live commands, re-art-directed as airy icon-and-caption operations. */
+@media(min-width:701px){
+ .kana-workbench .kana-primary-tools{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px 7px;padding:6px 0 8px}
+ .kana-workbench .kana-primary-tools>button{
+   min-height:58px;display:flex;align-items:center;justify-content:center;flex-direction:column;
+   gap:5px;padding:4px 1px;background:transparent;border:0;border-radius:0;
+   white-space:normal;text-align:center;font-size:9px;line-height:1.4;color:#846581;
+ }
+ .kana-workbench .kana-primary-tools>button::before{
+   display:grid;place-items:center;flex:none;width:28px;height:28px;
+   border:1px solid #f0dae7;border-radius:50%;background:#fff8fcbb;
+   box-shadow:0 4px 13px #d46f9a18;color:#c83b79;
+   font:17px/1 Georgia,serif;transition:transform .25s ease,background .25s ease;
+ }
+ .kana-workbench .kana-primary-tools>button:hover{transform:translateY(-2px);background:none;color:#c72c71}
+ .kana-workbench .kana-primary-tools>button:hover::before{transform:rotate(-8deg) scale(1.13);background:#ffe1ee}
+ .kana-workbench #review-reference::before{content:'◎'}
+ .kana-workbench #edit-card::before{content:'▤'}
+ .kana-workbench #edit-source::before{content:'⌕'}
+ .kana-workbench #copy-image-btn::before{content:'▧'}
+ .kana-workbench #toggle-selection::before{content:'♡'}
+ .kana-workbench #reveal-file-btn::before{content:'⌘'}
+}
+@media(min-width:701px) and (max-height:830px){
+ .kana-workbench .kana-primary-tools>button{min-height:45px;gap:3px;font-size:8px}
+ .kana-workbench .kana-primary-tools>button::before{width:23px;height:23px;font-size:14px}
+}
