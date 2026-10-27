@@ -77,6 +77,8 @@ def test_kana_reduced_motion_and_missing_art(kana_ui):
     page.evaluate("document.querySelector('#kana-theme-image').src='data:image/png;base64,AAAA'")
     expect(page.locator('#kana-asset-notice')).to_be_visible()
     expect(page.locator('[data-decision=keep]')).to_be_visible()
+    # Desktop has a permanently visible editorial navigation rail; the drawer toggle is mobile-only.
+    page.set_viewport_size({'width':390,'height':844})
     page.locator('#toggle-project-nav').click()
     expect(page.locator('#toggle-project-nav')).to_have_attribute('aria-expanded','true')
     page.keyboard.press('Escape')
