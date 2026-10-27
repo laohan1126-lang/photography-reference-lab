@@ -48,3 +48,18 @@ def test_motion_has_painted_state_and_honors_reduction(kana_ui):
     page.emulate_media(reduced_motion='reduce')
     page.wait_for_function("document.querySelector('.canvas-orbit').hidden")
     assert page.locator('.canvas-orbit').evaluate('n=>n.hidden')
+
+def test_other_view_toolbars_survive_presentation_observer(kana_ui):
+    page,_,_=kana_ui
+    page.evaluate("navigate('notes')")
+    page.locator('#new-note').wait_for(state='visible')
+    # Re-run the presentation observer after the asynchronous view mount.
+    page.evaluate("document.querySelector('#view').append(document.createElement('span'))")
+    page.wait_for_timeout(80)
+    assert page.locator('#view > .toolbar #new-note').count()==1
+    assert page.locator('#canvas-filter-slot #new-note').count()==0
+    page.locator('#new-note').click()
+    assert page.locator('#editor').is_visible()
+    page.locator('#editor-close').click()
+    page.evaluate("navigate('references')")
+    page.locator('#canvas-filter-slot #search-ref').wait_for(state='visible')
