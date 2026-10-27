@@ -205,3 +205,14 @@ body.kana-workbench::before{
 @media(prefers-reduced-motion:reduce){
  .kana-workbench .kana-masthead::before,.kana-workbench .kana-art-scene img{animation:none!important}
 }
+/* Keep the full painting within its scene; leave the workspace and menus open. */
+.kana-workbench .kana-art-scene{overflow:clip}
+.kana-workbench .workspace::before{left:0;width:calc(100% - 32px)}
+.kana-workbench .kana-compact .detail-heading::before{display:none}
+.kana-workbench .kana-compact .decision-bar button{min-height:40px;padding:2px 5px}
+.kana-workbench .kana-compact .kana-primary-tools>button{min-height:26px}
+.kana-workbench .kana-compact .decision-bar{margin-block:3px 5px}
+.kana-workbench .kana-compact .kana-primary-tools{gap:3px 10px}
+.kana-workbench .kana-compact .detail-heading{margin-bottom:2px}
+.kana-workbench .kana-compact .next-step{margin-block:1px}
+@media(max-width:700px){.kana-workbench .kana-art-scene{right:0}}

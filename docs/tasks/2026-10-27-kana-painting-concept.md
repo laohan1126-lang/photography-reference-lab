@@ -15,3 +15,16 @@ This is a code and design candidate, not a proven pixel-perfect translation of t
 
 ## Files
 `web/kana-painting.css`, `web/index.html` only. New CSS is isolated and reversible. No new API, database, Python service, or altered saved records.
+
+## Windows candidate deployment, 2026-10-27
+
+Owner request: deploy this new branch for actual review, preserve the supplied composition and main. The real HTTP allowlist omitted kana-painting.css, reproduced by the expanded resource regression (404 instead of 200). Add only that exact stylesheet to the allowlist; preserve private-media authentication and path restrictions. Install the existing hash-verified local art and run the actual app against an independent backup with mutation requests blocked. Windows rendered checks and publication outcomes will be appended below; owner aesthetic acceptance remains PENDING.
+
+### Verified outcome
+- Exact candidate baseline: 60016a7. Preserve the supplied composition, fonts, original illustration bytes and all business handlers. No main merge or daily-data deployment.
+- Static regression first reproduced HTTP 404; exact stylesheet allowlist fix passes public CSS and private-art auth/path checks.
+- Initial focused run: 4 passed, 6 failed. Scene overflow was caused by the original image leaving its scene and the mobile scene extending beyond the viewport. Clip only that decorative scene, bound the existing blurred underlay, and reuse the existing compact-inspector state with reduced gaps/padding; no body overflow suppression, title/warning removal or photo resizing. Drawer regression now exercises the mobile drawer; desktop navigation is intentionally persistent.
+- Intermediate run: 8 passed, 2 failed. After inspector spacing correction the three desktop cases passed. Actual backup long-title content exposed another short-screen boundary which synthetic content did not; corrected the same compact padding rule and reran those 3 cases: 3 passed. The other 7 cases reuse the unchanged relevant evidence from the 8-pass run. All 10 focused cases now have passing evidence; no claim of a fresh full-suite pass.
+- Windows Edge actual HTTP: 1440x900, 1366x768, 1024x768, 390x844, 320x720; painting stylesheet loaded, original art decoded, font loading complete, zero page exceptions, no horizontal scroll. Applicable desktop controls and mobile K/I/M/X in viewport with hit tests. Real next-image change and source dialog passed. Three original media HTTP requests returned 200; write barrier returned 403.
+- Local preview http://127.0.0.1:18778/ uses the separately restored official backup, automatic classification OFF, mutations blocked. It is opened in the system browser for owner review. Private assets, database and screenshots remain ignored/local. Existing daily checkout edits are preserved.
+- Owner aesthetic approval, exact concept-image visual parity and full repository regression remain UNVERIFIED. Typography/spacing are a candidate for human review, not deemed accepted by technical checks. Notion disabled. Git publication SHA is recorded independently by the Publisher receipt for turn 01a17c57-78d5-70b3-aa4a-6eee8cc37a92.
