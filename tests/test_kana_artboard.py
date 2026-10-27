@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 from test_kana_presentation import kana_ui
+from test_ui_components import component_factory
 
 ROOT=Path(__file__).resolve().parents[1]
 
