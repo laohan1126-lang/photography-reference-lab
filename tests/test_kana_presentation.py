@@ -41,6 +41,11 @@ def test_kana_primary_controls_are_right_and_in_view(kana_ui,width,height):
     assert len(metrics['controls'])>=10,metrics
     assert all(x['right'] and x['top']>=0 and x['bottom']<=height+1 and x['visible'] and x['unclipped'] and x['hit'] for x in metrics['controls']),metrics
     assert page.locator('.kana-hat').count()==0
+    # Verify the accepted page architecture, not only CSS colors.
+    assert page.locator('.kana-work-grid').is_visible()
+    assert page.locator('.kana-index').is_visible()
+    assert page.locator('.kana-display-arima').inner_text() == 'ARIMA'
+    assert page.locator('#project-navigation').is_visible()
     assert page.locator('#image-stage').evaluate("n=>['none','normal','\"\"'].includes(getComputedStyle(n,'::before').content)")
     out=Path(os.environ.get('LAB_TEST_ARTIFACTS',str(ROOT/'.local/kana-tests')));out.mkdir(parents=True,exist_ok=True)
     (out/f'kana-{width}-geometry.json').write_text(json.dumps(metrics,indent=2),encoding='utf-8')
@@ -78,6 +83,7 @@ def test_kana_reduced_motion_and_missing_art(kana_ui):
     expect(page.locator('#kana-asset-notice')).to_be_visible()
     expect(page.locator('[data-decision=keep]')).to_be_visible()
     page.set_viewport_size({'width':390,'height':844})
+    assert page.locator('#toggle-project-nav').is_visible()
     page.locator('#toggle-project-nav').click()
     expect(page.locator('#toggle-project-nav')).to_have_attribute('aria-expanded','true')
     page.keyboard.press('Escape')
