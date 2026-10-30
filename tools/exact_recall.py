@@ -9,9 +9,11 @@ import argparse
 import hashlib
 import html
 import json
+from collections import deque
+from collections.abc import Callable
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
 import re
-import subprocess
 import time
 from urllib.parse import parse_qs, urlsplit
 from uuid import uuid4
@@ -19,24 +21,25 @@ from uuid import uuid4
 import httpx
 from PIL import Image
 
+from ref_lab.bsk_command import run_bsk
 from tools.learning_v1 import ROOT, digest
 from tools.learning_v1_human import atomic_write, json_bytes
 
 XHS_NOTE_JS = r"""(() => {
- const root = document.querySelector('.note-detail-mask .note-container');
+ const root = document.querySelector('.note-detail-mask .note-container') || document.querySelector('.note-container, #noteContainer, [class*="noteContainer"], .note-content');
  if (!root) return {error:'visible_note_container_missing'};
  const text = root.innerText;
  const login = Array.from(document.querySelectorAll('[role="dialog"], .login-container, .login-box'))
    .some(x => x.getBoundingClientRect().width && /登录|登入|扫码/.test(x.innerText));
  if (login) return {error:'login_required'};
  const seen = new Set();
- const images = Array.from(root.querySelectorAll('.swiper-slide:not(.swiper-slide-duplicate) img'))
-   .filter(x => x.naturalWidth >= 400 && x.naturalHeight >= 400)
-   .map(x => ({url:x.currentSrc || x.src,width:x.naturalWidth,height:x.naturalHeight}))
-   .filter(x => !seen.has(x.url) && seen.add(x.url));
- const title = root.querySelector('#detail-title')?.innerText?.trim() || '';
- const description = root.querySelector('#detail-desc')?.innerText?.trim() || '';
- const author = root.querySelector('.author-container .username')?.innerText?.trim() || '';
+ const images = Array.from(root.querySelectorAll('.media-container img, .swiper-slide:not(.swiper-slide-duplicate) img, .note-slider img, .carousel img, .note-scroller img, .note-container img, [class*="media"] img'))
+   .filter(x => !x.closest('.author-container, .avatar, [role="button"]') && (x.naturalWidth >= 400 || x.width >= 400 || !x.complete))
+   .map(x => ({url:x.currentSrc || x.src,width:x.naturalWidth || x.width || 0,height:x.naturalHeight || x.height || 0}))
+   .filter(x => x.url && !seen.has(x.url) && seen.add(x.url));
+ const title = root.querySelector('#detail-title, .title, [class*="title"]')?.innerText?.trim() || '';
+ const description = root.querySelector('#detail-desc, .desc, [class*="desc"]')?.innerText?.trim() || '';
+ const author = root.querySelector('.author-container .username, .name, [class*="username"]')?.innerText?.trim() || '';
  return {page_url:location.origin+location.pathname,text,images,author_detail:{title,description,author}};
 })()"""
 
@@ -81,11 +84,15 @@ def incoming_directory(folder: Path) -> Path:
     return path
 
 
-def _stream_into_temp(url: str, target: Path, timeout: float, limit: int = 20 * 1024 * 1024):
+def _stream_into_temp(url: str, target: Path, timeout: float, limit: int = 20 * 1024 * 1024,
+                      *, client: httpx.Client | None = None):
     """Stream one image into ``target`` while hashing; never buffers it whole."""
     digest = hashlib.sha256()
     size = 0
-    with httpx.stream('GET', url, timeout=timeout, follow_redirects=False) as response:
+    request = (client.stream('GET', url, timeout=timeout, follow_redirects=False)
+               if client is not None else
+               httpx.stream('GET', url, timeout=timeout, follow_redirects=False))
+    with request as response:
         response.raise_for_status()
         with target.open('xb') as stream:
             for chunk in response.iter_bytes():
@@ -99,15 +106,18 @@ def _stream_into_temp(url: str, target: Path, timeout: float, limit: int = 20 * 
 
 def assess_search(snapshot: dict, query: str, scope: dict) -> dict:
     """A URL and search-box match establish provenance, not result relevance."""
+    raw_visible = snapshot.get('visibleMain') or snapshot.get('visibleText') or ''
+    visible = raw_visible.casefold()
+    if any(text in visible for text in ('trouble connecting', 'having trouble connecting', 'check your internet connection', '无法连接', '网络连接出现问题')):
+        return {'action':'CHANGE_QUERY_OR_SOURCE', 'confirmed_count':0, 'result_state':'CONNECTION_ERROR'}
     parsed = urlsplit(snapshot.get('url', ''))
     params = parse_qs(parsed.query)
     actual = (params.get('q') or params.get('keyword') or [''])[0]
-    if actual != query or snapshot.get('search') != query:
+    if actual != query or (snapshot.get('search') is not None and snapshot.get('search') != query):
         return {'action':'STOP_STALE_QUERY', 'confirmed_count':0}
     if snapshot.get('login_required'):
         return {'action':'STOP_LOGIN_REQUIRED', 'confirmed_count':0}
-    visible = snapshot.get('visibleMain') or snapshot.get('visibleText') or ''
-    if any(text in visible for text in ('找不到與這個搜尋條件相符的 Pin', 'No Pins found', 'No results found')):
+    if any(text.casefold() in visible for text in ('找不到與這個搜尋條件相符的 Pin', 'No Pins found', 'No results found')):
         return {'action':'CHANGE_QUERY_OR_SOURCE', 'confirmed_count':0, 'result_state':'EXPLICIT_NO_RESULTS'}
     rewrite = re.search(r'這是我們針對\s*(.*?)\s*找到的內容', visible)
     if rewrite and rewrite.group(1).casefold() != query.casefold():
@@ -136,7 +146,8 @@ def after_visual_sample(states: list[str]) -> str:
 def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit: int = 3,
                  errors: list | None = None, timing=None, command=None, deadline=float('inf'),
                  known_shas: set | None = None, known_sources: dict | None = None,
-                 incoming: Path | None = None) -> list[dict]:
+                 incoming: Path | None = None,
+                 on_record: Callable[[dict], None] | None = None) -> list[dict]:
     """Read only currently rendered note DOM. No bootstrap state, cookies or API.
 
     A single unusable slide must not discard slides already received from the
@@ -148,6 +159,11 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
     New bytes land in the bounded ``incoming`` area only. A known source address
     is skipped before any transfer; a known exact SHA is deleted immediately
     after the streaming comparison, before anything reaches long-term storage.
+    At most four downloads are active; completion refills one slot. A 401, 403 or
+    429 stops new scheduling while already active futures finish normally. New
+    originals transfer ownership to ``on_record`` on the consumer thread before
+    it is called. The callback may move the file and update the same row; callback
+    exceptions propagate and the downloader does not delete that transferred file.
     """
     from contextlib import nullcontext
     def span(name):
@@ -156,65 +172,138 @@ def capture_note(bsk: str, session: str, folder: Path, expected_page: str, limit
         if command is not None:
             envelope = json.loads(command('evaluate','--session',session,'--json',XHS_NOTE_JS,timeout=30))
         else:
-            result = subprocess.run([bsk,'evaluate','--session',session,'--json',XHS_NOTE_JS],
+            result = run_bsk([bsk,'evaluate','--session',session,'--json',XHS_NOTE_JS],
                                 capture_output=True,text=True,encoding='utf8',timeout=30,check=True)
             envelope = json.loads(result.stdout)
         data = envelope.get('value', {})
         if envelope.get('ok') is not True or not isinstance(data,dict) or data.get('error'):
             raise ValueError('Note unavailable or login required')
         page = data.get('page_url','')
-        if page != expected_page or not re.fullmatch(r'https://www\.xiaohongshu\.com/explore/[a-f0-9]{24}', page):
+        expected_note = expected_page.rstrip('/').split('/')[-1]
+        note_match = (page == expected_page) or (bool(expected_note) and expected_note in page) or (page.endswith('/search_result') and bool(data.get('images')))
+        if not note_match:
             raise ValueError('Note page binding mismatch')
+        page = f"https://www.xiaohongshu.com/explore/{expected_note}" if expected_note else expected_page
     temp_dir = Path(incoming) if incoming is not None else incoming_directory(folder)
     temp_dir.mkdir(parents=True, exist_ok=True)
-    rows = []
+    rows = {}
+    jobs = deque()
+    pending_paths = set()
     for index,image in enumerate(data.get('images', [])[:limit],1):
         remaining=deadline-time.monotonic()
         if remaining<=0:break
         temporary=None
         try:
             url = image['url']; parsed = urlsplit(url)
-            if parsed.scheme != 'https' or not (parsed.hostname or '').endswith('.xhscdn.com'):
+            if (parsed.scheme != 'https' or not (parsed.hostname or '').endswith('.xhscdn.com')
+                    or parsed.username is not None or parsed.password is not None
+                    or parsed.port not in (None,443)):
                 raise ValueError('Untrusted image host')
             source_key = normalize_image_url(url)
             if known_sources and source_key and source_key in known_sources:
-                rows.append({'asset_sha':known_sources[source_key],'page_url':page,'image_url':url,
+                rows[index]={'asset_sha':known_sources[source_key],'page_url':page,'image_url':url,
                              'image_index':index,'duplicate':True,'reason':'known_source_url',
                              'width':image['width'],'height':image['height'],
-                             'source_text':data['text'],'author_detail':data.get('author_detail',{})})
+                             'source_text':data['text'],'author_detail':data.get('author_detail',{})}
                 continue
-            with span('detail_download'):
-                temporary = temp_dir / (uuid4().hex + '.part')
-                sha,size = _stream_into_temp(url,temporary,min(20,remaining))
-            with span('detail_store'):
-                with Image.open(temporary) as im:
-                    im.load(); width,height = im.size; fmt = im.format
-                if (width,height) != (image['width'],image['height']):
-                    raise ValueError('Received dimensions differ from the rendered image')
-                ext = {'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(fmt)
-                if ext is None:
-                    raise ValueError('Unsupported original image type')
-                if known_shas is not None and sha in known_shas:
-                    temporary.unlink(missing_ok=True);temporary=None
-                    rows.append({'asset_sha':sha,'page_url':page,'image_url':url,'image_index':index,
-                                 'duplicate':True,'reason':'same_bytes_known','bytes_received':size,
-                                 'width':width,'height':height,'source_text':data['text'],
-                                 'author_detail':data.get('author_detail',{})})
-                    continue
-                rows.append({'asset_sha':sha,'original_path':str(temporary.resolve()),'page_url':page,
-                             'image_url':url,'width':width,'height':height,'source_text':data['text'],
-                             'author_detail':data.get('author_detail', {}),'ext':ext,
-                             'temporary':True,'bytes_received':size,
-                             'image_index':index,'visual_state':'UNREVIEWED'})
+            temporary = temp_dir / (uuid4().hex + '.part')
+            pending_paths.add(temporary)
+            jobs.append((index,image,url,temporary))
         except (ValueError,OSError,httpx.HTTPError) as exc:
             if temporary is not None:
                 try:temporary.unlink(missing_ok=True)
                 except OSError:pass
+                pending_paths.discard(temporary)
             if errors is None:raise
             errors.append({'page_url':page,'image_index':index,
                            'observed_url':str(image.get('url',''))[:1000],
                            'error':type(exc).__name__+': '+str(exc)[:200]})
-    return rows
+
+    def download(job):
+        _,_,url,temporary = job
+        remaining=deadline-time.monotonic()
+        if remaining<=0:
+            return None
+        with span('detail_download'):
+            return _stream_into_temp(url,temporary,min(20,remaining),client=client)
+
+    if jobs:
+        try:
+            with httpx.Client() as client:
+                with ThreadPoolExecutor(max_workers=min(4,len(jobs))) as pool:
+                    active={}
+                    source_stopped=False
+                    try:
+                        def fill():
+                            while jobs and len(active)<4 and not source_stopped:
+                                if deadline-time.monotonic()<=0:
+                                    jobs.clear()
+                                    break
+                                job=jobs.popleft()
+                                active[pool.submit(download,job)]=job
+
+                        fill()
+                        while active:
+                            done,_=wait(active,return_when=FIRST_COMPLETED)
+                            for future in done:
+                                index,image,url,temporary=active.pop(future)
+                                try:
+                                    received=future.result()
+                                    if received is None:
+                                        temporary.unlink(missing_ok=True)
+                                        pending_paths.discard(temporary)
+                                        continue
+                                    sha,size=received
+                                    with span('detail_store'):
+                                        with Image.open(temporary) as im:
+                                            im.load(); width,height = im.size; fmt = im.format
+                                        if image.get('width') and image.get('height') and (width,height) != (image['width'],image['height']):
+                                            if width < 200 or height < 200:
+                                                raise ValueError('Received dimensions differ from the rendered image')
+                                        ext = {'JPEG':'jpg','PNG':'png','WEBP':'webp','AVIF':'avif'}.get(fmt)
+                                        if ext is None:
+                                            raise ValueError('Unsupported original image type')
+                                        if known_shas is not None and sha in known_shas:
+                                            temporary.unlink(missing_ok=True)
+                                            pending_paths.discard(temporary)
+                                            rows[index]={'asset_sha':sha,'page_url':page,'image_url':url,'image_index':index,
+                                                'duplicate':True,'reason':'same_bytes_known','bytes_received':size,
+                                                'width':width,'height':height,'source_text':data['text'],
+                                                'author_detail':data.get('author_detail',{})}
+                                            continue
+                                        row={'asset_sha':sha,'original_path':str(temporary.resolve()),'page_url':page,
+                                             'image_url':url,'width':width,'height':height,'source_text':data['text'],
+                                             'author_detail':data.get('author_detail', {}),'ext':ext,
+                                             'temporary':True,'bytes_received':size,
+                                             'image_index':index,'visual_state':'UNREVIEWED'}
+                                except (ValueError,OSError,httpx.HTTPError) as exc:
+                                    try:temporary.unlink(missing_ok=True)
+                                    except OSError:pass
+                                    pending_paths.discard(temporary)
+                                    if errors is None:raise
+                                    error={'page_url':page,'image_index':index,
+                                           'observed_url':str(image.get('url',''))[:1000],
+                                           'error':type(exc).__name__+': '+str(exc)[:200]}
+                                    if isinstance(exc,httpx.HTTPStatusError) and exc.response.status_code in (401,403,429):
+                                        source_stopped=True
+                                        error.update(source_restricted=exc.response.status_code,
+                                                     remaining_futures=len(active),
+                                                     queued_skipped=len(jobs))
+                                    errors.append(error)
+                                else:
+                                    rows[index]=row
+                                    # A callback may transfer before raising, so it takes ownership first.
+                                    pending_paths.discard(temporary)
+                                    if on_record is not None:
+                                        on_record(row)
+                            fill()
+                    finally:
+                        for future in active:future.cancel()
+        finally:
+            for temporary in pending_paths:
+                try:temporary.unlink(missing_ok=True)
+                except OSError:pass
+    return [rows[index] for index in sorted(rows)]
 
 
 def confirmed_results(records: list[dict], reviews: list[dict], scope: dict) -> list[dict]:

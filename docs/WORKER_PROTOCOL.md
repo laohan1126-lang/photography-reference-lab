@@ -1,5 +1,15 @@
 # BrowserSkill + Codex / Antigravity 执行协议
 
+## Windows 默认采集后端：Playwright（2026-10-30）
+
+快速采集验收按用户补充要求计“正常开始到新图下载、URL/SHA 简单去重、入库待筛”，不等待审核。四路下载只请求已观察的合法 URL；401/403/429 停止补充调度，已取得内容保留。纯 Search 新任务的下载目标和合格目标分别报告，类型/拼图独立后台处理。现场速度和 UI/连续导航可靠性分别验收；失败轮次不得抹去，也不能用旧图或后台达标时间代替新增下载计时。见 `docs/tasks/2026-10-30-fast-acquire-background-checks.md`。
+
+`scripts/launch.ps1` 的正式采集命令显式使用 `--browser-backend playwright --playwright-profile <repo>/.local/playwright-collection-profile`。窗口可见，登录由用户在专用配置中完成；不要复制日常 Edge 配置或 Cookie。同一配置不能由试验窗口和正式采集器同时占用。BrowserSkill 仍可通过 CLI 显式选择，Playwright 失败不自动回退到它或无头浏览器。
+
+采集器复用既有搜索、详情、来源、下载、排重和候选入库逻辑；Playwright 操作受调用期限与原 Job 总预算约束。超时副作用未知时停止复用，不重放。正常受阻任务通过 `POST /api/jobs/{job_id}/search` 重试同一 Job；`/search/continue` 会追加目标或时间，不能用于普通故障重试。`--resume` 是原图续核入口，不是网页搜索续跑。
+
+只认实际页面、收到的字节和同任务入库证据。TUN 开关在独立浏览器试验中影响过小红书白屏，但不能据此推定每次平台错误都由 TUN 引起。运行中不自动改代理或网络设置。验收记录见 `docs/tasks/2026-10-30-playwright-collector-integration.md`。
+
 ## 快速 Search / 独立 Review（2026-10-20）
 
 新网页入口默认把采集拆成两个独立阶段；下方旧的一体式说明仍保留为历史兼容路径。
@@ -42,11 +52,29 @@ python -m ref_lab export-job --job JOB_ID --output job.zip
 
 ## BrowserSkill 运行前
 
+### 0.4 命令边界（2026-10-30）
+
+采集器的 BrowserSkill 调用统一经过 `ref_lab/bsk_command.py`：页面动作之前取得新的 `cooperate sync` 上下文，一次动作消费一次上下文；同步与动作共用调用方期限。新建空白页的第一次导航可使用官方 bootstrap 入口，其余导航、脚本、点击和下载都按共享控制协议执行。同步失败不发送动作；已发动作超时保留副作用未知，不原样重放。用户停止直接结束本轮。
+
+浏览器选择拒绝协议不匹配、无响应或多个无法区分的 Edge 实例。采集路径不启动备用 daemon、不通过固定扩展地址“唤醒”，也不使用 `session stop --all`。渲染器/收尾卡住时及时阻断，清理仅针对本任务拥有的会话。连接状态和创建窗口成功均不能代替实际页面读取。
+
+当前本地扩展修复候选与回退步骤见 [BrowserSkill 补丁说明](../patches/browserskill/README.md)。补丁构建与离线测试通过不等于安装后采集验收通过；需在可用的浏览器控制环境中先验证本地页面，再运行真实来源。
+
 使用用户**已经安装**的腾讯 BrowserSkill 和已授权浏览器，读取该机器上的 `browser-skill` 技能并检查 `bsk --version`、`bsk doctor`。连接检查成功不等于 Agent 已加载技能。CLI / 扩展 / 技能以本机实际版本为准；本项目不静默安装脚本、不上传 Cookie 或浏览器配置。
 
 [官方 BrowserSkill 说明](https://github.com/Tencent/BrowserSkill) 描述 CLI + 扩展 + shell Agent 的本地模式、可见 Agent Window 和会话结束操作。本项目需要本地文件下载能力；官方当前说明远程模式不支持文件上传/下载，因此不能把远程连接就绪当成图片包采集闭环。使用自己创建的会话，结束或受阻时正常停止，不关用户其他标签。
 
 本仓库不会另造 BrowserSkill 命令集，也不把它的一般网络调试能力用于平台绕行。网站登录、验证码、付费墙和访问限制必须尊重，必要时由用户接管；不导出 Cookie，不调用隐藏 API，不重写 CDN URL 猜测高清文件。
+
+### 已连接但控制不响应时（2026-10-30 实测补充）
+
+`status/doctor` 的 connected 或版本一致只证明连接，不能替代实际控制验证。让 Edge 正常打开并保持在前台后，使用自己创建的会话做一次有界检查：读取本地 `/health`，再读取业务主页，最后正常关闭会话。新会话默认的 `about:blank` 是正常空白启动页；派发浏览器验收时应说明这一点，但后续操作仍须由批准的工具可靠识别当前 URL。真正的受保护／拒绝 URL、无法确认 URL 的安全停止和借用拒绝都必须遵守。
+
+开始真实采集前，核对 `/api/runtime` 的 `code_digest` 与当前 `implementation_digest()` 一致；当前指纹也包含网页入口文件。修改这些文件后，应通过原有停止／启动入口同步服务，再发起任务，避免采集器因旧进程指纹拒绝新源码。
+
+导航返回非零并不证明页面未加载，也不证明页面可用。效果未知时，按工具允许的方式检查同一自有会话的实际页面；只有成功读取才算恢复，不把地址或标题更新当作 DOM 验证。扩展管理页没有“错误”按钮，也不代表全部运行请求成功；`edge://extensions` 上“不允许使用扩展”仅针对该内部页面。
+
+本次用户转发 AGY 的恢复记录：将 Edge 放到前台并正常打开页面后，创建会话及 `/health` 导航／读取成功，随后正常清理。AGY 判断可能涉及 MV3 Service Worker 的后台休眠或调度；本项目尚无 worker 生命周期追踪，保留该来源判断，不写成唯一确定根因。转发的主页命令日志同时包含退出码1，业务主页与真实采集必须另行验证。详细结果见 [本轮搜图体验记录](tasks/2026-10-29-search-experience.md)。
 
 ## 搜图计划与质量
 

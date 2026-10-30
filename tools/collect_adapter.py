@@ -24,6 +24,13 @@ from urllib.parse import quote, urlsplit
 from uuid import uuid4
 import zipfile
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from ref_lab.bsk_command import run_bsk
+from ref_lab.browser_recovery import BrowserError, classify_bsk_error
+
 import httpx
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 
@@ -500,7 +507,8 @@ def fetch_bing_candidates(queries: list[str], target_count: int, policy: dict) -
                 if not valid:
                     rejected_image += 1
                     continue
-                title = str(record.get("t") or record.get("desc") or f"{policy['character']} {policy['costume']} 参考")[:350]
+                costume_name = policy.get('costume', '')
+                title = str(record.get("t") or record.get("desc") or f"{policy.get('character', '')} {costume_name} 参考")[:350]
                 desc = str(record.get("desc") or "")[:800]
                 base_meta = {
                     "title": title,
@@ -583,28 +591,39 @@ def bsk_candidates() -> list[str]:
 def probe_bsk_browsers(bsk_bin: str, env: dict[str, str], timeout: int = 8) -> list[dict]:
     """Browsers this specific binary can actually see right now."""
     try:
-        completed = subprocess.run(
+        completed = run_bsk(
             [bsk_bin, "browsers", "--json"], capture_output=True, text=True,
             encoding="utf-8", errors="replace", env=env, timeout=timeout,
         )
+        if getattr(completed, 'returncode', 0):
+            error = classify_bsk_error('browsers', completed.returncode, completed.stdout, completed.stderr)
+            if error.code in ('ipc_access_denied', 'protocol_mismatch'):
+                raise error
         browsers = json.loads(completed.stdout)
         return browsers if isinstance(browsers, list) else []
+    except BrowserError:
+        raise
     except Exception:
         return []
 
 
 def _pick_browser(browsers: list[dict]) -> str | None:
-    for browser in browsers:
-        if browser.get("browser_name") == "edge":
-            return browser.get("instance_id")
+    ready = [browser for browser in browsers if not browser.get("unresponsive") and not browser.get("version_skew")]
+    edges = [browser for browser in ready if browser.get("browser_name") == "edge"]
+    if len(edges) == 1:
+        return edges[0].get("instance_id")
+    if len(edges) > 1:
+        return None
     if os.name == "nt":
         # Windows primary runtime is Edge. Never silently fall back to Chrome
         # where user credentials/profiles do not exist.
         return None
-    return browsers[0].get("instance_id") if browsers else None
+    return ready[0].get("instance_id") if len(ready) == 1 else None
 
 
 def select_browserskill(env: dict[str, str] | None = None) -> tuple[str | None, str | None]:
+    if os.environ.get('COLLECT_ADAPTER_SKIP_BSK') == '1':
+        return None, None
     """Return the first (binary, browser id) pair that reaches a live browser.
 
     Existence is not availability: every candidate is probed until one actually
@@ -620,25 +639,10 @@ def select_browserskill(env: dict[str, str] | None = None) -> tuple[str | None, 
 
 
 def nudge_extension(env: dict[str, str], candidates: list[str]) -> tuple[str | None, str | None]:
-    """Last resort: open the extension page once, then re-probe candidates."""
-    powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell")
-    if not powershell_bin:
+    if os.environ.get('COLLECT_ADAPTER_SKIP_BSK') == '1':
         return None, None
-    try:
-        subprocess.run(
-            [powershell_bin, "-Command",
-             "Start-Process msedge.exe extension://emacgiaaaiojkkpkddmmdfhmokgmnikg/popup.html"],
-            capture_output=True, timeout=5,
-        )
-        for _ in range(5):
-            time.sleep(1)
-            for candidate in candidates:
-                browser_id = _pick_browser(probe_bsk_browsers(candidate, env))
-                if browser_id:
-                    return candidate, browser_id
-    except Exception:
-        pass
-    return None, None
+    """Compatibility entry: inspect once without restarting shared browser state."""
+    return select_browserskill(env)
 
 
 # A note page carries a note id; the keyword search page does not.  Real
@@ -668,7 +672,7 @@ def wait_for_cards(
     for attempt in range(attempts):
         if attempt:
             time.sleep(delay)
-        completed = subprocess.run(
+        completed = run_bsk(
             [bsk_bin, "evaluate", "--session", session_id, "--json", extract_js],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
             env=env, timeout=15,
@@ -762,7 +766,7 @@ def fetch_pinterest_detail_metadata(
                         "--wait-until","domcontentloaded","--timeout","25s",timeout=30)
                 navigated = None
             else:
-                navigated = subprocess.run(
+                navigated = run_bsk(
                     [bsk_bin, "navigate", page_url, "--session", session_id,
                      "--wait-until", "domcontentloaded", "--timeout", "25s"],
                     capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30,
@@ -776,7 +780,7 @@ def fetch_pinterest_detail_metadata(
                 if command is not None:
                     payload = json.loads(command("evaluate","--session",session_id,"--json",PINTEREST_DETAIL_JS,timeout=15))
                 else:
-                    completed = subprocess.run(
+                    completed = run_bsk(
                         [bsk_bin, "evaluate", "--session", session_id, "--json", PINTEREST_DETAIL_JS],
                         capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=15,
                     )
@@ -817,7 +821,7 @@ def fetch_xhs_detail_metadata(
         # aggregate text/tags could incorrectly validate an unrelated card.
         return {}
     try:
-        subprocess.run(
+        run_bsk(
             [bsk_bin, "navigate", page_url, "--session", session_id,
              "--wait-until", "domcontentloaded", "--timeout", "25s"],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
@@ -875,7 +879,7 @@ def fetch_xhs_detail_metadata(
                 gallery_urls
             };
         })()"""
-        p = subprocess.run(
+        p = run_bsk(
             [bsk_bin, "evaluate", "--session", session_id, "--json", js],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
             env=env, timeout=10,
@@ -914,7 +918,7 @@ def download_gallery_images(
         return downloaded;
     }})()"""
     try:
-        p = subprocess.run(
+        p = run_bsk(
             [bsk_bin, "evaluate", "--session", session_id, "--json", fetch_js],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
             env=env, timeout=timeout
@@ -939,7 +943,7 @@ def fetch_bsk_candidates(
 ) -> tuple[list[dict], dict[str, bytes], list[dict], bool]:
     env = {**os.environ, "BSK_AUTO_START": "0"}
     try:
-        start_p = subprocess.run([bsk_bin, "session", "start", "--browser", browser_id, "--json"],
+        start_p = run_bsk([bsk_bin, "session", "start", "--browser", browser_id, "--json"],
                                  capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=10)
         sess_data = json.loads(start_p.stdout)
         session_id = sess_data.get("session_id")
@@ -978,7 +982,7 @@ def fetch_bsk_candidates(
                     rejected_duplicate = 0
 
                     xhs_url = f"https://www.xiaohongshu.com/search_result?keyword={quote(query)}"
-                    subprocess.run(
+                    run_bsk(
                         [bsk_bin, "navigate", xhs_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
                         capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
                     )
@@ -1196,7 +1200,7 @@ def fetch_bsk_candidates(
                     rejected_duplicate = 0
 
                     pin_url = f"https://www.pinterest.com/search/pins/?q={quote(query)}"
-                    subprocess.run(
+                    run_bsk(
                         [bsk_bin, "navigate", pin_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"],
                         capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30
                     )
@@ -1337,7 +1341,7 @@ def fetch_bsk_candidates(
                     if login_wall:
                         break
     finally:
-        subprocess.run([bsk_bin, "session", "stop", session_id],
+        run_bsk([bsk_bin, "session", "stop", session_id],
                        capture_output=True, text=True, env=env, timeout=5)
 
     return candidates, images, query_log, xhs_login_wall
@@ -1392,6 +1396,17 @@ def main() -> None:
                 else:
                     status, detail = "blocked", "本轮未能执行此来源检索；没有可验证的执行记录。"
                 source_checks.append({"source": source, "status": status, "detail": detail})
+            if len(candidates) < target_count and allow_bing_fallback:
+                queries = build_queries(job, for_browser=False)
+                b_cand, b_img, b_log = fetch_bing_candidates(queries, target_count - len(candidates), policy)
+                candidates.extend(b_cand)
+                images.update(b_img)
+                query_log.extend(b_log)
+                source_checks.append({
+                    "source": "bing_images_photo_filter",
+                    "status": "usable" if b_cand else "unavailable",
+                    "detail": "调用方显式允许 Bing 备用检索；原请求来源受阻仍单独保留。",
+                })
         else:
             browserskill_missing = (
                 "BrowserSkill 没有可用的浏览器：已探测 " + (

@@ -24,6 +24,7 @@ def _browser(folder):
     browser.browser_id = 'synthetic-browser'
     browser.deadline = time.monotonic() + 10000.0
     browser.session = 'synthetic-session'
+    browser.snapshot = lambda: {'url': 'about:blank', 'cards': []}
     return browser
 
 

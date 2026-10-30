@@ -1,0 +1,48 @@
+diff --git a/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts b/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
+index 519e1f4..6792317 100644
+--- a/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
++++ b/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
+@@ -37,6 +37,25 @@ afterEach(() => {
+ });
+ 
+ describe("ChromiumCdp", () => {
++  it("bounds a stalled domain setup and rolls back its debugger attachment", async () => {
++    vi.useFakeTimers();
++    const { api } = fakeApi();
++    vi.mocked(api.sendCommand).mockImplementation(async (_target, method) => {
++      if (method === "Page.enable") return new Promise(() => {});
++      return {};
++    });
++    const cdp = new ChromiumCdp(api);
++    let failure: unknown;
++    const pending = cdp.ensureAttached(4).catch((error) => { failure = error; });
++    await vi.advanceTimersByTimeAsync(10_001);
++    expect(failure).toBeInstanceOf(Error);
++    expect(String(failure)).toContain("Page.enable");
++    expect(api.detach).toHaveBeenCalledExactlyOnceWith({ tabId: 4 });
++    expect(cdp.isAttached(4)).toBe(false);
++    expect(vi.mocked(api.sendCommand).mock.calls.some(([, method]) => method === "Runtime.enable")).toBe(false);
++    await pending;
++  });
++
+   it.each([
+     "abort",
+     "replacement",
+diff --git a/apps/extension/src/browser-driver/command-deadline.ts b/apps/extension/src/browser-driver/command-deadline.ts
+index f484a2a..9f8857a 100644
+--- a/apps/extension/src/browser-driver/command-deadline.ts
++++ b/apps/extension/src/browser-driver/command-deadline.ts
+@@ -8,6 +8,13 @@ import type { CdpDebuggee } from "./chromium-cdp";
+ // unresponsive page. Mutations, screenshots and user-requested waits keep
+ // their own limits.
+ const RENDERER_READS = new Set([
++  // Setup happens before a tool's own wait starts; a stuck enable must not
++  // retain the session command slot forever after the caller cancels.
++  "Page.enable",
++  "Page.setLifecycleEventsEnabled",
++  "Runtime.enable",
++  "Log.enable",
++  "Network.enable",
+   "DOMSnapshot.enable",
+   "DOMSnapshot.captureSnapshot",
+   "Accessibility.enable",

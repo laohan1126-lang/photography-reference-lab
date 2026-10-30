@@ -39,9 +39,9 @@ def test_capture_note_records_locate_download_store(tmp_path, monkeypatch):
         returncode = 0
         stdout = json.dumps(payload)
 
-    monkeypatch.setattr(exact_recall.subprocess, "run", lambda *args, **kwargs: Completed())
+    monkeypatch.setattr(exact_recall, "run_bsk", lambda *args, **kwargs: Completed())
 
-    def stream(url, target, timeout, limit=20 * 1024 * 1024):
+    def stream(url, target, timeout, limit=20 * 1024 * 1024, *, client=None):
         raw = _png()
         target.write_bytes(raw)
         return hashlib.sha256(raw).hexdigest(), len(raw)
@@ -59,23 +59,26 @@ def test_capture_note_records_locate_download_store(tmp_path, monkeypatch):
         assert expected in stages
 
 
-def test_note_download_stops_at_browser_deadline_and_keeps_first_original(tmp_path,monkeypatch):
+def test_note_download_stops_after_first_four_when_browser_deadline_is_spent(tmp_path,monkeypatch):
+    import threading
     import time
     clock=[0.0];calls=[];raw=_png();page='https://www.xiaohongshu.com/explore/'+'d'*24
     payload={'page_url':page,'text':'synthetic visible DOM','images':[
-        {'url':f'https://sns-img.xhscdn.com/{i}.png','width':400,'height':600} for i in range(2)]}
+        {'url':f'https://sns-img.xhscdn.com/{i}.png','width':400,'height':600} for i in range(5)]}
     browser=collect_verified.Browser(tmp_path);browser.bsk='fixture';browser.session='owned';browser.deadline=1.0
+    browser.note_image_limit=5
     browser.command=lambda *a,**kw:json.dumps({'ok':True,'value':payload})
     browser._probe_detail=lambda:{'url':page}
     browser.snapshot=lambda:{'url':'https://www.xiaohongshu.com/search_result','cards':[{}]}
-    def stream(url,target,timeout,limit=20*1024*1024):
-        calls.append(timeout);target.write_bytes(raw)
+    barrier=threading.Barrier(4)
+    def stream(url,target,timeout,limit=20*1024*1024,*,client=None):
+        calls.append(timeout);barrier.wait(timeout=2);target.write_bytes(raw)
         clock[0]=2.0
         return hashlib.sha256(raw).hexdigest(),len(raw)
     monkeypatch.setattr(time,'monotonic',lambda:clock[0])
     monkeypatch.setattr(exact_recall,'_stream_into_temp',stream)
     rows=browser.receive({'page':page},{'source':'xiaohongshu','query':'西木野真姬'})
-    assert len(rows)==len(calls)==1 and calls[0]<=1.0
+    assert len(rows)==len(calls)==4 and all(timeout<=1.0 for timeout in calls)
     assert Path(rows[0]['original_path']).read_bytes()==raw
 
 

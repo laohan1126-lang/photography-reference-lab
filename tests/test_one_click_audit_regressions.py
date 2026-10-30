@@ -20,11 +20,17 @@ from tools import collect_verified as collector
 @pytest.fixture
 def goal_root(tmp_path, monkeypatch):
     monkeypatch.setattr(service, '__file__', str(tmp_path/'ref_lab/service.py'))
+    monkeypatch.setenv('LAB_DATA_DIR', str(tmp_path/'data'))
+    monkeypatch.setenv('LAB_COLLECTION_HISTORY_DIR', str(tmp_path/'data'/'assets'))
+    monkeypatch.setenv('LAB_COLLECTION_HISTORY_ROOTS', '[]')
     return tmp_path
 
 
 def goal_job(library, project, target=40):
-    return library.create_job(project['id'], JobInput(kind='collection', collection_mode='search', target_count=target))
+    job = library.create_job(project['id'], JobInput(kind='collection', collection_mode='search', target_count=target))
+    attempt_id = 'prep-' + job['id']
+    library.begin_job_preparation(job['id'], attempt_id, {'pid': os.getpid(), 'phase': 'test'})
+    return library.prepare_job(job['id'], attempt_id)
 
 
 def prior_collection_job(library, project, job_id='history-job'):

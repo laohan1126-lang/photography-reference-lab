@@ -1,5 +1,27 @@
 # v0.3：个人参考库的数据与交互契约
 
+## Windows 采集浏览器边界（2026-10-30）
+
+Windows 启动入口显式选择 `tools/collect_verified.py` 的 Playwright 后端，使用仓库 `.local/playwright-collection-profile` 中的独立持久化配置和可见窗口。`PlaywrightBrowser` 只替换现有 `Browser` 的底层命令与生命周期，搜索页/详情绑定、已观察图片下载、SHA 排重、候选队列和导入服务继续复用。异步调用受原任务预算与命令期限约束；超时副作用未知时不重放，不静默切换 BrowserSkill 或 headless。Profile 由单个采集进程持锁，用户需先关闭占用它的试验窗口。
+
+纯 Search 新任务持久化 `download_target_count`，下载目标与合格摄影计数分开。已观察图片按最多四路在途下载；每张通过 URL/SHA 和基本文件检查后立刻保存到原 Job 的 `collection-runs`。独立轻量监视器调用 `Library.import_search_candidates` 幂等导入待筛引用，不等一篇笔记或整轮检查结束。`collection_postprocess.py` 持久化类型/拼图检查的状态、进程所有权、预算和锁；后台失败不停止即时入库，服务重启按现有账本续行。已有人为选择不被后台改写，待核验图片不计作合格摄影。
+
+Playwright 控制使用持续运行的事件循环和同一专用 context 内的来源页面；原生返回后仍检查来源、查询与卡片。实际站点导航和关闭仍有未解决的超时，不能把本地回归通过当成稳定性完成。普通故障重试使用同一 Job 的 `/search`；`extend_search(..., additional_seconds=0)` 可准备下一批目标而不追加总时间预算，默认兼容原有加时行为。服务/采集器摘要包含共享工具与新运行模块，拒绝混合版本。实际入口及失败限度见快速采集任务记录。
+
+## 本地角色浏览目录（2026-10-29）
+
+`ref_lab/local_catalog.py` 提供数据库与实际下载文件的只读投影，`tools/sync_local_catalog.py` 和根目录 `我的参考图.cmd` 是刷新入口。读取当前配置的资料库，覆盖全部 Reference 状态、归档项目、Inspiration、study candidate、各采集尝试及显式核验的散落图片清单。项目关联与实际角色确认保持分离；未归属项单独展示，不写回身份、筛选、笔记或接受记录。
+
+数据目录的 `我的参考图/` 是独立派生目录：可读角色文件夹、JPG 副本、离线 HTML 和绑定生成器/仓库/源 SHA/输出 SHA 的 manifest。只有本工具明确拥有且字节未被改动的旧副本可替换或清理；未知文件保留。路径校验拒绝来源覆盖、目录逃逸和链接；本地 HTML 路径独立做 URL 编码。原件仍在 CAS 和原采集路径，现有 `archiver.py` 的已保留 JPG 导出契约继续保留。
+
+`catalog_exports.py` 将清单中已核验的角色浏览副本独立复制到 `exports/<角色>/全部下载/`；该目录有单独的所有权清单，与 `archiver.py` 管理的 `已确认/` 分开。`我的参考图/export-settings.json` 记录显式登记的角色，普通刷新继续更新其完整导出。角色目录缺少历史所有权时，只按已知项目关联与预览哈希恢复对应副本，未知或改过的文件仍保留。
+
+维护工具 `python -m tools.consolidate_duplicate_project` 先生成只读计划，显式 `--apply` 才写入。它仅合并语义一致、源项目无活动任务、无冲突资产或已审核记录的重复项目，保留引用 ID、人工状态、目标项目和历史证据；源项目归档并记录目标，旧项目绑定的派生预检失效。在线备份、事务内复查和限定范围的回滚回执保护操作；已有外键问题必须保持完全一致，新增问题中止写入。该工具不是自动批量合并入口。
+
+全局新搜索先刷新已有项目，再按角色与用户已填写的作品、服装筛选兼容项目；选填为空表示未指定。唯一匹配复用，多匹配显式选择，不覆盖项目元数据或人工状态；本轮 brief/gear 转入 Job notes。项目删除/恢复继续调用既有 revision 保护的软归档 API。
+
+当前主题实际加载 `web/kana.js`。它复用原侧栏与项目导航节点，让桌面菜单和项目操作处于同一左栏文档流；手机抽屉同时承载摄影分支与全局导航，返回桌面时恢复节点位置。嵌套项目导航不再沿用旧的顶部避让补偿。`web/studio.js` 是其他页面的既有呈现脚本，不作为当前主题导航入口。
+
 ## Dot 待筛摄影参考（2026-10）
 
 数据库 v4 增加独立的 `study_candidates`，用稳定的 Dot 编号指向内容寻址 Asset；兼容副本仍只属于同一作品。该入口没有项目父键，也不建立全局 Inspiration。批次导入保存原记录、来源、限制和 Dot 原文，关键词主题标明为未视觉核验的文字建议。人工状态及笔记单独保存，带 revision 冲突保护；再次导入核对原图/兼容图哈希和 Drive 文件 ID，不覆盖人工编辑。原图 Asset 受到清理引用保护。迁移前的 SQLite 备份与批次导入前的私有备份分别保存，现有 Reference、Inspiration 和项目数据不重写。
@@ -32,7 +54,7 @@
 
 修改后：
 
-1. **Search** 以 `tools/collect_verified.py --search-only` 运行。它只用项目已有角色/作品/服装字段生成搜索词（`deterministic_plan`），不调用 NamePlan/ReferenceDiscovery/SourceAssessment/CollectionVision；下载成功后立即原子写入 `received.json` 和原图，网页候选队列按文件状态实时展示。
+1. **Search** 以 `tools/collect_verified.py --search-only` 运行。`deterministic_plan` 立即提供原始查询；独立名称任务通过现有 Agent 的 `search_web` 发现多语言名称，主线程在结果完成后接入后续查询。名称结果记录搜索证据并明确 `page_reads=false`，不替代视觉身份核验；成功结果按角色与作品保存在 `.local/name-resolution-cache/`，空结果不永久缓存。Search 不等待官方视觉参照研究；下载成功后立即原子写入 `received.json` 和原图，候选队列实时展示。
 2. 搜索达到候选目标、时间/详情预算或来源阻断时结束；`search-summary.json` 记录 `status/stop_reason/counts/model_calls/tokens`。服务端把已下载原图导入项目为 **pending** 候选（不是已验证），因此用户可先挑图；没有 AI 审核也不丢失图片。
 3. **Review** 以 `--review-only` 独立运行。它读取同一批原图 SHA，使用原有 NamePlan、官方参照研究、SourceAssessment、CollectionVision、needs_supplement 和严格 `accepted` 规则；每张图独立写入 `review-audit.json`。只有 accepted 才生成 schema3 `review-result.zip` 并导入；拒绝/受阻/超时只更新候选状态，不删除原图。
 4. Search 与 Review 各有独立 attempt id、锁、进程所有者、累计预算和终止状态。`search_review` 模式同时启动两者；Review 在搜索运行期间消费新候选，但不阻塞搜索。取消 Review 不停止 Search；取消 Search 不删除已下载候选或已完成审核。
@@ -40,9 +62,12 @@
 
 ### 持久文件与阶段契约
 
+Job 创建只持久化请求与 `preparation_state=pending`；`collection_stages` 在后台运行历史校验，状态为 `running/ready/failed`，昂贵读盘不持有数据库写事务。直接启动旧模式也必须完成同一基线门槛。`/api/jobs?summary=true&limit=20&offset=0` 返回 `{items,total,limit,offset}` 的轻量分页；原列表接口保留兼容。摘要与详情提供 `can_retry_search/search_budget_exhausted/can_start_review`；`POST .../search` 重试不加时间，`.../search/continue` 的纯加时要求预算已经耗尽。
+
 私有运行目录仍为 `.local/collection-runs/<job_id>/current/`：
 
 - `received.json`：已下载原图、来源 URL、搜索词、页面、尺寸、SHA、获得时间。原图只保存一次，Review 读取同一路径/SHA。
+- `name-enrichment.json`：名称查询进度、搜索结果出处与显式歧义，作为候选窗口的只读状态；`collector-state.json` 同时保留查询顺序与恢复绑定。名称任务使用专用取消事件，结束时不覆盖其他图像核验的进程状态。
 - `search-summary.json`：`status=completed|partial|blocked|failed|cancelled`、`stop_reason`、`counts.found/duplicates/errors`、首图秒数、耗时、模型调用与 Token。
 - `review-audit.json`：按 SHA 保存 `accepted|rejected|blocked|duplicate|reviewing`、模型判断、参照 SHA、错误和 attempt 次数；重启不重复调用已完成项，受阻项可在剩余额度内重试。
 - `review-summary.json`：AI 通过与拒绝/受阻/待审数量、停止原因、模型调用与 Token。

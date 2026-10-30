@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from urllib.parse import urlsplit, quote
 import httpx
+from .bsk_command import run_bsk
 from .models import CandidateInput, Source
 from .policy import digest
 from .service import Library, Problem
@@ -124,55 +125,15 @@ def find_bsk_cli() -> str | None:
 
 
 def ensure_bsk_browser(bsk_bin: str) -> str | None:
+    from tools.collect_adapter import _pick_browser, probe_bsk_browsers
     env = {**os.environ, "BSK_AUTO_START": "0"}
-    status_p = subprocess.run([bsk_bin, "status", "--json"], capture_output=True, text=True, env=env)
-    daemon_ok = False
-    try:
-        sdata = json.loads(status_p.stdout)
-        if sdata.get("pid"):
-            daemon_ok = True
-    except Exception:
-        pass
-    if not daemon_ok:
-        powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell") or "powershell"
-        cmd = [powershell_bin, "-Command", f"Start-Process '{bsk_bin}' -ArgumentList 'daemon start --port 52801 --foreground' -WindowStyle Hidden"]
-        subprocess.run(cmd, capture_output=True)
-        time.sleep(1.5)
-
-    p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True, env=env)
-    try:
-        browsers = json.loads(p.stdout)
-        if browsers:
-            for b in browsers:
-                if b.get("browser_name") == "edge":
-                    return b["instance_id"]
-            return browsers[0]["instance_id"]
-    except Exception:
-        pass
-
-    # Open Edge extension popup per user authorization if not connected
-    powershell_bin = shutil.which("powershell.exe") or shutil.which("powershell") or "powershell"
-    cmd = [powershell_bin, "-Command", "Start-Process msedge.exe extension://emacgiaaaiojkkpkddmmdfhmokgmnikg/popup.html"]
-    subprocess.run(cmd, capture_output=True)
-    for _ in range(5):
-        time.sleep(1)
-        p = subprocess.run([bsk_bin, "browsers", "--json"], capture_output=True, text=True, env=env)
-        try:
-            browsers = json.loads(p.stdout)
-            if browsers:
-                for b in browsers:
-                    if b.get("browser_name") == "edge":
-                        return b["instance_id"]
-                return browsers[0]["instance_id"]
-        except Exception:
-            pass
-    return None
+    return _pick_browser(probe_bsk_browsers(bsk_bin, env))
 
 
 def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str) -> dict:
     job = library.job(job_id)
     env = {**os.environ, "BSK_AUTO_START": "0"}
-    sess_res = subprocess.run([bsk_bin, "session", "start", "--browser", browser_id, "--json"], capture_output=True, text=True, env=env)
+    sess_res = run_bsk([bsk_bin, "session", "start", "--browser", browser_id, "--json"], capture_output=True, text=True, env=env)
     sess_data = json.loads(sess_res.stdout)
     session_id = sess_data["session_id"]
 
@@ -192,7 +153,7 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
                 break
             # 1. First search Xiaohongshu
             xhs_url = f"https://www.xiaohongshu.com/search_result?keyword={quote(query)}"
-            subprocess.run([bsk_bin, "navigate", xhs_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"], capture_output=True, text=True, env=env)
+            run_bsk([bsk_bin, "navigate", xhs_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"], capture_output=True, text=True, env=env)
             time.sleep(2.5)
 
             expr = """(() => {
@@ -209,7 +170,7 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
                 }));
                 return imgs;
             })()"""
-            eval_p = subprocess.run([bsk_bin, "evaluate", "--session", session_id, "--json", expr], capture_output=True, text=True, env=env)
+            eval_p = run_bsk([bsk_bin, "evaluate", "--session", session_id, "--json", expr], capture_output=True, text=True, env=env)
             try:
                 raw_eval = json.loads(eval_p.stdout)
                 records = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
@@ -243,7 +204,7 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
             # 2. Also try Pinterest if we need more images
             if created_count < target_count:
                 pin_url = "https://www.pinterest.com/search/pins/?q=" + quote(query)
-                subprocess.run([bsk_bin, "navigate", pin_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"], capture_output=True, text=True, env=env)
+                run_bsk([bsk_bin, "navigate", pin_url, "--session", session_id, "--wait-until", "domcontentloaded", "--timeout", "25s"], capture_output=True, text=True, env=env)
                 time.sleep(2.5)
                 pin_expr = """(() => {
                     const imgs = Array.from(document.querySelectorAll("img")).filter(img => {
@@ -259,7 +220,7 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
                     }));
                     return imgs;
                 })()"""
-                eval_p = subprocess.run([bsk_bin, "evaluate", "--session", session_id, "--json", pin_expr], capture_output=True, text=True, env=env)
+                eval_p = run_bsk([bsk_bin, "evaluate", "--session", session_id, "--json", pin_expr], capture_output=True, text=True, env=env)
                 try:
                     raw_eval = json.loads(eval_p.stdout)
                     pin_records = raw_eval.get("value", []) if isinstance(raw_eval, dict) else (raw_eval if isinstance(raw_eval, list) else [])
@@ -289,7 +250,7 @@ def collect_via_bsk(library: Library, job_id: str, bsk_bin: str, browser_id: str
                     except Exception:
                         continue
     finally:
-        subprocess.run([bsk_bin, "session", "stop", session_id], capture_output=True, env=env)
+        run_bsk([bsk_bin, "session", "stop", session_id], capture_output=True, env=env)
 
     latest = library.job(job_id)
     if not latest["imported_ids"]:

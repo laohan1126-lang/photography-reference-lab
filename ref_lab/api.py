@@ -57,11 +57,14 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app):
         worker = app.state.classification_worker
+        from .collection_postprocess import resume_collection_postprocessors, stop_collection_postprocessors
+        resume_collection_postprocessors(library)
         if settings.auto_classify:
             worker.start()
         try:
             yield
         finally:
+            await asyncio.to_thread(stop_collection_postprocessors)
             if settings.auto_classify:
                 await asyncio.to_thread(worker.stop)
 
@@ -484,6 +487,26 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
     @app.post("/api/notes", status_code=201)
     def create_global_note(data: NoteInput): return library.add_note(None, data)
 
+    def collection_actions(job: dict, *, mode: str, status: str, search_state: str,
+                           review_state: str, search_counts: dict,
+                           preparation_state: str) -> dict:
+        budget_exhausted = (job.get('search_stop_reason') == 'time_budget_exhausted'
+                            or (job.get('search_summary') or {}).get('stop_reason') == 'time_budget_exhausted')
+        can_retry_search = (mode != 'verified' and status != 'cancelled' and not budget_exhausted
+                            and (preparation_state == 'failed'
+                                 or search_state in {'blocked', 'failed', 'partial'}
+                                 or (status == 'blocked' and search_state == 'idle'
+                                     and preparation_state == 'ready')))
+        can_start_review = (mode != 'verified' and status != 'cancelled'
+                            and preparation_state == 'ready'
+                            and search_state in {'completed', 'partial', 'blocked', 'failed', 'cancelled'}
+                            and int(search_counts.get('found', 0) or 0) > 0
+                            and review_state in {None, 'idle', 'completed', 'partial',
+                                                  'blocked', 'failed', 'cancelled'})
+        return {'can_retry_search': can_retry_search,
+                'search_budget_exhausted': budget_exhausted,
+                'can_start_review': can_start_review}
+
     def job_view(job: dict, *, disk_counts=None) -> dict:
         if job.get("kind") != "collection":
             return job
@@ -495,10 +518,11 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
         status = collection_status(job)
         search_state, review_state = collection_stage_states(job)
         signals = collection_progress(job)
+        preparation_state = job.get('preparation_state') or 'ready'
         if status == 'running' and signals['recovering']:status = 'recovering'
         elif signals['manual_action'] and review_state != 'running':status = 'waiting_human'
         search_counts = job.get("search_counts") or {}
-        if job.get('goal_id'):
+        if job.get('goal_id') and preparation_state == 'ready':
             try:
                 disk = disk_counts if disk_counts is not None else candidate_snapshot(job['id'], limit=1)['counts']
                 search_counts = {**search_counts, **disk}
@@ -506,22 +530,75 @@ def create_app(settings: Settings | None = None, *, classifier=None) -> FastAPI:
                 search_counts = {**search_counts, 'usable_named':0, 'usable_independent':0,
                                  'goal_shas':[], 'verification_error':'evidence_unavailable'}
         review_counts = job.get("review_counts") or {}
-        can_review = (mode != "verified" and status != 'cancelled'
-                      and search_state in {"completed", "partial", "blocked", "failed", "cancelled"}
-                      and int(search_counts.get("found", 0) or 0) > 0
-                      and review_state in {None, "idle", "completed", "partial", "blocked", "failed", "cancelled"})
+        from . import collection_queue
+        try:
+            folder = collection_queue.run_directory(job['id'])
+            postprocess = collection_queue.read_json(folder / 'postprocess.json', {})
+            postprocess_manager = collection_queue.read_json(folder / 'postprocess-manager.json', {})
+        except (OSError, ValueError, KeyError):
+            postprocess, postprocess_manager = {}, {}
+        actions = collection_actions(job, mode=mode, status=status, search_state=search_state,
+                                     review_state=review_state, search_counts=search_counts,
+                                     preparation_state=preparation_state)
         return {**job, "status": status, "search_state": search_state, "review_state": review_state,
+                "preparation_state": preparation_state,
                 "recovering": signals["recovering"], "manual_action": signals["manual_action"],
                 "search_counts":search_counts, "can_resume": collection_can_resume(library, job),
                 "search_target_total": int(job.get("target_count") or 0) + int(job.get("search_extra_target") or 0),
+                "download_target_count": int(job.get("download_target_count") or 0),
+                "postprocess": postprocess, "postprocess_manager": postprocess_manager,
                 "can_resume_search": (mode != "verified" and search_state in {"running", "partial", "blocked", "failed"}
                                       and collection_can_resume(library, job)),
                 "can_resume_review": (mode != "verified" and review_can_resume(library, job)),
-                "can_start_review": can_review and not signals['recovering'],
+                "can_start_review": actions['can_start_review'] and not signals['recovering'],
+                "can_retry_search": actions['can_retry_search'],
+                "search_budget_exhausted": actions['search_budget_exhausted'],
                 "is_split_mode": mode != "verified"}
 
+    def job_summary(job: dict) -> dict:
+        """List projection with no candidate/history scan."""
+        if job.get('kind') != 'collection':
+            return {key: job.get(key) for key in (
+                'id', 'project_id', 'kind', 'status', 'revision', 'detail', 'notes',
+                'created_at', 'updated_at', 'target_count', 'reference_ids', 'imported_ids')}
+        search_state, review_state = collection_stage_states(job)
+        mode = job.get('collection_mode', 'verified')
+        status = collection_status(job)
+        preparation_state = job.get('preparation_state') or 'ready'
+        search_counts = job.get('search_counts') or {}
+        actions = collection_actions(job, mode=mode, status=status, search_state=search_state,
+                                     review_state=review_state, search_counts=search_counts,
+                                     preparation_state=preparation_state)
+        project = job.get('project_snapshot') or {}
+        return {
+            'id': job.get('id'), 'project_id': job.get('project_id'), 'kind': 'collection',
+            'status': status, 'revision': job.get('revision'),
+            'detail': job.get('detail'), 'notes': job.get('notes'),
+            'project_snapshot': {key: project.get(key, '') for key in
+                                 ('id', 'character', 'work', 'costume', 'brief')},
+            'created_at': job.get('created_at'), 'updated_at': job.get('updated_at'),
+            'target_count': job.get('target_count'), 'search_extra_target': job.get('search_extra_target', 0),
+            'download_target_count': job.get('download_target_count', 0),
+            'search_timeout_seconds': job.get('search_timeout_seconds'),
+            'search_elapsed_seconds': job.get('search_elapsed_seconds', 0),
+            'collection_mode': mode,
+            'collection_outcome': job.get('collection_outcome'),
+            'collection_attempt_count': job.get('collection_attempt_count', 0),
+            'goal_id': job.get('goal_id', ''), 'preparation_state': preparation_state,
+            'search_state': search_state, 'review_state': review_state,
+            'search_stop_reason': job.get('search_stop_reason', ''),
+            'search_counts': search_counts, 'review_counts': job.get('review_counts') or {},
+            'imported_ids': job.get('imported_ids') or [], 'is_split_mode': mode != 'verified',
+            **actions,
+        }
+
     @app.get("/api/jobs")
-    def all_jobs(): return [job_view(job) for job in library.jobs()]
+    def all_jobs(summary: bool = False, limit: int = Query(20, ge=1, le=100),
+                 offset: int = Query(0, ge=0)):
+        if not summary:
+            return [job_view(job) for job in library.jobs()]
+        page = library.jobs_page(limit=limit, offset=offset)
+        return {**page, 'items': [job_summary(job) for job in page['items']]}
 
     @app.post("/api/jobs/{job_id}/report")
     def collection_report(job_id: str, data: CollectionReport): return library.record_collection_report(job_id, data)

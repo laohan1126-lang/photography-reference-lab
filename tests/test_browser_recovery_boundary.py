@@ -122,12 +122,13 @@ def test_recovery_requires_actual_read_after_session_creation(tmp_path,monkeypat
         commands.append(argv[1])
         if argv[1]=="browsers":out='[{"instance_id":"original"}]'
         elif argv[1:3]==["session","start"]:out='{"session_id":"new"}'
+        elif argv[1:3]==["cooperate","sync"]:out='{"context_id":"fresh","ready":true}'
         elif argv[1]=="evaluate":out='{"ok":true,"value":{"url":"about:blank","cards":[]}}'
         else:out='{}'
         return SimpleNamespace(returncode=0,stdout=out,stderr="")
     monkeypatch.setattr(worker.subprocess,"run",run)
     assert browser.recover() is True
-    assert commands==["browsers","session","session","session","session","evaluate"]
+    assert commands==["browsers","session","session","session","session","cooperate","evaluate"]
     assert browser.session=="new"
 
 def test_api_projects_recovery_diagnostics(client,library,project,tmp_path,monkeypatch):

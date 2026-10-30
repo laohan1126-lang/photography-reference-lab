@@ -525,7 +525,7 @@ def test_wait_for_cards_keeps_polling_until_cards_appear(monkeypatch):
 
     samples = iter([[], [], [{"t": "a"}, {"t": "b"}], [{"t": "a"}, {"t": "b"}]])
 
-    monkeypatch.setattr(ca.subprocess, "run",
+    monkeypatch.setattr(ca, "run_bsk",
                         lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
     monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
 
@@ -536,7 +536,7 @@ def test_wait_for_cards_returns_best_sample_not_the_last(monkeypatch):
     import tools.collect_adapter as ca
 
     samples = iter([[{"t": "a"}, {"t": "b"}, {"t": "c"}], [{"t": "a"}]])
-    monkeypatch.setattr(ca.subprocess, "run",
+    monkeypatch.setattr(ca, "run_bsk",
                         lambda *a, **k: type("R", (), {"stdout": json.dumps(next(samples))})())
     monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
 
@@ -547,7 +547,7 @@ def test_wait_for_cards_survives_unparsable_evaluate(monkeypatch):
     import tools.collect_adapter as ca
 
     samples = iter(["not json", "still not json", json.dumps([{"t": "a"}]), json.dumps([{"t": "a"}])])
-    monkeypatch.setattr(ca.subprocess, "run",
+    monkeypatch.setattr(ca, "run_bsk",
                         lambda *a, **k: type("R", (), {"stdout": next(samples)})())
     monkeypatch.setattr(ca.time, "sleep", lambda _s: None)
 

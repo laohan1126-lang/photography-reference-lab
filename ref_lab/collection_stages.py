@@ -129,7 +129,49 @@ def _thread(job_id: str, stage: str, target, *args) -> None:
     threading.Thread(target=body, name=f"collection-{stage}-{job_id[:8]}", daemon=True).start()
 
 
-def launch_search(library: Library, job_id: str) -> dict:
+def _prepare_then_launch(library: Library, job_id: str, attempt_id: str, followup: str) -> None:
+    try:
+        job = library.prepare_job(job_id, attempt_id)
+        if job["status"] == "cancelled" or job.get("search_state") == "cancelled":
+            return
+        launched = launch_search(library, job_id, _allow_prepare=False)
+        if followup == "start" and job.get("collection_mode") == "search_review":
+            launch_review(library, job_id)
+    except BaseException as exc:  # noqa: BLE001 - preparation failures stay on this Job
+        detail = exc.message if isinstance(exc, Problem) else f"任务准备失败：{type(exc).__name__}"
+        try:
+            library.fail_job_preparation(job_id, attempt_id, detail)
+        except Exception:
+            pass
+
+
+def _start_preparation(library: Library, job_id: str, followup: str) -> dict | None:
+    """Return a pending Job, or None when an older/ready Job can launch now."""
+    job = library.job(job_id)
+    state = job.get("preparation_state")
+    if state in {None, "ready"}:
+        return None
+    if job["status"] == "cancelled":
+        raise Problem(409, "已取消的采集任务不能继续")
+    if state == "running":
+        owner = job.get("preparation_process_owner")
+        if (job_id, "prepare") in _RUNNING or _process_owner_active(owner):
+            return job
+        job = library.reset_job_preparation(job_id, "上次后台准备进程已退出；可重新准备。")
+        if job["status"] == "cancelled":
+            return job
+    attempt_id = uuid4().hex
+    with _LAUNCH_LOCK:
+        job, claimed = library.begin_job_preparation(
+            job_id, attempt_id, _owner_record(__import__("os").getpid(), phase="preparing"))
+        if not claimed:
+            return job
+        _set_running(job_id, "prepare", True)
+        _thread(job_id, "prepare", _prepare_then_launch, library, job_id, attempt_id, followup)
+    return job
+
+
+def launch_search(library: Library, job_id: str, *, _allow_prepare: bool = True) -> dict:
     job = library.job(job_id)
     if job["kind"] != "collection":
         raise Problem(400, "不是采集任务")
@@ -137,6 +179,11 @@ def launch_search(library: Library, job_id: str) -> dict:
         raise Problem(409, "历史一体式任务请使用原执行入口")
     if job["status"] == "cancelled":
         raise Problem(409, "已取消的采集任务不能继续")
+    if _allow_prepare:
+        preparing = _start_preparation(library, job_id, "search")
+        if preparing is not None:
+            return preparing
+        job = library.job(job_id)
     if job.get("search_state") == "completed" and job.get("review_state") in {"idle", "completed", "partial", "blocked"}:
         return library.job(job_id)
     # Prepare the shared task package before either stage thread starts; this
@@ -193,7 +240,15 @@ def start_job(library: Library, job_id: str) -> dict:
     mode = job.get("collection_mode", "verified")
     if mode == "verified":
         raise Problem(409, "历史一体式任务请使用原执行入口")
-    launched = launch_search(library, job_id)
+    if job["status"] == "cancelled":
+        raise Problem(409, "已取消的采集任务不能继续")
+    preparing = _start_preparation(library, job_id, "start")
+    if preparing is not None:
+        return preparing
+    job = library.job(job_id)
+    if job.get("search_state") in {"queued", "running", "completed"} or (job_id, "search") in _RUNNING:
+        return job
+    launched = launch_search(library, job_id, _allow_prepare=False)
     if mode == "search_review":
         launched = launch_review(library, job_id)
     return launched
@@ -206,6 +261,15 @@ def run_search_stage(library: Library, job_id: str, attempt_id: str) -> dict:
         raise Problem(409, "本 Job 的搜索阶段仍由本地执行进程持有")
     try:
         job = library.job(job_id)
+        if job.get('collection_mode') == 'search':
+            from .collection_postprocess import start_collection_postprocess
+            try:
+                start_collection_postprocess(library, job_id)
+            except Exception as exc:
+                collection_queue.write_json(folder / "postprocess-manager.json", {
+                    "version": 1, "state": "blocked", "reason": type(exc).__name__,
+                    "error": str(exc)[:800], "updated_at": __import__("time").time(),
+                })
         if job.get("search_state") == "completed":
             return job
         target = int(job.get("target_count") or 0)

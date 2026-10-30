@@ -259,10 +259,10 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str], *, intent_off
     records = _plan_name_records(project, plan)
     if not records:
         raise ValueError("Name plan has no usable trusted name")
-    # Short aliases help text routing (e.g. "maki") but are too broad as a
-    # standalone query. Query generation keeps full names only.
+    # Short ungrounded aliases help text routing but are too broad as a query.
+    # Search-grounded aliases may be short because their discovery evidence is cached.
     query_records = [record for record in records
-                     if record["source"] == "user_input"
+                     if record["source"] in ("user_input", "web_search_name_alias")
                      or (record["language"] == "en" and " " in record["name"])
                      or (record["language"] != "en" and len(record["name"]) >= 3)]
     if query_records:
@@ -313,7 +313,8 @@ def query_steps(project: dict, plan: NamePlan, sources: list[str], *, intent_off
             pool.append({
                 "source": source, "query": query, "language": record["language"],
                 "used_name": record["name"], "name_source": record["source"],
-                "alias_origin": "agent_discovery_hypothesis", "work_term": work,
+                "alias_origin": ("web_search_name_alias" if record["source"] == "web_search_name_alias"
+                                 else "agent_discovery_hypothesis"), "work_term": work,
                 "intent": intent,
             })
         pools[source] = pool
@@ -386,6 +387,7 @@ class AntigravityCollectionAgent:
     def __init__(self, folder: Path, model: str | None = None, *, target_count: int = 12,
                  runtime_budget: bool = True):
         self.folder=folder
+        self.name_cache_dir=Path(__file__).resolve().parents[1]/'.local/name-resolution-cache'
         self._thread=threading.local();self._budget_lock=threading.RLock();self._prompt_locks={}
         self.cancelled=threading.Event();self.timing=CollectionTiming(folder)
         self.model=model or os.environ.get('LAB_CLASSIFICATION_MODEL','gemini-3.8-flash-medium')

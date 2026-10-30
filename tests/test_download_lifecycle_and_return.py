@@ -194,7 +194,7 @@ class _Completed:
 def test_known_source_address_is_not_transferred_again(tmp_path, monkeypatch):
     page = "https://www.xiaohongshu.com/explore/" + "b" * 24
     url = "https://sns-img.xhscdn.com/known-rendition.jpg"
-    monkeypatch.setattr(exact_recall.subprocess, "run",
+    monkeypatch.setattr(exact_recall, "run_bsk",
                         lambda *a, **k: _Completed(_note_payload(page, [url])))
 
     def fail(*args, **kwargs):
@@ -214,10 +214,10 @@ def test_known_bytes_delete_the_temporary_copy_immediately(tmp_path, monkeypatch
     url = "https://sns-img.xhscdn.com/already-seen.jpg"
     raw = _png()
     sha = hashlib.sha256(raw).hexdigest()
-    monkeypatch.setattr(exact_recall.subprocess, "run",
+    monkeypatch.setattr(exact_recall, "run_bsk",
                         lambda *a, **k: _Completed(_note_payload(page, [url])))
 
-    def stream(url_arg, target, timeout, limit=20 * 1024 * 1024):
+    def stream(url_arg, target, timeout, limit=20 * 1024 * 1024, *, client=None):
         target.write_bytes(raw)
         return sha, len(raw)
 
@@ -455,10 +455,10 @@ def test_capture_note_creates_a_missing_temporary_area(tmp_path, monkeypatch):
     page = "https://www.xiaohongshu.com/explore/" + "e" * 24
     url = "https://sns-img.xhscdn.com/needs-temp-dir.jpg"
     raw = _png()
-    monkeypatch.setattr(exact_recall.subprocess, "run",
+    monkeypatch.setattr(exact_recall, "run_bsk",
                         lambda *a, **k: _Completed(_note_payload(page, [url])))
 
-    def stream(url_arg, target, timeout, limit=20 * 1024 * 1024):
+    def stream(url_arg, target, timeout, limit=20 * 1024 * 1024, *, client=None):
         target.write_bytes(raw)
         return hashlib.sha256(raw).hexdigest(), len(raw)
 

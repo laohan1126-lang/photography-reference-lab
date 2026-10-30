@@ -1,0 +1,148 @@
+diff --git a/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts b/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
+index 519e1f4..5771963 100644
+--- a/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
++++ b/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
+@@ -37,6 +37,48 @@ afterEach(() => {
+ });
+ 
+ describe("ChromiumCdp", () => {
++  it("bounds raw attachment and fences late completion without dispatching page commands", async () => {
++    vi.useFakeTimers();
++    const { api } = fakeApi();
++    let finish!: () => void;
++    vi.mocked(api.attach).mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
++    const cdp = new ChromiumCdp(api);
++    let failure: unknown;
++    const request = cdp.ensureAttached(7).catch((error) => { failure = error; });
++    await vi.advanceTimersByTimeAsync(10_001);
++    expect(failure).toBeInstanceOf(Error);
++    expect(String(failure)).toContain("Debugger.attach");
++    await expect(cdp.ensureAttached(7)).rejects.toThrow(/Debugger.attach/);
++    expect(api.attach).toHaveBeenCalledTimes(1);
++    finish();
++    await vi.advanceTimersByTimeAsync(1);
++    await request;
++    expect(cdp.isAttached(7)).toBe(false);
++    expect(api.sendCommand).not.toHaveBeenCalled();
++    expect(api.detach).toHaveBeenCalledExactlyOnceWith({ tabId: 7 });
++    await expect(cdp.ensureAttached(7)).resolves.toBeUndefined();
++    expect(api.attach).toHaveBeenCalledTimes(2);
++  });
++
++  it("bounds a stalled domain setup and rolls back its debugger attachment", async () => {
++    vi.useFakeTimers();
++    const { api } = fakeApi();
++    vi.mocked(api.sendCommand).mockImplementation(async (_target, method) => {
++      if (method === "Page.enable") return new Promise(() => {});
++      return {};
++    });
++    const cdp = new ChromiumCdp(api);
++    let failure: unknown;
++    const pending = cdp.ensureAttached(4).catch((error) => { failure = error; });
++    await vi.advanceTimersByTimeAsync(10_001);
++    expect(failure).toBeInstanceOf(Error);
++    expect(String(failure)).toContain("Page.enable");
++    expect(api.detach).toHaveBeenCalledExactlyOnceWith({ tabId: 4 });
++    expect(cdp.isAttached(4)).toBe(false);
++    expect(vi.mocked(api.sendCommand).mock.calls.some(([, method]) => method === "Runtime.enable")).toBe(false);
++    await pending;
++  });
++
+   it.each([
+     "abort",
+     "replacement",
+diff --git a/apps/extension/src/browser-driver/chromium-cdp.ts b/apps/extension/src/browser-driver/chromium-cdp.ts
+index fd5c6fd..5a8c498 100644
+--- a/apps/extension/src/browser-driver/chromium-cdp.ts
++++ b/apps/extension/src/browser-driver/chromium-cdp.ts
+@@ -184,6 +184,8 @@ export class ChromiumCdp {
+   private readonly attachmentVersions = new Map<number, number>();
+   private readonly attachmentIds = new Map<number, string>();
+   private readonly attachInFlight = new Map<number, Promise<void>>();
++  private readonly rawAttaching = new Set<number>();
++  private readonly stalledSetup = new Map<number, CdpReadTimeoutError>();
+   private readonly detachInFlight = new Map<number, Promise<void>>();
+   private readonly backgroundExecution = new BackgroundExecution(
+     (tabId) => this.attachmentIds.get(tabId),
+@@ -248,7 +250,37 @@ export class ChromiumCdp {
+ 
+   /** Attach to `tabId` if we haven't already in this driver. */
+   async ensureAttached(tabId: number): Promise<void> {
+-    await this.ensureRawAttached(tabId);
++    const stalled = this.stalledSetup.get(tabId);
++    if (stalled) throw stalled;
++    const pending = this.ensureRawAttached(tabId);
++    let timer: ReturnType<typeof setTimeout> | undefined;
++    try {
++      await Promise.race([
++        pending,
++        new Promise<never>((_, reject) => {
++          timer = setTimeout(() => {
++            // Domain setup has its own deadlines; do not replace its precise
++            // error or consume another command's initialization budget.
++            if (!this.rawAttaching.has(tabId)) return;
++            let error = this.stalledSetup.get(tabId);
++            if (!error) {
++              error = new CdpReadTimeoutError("Debugger.attach", tabId, READ_TIMEOUT_MS);
++              this.stalledSetup.set(tabId, error);
++              // Retire the attachment generation; the still-running raw promise
++              // retains its slot and rolls back if Chrome acknowledges it later.
++              void this.detach(tabId).catch(() => {});
++              const failure = error;
++              void pending.finally(() => {
++                if (this.stalledSetup.get(tabId) === failure) this.stalledSetup.delete(tabId);
++              }).catch(() => {});
++            }
++            reject(error);
++          }, READ_TIMEOUT_MS);
++        }),
++      ]);
++    } finally {
++      clearTimeout(timer);
++    }
+     await this.backgroundExecution.synchronize(tabId);
+   }
+ 
+@@ -314,7 +346,12 @@ export class ChromiumCdp {
+         throw new Error("Debugger attachment was released during setup");
+     };
+     const attach = (async () => {
+-      await this.api.attach({ tabId }, CDP_PROTOCOL_VERSION);
++      this.rawAttaching.add(tabId);
++      try {
++        await this.api.attach({ tabId }, CDP_PROTOCOL_VERSION);
++      } finally {
++        this.rawAttaching.delete(tabId);
++      }
+       try {
+         check();
+         await this.enablePageDomain(tabId);
+@@ -357,7 +394,9 @@ export class ChromiumCdp {
+         throw normalizeError(err);
+       })
+       .finally(() => {
+-        if (this.attachInFlight.get(tabId) === attach) this.attachInFlight.delete(tabId);
++        if (this.attachInFlight.get(tabId) === attach) {
++          this.attachInFlight.delete(tabId);
++        }
+       });
+     this.attachInFlight.set(tabId, attach);
+     await attach;
+diff --git a/apps/extension/src/browser-driver/command-deadline.ts b/apps/extension/src/browser-driver/command-deadline.ts
+index f484a2a..9f8857a 100644
+--- a/apps/extension/src/browser-driver/command-deadline.ts
++++ b/apps/extension/src/browser-driver/command-deadline.ts
+@@ -8,6 +8,13 @@ import type { CdpDebuggee } from "./chromium-cdp";
+ // unresponsive page. Mutations, screenshots and user-requested waits keep
+ // their own limits.
+ const RENDERER_READS = new Set([
++  // Setup happens before a tool's own wait starts; a stuck enable must not
++  // retain the session command slot forever after the caller cancels.
++  "Page.enable",
++  "Page.setLifecycleEventsEnabled",
++  "Runtime.enable",
++  "Log.enable",
++  "Network.enable",
+   "DOMSnapshot.enable",
+   "DOMSnapshot.captureSnapshot",
+   "Accessibility.enable",

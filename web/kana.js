@@ -10,12 +10,27 @@
   function animate(el,frames,options){if(!el?.isConnected||reduced.matches||document.hidden)return;const a=el.animate(frames,options);active.add(a);a.onfinish=a.oncancel=()=>active.delete(a);return a;}
   const nav=byId('toggle-project-nav');
   const globalNav=byId('global-nav'),globalHome=globalNav?.parentNode;
+  const sidebar=document.querySelector('.sidebar');
+  const projectNavigation=byId('project-navigation');
+  const projectHome=projectNavigation?.parentNode;
+  const projectAnchor=document.createComment('desktop project navigation');
+  if(projectNavigation&&projectHome)projectHome.insertBefore(projectAnchor,projectNavigation);
+  if(projectNavigation&&sidebar){sidebar.classList.add('project-nav-in-sidebar');sidebar.append(projectNavigation);}
+  const branchNavigation=sidebar?.querySelector(':scope > .photography-branches');
+  const branchHome=branchNavigation?.parentNode;
+  const branchAnchor=document.createComment('desktop photography branches');
+  if(branchNavigation)branchNavigation.after(branchAnchor);
   const globalAnchor=document.createComment('desktop global navigation');
   if(globalNav)globalNav.after(globalAnchor);
   function syncNavigation(){
     if(!globalNav||!globalHome)return;
-    if(innerWidth<=700){const panel=byId('project-navigation');if(globalNav.parentNode!==panel)panel?.append(globalNav);globalNav.style.display='flex';}
-    else {if(globalNav.parentNode!==globalHome)globalHome.insertBefore(globalNav,globalAnchor);globalNav.style.removeProperty('display');}
+    sidebar?.classList.toggle('project-nav-in-sidebar',innerWidth>700);
+    if(innerWidth<=700){const panel=byId('project-navigation');if(globalNav.parentNode!==panel)panel?.append(globalNav);globalNav.style.display='flex';if(branchNavigation&&panel&&branchNavigation.parentNode!==panel)panel.prepend(branchNavigation);}
+    else {
+      if(globalNav.parentNode!==globalHome)globalHome.insertBefore(globalNav,globalAnchor);
+      if(branchNavigation&&branchHome&&branchNavigation.parentNode!==branchHome)branchHome.insertBefore(branchNavigation,branchAnchor);
+      globalNav.style.removeProperty('display');branchNavigation?.style.removeProperty('display');
+    }
   }
   syncNavigation();
   document.addEventListener('click',event=>{

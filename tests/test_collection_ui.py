@@ -104,27 +104,25 @@ def test_orphaned_running_job_offers_same_job_resume(component_factory, library,
     expect(page.locator('#run-antigravity')).to_be_enabled()
 
 
-def test_collection_editor_offers_two_modes_and_opens_live_candidate_queue(
-        component_factory, library, project):
+def test_project_header_search_uses_one_form_and_opens_live_candidate_queue(
+        component_factory, library, project, monkeypatch):
+    from ref_lab import collection_stages
+    monkeypatch.setattr(collection_stages, 'start_job', lambda lib, job_id: lib.job(job_id))
     page = component_factory()
     page.get_by_role('button', name='找一批参考', exact=True).click()
-    mode = page.get_by_label('运行方式', exact=True)
-    assert mode.locator('option').count() == 2
-    assert mode.locator('option').nth(0).get_attribute('value') == 'search'
-    expect(page.locator('#collection-budget')).to_contain_text('2700')
-    expect(page.locator('#collection-budget')).to_contain_text('60 次')
-    assert '搜图 + AI 审核' in mode.locator('option').nth(1).inner_text()
-    target = page.get_by_label('期望目标数量（合格真人摄影，质量优先，不凑数）', exact=True)
+    assert page.get_by_label('运行方式', exact=True).count() == 0
+    expect(page.get_by_label('角色名 *', exact=True)).to_have_value(project['character'])
+    target = page.get_by_label('需要多少张', exact=True)
     assert target.input_value() == '30'
     assert target.get_attribute('max') == '100'
     target.fill('15')
-    expect(page.locator('#collection-budget')).to_contain_text('1800')
-    target.fill('30')
-    mode.select_option('search_review')
     page.get_by_role('button', name='开始搜图', exact=True).click()
     page.locator('#cq-grid').wait_for(state='attached')
-    assert library.jobs()[0]['collection_mode'] == 'search_review'
-    expect(page.locator('#cq-status')).to_contain_text('搜索')
+    jobs = library.jobs()
+    assert len(jobs) == 1
+    assert jobs[0]['project_id'] == project['id']
+    assert jobs[0]['target_count'] == 15
+    expect(page.locator('#cq-status')).to_contain_text('准备')
 
 
 def test_candidate_queue_shows_acquired_originals_and_keeps_human_decision(

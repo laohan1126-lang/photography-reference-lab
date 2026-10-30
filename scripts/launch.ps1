@@ -94,7 +94,11 @@ if ($alreadyHealthy) {
         $python,
         $adapter,
         "{task_file}",
-        "{result_file}"
+        "{result_file}",
+        "--browser-backend",
+        "playwright",
+        "--playwright-profile",
+        (Join-Path $config.RepoRoot ".local\playwright-collection-profile")
     ) | ConvertTo-Json -Compress)
 
     Write-Host "[*] Starting repo-local Windows backend..." -ForegroundColor Yellow
@@ -172,11 +176,9 @@ with open(sys.argv[3], 'ab') as out, open(sys.argv[4], 'ab') as err:
 }
 
 $tunnelReady = $false
-$browserReady = $false
 if (-not $SkipExternalServices) {
     . (Join-Path $PSScriptRoot "ensure-external-services.ps1")
     $tunnelReady = Ensure-CloudflareTunnel -Config $config -ExpectedPid $record.pid
-    $browserReady = Ensure-BrowserSkillDaemon
 }
 
 if (-not $NoOpen) { Start-Process $url }
@@ -189,11 +191,7 @@ if ($tunnelReady) {
 } else {
     Write-Host "  手机访问 : 未验证连到本资料库，请查看隧道检查结果。" -ForegroundColor Yellow
 }
-if ($browserReady) {
-    Write-Host "  采集浏览器 : Edge 已连接；平台登录仍需正常有效。" -ForegroundColor Green
-} else {
-    Write-Host "  采集浏览器 : 未就绪；请打开 Edge 并检查 BrowserSkill 扩展。" -ForegroundColor Yellow
-}
+Write-Host "  采集浏览器 : Playwright 独立窗口，搜图时启动并复用本地登录配置。" -ForegroundColor Cyan
 $session = Invoke-RestMethod -Uri "$url/api/session" -TimeoutSec 2 -ErrorAction Stop
 if ($session.no_auth) {
     Write-Host "  模式     : 当前资料库免密访问。" -ForegroundColor Cyan

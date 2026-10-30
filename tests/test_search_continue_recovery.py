@@ -20,6 +20,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from PIL import Image
+import pytest
 
 from ref_lab import collection_queue
 from ref_lab.collection_checkpoint import rule_contract
@@ -187,23 +188,31 @@ def test_continue_reports_exhausted_detail_budget_instead_of_claiming_success(tm
     assert Path(_received(tmp_path)[0]["original_path"]).read_bytes() == old_raw
 
 
-def _seed_cli_run(root: Path) -> Path:
+def _seed_cli_run(root: Path, *, retry=False) -> Path:
     run = root / ".local" / "collection-runs" / JOB_ID / "current"
     run.mkdir(parents=True)
-    browser = Browser(run)
+    class UnavailableBrowser(Browser):
+        def start(self):
+            raise worker.BrowserInfrastructureError("synthetic startup timeout", action="session",
+                                                    code="command_timeout", is_timeout=True)
+    browser = UnavailableBrowser(run) if retry else Browser(run)
     first, _ = worker.collect(_job(extra=0, target=1), Agent(), browser, run, search_only=True)
-    assert first["status"] == "completed" and len(_received(run)) == 1
+    assert first["status"] == ("blocked" if retry else "completed")
+    assert len(_received(run)) == (0 if retry else 1)
     task_dir = root / "task"
     task_dir.mkdir()
     (task_dir / "AGENT_TASK.md").write_text("synthetic continue task", encoding="utf8")
-    job = _job(extra=1, target=1)
+    job = _job(extra=0 if retry else 1, target=1)
+    if retry:
+        job["search_resume_generation"] = 1
     (task_dir / "job.json").write_text(json.dumps({"schema_version": 2, "job": job}), encoding="utf8")
     return run
 
 
-def test_search_only_cli_continues_instead_of_exiting_on_the_old_summary(tmp_path, monkeypatch):
+@pytest.mark.parametrize("retry", [False, True], ids=["extra-target", "same-budget-retry"])
+def test_search_only_cli_continues_instead_of_exiting_on_the_old_summary(tmp_path, monkeypatch, retry):
     root = tmp_path / "cli-root"
-    run = _seed_cli_run(root)
+    run = _seed_cli_run(root, retry=retry)
     browser = Browser(run, start=1)
 
     class CliAgent(Agent):
@@ -234,11 +243,11 @@ def test_search_only_cli_continues_instead_of_exiting_on_the_old_summary(tmp_pat
 
     summary = json.loads((run / "search-summary.json").read_text("utf8"))
     assert summary["status"] == "completed" and summary["target_reached"] is True
-    assert summary["counts"]["found"] == 2, "the CLI must not exit on the previous terminal summary"
+    assert summary["counts"]["found"] == (1 if retry else 2), "the CLI must not exit on the previous terminal summary"
     assert browser.executed, "continued CLI run must execute real searches"
     archived = list(run.glob("search-summary-previous-*.json"))
     assert len(archived) == 1
-    assert json.loads(archived[0].read_text("utf8"))["counts"]["found"] == 1
+    assert json.loads(archived[0].read_text("utf8"))["counts"]["found"] == (0 if retry else 1)
 
 
 def test_task_package_is_refreshed_with_the_pending_extra_target(tmp_path, monkeypatch, library, client, project):
@@ -248,6 +257,8 @@ def test_task_package_is_refreshed_with_the_pending_extra_target(tmp_path, monke
     monkeypatch.setattr(collection_queue, "run_directory", lambda job_id: tmp_path / "q")
     job = library.create_job(project["id"], JobInput(kind="collection", collection_mode="search",
                                                      target_count=4, notes="synthetic continue package"))
+    library.begin_job_preparation(job["id"], "package-test-preparation", {})
+    library.prepare_job(job["id"], "package-test-preparation")
     folder, task_dir, task_file = collection_stages._artifacts(library, job["id"])
     assert folder == tmp_path / "q"
     first = json.loads((task_dir / "job.json").read_text("utf8"))["job"]

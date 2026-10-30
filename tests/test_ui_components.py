@@ -60,6 +60,12 @@ def test_dot_study_queue_keeps_candidate_separate_from_taste(component_factory, 
 
 
 @pytest.fixture
+def fast_search_start(monkeypatch):
+    from ref_lab import collection_stages
+    monkeypatch.setattr(collection_stages, 'start_job', lambda lib, job_id: lib.job(job_id))
+
+
+@pytest.fixture
 def component_factory(client, library):
     playwright = pytest.importorskip('playwright.sync_api')
     with playwright.sync_playwright() as engine:
@@ -157,7 +163,7 @@ def screenshot(page, name):
 
 @pytest.mark.parametrize('has_project', [False, True])
 @pytest.mark.parametrize('entry', ['studio', 'jobs'])
-def test_studio_cover_action_preserves_project_entry_and_keyboard_access(component_factory, library, has_project, entry):
+def test_search_uses_one_form_and_one_submit_without_compulsory_second_step(component_factory, library, fast_search_start, has_project, entry):
     project = library.create_project(ProjectInput(character='封面入口回归')) if has_project else None
     page = component_factory()
     if entry == 'studio':
@@ -174,22 +180,280 @@ def test_studio_cover_action_preserves_project_entry_and_keyboard_access(compone
     assert page.locator('[name="project_id"]').count() == 0
     character.fill('自由输入的新角色')
     page.locator('[name="work"]').fill('回归作品')
+    page.get_by_label('需要多少张', exact=True).fill('12')
+    page.get_by_label('补充要求', exact=True).fill('想找回眸和坐姿')
+    expect(page.locator('[name="costume"]')).not_to_be_visible()
+    page.get_by_text('服装与拍摄条件（选填）', exact=True).click()
     page.locator('[name="costume"]').fill('自定服装')
-    page.locator('[name="brief"]').fill('想找回眸和坐姿')
+    page.locator('[name="gear"]').fill('50mm 与一盏柔光')
     assert len(library.projects()) == int(has_project)
     assert library.jobs() == []
-    page.get_by_role('button', name='下一步：设置搜图', exact=True).click()
-    expect(page.locator('[name="collection_mode"]')).to_be_visible()
-    created = next(p for p in library.projects() if p['character'] == '自由输入的新角色')
-    assert (created['work'], created['costume'], created['brief']) == ('回归作品', '自定服装', '想找回眸和坐姿')
-    expect(page.locator('[name="project_id"]')).to_have_value(created['id'])
-    assert library.jobs() == []
-    if project:
-        assert library.project(project['id'])['character'] == '封面入口回归'
+    assert page.get_by_role('button', name='下一步：设置搜图', exact=True).count() == 0
     page.get_by_role('button', name='开始搜图', exact=True).click()
     page.locator('#cq-grid').wait_for(state='attached')
+    created = next(p for p in library.projects() if p['character'] == '自由输入的新角色')
+    assert (created['work'], created['costume'], created['brief']) == ('回归作品', '自定服装', '想找回眸和坐姿')
+    if project:
+        assert library.project(project['id'])['character'] == '封面入口回归'
     assert len(library.jobs()) == 1
     assert library.jobs()[0]['project_id'] == created['id']
+    assert library.jobs()[0]['target_count'] == 12
+    assert '想找回眸和坐姿' in library.jobs()[0]['notes']
+    assert '50mm 与一盏柔光' in library.jobs()[0]['notes']
+
+
+@pytest.mark.parametrize('entry', ['studio', 'jobs'])
+def test_search_with_only_character_reuses_one_compatible_project(component_factory, library, fast_search_start, entry):
+    original = library.create_project(ProjectInput(character=' 安养寺姬芽 ', work='莲之空', costume='',
+                                                     brief='只保留原来的要求'))
+    page = component_factory()
+    if entry == 'studio':
+        page.locator('#studio-collect').click()
+    else:
+        open_navigation(page)
+        page.get_by_role('button', name='采集任务', exact=True).click()
+        page.locator('#create-collection').click()
+    page.get_by_label('角色名 *', exact=True).fill('安养寺姬芽')
+    page.get_by_label('补充要求', exact=True).fill('本轮只看坐姿')
+    page.get_by_text('服装与拍摄条件（选填）', exact=True).click()
+    page.get_by_label('设备／环境限制', exact=True).fill('50mm 与一盏柔光')
+    page.get_by_role('button', name='开始搜图', exact=True).click()
+    page.locator('#cq-grid').wait_for(state='attached')
+    job = library.jobs()[0]
+    assert job['notes'] == '本次补充要求：\n本轮只看坐姿\n\n本次设备／环境限制：\n50mm 与一盏柔光'
+    assert job['project_id'] == original['id']
+    assert len(library.projects()) == 1
+    assert library.project(original['id'])['brief'] == '只保留原来的要求'
+    assert library.project(original['id'])['gear'] == 'Sony A7M4；50mm f/1.8；24–240mm；Godox V100 一盏、灯架、圆形柔光附件。以 cosplay／日常、社交、现场可执行为主。'
+
+
+def test_search_ambiguity_requires_explicit_project_choice(component_factory, library, fast_search_start):
+    first = library.create_project(ProjectInput(character='安养寺姬芽', work='莲之空'))
+    second = library.create_project(ProjectInput(character='安养寺姬芽', work='另一作品', costume='另一服装'))
+    page = component_factory()
+    page.locator('#studio-collect').click()
+    page.get_by_label('角色名 *', exact=True).fill('安养寺姬芽')
+    page.get_by_role('button', name='开始搜图', exact=True).click()
+    expect(page.locator('#editor-title')).to_have_text('选择继续搜图的项目')
+    expect(page.locator('#editor-content')).to_contain_text('原有筛选会保留')
+    expect(page.locator('#editor-content')).to_contain_text(f"创建 {first['created_at'][:10]}")
+    expect(page.locator('#editor-content')).to_contain_text(f"创建 {second['created_at'][:10]}")
+    expect(page.locator('#editor-content')).not_to_contain_text(first['id'])
+    picker = page.get_by_label('使用哪个项目', exact=True)
+    expect(picker).to_have_value('')
+    picker.select_option(second['id'])
+    page.get_by_role('button', name='开始搜图', exact=True).click()
+    page.locator('#cq-grid').wait_for(state='attached')
+    assert library.jobs()[0]['project_id'] == second['id']
+    assert len(library.projects()) == 2
+    assert library.project(first['id'])['revision'] == first['revision']
+
+
+def test_search_creates_explicitly_different_costume_without_merging(component_factory, library, fast_search_start):
+    original = library.create_project(ProjectInput(character='安养寺姬芽', work='莲之空', costume='原服装', brief='原要求'))
+    page = component_factory()
+    page.locator('#studio-collect').click()
+    page.get_by_label('角色名 *', exact=True).fill('安养寺姬芽')
+    page.get_by_label('出自作品（选填）', exact=True).fill('莲之空')
+    page.get_by_text('服装与拍摄条件（选填）', exact=True).click()
+    page.get_by_label('服装／皮肤版本（选填）', exact=True).fill('新服装')
+    page.get_by_role('button', name='开始搜图', exact=True).click()
+    page.locator('#cq-grid').wait_for(state='attached')
+    created = next(p for p in library.projects() if p['costume'] == '新服装')
+    assert created['brief'] == ''
+    assert library.jobs()[0]['project_id'] == created['id']
+    assert library.project(original['id'])['brief'] == '原要求'
+    assert original['id'] != created['id']
+
+
+def test_project_delete_and_restore_are_reachable_and_preserve_notes(client, component_factory, library):
+    project = library.create_project(ProjectInput(character='可恢复角色', work='回归作品'))
+    note = client.post(f"/api/projects/{project['id']}/notes", json={'title': '保留笔记', 'body': '不能随项目删除'}).json()
+    page = component_factory(f"view=references&project={project['id']}")
+    page.evaluate("() => window.confirm = () => true")
+    expect(page.locator('#archive-project')).to_be_visible()
+    page.locator('#archive-project').click()
+    expect(page.locator('#archived-projects')).to_be_visible()
+    expect(page.locator('#toast')).to_contain_text('可恢复')
+    assert all(p['id'] != project['id'] for p in library.projects())
+    page.locator('#archived-projects').click()
+    expect(page.locator('#editor-title')).to_have_text('已删除项目 · 可恢复')
+    page.get_by_role('button', name='恢复项目', exact=True).click()
+    restored = library.project(project['id'])
+    assert restored['archived_at'] is None
+    assert library.notes(project['id'])[0]['id'] == note['id']
+
+
+def test_lifecycle_helper_matching_without_browser():
+    import shutil
+    import subprocess
+
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node.js is required for the production script helper test')
+    script = r'''
+const fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('web/app.js','utf8');
+const start=source.indexOf('function projectField');
+const end=source.indexOf('function projectEditor',start);
+if(start<0||end<0)throw new Error('production lifecycle helpers missing');
+const calls=[];
+let projects=[];
+let archived=[];
+const modals=[],forms=[];
+const progress={textContent:''};const element=()=>({handlers:{},hidden:false,open:false,classList:{toggle(){}},value:'',setAttribute(){},showModal(){this.open=true},close(){this.open=false},querySelector(selector){return selector==='#search-progress'?progress:null}});
+const launched=[];
+const context={console,setTimeout,clearTimeout,Date,Object,String};
+context.state={projects,project:null,archivedProjects:archived,view:'references',selection:[],dirty:false,busy:false};
+context.api=async(path,options={})=>{calls.push({path,method:options.method||'GET',body:options.body});if(path==='/api/projects'&&(!options.method||options.method==='GET'))return context.state.projects;if(path.endsWith('/jobs'))return {id:'job'};return {id:'new-id',character:options.body?.character}};
+context.closeModal=()=>{};context.resetFilters=()=>{};context.loadProjects=async()=>{};context.openCandidateQueue=async(id,options)=>launched.push({id,job:options.job});context.safeCandidateFile=()=>{};context.toast=()=>{};
+context.modal=(title,body)=>{modals.push({title,body});return element()};context.select=(label,name,choices,value)=>Object.values(choices).join(' ');context.formSubmit=(root,handler)=>forms.push(handler);
+vm.createContext(context);
+vm.runInContext(source.slice(start,end)+'\nglobalThis.match=compatibleProjects;globalThis.open=openSearchProject;',context);
+(async()=>{
+ const original={id:'old',character:' 安养寺姬芽 ',work:'莲之空',costume:'',brief:'保留',created_at:'2026-09-28T00:00:00Z',revision:2};
+ const variant={id:'variant',character:'安养寺姬芽',work:'另一作品',costume:'另一服装',created_at:'2026-10-29T00:00:00Z',revision:1};
+ context.state.projects=[original,variant];
+ const byCharacter=context.match({character:'安养寺姬芽',work:'',costume:''});
+ if(byCharacter.length!==2)throw new Error('character-only must list ambiguous variants');
+ const exact=context.match({character:'安养寺姬芽',work:'莲之空',costume:''});
+ if(exact.length!==1||exact[0].id!=='old')throw new Error('filled work must narrow matching');
+ const unknown=context.match({character:'安养寺姬芽',work:'新作品',costume:''});
+ if(unknown.length)throw new Error('explicit new work must not reuse old version');
+ await context.open({character:'安养寺姬芽',work:'',costume:'',target_count:30});
+ const picker=modals.at(-1);
+ if(picker?.title!=='选择继续搜图的项目'||!picker.body.includes('2026-09-28')||!picker.body.includes('2026-10-29'))throw new Error('ambiguous projects did not show a dated choice');
+ if(calls.some(c=>c.path==='/api/projects'&&c.method==='POST'))throw new Error('ambiguity created a project');
+ await forms.at(-1)({project_id:'variant'});
+ if(!calls.some(c=>c.path==='/api/projects/variant/jobs'&&c.method==='POST'))throw new Error('selected project did not start a job directly');
+ context.state.projects=[original];
+ await context.open({character:'安养寺姬芽',work:'',costume:'',brief:'新要求',target_count:30});
+ if(calls.some(c=>c.path==='/api/projects'&&c.method==='POST'))throw new Error('unique compatible project was duplicated');
+ if(!calls.some(c=>c.path==='/api/projects/old/jobs'&&c.method==='POST')||!launched.length)throw new Error('reuse did not start the same job flow');
+ console.log('LIFECYCLE_HELPER_PASS');
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+    result=subprocess.run([node,'-e',script],cwd=ROOT,text=True,capture_output=True,encoding='utf-8')
+    assert result.returncode==0,result.stdout+result.stderr
+    assert 'LIFECYCLE_HELPER_PASS' in result.stdout
+
+
+def test_search_refreshes_projects_and_carries_current_notes_into_job_without_browser():
+    import shutil
+    import subprocess
+
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node.js is required for the production script helper test')
+    script = r'''
+const fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('web/app.js','utf8');
+const start=source.indexOf('function projectField');
+const end=source.indexOf('function projectEditor',start);
+if(start<0||end<0)throw new Error('production search helpers missing');
+const calls=[],modals=[],forms=[],launched=[];
+const original={id:'old',character:'安养寺姬芽',work:'莲之空',costume:'',brief:'原项目要求',gear:'原设备',revision:2,created_at:'2026-09-28T00:00:00Z'};
+const other={id:'other',character:'安养寺姬芽',work:'另一作品',costume:'另一服装',brief:'另一项目',gear:'另一设备',revision:1,created_at:'2026-10-01T00:00:00Z'};
+const remote=[original,other];
+const progress={textContent:''},formNode={querySelector:selector=>selector==='#search-progress'?progress:null};
+const context={console,setTimeout,clearTimeout,Object,String};
+context.state={projects:[],archivedProjects:[],project:null,view:'references',selection:[],dirty:false,busy:false,caps:{}};
+context.api=async(path,options={})=>{
+ calls.push({path,method:options.method||'GET',body:options.body});
+ if(path==='/api/projects'&&(!options.method||options.method==='GET'))return remote.map(p=>({...p}));
+ if(path==='/api/projects')return {id:'new'};
+ if(path.endsWith('/jobs'))return {id:'job'};
+ return {};
+};
+context.modal=(title,body)=>{modals.push({title,body});return formNode};context.formSubmit=(root,handler)=>forms.push(handler);
+context.select=()=>'';context.openCandidateQueue=async(id,options)=>launched.push({id,job:options.job});context.safeCandidateFile=()=>{};
+vm.createContext(context);
+vm.runInContext(source.slice(start,end)+'\nglobalThis.open=openSearchProject;',context);
+(async()=>{
+ const data={character:'安养寺姬芽',work:'',costume:'',brief:'本轮只看坐姿',gear:'50mm 与一盏柔光',target_count:30};
+ await context.open(data);
+ const refresh=calls.findIndex(c=>c.path==='/api/projects'&&c.method==='GET');
+ if(refresh<0)throw new Error('project list was not refreshed');
+ const picker=forms.at(-1),opened=modals.at(-1);
+ if(opened?.title!=='选择继续搜图的项目')throw new Error('latest project list was not used');
+ await picker({project_id:'old'});
+ const job=calls.find(c=>c.path==='/api/projects/old/jobs'&&c.method==='POST');
+ if(!job||!job.body.notes.includes('本轮只看坐姿')||!job.body.notes.includes('50mm 与一盏柔光'))throw new Error('current notes missing from job request');
+ if(job.body.target_count!==30||job.body.collection_mode!=='search'||Object.hasOwn(job.body,'goal_id')||Object.hasOwn(job.body,'search_aliases'))throw new Error('search submitted wrong protocol fields');
+ if(calls.some(c=>c.path==='/api/projects/old'&&c.method==='PUT'))throw new Error('reused project was edited');
+ if(original.brief!=='原项目要求'||original.gear!=='原设备')throw new Error('original project requirements changed');
+ remote.push({id:'newly-added',character:'安养寺姬芽',work:'新作品',costume:'',created_at:'2026-10-29T00:00:00Z'});
+ calls.length=0;modals.length=0;forms.length=0;launched.length=0;
+ await context.open({...data,work:'新作品'});
+ if(calls.some(c=>c.path==='/api/projects'&&c.method==='POST'))throw new Error('refreshed match created duplicate');
+ if(!calls.some(c=>c.path==='/api/projects/newly-added/jobs'&&c.method==='POST')||launched[0]?.id!=='job')throw new Error('refreshed match did not start one job');
+ console.log('SEARCH_NOTES_REFRESH_PASS');
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+    result=subprocess.run([node,'-e',script],cwd=ROOT,text=True,capture_output=True,encoding='utf-8')
+    assert result.returncode==0,result.stdout+result.stderr
+    assert 'SEARCH_NOTES_REFRESH_PASS' in result.stdout
+
+
+def test_search_refresh_failure_does_not_create_without_browser():
+    import shutil
+    import subprocess
+
+    node=shutil.which('node')
+    if not node:
+        pytest.skip('Node.js is required for the production script helper test')
+    script=r'''
+const fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('web/app.js','utf8');
+const start=source.indexOf('function projectField'),end=source.indexOf('function projectEditor',start);
+const calls=[];
+const context={console,setTimeout,clearTimeout,Object,String};
+context.state={projects:[{id:'stale',character:'安养寺姬芽'}],selection:[],view:'references'};
+context.api=async(path,options={})=>{calls.push({path,method:options.method||'GET'});if(path==='/api/projects')throw new Error('refresh failed');return {}};
+context.closeModal=()=>{};context.resetFilters=()=>{};context.loadProjects=async()=>{};context.collectionEditor=()=>{};context.toast=()=>{};
+context.modal=()=>({});context.select=()=>'';context.formSubmit=()=>{};
+vm.createContext(context);vm.runInContext(source.slice(start,end)+'\nglobalThis.open=openSearchProject;',context);
+(async()=>{let error;try{await context.open({character:'安养寺姬芽',work:'',costume:'',brief:'要求',gear:''})}catch(e){error=e}if(!error||!error.message.includes('refresh failed'))throw Error('refresh error not surfaced');if(calls.some(c=>c.path==='/api/projects'&&c.method==='POST'))throw Error('created despite refresh failure');console.log('SEARCH_REFRESH_FAILURE_PASS')})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+    result=subprocess.run([node,'-e',script],cwd=ROOT,text=True,capture_output=True,encoding='utf-8')
+    assert result.returncode==0,result.stdout+result.stderr
+    assert 'SEARCH_REFRESH_FAILURE_PASS' in result.stdout
+
+
+def test_archive_helper_sends_revision_and_opens_restore_entry_without_browser():
+    import shutil
+    import subprocess
+
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node.js is required for the production script helper test')
+    script = r'''
+const fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('web/app.js','utf8');
+const start=source.indexOf('async function archiveProject');
+const end=source.indexOf('function projectEditor',start);
+if(start<0||end<0)throw new Error('production archive helpers missing');
+const calls=[],modals=[];
+const context={console,window:{confirm:()=>true}};
+context.state={project:{id:'old',character:'角色',revision:7},selection:[],archivedProjects:[],view:'references',dirty:false,busy:false};
+context.safeDiscard=()=>true;context.api=async(path,options={})=>{calls.push({path,method:options.method,body:options.body});return {}};
+context.resetFilters=()=>{};context.loadProjects=async()=>{};context.toast=()=>{};context.esc=String;
+context.modal=(title,body)=>{modals.push({title,body});return {}};context.listen=()=>{};context.closeModal=()=>{};
+vm.createContext(context);
+vm.runInContext(source.slice(start,end)+'\nglobalThis.archive=archiveProject;globalThis.dialog=archivedProjectsDialog;',context);
+(async()=>{
+ await context.archive({id:'old',character:'角色',revision:7});
+ const request=calls.find(c=>c.path==='/api/projects/old'&&c.method==='DELETE');
+ if(!request||request.body.expected_revision!==7)throw new Error('archive did not use expected revision');
+ context.state.archivedProjects=[{id:'old',character:'角色',revision:8,archived_at:'2026-10-29T00:00:00Z'}];
+ context.dialog();
+ if(modals.at(-1)?.title!=='已删除项目 · 可恢复'||!modals.at(-1)?.body.includes('恢复项目'))throw new Error('restore entry unavailable');
+ console.log('ARCHIVE_HELPER_PASS');
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+    result=subprocess.run([node,'-e',script],cwd=ROOT,text=True,capture_output=True,encoding='utf-8')
+    assert result.returncode==0,result.stdout+result.stderr
+    assert 'ARCHIVE_HELPER_PASS' in result.stdout
 
 
 def test_studio_reduced_motion_does_not_cancel_unrelated_effects_or_change_the_photo(ui):

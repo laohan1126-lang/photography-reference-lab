@@ -155,6 +155,10 @@ def test_stopping_attempt_keeps_elapsed_and_can_replenish(library, project, clie
     stopped=library.cancel_search_stage(job['id'])
     assert stopped['search_elapsed_seconds']==pytest.approx(job.get('search_elapsed_seconds',0)+123)
     assert client.get(f"/api/jobs/{job['id']}").json()['can_start_review'] is True
+    with library.db.transaction() as con:
+        current=library.job(job['id']);current['search_stop_reason']='time_budget_exhausted'
+        library._save_job(con,current,'test.budget_exhausted',{},'worker')
+    monkeypatch.setattr(service,'_preflight_search_goal',lambda *args:None)
     resumed=library.replenish_search(job['id'],900)
     assert resumed['target_count']==15 and resumed['search_elapsed_seconds']==stopped['search_elapsed_seconds']
     assert resumed['search_timeout_seconds']==1800
@@ -208,6 +212,7 @@ def test_frozen_goal_history_seeds_sha_after_current_index_is_ready(tmp_path, mo
             assert kwargs['lazy'] is False
             self.ready=True;self.errors=[]
             self._lock=threading.RLock();self.known_shas=set();self.records={}
+        def exclude(self,shas): self.excluded=set(shas)
     monkeypatch.setattr(worker,'ImageHistory',History)
     history=worker._history_for_search(folder,'proj-a')
     assert history.known_shas=={'a'*64} and history.records=={'a'*64:fp}
@@ -345,11 +350,13 @@ def test_three_images_from_one_post_use_one_exploration_slot():
     assert exploration_count(rows)==0
 
 
-def test_replenish_keeps_target_and_cumulative_history(library, project):
+def test_replenish_keeps_target_and_cumulative_history(library, project, monkeypatch):
     job=library.create_job(project['id'],JobInput(kind='collection',collection_mode='search',target_count=15))
     running=library.start_collection_attempt(job['id'],job['revision'],'synthetic-attempt',timeout=900)
     library.update_search_stage(job['id'],'synthetic-attempt','partial',
-        {'status':'partial','counts':{'found':3},'elapsed_seconds':100},'synthetic partial')
+        {'status':'partial','stop_reason':'time_budget_exhausted','counts':{'found':3},'elapsed_seconds':100},'synthetic partial')
+    from ref_lab import service
+    monkeypatch.setattr(service,'_preflight_search_goal',lambda *args:None)
     resumed=library.replenish_search(job['id'],900)
     assert resumed['target_count']==15
     assert resumed.get('search_extra_target',0)==0
@@ -385,6 +392,8 @@ def test_goal_result_page_uses_the_same_set(client, library, project, tmp_path, 
     (tmp_path/'received.json').write_text(json.dumps([row]),'utf8')
     monkeypatch.setattr(collection_queue,'run_directory',lambda _:tmp_path)
     job=library.create_job(project['id'],JobInput(kind='collection',collection_mode='search',target_count=15))
+    library.begin_job_preparation(job['id'], 'page-test-preparation', {})
+    library.prepare_job(job['id'], 'page-test-preparation')
     original=library.job
     monkeypatch.setattr(library,'job',lambda ident:{**original(ident),'goal_id':'synthetic-page-test'})
     response=client.get(f'/api/jobs/{job["id"]}/goal-results')

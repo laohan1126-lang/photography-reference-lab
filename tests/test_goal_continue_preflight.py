@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -37,6 +38,9 @@ def isolated(tmp_path, monkeypatch):
         library = app.state.library
         project = library.create_project(ProjectInput(character="王昭君"))
         job = library.create_job(project["id"], JobInput(kind="collection", collection_mode="search", target_count=2))
+        attempt_id = "prep-" + job["id"]
+        library.begin_job_preparation(job["id"], attempt_id, {"pid": os.getpid(), "phase": "test"})
+        job = library.prepare_job(job["id"], attempt_id)
         yield root, library, client, job
 
 
@@ -146,6 +150,10 @@ def exercise_valid_recovery(root, library, client, job, raw, monkeypatch):
     collection_queue.write_json(folder / 'receipt.json', {'status': 'historical', 'count': 1})
     preserved = {p: p.read_bytes() for p in (original, folder / 'received.json', folder / 'receipt.json')}
     library.extend_search(job['id'], 1)
+    with library.db.transaction() as con:
+        current = library.job(job['id'])
+        current['search_stop_reason'] = 'time_budget_exhausted'
+        library._save_job(con, current, 'test.budget_exhausted', {}, 'worker')
     adapter = root / 'offline_adapter.py'
     adapter.write_text(OFFLINE_ADAPTER, encoding='utf8')
     monkeypatch.setenv('LAB_COLLECTION_COMMAND', json.dumps([

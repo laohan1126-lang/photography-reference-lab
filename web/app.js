@@ -164,18 +164,21 @@ async function loadProjects(preferredId) {
     $('login-screen').hidden=true; $('application').hidden=false;
     renderSidebar(); renderHeader(); await refreshView();
 }
-async function navigate(view, projectId=null, focusId=null) {
+async function navigate(view, projectId=null, focusId=null, decision='') {
     if (!safeDiscard()) return;
     const before=state.project?.id;
     if (projectId) state.project=state.projects.find(p=>p.id===projectId)||state.project;
     if (projectId&&state.project?.id!==before) state.selection=[];
-    state.view=view; resetFilters(); state.focusId=focusId; state.activeId=focusId;
+    state.view=view; resetFilters(); state.decision=decision; state.focusId=focusId; state.activeId=focusId;
     renderSidebar(); renderHeader(); await refreshView();
     if(projectId) LibraryDiscovery.visit(projectId).catch(showError);
 }
 function renderSidebar() {
     LibraryDiscovery.renderProjects();
-    $('archived-projects').hidden=!state.archivedProjects.length;
+    $('archived-projects').hidden=false;
+    $('archived-projects').textContent=state.archivedProjects.length?`↺ 回收项目 ${state.archivedProjects.length}`:'回收项目';
+    $('archived-projects').title=state.archivedProjects.length?`恢复已删除项目（${state.archivedProjects.length}）`:'暂无已删除项目';
+    $('archived-projects').setAttribute('aria-label',state.archivedProjects.length?`查看已删除项目，可恢复 ${state.archivedProjects.length} 个`:'查看已删除项目');
     $('archived-projects').onclick=()=>archivedProjectsDialog();
     document.querySelectorAll('#global-nav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
 }
@@ -188,7 +191,7 @@ function renderHeader() {
     window.StudioMotion?.setView(state.view);
     $('view-tabs').hidden=!local;
     if (local&&p) {
-        $('project-header').innerHTML=`<div><span class="eyebrow">MY SHOOTING PROJECT</span><h1>${esc(p.character)} ${p.costume?`<span class="muted">/ ${esc(p.costume)}</span>`:''}</h1><p>${esc(p.brief||p.work||'先挑喜欢的参考，再把最值得拍的几张做成现场卡。')}</p></div><div class="header-actions"><button id="collect-project" class="primary">找一批参考</button><button id="import-reference">导入参考</button><details class="project-tools"><summary>项目设置与导出</summary><button id="edit-project">角色与要求</button><button id="export-pack">离线拍摄包</button><button id="show-events">变更记录</button><button id="archive-project" class="danger">删除项目</button></details></div>`;
+        $('project-header').innerHTML=`<div><span class="eyebrow">MY SHOOTING PROJECT</span><h1>${esc(p.character)} ${p.costume?`<span class="muted">/ ${esc(p.costume)}</span>`:''}</h1><p>${esc(p.brief||p.work||'先挑喜欢的参考，再把最值得拍的几张做成现场卡。')}</p></div><div class="header-actions"><button id="collect-project" class="primary">找一批参考</button><button id="import-reference">导入参考</button><button id="archive-project" class="danger">删除项目</button><details class="project-tools"><summary>项目设置与导出</summary><button id="edit-project">角色与要求</button><button id="export-pack">离线拍摄包</button><button id="show-events">变更记录</button></details></div>`;
         $('collect-project').onclick=()=>collectionEditor(p.id);
         $('import-reference').onclick=()=>importDialog(); $('edit-project').onclick=()=>projectEditor(p);
         $('export-pack').onclick=()=>packDialog(); $('show-events').onclick=()=>navigate('events');
@@ -204,8 +207,8 @@ async function renderStats(projectId=state.project?.id) {
     if (!projectId||!projectViews.includes(state.view)) { $('stats').innerHTML=''; return; }
     const scope=scopeKey(), data=await api(`/api/projects/${projectId}/stats`);
     if (scope!==scopeKey()) return;
-    const values=[['候选流',data.visible],['待挑选',data.pending],['预检过滤',data.filtered||0],['角色精选',data.selected],['现场卡',data.ready]];
-    $('stats').innerHTML=values.map(([label,value])=>`<div class="stat"><strong>${value}</strong><span>${label}</span></div>`).join('');
+    const values=[['候选流',data.visible,'references',''],['待挑选',data.pending,'references','pending'],['预检过滤',data.filtered||0,'filtered',''],['角色精选',data.selected,'selected',''],['现场卡',data.ready,'field','']];
+    $('stats').innerHTML=values.map(([label,value,view,decision])=>`<button type="button" class="stat" data-stat-view="${view}" data-stat-decision="${decision}" aria-label="查看${label}，${value}张" aria-current="${!state.jobId&&state.view===view&&state.decision===decision?'true':'false'}"><strong>${value}</strong><span>${label}</span></button>`).join('');
 }
 async function refreshView() {
     state.epoch++; renderSidebar(); renderHeader();
@@ -496,24 +499,90 @@ function contactBoardDialog(items){
 
 async function archiveProject(project) {
     if(!safeDiscard())return;
-    if(!window.confirm(`删除项目“${project.character}”？项目会移到回收区；图片、全局审美收藏、其他项目引用和历史记录不会物理删除。`))return;
+    if(!window.confirm(`删除项目“${project.character}”？项目会移到回收区，可随时恢复；图片、笔记、全局审美收藏、其他项目引用和历史记录不会物理删除。`))return;
     await api(`/api/projects/${project.id}`,{method:'DELETE',body:{expected_revision:project.revision}});
-    state.project=null;state.selection=[];resetFilters();await loadProjects();toast('项目已移到回收区，可恢复');
+    state.project=null;state.selection=[];resetFilters();await loadProjects();toast('项目已移到回收区；点击左侧“↺”可恢复，原图、笔记和其他项目不受影响');
 }
 function archivedProjectsDialog() {
     const body=state.archivedProjects.length
-        ? `<p class="form-help">恢复项目不会复制图片，也不会改变其他项目或全局审美库。</p>${state.archivedProjects.map(p=>`<div class="event-card"><strong>${esc(p.character)}</strong><small>${esc(p.costume||p.work||'拍摄项目')}</small><button data-restore-project="${esc(p.id)}">恢复项目</button></div>`).join('')}`
-        : '<p>没有已删除项目。</p>';
-    const root=modal('已删除项目',body);
+        ? `<p class="form-help">这里只显示软删除项目。恢复不会复制或覆盖图片、笔记、历史选择、其他项目或全局审美库。</p>${state.archivedProjects.map(p=>`<div class="event-card"><strong>${esc(p.character)}</strong><small>${esc([p.work,p.costume,p.updated_at?.slice(0,10)].filter(Boolean).join(' · ')||'拍摄项目')}</small><button data-restore-project="${esc(p.id)}">恢复项目</button></div>`).join('')}`
+        : '<p>没有已删除项目。删除当前项目后，它会出现在这里并可恢复。</p>';
+    const root=modal('已删除项目 · 可恢复',body);
     listen(root,'[data-restore-project]','click',async(e,n)=>{
         const p=state.archivedProjects.find(x=>x.id===n.dataset.restoreProject);if(!p)return;
         await api(`/api/projects/${p.id}/restore`,{method:'POST',body:{expected_revision:p.revision}});
         closeModal();await loadProjects(p.id);toast('项目已恢复');
     });
 }
+function projectField(value) {
+    return String(value||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
+}
+function compatibleProjects(data) {
+    const wanted=Object.fromEntries(['character','work','costume'].map(key=>[key,projectField(data[key])]));
+    if(!wanted.character)return [];
+    return state.projects.filter(p=>['character','work','costume'].every(key=>!wanted[key]||projectField(p[key])===wanted[key]));
+}
+function searchNotes(data) {
+    const notes=[
+        String(data.brief||'').trim()?`本次补充要求：\n${String(data.brief).trim()}`:'',
+        String(data.gear||'').trim()?`本次设备／环境限制：\n${String(data.gear).trim()}`:''
+    ].filter(Boolean).join('\n\n');
+    if(notes.length>12000)throw new Error('本次补充要求与设备限制合计超过 12000 字，请缩短后再开始搜图');
+    return notes;
+}
+async function openSearchProject(data) {
+    state.projects=await api('/api/projects');
+    const matches=compatibleProjects(data);
+    const projectData={character:data.character,work:data.work||'',costume:data.costume||'',brief:data.brief||''};
+    const begin=async project=>{
+        const job=await api(`/api/projects/${project.id}/jobs`,{method:'POST',body:{kind:'collection',notes:searchNotes(data),target_count:Number(data.target_count),collection_mode:'search'}});
+        state.project=project;
+        safeCandidateFile(job.id,project.id);
+        await openCandidateQueue(job.id,{autoStart:true,job});
+    };
+    if(data.project_id){
+        const selected=state.projects.find(p=>p.id===data.project_id);
+        if(!selected)throw new Error('项目已不存在，请重新选择');
+        await begin(selected);return;
+    }
+    if(!matches.length){
+        const created=await api('/api/projects',{method:'POST',body:projectData});
+        state.projects.push(created);await begin(created);return;
+    }
+    if(matches.length===1){
+        await begin(matches[0]);return;
+    }
+    const choices={'':'请选择要使用的项目',__new__:'以上都不是 · 新建独立项目' };
+    for(const p of matches)choices[p.id]=`创建 ${p.created_at?.slice(0,10)||'日期未知'} · ${p.character} · ${[p.work,p.costume].filter(Boolean).join(' / ')||'未填写作品/服装'}`;
+    const picker=modal('选择继续搜图的项目',`<form><p class="notice">存在多个匹配版本，请选择；原有筛选会保留。</p>${select('使用哪个项目','project_id',choices,'')}<div class="form-actions"><button type="submit" class="primary">开始搜图</button></div><p id="search-progress" role="status"></p></form>`);
+    formSubmit(picker,async choice=>{
+        if(!choice.project_id)throw new Error('请先选择一个项目，或明确新建独立项目');
+        if(choice.project_id==='__new__'){
+            picker.querySelector('#search-progress').textContent='正在建立搜图任务…';
+            const created=await api('/api/projects',{method:'POST',body:projectData});
+            state.projects.push(created);await begin(created);return;
+        }
+        const reused=matches.find(p=>p.id===choice.project_id);
+        if(!reused)throw new Error('项目已变化，请关闭后重新选择');
+        picker.querySelector('#search-progress').textContent='正在建立搜图任务…';await begin(reused);
+    });
+}
 function projectEditor(project = null, startSearch = false) { if (!safeDiscard())
-    return; const root = modal(project ? '角色、要求与器材' : startSearch ? '输入角色，开始找图' : '新建角色项目', `<form><p class="form-help">只有角色名是必填。额外要求直接写成自然语言，不需要套固定分类。修改要求会让旧资料卡重新等待核对。</p><div class="form-grid">${label('角色名 *', 'character', project?.character || '', 'text', 'required maxlength="120"')}${label('出自作品（选填）', 'work', project?.work || '', 'text', 'maxlength="400"')}${label('服装／皮肤版本（选填）', 'costume', project?.costume || '', 'text', 'maxlength="400"')}<div class="full">${area('补充要求', 'brief', project?.brief || '', 'placeholder="例如：漫展拍摄，想多看站姿和回眸，不要复杂布景；要自然，但保留角色的疏离感。" maxlength="12000"')}</div><div class="full"><details><summary>我的器材与拍摄条件</summary>${area('设备／环境限制', 'gear', project?.gear || '', 'placeholder="留空则使用当前预设：A7M4、50mm、24–240mm、V100 一灯与柔光附件。" maxlength="12000"')}</details></div></div><div class="form-actions"><button class="primary" type="submit">${project ? '保存修改' : startSearch ? '下一步：设置搜图' : '建立项目'}</button></div></form>`); formSubmit(root, async (data) => { if (!project && !data.gear)
-    delete data.gear; const p = await api(project ? `/api/projects/${project.id}` : '/api/projects', { method: project ? 'PUT' : 'POST', body: project ? { ...data, expected_revision: project.revision } : data }); closeModal(); resetFilters(); state.view="references"; await loadProjects(p.id); toast('角色项目已保存'); if (startSearch) collectionEditor(p.id); }); }
+    return;
+    if(startSearch){searchEditor(project);return;}
+    const root = modal(project ? '角色、要求与器材' : '新建角色项目', `<form><p class="form-help">只有角色名是必填。额外要求直接写成自然语言，不需要套固定分类。修改要求会让旧资料卡重新等待核对。</p><div class="form-grid">${label('角色名 *', 'character', project?.character || '', 'text', 'required maxlength="120"')}${label('出自作品（选填）', 'work', project?.work || '', 'text', 'maxlength="400"')}${label('服装／皮肤版本（选填）', 'costume', project?.costume || '', 'text', 'maxlength="400"')}<div class="full">${area('补充要求', 'brief', project?.brief || '', 'maxlength="12000"')}</div><div class="full"><details><summary>我的器材与拍摄条件</summary>${area('设备／环境限制', 'gear', project?.gear || '', 'maxlength="12000"')}</details></div></div><div class="form-actions"><button class="primary" type="submit">${project ? '保存修改' : '建立项目'}</button></div></form>`); formSubmit(root, async (data) => {
+    if(!data.gear)delete data.gear;
+    const p = await api(project ? `/api/projects/${project.id}` : '/api/projects', { method: project ? 'PUT' : 'POST', body: project ? { ...data, expected_revision: project.revision } : data }); closeModal(); resetFilters(); state.view="references"; await loadProjects(p.id); toast(project?'角色项目已保存':'已按你的明确选择建立新项目'); }); }
+function searchEditor(project=null) {
+    const root=modal('输入角色，开始找图',`<form><div class="form-grid">${label('角色名 *','character',project?.character||'','text','required maxlength="120"')}${label('出自作品（选填）','work',project?.work||'','text','maxlength="400"')}${label('需要多少张','target_count',30,'number','min="1" max="100" required')}<div class="full">${area('补充要求','brief','','maxlength="12000"')}</div><div class="full"><details><summary>服装与拍摄条件（选填）</summary>${label('服装／皮肤版本（选填）','costume',project?.costume||'','text','maxlength="400"')}${area('设备／环境限制','gear','','maxlength="12000"')}</details></div></div><div class="form-actions"><button class="primary" type="submit">开始搜图</button></div><p id="search-progress" class="notice" role="status" hidden></p></form>`);
+    formSubmit(root,async data=>{
+        searchNotes(data);
+        const status=root.querySelector('#search-progress');status.hidden=false;status.textContent='正在确认项目并建立搜图任务…';
+        openCandidateWindow();
+        if(project)data.project_id=project.id;
+        await openSearchProject(data);
+    });
+}
 function openImage(ref) { if (!ref?.asset || ref.file_available === false)
     return; $('lightbox-title').textContent = `${ref.title} · ${ref.asset.width} × ${ref.asset.height}`; $('lightbox-image').src = `/api/assets/${ref.asset_sha}/original`; $('lightbox').classList.remove('actual'); $('lightbox').showModal(); }
 function paragraphs(text) { return `<p>${esc(text)}</p>`; }
@@ -1136,6 +1205,35 @@ function stageWords(state,labels){return labels[state]||state||'未知';}
 function stopReasonWord(reason){return stopReasonLabels[reason]||reason||'';}
 function searchStageWord(job){const s=(job&&job.search_state)||'idle';if(job&&job.recovering)return'恢复中（保留已下载图片）';if(job&&job.manual_action==='login_required'&&['blocked','partial','failed'].includes(s))return'等待人工登录／验证';return stageWords(s,searchStageLabels);}
 function reviewStageWord(job){const s=(job&&job.review_state)||'idle';if(job&&job.manual_action==='login_required'&&['blocked','partial','failed'].includes(s))return'等待人工登录／验证';return stageWords(s,reviewStageLabels);}
+function searchFailureText(job){
+    const raw=String(job?.last_error||job?.start_error||job?.navigation_error||job?.blocker||'').toLowerCase();
+    if(job?.manual_action==='login_required'||/login|captcha|challenge|登录|验证码|安全验证/.test(raw))return'来源要求登录或人工验证；已保留当前任务和已下载图片。';
+    if(/session (creation|start).*timed out|session_start_failed/.test(raw))return'无法创建采集窗口；请检查 BrowserSkill 扩展与后台连接，再重试当前任务。';
+    if(/renderer_not_answering|renderer is not answering|page\.getframetree|cleanup_pending|background execution cleanup timed out/.test(raw))return'浏览器控制暂时无响应；恢复连接后可以重试当前任务，不需要追加时间。';
+    if(/navigat|导航/.test(raw))return'页面导航失败；已保留当前任务，可以重试同一任务。';
+    if(/connect|connection|browser_unavailable|ec(d)?onn|连接|启动/.test(raw))return'浏览器连接失败；已保留当前任务，可以重试同一任务。';
+    if(/no.?result|empty|无结果/.test(raw))return'已完成搜索，但没有找到可保存的结果；可以调整要求后重试。';
+    return'';
+}
+function openCandidateWindow(url=''){
+    try{
+        const popup=window.open(url,'candidate-window');
+        if(popup&&!url&&popup.document?.body)popup.document.body.textContent='正在建立搜图任务，候选窗口已打开。';
+        return Boolean(popup);
+    }catch{}
+    return false;
+}
+function safeCandidateFile(jobId,projectId){
+    const query=new URLSearchParams({view:'references',project:projectId||'',job:jobId});
+    return openCandidateWindow(`${location.href.split('#')[0]}#${query}`);
+}
+function searchProgressText(job){
+    const prep=job?.preparation_state||'pending';
+    if(prep==='pending')return'任务已建立，正在排队准备；候选窗口已打开。';
+    if(prep==='running')return`正在准备搜索${job?.preparation_stage?` · ${job.preparation_stage}`:''}；候选窗口已打开。`;
+    if(prep==='failed')return`搜索准备失败${searchFailureText(job)?`：${searchFailureText(job)}`:'；任务和已有预算已保留，可以重试。'}`;
+    return job?.detail||'搜索准备完成，正在开始与取得候选。';
+}
 function candidateCountsMarkup(counts){
     const c=counts||{};
     const cell=(value,label)=>`<span><strong>${value||0}</strong> ${label}</span>`;
@@ -1158,6 +1256,7 @@ function candidateCountsMarkup(counts){
 }
 function renderCandidateQueue(jobId,data,projectId){
     const counts=data.counts||{},search=data.search||{},review=data.review||{};
+    const prep=data.job?.preparation_state||'pending';
     const searchState=data.job?.search_state||search.status||'idle';
     const reviewState=data.job?.review_state||review.status||'idle';
     const status=$('cq-status'),countsNode=$('cq-counts'),grid=$('cq-grid');
@@ -1166,9 +1265,17 @@ function renderCandidateQueue(jobId,data,projectId){
     const browserMessage=search.phase==='browser_recovering'
         ? '正在恢复浏览器连接，保留当前查询和已下载图片'
         : (browserError ? `最近记录的浏览器故障：${browserError.action||'未知'} · ${browserError.code||'未知'} · ${browserError.details||''}` : '');
-    status.innerHTML=`<p><strong>搜索</strong>：${esc(searchStageWord({...data.job,search_state:searchState}))}${search.stop_reason?' · '+esc(stopReasonWord(search.stop_reason)):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p><p><strong>审核</strong>：${esc(reviewStageWord({...data.job,review_state:reviewState}))}${review.stop_reason?' · '+esc(stopReasonWord(review.stop_reason)):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 本目标新增、来源完整、去重且通过画质门槛，并有实际读图证据的真人摄影按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
+    const failure=searchFailureText({...data.job,last_error:data.job?.last_error||data.job?.preparation_error||browserError?.details||search.error||search.stop_reason});
+    status.innerHTML=`<p><strong>准备</strong>：${esc(searchProgressText(data.job))}</p><p><strong>搜索</strong>：${esc(searchStageWord({...data.job,search_state:searchState}))}${search.stop_reason?' · '+esc(stopReasonWord(search.stop_reason)):''}${search.counts?.found!==undefined?' · 已下载 '+esc(search.counts.found)+' 张':''}${search.counts?.target_confirmed!==undefined?' · 角色名称命中 '+esc(search.counts.target_confirmed)+' 张':''}${search.counts?.exploration!==undefined?' · 探索未确认 '+esc(search.counts.exploration)+' 张':''}${search.collage?' · 拼图 '+esc(search.collage.collages||0)+'（拆出有效子图 '+esc(search.collage.derived_valid||0)+'，低画质拒绝 '+esc(search.collage.derived_rejected||0)+'）':''}</p>${failure?`<p class="error-text">${esc(failure)}</p>`:''}<p><strong>审核</strong>：${esc(reviewStageWord({...data.job,review_state:reviewState}))}${review.stop_reason?' · '+esc(stopReasonWord(review.stop_reason)):''}${data.progress?.current_sha?' · 正在看 '+esc(data.progress.current_sha.slice(0,10))+'…':''}</p><p class="form-help">“实际可用独立照片”= 本目标新增、来源完整、去重且通过画质门槛，并有实际读图证据的真人摄影按唯一 SHA 合并计数（原图与它自己的子图不重复计数）；“其中名称命中”= 这些已获得照片中有文字名称命中关联的部分，名称命中只是发现信息，不等于视觉身份通过。低清或画质不合格子图不进入候选卡，也不计为已获得的参考，原拼图仍可查看。人工保留与 AI 通过是两种证据。</p>`;
     if(countsNode)countsNode.outerHTML=candidateCountsMarkup(counts);
     if(browserMessage)status.innerHTML+=`<p class="form-help">${esc(browserMessage)}</p>`;
+    const lookup=data.name_lookup||{};
+    const aliases=(lookup.resolution?.names||[]).filter(name=>name.kind==='character').map(name=>name.name).slice(0,8);
+    const nameMessage=lookup.state==='running'?'正在查询角色的中、日、英文名称，当前搜索继续进行。'
+        :lookup.state==='resolved'?`检索名称：${aliases.join('、')}`
+        :lookup.state==='ambiguous'?'角色名称有多个匹配，请确认作品或角色全名；当前仍按原名搜索。'
+        :['source_missing','invalid_evidence','error','timeout'].includes(lookup.state)?'暂未查到可靠译名，继续使用你输入的角色名。':'';
+    if(nameMessage)status.innerHTML+=`<p id="cq-name-lookup" class="form-help">${esc(nameMessage)}</p>`;
     const start=$('cq-start-review');
     if(start){
         const running=reviewState==='running';
@@ -1181,7 +1288,9 @@ function renderCandidateQueue(jobId,data,projectId){
     const cancelReview=$('cq-cancel-review');
     if(cancelReview)cancelReview.hidden=reviewState!=='running';
     const continueSearch=$('cq-continue-search');
-    if(continueSearch){continueSearch.hidden=searchState==='running';continueSearch.disabled=data.job?.status==='cancelled'||!['completed','partial','blocked','failed','cancelled'].includes(searchState);}
+    if(continueSearch){continueSearch.hidden=!data.job?.search_budget_exhausted;continueSearch.disabled=data.job?.status==='cancelled'||!data.job?.search_budget_exhausted;}
+    const retry=$('cq-retry-search');
+    if(retry){retry.hidden=!data.job?.can_retry_search;retry.disabled=!data.job?.can_retry_search;}
     const cancelSearch=$('cq-cancel-search');
     if(cancelSearch)cancelSearch.hidden=searchState!=='running';
     const items=data.items||[];
@@ -1238,8 +1347,7 @@ function renderCandidateQueue(jobId,data,projectId){
     if($('cq-open-project'))$('cq-open-project').onclick=async()=>{
         closeModal();
         state.project=state.projects.find(p=>p.id===projectId)||state.project;
-        resetFilters();state.jobId=jobId;state.view='references';
-        await refreshView();
+        await navigate('references',projectId,null,'pending');
     };
     if($('cq-start-review'))$('cq-start-review').onclick=async()=>{
         const btn=$('cq-start-review');btn.disabled=true;
@@ -1250,81 +1358,95 @@ function renderCandidateQueue(jobId,data,projectId){
         }catch(error){showError(error);btn.disabled=false;}
     };
 }
-async function refreshCandidateQueue(jobId,projectId){
+async function refreshCandidateQueue(jobId,projectId,knownJob=null){
     if(!$('cq-grid'))return;
     try{
         const data=await api(`/api/jobs/${jobId}/candidates`);
+        if(knownJob)data.job={...knownJob,...(data.job||{})};
         renderCandidateQueue(jobId,data,projectId);
     }catch(error){
         if($('cq-grid'))showError(error);
         stopCandidateQueuePolling();
     }
 }
-async function openCandidateQueue(jobId,{autoStart=true}={}){
-    stopCandidateQueuePolling();
-    let job=null;
-    try{job=await api(`/api/jobs/${jobId}`);}catch(error){showError(error);return;}
-    if(autoStart){
-        try{await api(`/api/jobs/${jobId}/start`,{method:'POST'});}catch(error){showError(error);}
-        try{job=await api(`/api/jobs/${jobId}`);}catch(error){}
-    }
+function candidateQueueDialog(jobId,job){
     const projectId=job?.project_id||'';
-    modal('候选图库 · 先看原图，再审核',`<p id="cq-status" class="notice" role="status">正在读取候选队列…</p>${candidateCountsMarkup({})}<div class="compact-row"><button id="cq-start-review" class="primary">启动 AI 审核（独立于搜索）</button><button id="cq-cancel-review" class="quiet" hidden>取消 AI 审核（不影响搜索）</button><button id="cq-continue-search" class="quiet">${job.goal_id?`继续补足 ${job.target_count} 张 · 追加900秒`:'补足原目标 / 额外加搜'}</button><button id="cq-cancel-search" class="quiet" hidden>停止搜索（保留已下载）</button><button id="cq-open-project" class="quiet">在项目中查看候选</button>${job.goal_id?`<a href="/api/jobs/${jobId}/goal-results" target="_blank" rel="noreferrer">本Goal摄影成果</a>`:''}<button id="cq-refresh" class="quiet">刷新</button></div><div id="cq-grid" class="candidate-grid"></div>`);
+    modal('候选窗口 · 原图到达后即时显示',`<p id="cq-status" class="notice" role="status">${esc(job?.id===jobId?searchProgressText(job):'正在读取候选任务…')}</p>${candidateCountsMarkup({})}<div class="compact-row"><button id="cq-start-review" class="primary">启动 AI 审核（独立于搜索）</button><button id="cq-cancel-review" class="quiet" hidden>取消 AI 审核（不影响搜索）</button><button id="cq-retry-search" class="quiet" hidden>重试本次搜索（不增加预算）</button><button id="cq-continue-search" class="quiet" hidden>预算耗尽 · 追加时间</button><button id="cq-cancel-search" class="quiet" hidden>停止搜索（保留已下载）</button><button id="cq-open-project" class="quiet">在项目中查看候选</button>${job?.goal_id?`<a href="/api/jobs/${jobId}/goal-results" target="_blank" rel="noreferrer">本Goal摄影成果</a>`:''}<button id="cq-refresh" class="quiet">刷新</button></div><div id="cq-grid" class="candidate-grid"></div>`);
+    $('cq-open-project').textContent='查看本项目全部待挑选';
+    return projectId;
+}
+async function waitForSearchPreparation(jobId,onUpdate=()=>{}){
+    let job=null;
+    for(const delay of [0,80,120,180,260,380,550,750]){
+        if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+        try{job=await api(`/api/jobs/${jobId}`);onUpdate(job);}catch{return null;}
+        if(job.preparation_state==='ready'||job.preparation_state==='failed')return job;
+    }
+    return job;
+}
+async function openCandidateQueue(jobId,{autoStart=true,job=null}={}){
+    stopCandidateQueuePolling();
+    if(!job){
+        try{job=await api(`/api/jobs/${jobId}`);}catch(error){showError(error);return;}
+    }
+    const projectId=candidateQueueDialog(jobId,job);
+    const starting=autoStart?api(`/api/jobs/${jobId}/start`,{method:'POST'}).catch(error=>error):Promise.resolve(null);
     $('cq-refresh').onclick=()=>refreshCandidateQueue(jobId,projectId).catch(showError);
+    $('cq-retry-search').onclick=async()=>{
+        const button=$('cq-retry-search');button.disabled=true;
+        try{await api(`/api/jobs/${jobId}/search`,{method:'POST'});await refreshCandidateQueue(jobId,projectId);}
+        catch(error){showError(error);button.disabled=false;}
+    };
     $('cq-cancel-search').onclick=async()=>{
         try{await api(`/api/jobs/${jobId}/search/cancel`,{method:'POST'});toast('已停止搜索；已下载候选和人工决定保留');await refreshCandidateQueue(jobId,projectId);}catch(error){showError(error);}
     };
     $('cq-continue-search').onclick=async()=>{
-        const raw=job.goal_id?'0':prompt('继续补足原目标请输入 0；额外新增请输入数量。本次追加最多 900 秒，保留累计历史。','0');
+        const raw=prompt('本次追加最多 900 秒，保留累计历史。只增加以下时间：','900');
         if(raw===null)return;
-        const extra=Number(raw);
-        if(!Number.isInteger(extra)||extra<0){showError(new Error('请输入 0–100 的整数'));return;}
-        try{await api(`/api/jobs/${jobId}/search/continue`,{method:'POST',body:{extra_target:extra}});toast('已继续加搜；已有候选不会重复下载或计数');await refreshCandidateQueue(jobId,projectId);}catch(error){showError(error);}
+        const additional_seconds=Number(raw);
+        if(!Number.isInteger(additional_seconds)||additional_seconds<1||additional_seconds>900){showError(new Error('请输入 1–900 秒的追加时间'));return;}
+        try{await api(`/api/jobs/${jobId}/search/continue`,{method:'POST',body:{additional_seconds}});toast(`已追加 ${additional_seconds} 秒；已有候选不会重复下载或计数`);await refreshCandidateQueue(jobId,projectId);}catch(error){showError(error);}
     };
     $('cq-cancel-review').onclick=async()=>{
         try{await api(`/api/jobs/${jobId}/review/cancel`,{method:'POST'});toast('已取消 AI 审核；搜索和已下载候选不受影响');await refreshCandidateQueue(jobId,projectId);}catch(error){showError(error);}
     };
-    await refreshCandidateQueue(jobId,projectId);
+    await refreshCandidateQueue(jobId,projectId,job);
+    const started=await starting;
+    if(started instanceof Error){$('cq-status').innerHTML=`<p class="error-text">${esc(started.message||'搜索准备请求失败')}；任务已保留，可使用“重试本次搜索”。</p>`;}
+    else if(autoStart){
+        job=await waitForSearchPreparation(jobId,current=>{job={...job,...current};if($('cq-status'))$('cq-status').innerHTML=`<p>${esc(searchProgressText(job))}</p>`;});
+        if($('cq-grid'))await refreshCandidateQueue(jobId,projectId,job);
+    }
     candidateQueueTimer=setInterval(()=>refreshCandidateQueue(jobId,projectId),1000);
 }
-function collectionEditor(projectId=state.project?.id) {
-    if(!state.projects.length){projectEditor(null,true);return;}
-    const root=modal('建立搜图任务（自动合格摄影准入）',`<form>${select('拍摄项目','project_id',Object.fromEntries(state.projects.map(p=>[p.id,p.character+(p.costume?' / '+p.costume:'')])),projectId)}${select('运行方式','collection_mode',{search:'标准搜图：自动图片类型核验与合格准入',search_review:'搜图 + AI 审核：搜索不等待审核'},'search')}${area('本轮自由要求','notes','','placeholder="例如：先找同皮肤真人正片；多找坐姿、回眸和衣摆动态，再补电影光影参考。" maxlength="12000"')}${label('持续目标编号（选填，留空自动创建新目标）','goal_id','','text','maxlength="100"')}${label('期望目标数量（合格真人摄影，质量优先，不凑数）','target_count',30,'number','min="1" max="100" required')}${label('额外检索别名（选填，中/日/英，逗号分隔）','search_aliases','','text','maxlength="600" placeholder="例如：Maki Nishikino, 西木野真姫"')}<p class="form-help">默认建议 30 张；单轮最多 100 张。系统自动建立全历史排重基线，完成搜索、下载、拼图拆分、原件展示与逐张视觉模型核验；只有具有角色名称关联、经真实读图确认的合格独立真人摄影才计入目标成果。刷新和正常重启后保持。</p><p id="collection-budget" class="form-help" role="status"></p><div class="form-actions"><button type="submit" class="primary">开始搜图</button></div></form>`);
-    const budgetInput=root.querySelector('[name="target_count"]');
-    const showBudget=()=>{
-        const count=Math.max(1,Math.min(100,Number(budgetInput.value)||30));
-        const seconds=state.caps?.search_budgets?.[count];
-        root.querySelector('#collection-budget').textContent=seconds?`本轮固定时间预算 ${seconds} 秒（${Math.round(seconds/60)} 分钟），最多 ${Math.max(20,count*2)} 次图片类型模型尝试，包含失败重试。耗尽时保留部分成果。`:'';
-    };
-    budgetInput.addEventListener('input',showBudget);showBudget();
-    formSubmit(root,async data=>{
-        const aliases=String(data.search_aliases||'').split(/[,，;；\n]+/).map(x=>x.trim()).filter(Boolean).slice(0,12);
-        const job=await api(`/api/projects/${data.project_id}/jobs`,{method:'POST',body:{kind:'collection',notes:data.notes,target_count:Number(data.target_count),goal_id:data.goal_id||'',search_aliases:aliases,collection_mode:data.collection_mode}});
-        closeModal();
-        await openCandidateQueue(job.id,{autoStart:true});
-    });
+function collectionEditor(projectId=state.project?.id, initialNotes='') {
+    const project=state.projects.find(p=>p.id===projectId);
+    if(project)searchEditor(project);else projectEditor(null,true);
 }
-async function renderJobs() {
-    const epoch=++state.epoch,jobs=await api('/api/jobs');if(epoch!==state.epoch)return;
+async function renderJobs(offset=0) {
+    const epoch=++state.epoch,page=await api(`/api/jobs?summary=true&limit=20&offset=${Math.max(0,offset)}`);if(epoch!==state.epoch)return;
+    const jobs=page.items||[],total=Number(page.total)||0;
     $('view').dataset.shell='';
     $('view').innerHTML=`<div class="notice">快速搜图先下载并展示候选，不等待官方参照调查或视觉模型；AI 审核独立运行。搜索状态与审核状态分别记录，审核失败不会删除已下载候选。</div><div class="toolbar"><button id="create-collection" class="primary">＋ 建立搜图任务</button><button id="refresh-jobs">刷新结果</button></div><div class="job-grid">${jobs.map(j=>{
         const split=Boolean(j.is_split_mode),sc=j.search_counts||{},rc=j.review_counts||{};
         const totalTarget=(j.target_count||0)+(j.search_extra_target||0);
         const stageLine=j.goal_id?`目标合格摄影 ${sc.usable_named||0} / ${totalTarget} · 已保存候选 ${sc.found||0} · 类型待确认 ${sc.type_pending||0} · 类型未通过 ${sc.type_rejected||0} · 搜索 ${searchStageWord(j)}`:split?`已找到 ${sc.found||0} · 角色名称命中 ${sc.target_confirmed||0} · 未确认 ${sc.exploration||0} · AI通过 ${rc.accepted||0} / 目标 ${totalTarget} · 搜索 ${searchStageWord(j)} · 审核 ${reviewStageWord(j)}`:`本轮 ${j.last_receipt_reference_ids?.length||0} / ${totalTarget} · 累计导入 ${j.imported_ids.length}`;
-        const queueButtons=split?`<button data-action="queue">候选图库</button>${j.can_start_review?'<button data-action="start-review" class="quiet">启动AI审核</button>':''}${j.status!=='cancelled'&&['completed','partial','blocked','failed','cancelled'].includes(j.search_state)?`<button data-action="continue-search" class="quiet">${j.goal_id?`继续补足 ${j.target_count} 张 · 追加900秒`:'补足原目标 / 额外加搜'}</button>`:''}`:'';
-        return `<article class="job-card" data-job="${j.id}"><div class="compact-row">${badge(j.kind==='collection'?'搜图':'制卡')}${split?badge('搜索 '+searchStageWord(j)):badge(statuses[j.status],j.status)}${split?badge('审核 '+reviewStageWord(j)):(j.kind==='collection'&&j.collection_outcome?badge({complete:'目标已达',partial:'部分完成',blocked:'待恢复'}[j.collection_outcome]):'')}</div><h3>${esc(j.project_snapshot?.character||state.projects.find(p=>p.id===j.project_id)?.character||'历史项目')}</h3><p>${esc(split?stageLine:j.detail)}</p>${split?`<p>累计预算 ${j.search_timeout_seconds||0} 秒 · 已用 ${Math.round(j.search_elapsed_seconds||0)} 秒</p>`:`<p>${stageLine}</p>`}<small>${esc(j.created_at.slice(0,16).replace('T',' '))}</small><div class="compact-row">${queueButtons}${split?'<button data-action="handoff" class="quiet">任务与结果</button>':`<button data-action="handoff">${j.kind==='collection'&&j.can_resume&&j.collection_attempt_count?'继续本次采集':'任务与结果'}</button>`}${j.kind==='collection'&&j.imported_ids.length?'<button data-action="candidates">挑这批图片</button>':''}${j.kind==='analysis'&&j.reference_ids.length?'<button data-action="reference">查看这张参考</button>':''}${!['succeeded','cancelled'].includes(j.status)?'<button data-action="cancel" class="quiet">取消</button>':''}</div><details><summary>要求、来源检查与缺口</summary><pre>${esc(JSON.stringify({project:j.project_snapshot,notes:j.notes,report:j.execution_report,search:j.search_summary,review:j.review_summary},null,2))}</pre></details></article>`;
-    }).join('')||empty('从一轮具体需求开始','任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。')}</div>`;
-    $('create-collection').onclick=()=>projectEditor(null,true);$('refresh-jobs').onclick=()=>renderJobs().catch(showError);
+        const queueButtons=split?`<button data-action="queue">候选图库</button>${j.can_start_review?'<button data-action="start-review" class="quiet">启动AI审核</button>':''}${j.can_retry_search?'<button data-action="retry-search" class="quiet">重试本次搜索（不增加预算）</button>':''}${j.search_budget_exhausted?'<button data-action="continue-search" class="quiet">预算耗尽 · 追加时间</button>':''}`:'';
+        return `<article class="job-card" data-job="${j.id}"><div class="compact-row">${badge(j.kind==='collection'?'搜图':'制卡')}${split?badge('搜索 '+searchStageWord(j)):badge(statuses[j.status],j.status)}${split?badge('审核 '+reviewStageWord(j)):(j.kind==='collection'&&j.collection_outcome?badge({complete:'目标已达',partial:'部分完成',blocked:'待恢复'}[j.collection_outcome]):'')}</div><h3>${esc(j.project_snapshot?.character||state.projects.find(p=>p.id===j.project_id)?.character||'历史项目')}</h3><p>${esc(split?stageLine:j.detail)}</p>${split?`<p>累计预算 ${j.search_timeout_seconds||0} 秒 · 已用 ${Math.round(j.search_elapsed_seconds||0)} 秒</p>`:`<p>${stageLine}</p>`}<small>${esc((j.created_at||'').slice(0,16).replace('T',' '))}</small><div class="compact-row">${queueButtons}${split?'<button data-action="handoff" class="quiet">任务与结果</button>':`<button data-action="handoff">${j.kind==='collection'&&j.can_resume&&j.collection_attempt_count?'继续本次采集':'任务与结果'}</button>`}${j.kind==='collection'&&j.imported_ids?.length?'<button data-action="candidates">挑这批图片</button>':''}${j.kind==='analysis'&&j.reference_ids?.length?'<button data-action="reference">查看这张参考</button>':''}${!['succeeded','cancelled'].includes(j.status)?'<button data-action="cancel" class="quiet">取消</button>':''}</div><details><summary>要求、来源检查与缺口</summary><pre>${esc(JSON.stringify({project:j.project_snapshot,notes:j.notes,report:j.execution_report,search:j.search_summary,review:j.review_summary},null,2))}</pre></details></article>`;
+    }).join('')||empty('从一轮具体需求开始','任务保存完整要求和真实执行回执；制卡从某张角色精选中的“制作现场卡”开始。')}</div><div class="pagination"><button id="jobs-previous" ${offset<=0?'disabled':''}>上一页</button><span>${jobs.length?`${offset+1}–${offset+jobs.length}`:0} / ${total}</span><button id="jobs-next" ${offset+jobs.length>=total?'disabled':''}>下一页</button></div>`;
+    $('create-collection').onclick=()=>projectEditor(null,true);$('refresh-jobs').onclick=()=>renderJobs(offset).catch(showError);
+    $('jobs-previous').onclick=()=>renderJobs(Math.max(0,offset-20)).catch(showError);$('jobs-next').onclick=()=>renderJobs(offset+20).catch(showError);
     listen('view','[data-action]','click',async(e,n)=>{
         const job=jobs.find(j=>j.id===n.closest('[data-job]').dataset.job);
         if(n.dataset.action==='handoff')return job.is_split_mode?openCandidateQueue(job.id,{autoStart:false}):jobHandoff(job.id);
         if(n.dataset.action==='queue')return openCandidateQueue(job.id,{autoStart:false});
         if(n.dataset.action==='start-review'){await api(`/api/jobs/${job.id}/review`,{method:'POST'});toast('独立 AI 审核已启动');return openCandidateQueue(job.id,{autoStart:false});}
+        if(n.dataset.action==='retry-search'){await api(`/api/jobs/${job.id}/search`,{method:'POST'});toast('已重试同一任务；总预算没有增加');return openCandidateQueue(job.id,{autoStart:false});}
         if(n.dataset.action==='continue-search'){
-            const raw=job.goal_id?'0':prompt('继续补足原目标请输入 0；额外新增请输入数量。本次追加最多 900 秒，保留累计历史。','0');if(raw===null)return;
-            const extra=Number(raw);if(!Number.isInteger(extra)||extra<0){showError(new Error('请输入 0–100 的整数'));return;}
-            await api(`/api/jobs/${job.id}/search/continue`,{method:'POST',body:{extra_target:extra}});
-            toast('已继续加搜；已有候选不会重复下载或计数');return renderJobs();
+            const raw=prompt('本次追加最多 900 秒，保留累计历史。只增加以下时间：','900');if(raw===null)return;
+            const additional_seconds=Number(raw);if(!Number.isInteger(additional_seconds)||additional_seconds<1||additional_seconds>900){showError(new Error('请输入 1–900 秒的追加时间'));return;}
+            await api(`/api/jobs/${job.id}/search/continue`,{method:'POST',body:{additional_seconds}});
+            toast(`已追加 ${additional_seconds} 秒；已有候选不会重复下载或计数`);return renderJobs(offset);
         }
         if(n.dataset.action==='reference')return openProjectReference(job.project_id,job.reference_ids[0]);
         if(n.dataset.action==='candidates'){if(!safeDiscard())return;state.project=state.projects.find(p=>p.id===job.project_id);resetFilters();state.jobId=job.id;state.view='references';return refreshView();}
@@ -1563,6 +1685,10 @@ $('lock-library').onclick=async()=>{
     try{await api('/api/session',{method:'DELETE'});lockScreen();}catch(error){showError(error);}
 };
 listen(document,'[data-view]','click',(e,n)=>navigate(n.dataset.view));
+$('stats').addEventListener('click',event=>{
+    const button=event.target.closest('[data-stat-view]');
+    if(button)navigate(button.dataset.statView,null,null,button.dataset.statDecision).catch(showError);
+});
 $('editor-close').onclick=manualCloseModal;
 $('editor').addEventListener('close',()=>stopCandidateQueuePolling());
 $('editor').addEventListener('input',()=>modalDirty=true);

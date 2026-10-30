@@ -1,0 +1,339 @@
+diff --git a/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts b/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
+index 519e1f4..fd224f7 100644
+--- a/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
++++ b/apps/extension/src/browser-driver/__tests__/chromium-cdp.test.ts
+@@ -37,6 +37,67 @@ afterEach(() => {
+ });
+ 
+ describe("ChromiumCdp", () => {
++  it("reports only pending native method metadata and removes settled failures", async () => {
++    const { api } = fakeApi();
++    let reject!: (reason: Error) => void;
++    vi.mocked(api.sendCommand).mockImplementation(async (_target, method) => {
++      if (method === "Runtime.evaluate") return new Promise((_, fail) => { reject = fail; });
++      return {};
++    });
++    const cdp = new ChromiumCdp(api);
++    const failure = new Error("native failure");
++    const request = cdp.send(7, "Runtime.evaluate", { expression: "private-page-text" }).catch(e => e);
++    await vi.waitFor(() => expect(cdp.pendingCommands()).toEqual([
++      { tab_id: 7, method: "Runtime.evaluate", elapsed_ms: expect.any(Number) },
++    ]));
++    expect(JSON.stringify(cdp.pendingCommands())).not.toContain("private-page-text");
++    reject(failure);
++    expect(await request).toBe(failure);
++    expect(cdp.pendingCommands()).toEqual([]);
++  });
++
++  it("bounds raw attachment and fences late completion without dispatching page commands", async () => {
++    vi.useFakeTimers();
++    const { api } = fakeApi();
++    let finish!: () => void;
++    vi.mocked(api.attach).mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
++    const cdp = new ChromiumCdp(api);
++    let failure: unknown;
++    const request = cdp.ensureAttached(7).catch((error) => { failure = error; });
++    await vi.advanceTimersByTimeAsync(10_001);
++    expect(failure).toBeInstanceOf(Error);
++    expect(String(failure)).toContain("Debugger.attach");
++    await expect(cdp.ensureAttached(7)).rejects.toThrow(/Debugger.attach/);
++    expect(api.attach).toHaveBeenCalledTimes(1);
++    finish();
++    await vi.advanceTimersByTimeAsync(1);
++    await request;
++    expect(cdp.isAttached(7)).toBe(false);
++    expect(api.sendCommand).not.toHaveBeenCalled();
++    expect(api.detach).toHaveBeenCalledExactlyOnceWith({ tabId: 7 });
++    await expect(cdp.ensureAttached(7)).resolves.toBeUndefined();
++    expect(api.attach).toHaveBeenCalledTimes(2);
++  });
++
++  it("bounds a stalled domain setup and rolls back its debugger attachment", async () => {
++    vi.useFakeTimers();
++    const { api } = fakeApi();
++    vi.mocked(api.sendCommand).mockImplementation(async (_target, method) => {
++      if (method === "Page.enable") return new Promise(() => {});
++      return {};
++    });
++    const cdp = new ChromiumCdp(api);
++    let failure: unknown;
++    const pending = cdp.ensureAttached(4).catch((error) => { failure = error; });
++    await vi.advanceTimersByTimeAsync(10_001);
++    expect(failure).toBeInstanceOf(Error);
++    expect(String(failure)).toContain("Page.enable");
++    expect(api.detach).toHaveBeenCalledExactlyOnceWith({ tabId: 4 });
++    expect(cdp.isAttached(4)).toBe(false);
++    expect(vi.mocked(api.sendCommand).mock.calls.some(([, method]) => method === "Runtime.enable")).toBe(false);
++    await pending;
++  });
++
+   it.each([
+     "abort",
+     "replacement",
+diff --git a/apps/extension/src/browser-driver/chromium-cdp.ts b/apps/extension/src/browser-driver/chromium-cdp.ts
+index fd5c6fd..22bb2b8 100644
+--- a/apps/extension/src/browser-driver/chromium-cdp.ts
++++ b/apps/extension/src/browser-driver/chromium-cdp.ts
+@@ -178,12 +178,15 @@ async function settleBeforeDeadline(promises: Promise<void>[], deadline: number)
+  */
+ export class ChromiumCdp {
+   private readonly api: CdpDebuggerApi;
++  private readonly pendingNative = new Set<{ tab_id?: number; method: string; started: number }>();
+   private readonly readGate = new CdpReadGate();
+   private readonly attachedTabs = new Set<number>();
+   private readonly claimAttempts = new Map<number, Map<string, object>>();
+   private readonly attachmentVersions = new Map<number, number>();
+   private readonly attachmentIds = new Map<number, string>();
+   private readonly attachInFlight = new Map<number, Promise<void>>();
++  private readonly rawAttaching = new Set<number>();
++  private readonly stalledSetup = new Map<number, CdpReadTimeoutError>();
+   private readonly detachInFlight = new Map<number, Promise<void>>();
+   private readonly backgroundExecution = new BackgroundExecution(
+     (tabId) => this.attachmentIds.get(tabId),
+@@ -233,7 +236,13 @@ export class ChromiumCdp {
+       onDocumentChanged?: (tabId: number) => void;
+     } = {},
+   ) {
+-    this.api = api;
++    this.api = {
++      onEvent: api.onEvent,
++      onDetach: api.onDetach,
++      attach: (target, version) => this.trackNative(target, "Debugger.attach", () => api.attach(target, version)),
++      detach: (target) => this.trackNative(target, "Debugger.detach", () => api.detach(target)),
++      sendCommand: (target, method, params) => this.trackNative(target, method, () => api.sendCommand(target, method, params)),
++    };
+     this.bindAutoDetach();
+     this.bindDialogHandler();
+     this.bindConsoleHandler();
+@@ -241,6 +250,23 @@ export class ChromiumCdp {
+     this.bindFrameTargetHandler();
+   }
+ 
++  /** Local diagnosis only: never retain page data, arguments or response bodies. */
++  pendingCommands(): { tab_id?: number; method: string; elapsed_ms: number }[] {
++    return [...this.pendingNative].map(({ tab_id, method, started }) => ({
++      tab_id, method, elapsed_ms: Date.now() - started,
++    }));
++  }
++
++  private async trackNative<T>(target: CdpDebuggee, method: string, run: () => Promise<T>): Promise<T> {
++    const call = { tab_id: target.tabId, method, started: Date.now() };
++    this.pendingNative.add(call);
++    try {
++      return await run();
++    } finally {
++      this.pendingNative.delete(call);
++    }
++  }
++
+   /** Identity of this actual debugger attachment, independent of frame topology. */
+   getAttachmentId(tabId: number): string | undefined {
+     return this.attachmentIds.get(tabId);
+@@ -248,7 +274,37 @@ export class ChromiumCdp {
+ 
+   /** Attach to `tabId` if we haven't already in this driver. */
+   async ensureAttached(tabId: number): Promise<void> {
+-    await this.ensureRawAttached(tabId);
++    const stalled = this.stalledSetup.get(tabId);
++    if (stalled) throw stalled;
++    const pending = this.ensureRawAttached(tabId);
++    let timer: ReturnType<typeof setTimeout> | undefined;
++    try {
++      await Promise.race([
++        pending,
++        new Promise<never>((_, reject) => {
++          timer = setTimeout(() => {
++            // Domain setup has its own deadlines; do not replace its precise
++            // error or consume another command's initialization budget.
++            if (!this.rawAttaching.has(tabId)) return;
++            let error = this.stalledSetup.get(tabId);
++            if (!error) {
++              error = new CdpReadTimeoutError("Debugger.attach", tabId, READ_TIMEOUT_MS);
++              this.stalledSetup.set(tabId, error);
++              // Retire the attachment generation; the still-running raw promise
++              // retains its slot and rolls back if Chrome acknowledges it later.
++              void this.detach(tabId).catch(() => {});
++              const failure = error;
++              void pending.finally(() => {
++                if (this.stalledSetup.get(tabId) === failure) this.stalledSetup.delete(tabId);
++              }).catch(() => {});
++            }
++            reject(error);
++          }, READ_TIMEOUT_MS);
++        }),
++      ]);
++    } finally {
++      clearTimeout(timer);
++    }
+     await this.backgroundExecution.synchronize(tabId);
+   }
+ 
+@@ -314,7 +370,12 @@ export class ChromiumCdp {
+         throw new Error("Debugger attachment was released during setup");
+     };
+     const attach = (async () => {
+-      await this.api.attach({ tabId }, CDP_PROTOCOL_VERSION);
++      this.rawAttaching.add(tabId);
++      try {
++        await this.api.attach({ tabId }, CDP_PROTOCOL_VERSION);
++      } finally {
++        this.rawAttaching.delete(tabId);
++      }
+       try {
+         check();
+         await this.enablePageDomain(tabId);
+@@ -357,7 +418,9 @@ export class ChromiumCdp {
+         throw normalizeError(err);
+       })
+       .finally(() => {
+-        if (this.attachInFlight.get(tabId) === attach) this.attachInFlight.delete(tabId);
++        if (this.attachInFlight.get(tabId) === attach) {
++          this.attachInFlight.delete(tabId);
++        }
+       });
+     this.attachInFlight.set(tabId, attach);
+     await attach;
+diff --git a/apps/extension/src/browser-driver/command-deadline.ts b/apps/extension/src/browser-driver/command-deadline.ts
+index f484a2a..9f8857a 100644
+--- a/apps/extension/src/browser-driver/command-deadline.ts
++++ b/apps/extension/src/browser-driver/command-deadline.ts
+@@ -8,6 +8,13 @@ import type { CdpDebuggee } from "./chromium-cdp";
+ // unresponsive page. Mutations, screenshots and user-requested waits keep
+ // their own limits.
+ const RENDERER_READS = new Set([
++  // Setup happens before a tool's own wait starts; a stuck enable must not
++  // retain the session command slot forever after the caller cancels.
++  "Page.enable",
++  "Page.setLifecycleEventsEnabled",
++  "Runtime.enable",
++  "Log.enable",
++  "Network.enable",
+   "DOMSnapshot.enable",
+   "DOMSnapshot.captureSnapshot",
+   "Accessibility.enable",
+diff --git a/apps/extension/src/tools/__tests__/dispatcher.test.ts b/apps/extension/src/tools/__tests__/dispatcher.test.ts
+index 006c1e6..b4f3034 100644
+--- a/apps/extension/src/tools/__tests__/dispatcher.test.ts
++++ b/apps/extension/src/tools/__tests__/dispatcher.test.ts
+@@ -47,6 +47,39 @@ function makeRequest(method: string, params: unknown): RequestFrame {
+ }
+ 
+ describe("ToolDispatcher", () => {
++  it("reports the stalled phase and only this session's pending method metadata", async () => {
++    const { transport, sent, deliver } = fakeTransport();
++    const sessions = new SessionManager({ agentWindow: {
++      create: vi.fn(async () => ({ windowId: 42, initialTabIds: [7] })),
++      remove: vi.fn(), ensureActiveTab: vi.fn(),
++    } });
++    await sessions.start("owner");
++    const cdp = { pendingCommands: () => [
++      { tab_id: 7, method: "Runtime.evaluate", elapsed_ms: 34000 },
++      { tab_id: 8, method: "OtherSession.private", elapsed_ms: 100 },
++    ] } as unknown as TestDispatcherCdp;
++    const dispatcher = new ToolDispatcher({ transport, sessions, cdp });
++    let finish!: (result: unknown) => void;
++    const invoke = vi.spyOn(dispatcher as unknown as {
++      invokeTool(...args: unknown[]): Promise<unknown>;
++    }, "invokeTool").mockImplementation(() => new Promise(resolve => { finish = resolve; }));
++    dispatcher.start();
++    deliver({ id: "pending", method: "tool.navigate", params: { session_id: "owner", _operation_id: "op1" } });
++    await vi.waitFor(() => expect(invoke).toHaveBeenCalledOnce());
++    deliver({ id: "blocked", method: "tool.cooperate", params: { session_id: "owner", _operation_id: "op2" } });
++    await vi.waitFor(() => expect(sent).toContainEqual({ id: "blocked", error: {
++      code: "cdp_failed",
++      message: "Previous operation is still settling; this action was not dispatched",
++      data: { dispatched: false, local_diagnostics: {
++        phase: "invoke", pending_commands: [{ tab_id: 7, method: "Runtime.evaluate", elapsed_ms: 34000 }],
++      } },
++    } }));
++    expect(invoke).toHaveBeenCalledOnce();
++    finish({});
++    await vi.waitFor(() => expect(sent).toContainEqual({ id: "pending", result: {} }));
++    dispatcher.stop();
++  });
++
+   it.each([
+     false,
+     true,
+diff --git a/apps/extension/src/tools/dispatcher.ts b/apps/extension/src/tools/dispatcher.ts
+index 4cfab0f..3afe5e3 100644
+--- a/apps/extension/src/tools/dispatcher.ts
++++ b/apps/extension/src/tools/dispatcher.ts
+@@ -129,6 +129,7 @@ type DispatcherCdpRunner = CdpRunner &
+   NetworkCdpRunner &
+   EmulateCdpRunner & {
+     detachSession(sessionId: string): Promise<void>;
++    pendingCommands?(): { tab_id?: number; method: string; elapsed_ms: number }[];
+   };
+ 
+ interface HoverLatch {
+@@ -208,7 +209,7 @@ export class ToolDispatcher {
+   private readonly hoverLatches = new Map<number, HoverLatch>();
+   private readonly activeDialogOperations = new Map<
+     string,
+-    { request: RequestFrame; operationId: string }
++    { request: RequestFrame; operationId: string; phase: string }
+   >();
+   private dialogSubscription: { dispose(): void } | null = null;
+   private pendingSessionStarts = 0;
+@@ -407,7 +408,14 @@ export class ToolDispatcher {
+           error: {
+             code: "cdp_failed",
+             message: "Previous operation is still settling; this action was not dispatched",
+-            data: { dispatched: false },
++            data: {
++              dispatched: false,
++              local_diagnostics: {
++                phase: this.activeDialogOperations.get(operationParams.session_id)?.phase,
++                pending_commands: (this.cdp?.pendingCommands?.() ?? []).filter(call =>
++                  call.tab_id !== undefined && this.sessions.findControllingSession(call.tab_id) === operationParams.session_id),
++              },
++            },
+           },
+         };
+       } else {
+@@ -415,17 +423,23 @@ export class ToolDispatcher {
+           this.activeDialogOperations.set(operationParams.session_id, {
+             request: req,
+             operationId: operationParams._operation_id,
++            phase: "audit_context",
+           });
+         }
+         const sessionId = sessionIdForBrowserControlMethod(req);
+         if (sessionId) this.onBrowserControlResumed?.(sessionId);
+         // Best-effort context must never prevent the requested operation.
++        const phase = (value: string) => {
++          const active = operationParams?.session_id ? this.activeDialogOperations.get(operationParams.session_id) : undefined;
++          if (active?.request.id === req.id) active.phase = value;
++        };
+         try {
+           const context = await auditContext(req, this.sessions);
+           if (context) this.transport.send({ event: "audit.context", payload: context });
+         } catch {
+           /* The daemon still has the original operation metadata. */
+         }
++        phase("debug_before");
+         try {
+           if (!dialogControl && !stopsSession)
+             debugTicket = await this.debug?.before(req, ac.signal);
+@@ -433,6 +447,7 @@ export class ToolDispatcher {
+           /* Evidence must not block the operation. */
+         }
+         throwIfDispatchAborted(ac.signal);
++        phase("invoke");
+         const result = OPENS_TABS.has(req.method)
+           ? await withTaskPopups(
+               this.sessions,
+diff --git a/apps/extension/wxt.config.ts b/apps/extension/wxt.config.ts
+index 73b6f4c..cc3dcf1 100644
+--- a/apps/extension/wxt.config.ts
++++ b/apps/extension/wxt.config.ts
+@@ -85,7 +85,7 @@ export default defineConfig({
+       },
+     ],
+     define: {
+-      __BSK_EXT_BUILD__: JSON.stringify(EXTENSION_BUILD),
++      __BSK_EXT_BUILD__: JSON.stringify(`${EXTENSION_BUILD}-localdiag3`),
+       __BSK_EXT_VERSION__: JSON.stringify(EXTENSION_VERSION),
+       __BSK_DAEMON_WS_URL__: JSON.stringify(
+         process.env.BSK_DAEMON_WS_URL ?? "ws://127.0.0.1:52800",

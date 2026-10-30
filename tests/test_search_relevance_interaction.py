@@ -1,6 +1,7 @@
 """Interaction regressions: target defaults, continue-search and human sync."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -44,8 +45,15 @@ def test_default_target_is_30_and_api_limit_is_100():
         JobInput(kind="collection", target_count=101)
 
 
-def test_continue_search_adds_target_without_resetting_candidates(library, client, project):
+def test_continue_search_adds_target_without_resetting_candidates(library, client, project, tmp_path, monkeypatch):
+    from ref_lab import service
+    monkeypatch.setattr(service, "__file__", str(tmp_path / "ref_lab/service.py"))
+    monkeypatch.setenv("LAB_DATA_DIR", str(library.settings.data_dir))
+    monkeypatch.setenv("LAB_COLLECTION_HISTORY_ROOTS", "[]")
     job = _job(client, project["id"], target=4)
+    _, claimed = library.begin_job_preparation(job["id"], "prepare", {})
+    assert claimed
+    library.prepare_job(job["id"], "prepare")
     updated = library.extend_search(job["id"], 10)
     assert updated["search_extra_target"] == 10
     assert updated["search_state"] == "idle"
@@ -53,6 +61,62 @@ def test_continue_search_adds_target_without_resetting_candidates(library, clien
     with pytest.raises(Exception) as exc:
         library.extend_search(job["id"], 100)
     assert getattr(exc.value, "status", None) == 422
+
+
+def test_zero_budget_extension_recovers_dead_owner_and_preserves_same_job_state(
+        tmp_path, monkeypatch, library, client, project):
+    from ref_lab import agent_collection
+    from ref_lab.db import encode
+
+    monkeypatch.setattr(collection_queue, "run_root", lambda: tmp_path / "runs")
+    job = _job(client, project["id"], target=4)
+    raw = image_bytes(88)
+    sha = hashlib.sha256(raw).hexdigest()
+    folder = _queue_row(tmp_path, monkeypatch, job["id"], sha, raw)
+    decision = client.post(f"/api/jobs/{job['id']}/candidates/{sha}/decision", json={"decision": "keep"})
+    assert decision.status_code == 200, decision.text
+    original_path = folder / "images" / f"{sha}.png"
+    human_path = collection_queue.decide_path(folder)
+    original_before = original_path.read_bytes()
+    human_before = human_path.read_bytes()
+
+    with library.db.transaction() as con:
+        row = con.execute("SELECT data FROM jobs WHERE id=?", (job["id"],)).fetchone()
+        stored = json.loads(row["data"])
+        stored.update(status="running", search_state="running", active_attempt_id="dead-attempt",
+                      search_attempt_id="dead-attempt", search_attempt_started_at=123.0,
+                      collection_process_owner={"pid": 999999}, preparation_state="ready",
+                      search_timeout_seconds=1375.0, goal_id="")
+        con.execute("UPDATE jobs SET status='running',data=? WHERE id=?", (encode(stored), job["id"]))
+
+    running = library.job(job["id"])
+    monkeypatch.setattr(agent_collection, "_process_owner_active", lambda owner: True)
+    with pytest.raises(Exception) as active:
+        library.extend_search(job["id"], 10, additional_seconds=0)
+    assert getattr(active.value, "status", None) == 409
+    assert library.job(job["id"]) == running
+
+    monkeypatch.setattr(agent_collection, "_process_owner_active", lambda owner: False)
+    updated = library.extend_search(job["id"], 10, additional_seconds=0)
+    assert updated["id"] == job["id"]
+    assert updated["search_extra_target"] == 10
+    assert updated["target_count"] == 4
+    assert updated["download_target_count"] == 14
+    assert updated["search_timeout_seconds"] == 1375.0
+    assert updated["search_state"] == "idle" and updated["status"] == "blocked"
+    assert updated["search_resume_generation"] == running.get("search_resume_generation", 0) + 1
+    assert "active_attempt_id" not in updated and "collection_process_owner" not in updated
+    assert original_path.read_bytes() == original_before
+    assert human_path.read_bytes() == human_before
+    assert library.reference(decision.json()["project_decision"]["id"])["decision"] == "keep"
+
+
+@pytest.mark.parametrize("additional_seconds", [-1, 901, 1.5, True])
+def test_extend_search_rejects_invalid_additional_seconds(library, client, project, additional_seconds):
+    job = _job(client, project["id"], target=4)
+    with pytest.raises(Exception) as error:
+        library.extend_search(job["id"], 1, additional_seconds=additional_seconds)
+    assert getattr(error.value, "status", None) == 422
 
 
 def test_user_alias_is_used_in_job_queries(client, project):

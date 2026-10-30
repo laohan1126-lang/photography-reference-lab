@@ -1103,16 +1103,16 @@ class Library:
             return [{**dict(r), "data": json.loads(r["data"])} for r in con.execute(
                 "SELECT * FROM events WHERE project_id=? AND id>? ORDER BY id DESC LIMIT ?", (project_id, after, limit))]
 
-    def _create_auto_goal(self, con: sqlite3.Connection, project: dict, request: JobInput) -> str:
-        goal_id = f"auto-{fresh_id()}"
-        started_at = time.time()
+    def _create_auto_goal(self, project: dict, request: JobInput, *, goal_id: str,
+                          identity_context: dict | None = None,
+                          started_at: float | None = None) -> str:
+        started_at = time.time() if started_at is None else started_at
         target = request.target_count or 30
 
         try:
             from .verified_collection import deterministic_plan
-            from .identity import get_identity_context
-            context = get_identity_context(con, project["id"])
-            name_plan = deterministic_plan(project, identity_context=context, user_aliases=request.search_aliases)
+            name_plan = deterministic_plan(project, identity_context=identity_context,
+                                           user_aliases=request.search_aliases)
             names = [r["name"] for r in name_plan.name_records]
         except Exception:
             names = [project.get("character", "")]
@@ -1164,10 +1164,6 @@ class Library:
         baseline_bytes = json.dumps(baseline, ensure_ascii=False).encode("utf8")
         baseline_sha = hashlib.sha256(baseline_bytes).hexdigest()
 
-        goal_dir = Path(__file__).resolve().parents[1] / ".local" / "goals" / goal_id
-        goal_dir.mkdir(parents=True, exist_ok=False)
-        (goal_dir / "baseline.json").write_bytes(baseline_bytes)
-
         goal_data = {
             "goal_id": goal_id,
             "target": target,
@@ -1179,7 +1175,31 @@ class Library:
             "baseline_sha": baseline_sha,
             "baseline_shas": unique_shas
         }
-        (goal_dir / "goal.json").write_text(json.dumps(goal_data, ensure_ascii=False, indent=2), encoding="utf8")
+        goal_dir = Path(__file__).resolve().parents[1] / ".local" / "goals" / goal_id
+        if goal_dir.exists():
+            # A completed retry may already have published the immutable Goal.
+            # Reuse it only after proving its files still match.
+            from .collection_history import goal_baseline
+            current = json.loads((goal_dir / "goal.json").read_text("utf8"))
+            goal_baseline(goal_dir, current)
+            if (current.get("goal_id") != goal_id or current.get("project_id") != project.get("id")
+                    or current.get("target") != target):
+                raise Problem(409, "任务准备目录属于另一Goal；拒绝覆盖")
+            return goal_id
+
+        from .storage import atomic_write
+        # Keep the staging leaf short enough for Windows checkout paths.
+        stage = goal_dir.with_name(f".p-{fresh_id()[:12]}")
+        stage.mkdir(mode=0o700, parents=True, exist_ok=False)
+        try:
+            atomic_write(stage / "baseline.json", baseline_bytes)
+            atomic_write(stage / "goal.json",
+                         json.dumps(goal_data, ensure_ascii=False, indent=2).encode("utf8"))
+            os.replace(stage, goal_dir)
+        except BaseException:
+            import shutil
+            shutil.rmtree(stage, ignore_errors=True)
+            raise
         return goal_id
 
     def create_job(self, project_id: str, request: JobInput) -> dict:
@@ -1247,20 +1267,94 @@ class Library:
                         raise Problem(422, "持续目标未绑定本项目的查重范围或范围版本过期；不能续跑，请新建Goal",
                                       {'code': 'goal_scope_binding_invalid'})
                     job['goal_id'] = request.goal_id
+                    job['preparation_state'] = 'ready'
                 else:
-                    setup_started = time.monotonic()
-                    auto_goal_id = self._create_auto_goal(con, project, request)
-                    job['goal_id'] = auto_goal_id
-                    job['search_elapsed_seconds'] = time.monotonic() - setup_started
+                    job['goal_id'] = f"auto-{fresh_id()}"
+                    job['preparation_state'] = 'pending'
                 job.update(collection_outcome="blocked", collection_attempt_count=0,
-                           collection_elapsed_seconds=job.get("search_elapsed_seconds", 0.0),
+                           collection_elapsed_seconds=0.0,
                            collection_mode=request.collection_mode,
                            search_state="idle", search_counts={"found": 0, "accepted": 0},
                            review_state="idle", review_counts={"found": 0, "accepted": 0, "rejected": 0,
                                                                  "blocked": 0, "pending": 0})
+                if request.collection_mode == "search":
+                    job["download_target_count"] = request.target_count
             con.execute("INSERT INTO jobs VALUES(?,?,?,?,?)", (job["id"], project_id, request.kind, job["status"], encode(job)))
             self.db.event(con, project_id, job["id"], "job.created", job)
             return job
+
+    def begin_job_preparation(self, ident: str, attempt_id: str, owner: dict,
+                              *, expected_revision: int | None = None) -> tuple[dict, bool]:
+        """Short transaction: claim background Goal preparation once."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if expected_revision is not None:
+                check_revision(job, expected_revision)
+            ensure_active_project(row_data(con, "projects", job["project_id"]))
+            if job["status"] == "cancelled":
+                raise Problem(409, "已取消的任务不能准备")
+            state = job.get("preparation_state")
+            if state in {None, "ready", "running"}:
+                return job, False
+            if state not in {"pending", "failed"}:
+                raise Problem(409, "任务准备状态无效")
+            job.update(preparation_state="running", preparation_attempt_id=attempt_id,
+                       preparation_started_at=time.time(), preparation_process_owner=dict(owner),
+                       preparation_detail="正在后台校验历史并冻结查重基线。")
+            return self._save_job(con, job, "job.preparation_started",
+                                  {"attempt_id": attempt_id}, "worker"), True
+
+    def reset_job_preparation(self, ident: str, detail: str) -> dict:
+        """Recover a preparation owner that disappeared with a prior process."""
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("preparation_state") != "running" or job["status"] == "cancelled":
+                return job
+            job.update(preparation_state="failed", preparation_detail=detail)
+            job.pop("preparation_process_owner", None)
+            job.pop("preparation_attempt_id", None)
+            return self._save_job(con, job, "job.preparation_interrupted", {"detail": detail}, "worker")
+
+    def prepare_job(self, ident: str, attempt_id: str) -> dict:
+        """Build the immutable history baseline outside database transactions."""
+        job = self.job(ident)
+        if job.get("preparation_attempt_id") != attempt_id or job["status"] == "cancelled":
+            return job
+        request = JobInput(kind="collection", notes=job.get("notes", ""),
+                           target_count=int(job.get("target_count") or 30),
+                           preferred_sources=job.get("preferred_sources") or [],
+                           search_aliases=job.get("search_aliases") or [],
+                           collection_mode=job.get("collection_mode", "verified"))
+        goal_id = str(job.get("goal_id") or "")
+        if goal_id.startswith("auto-"):
+            self._create_auto_goal(job["project_snapshot"], request, goal_id=goal_id,
+                                   identity_context=job.get("identity_context"))
+        else:
+            root = Path(__file__).resolve().parents[1]
+            _preflight_search_goal(job, root, root / '.local' / 'collection-runs' / ident / 'current')
+        return self.finish_job_preparation(ident, attempt_id)
+
+    def finish_job_preparation(self, ident: str, attempt_id: str) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("preparation_attempt_id") != attempt_id:
+                return job
+            job.update(preparation_state="ready", preparation_detail="历史基线已准备，搜索尚未开始。")
+            job.pop("preparation_process_owner", None)
+            job.pop("preparation_attempt_id", None)
+            return self._save_job(con, job, "job.preparation_ready", {"attempt_id": attempt_id}, "worker")
+
+    def fail_job_preparation(self, ident: str, attempt_id: str, detail: str) -> dict:
+        with self.db.transaction() as con:
+            job = row_data(con, "jobs", ident)
+            if job.get("preparation_attempt_id") != attempt_id:
+                return job
+            if job["status"] == "cancelled":
+                detail = "任务已取消；后台准备未启动搜索。"
+            job.update(preparation_state="failed", preparation_detail=detail[:400])
+            job.pop("preparation_process_owner", None)
+            job.pop("preparation_attempt_id", None)
+            return self._save_job(con, job, "job.preparation_failed", {"detail": detail[:400]}, "worker")
 
     def _save_job(self, con: sqlite3.Connection, job: dict, action: str, payload: object, actor: str = "human") -> dict:
         job.update(revision=job["revision"] + 1, updated_at=now())
@@ -1279,6 +1373,15 @@ class Library:
             else:
                 rows = con.execute("SELECT data FROM jobs ORDER BY rowid DESC")
             return [json.loads(r[0]) for r in rows]
+
+    def jobs_page(self, *, limit: int, offset: int) -> dict:
+        """Read-only summary page; callers must not build candidate snapshots."""
+        with self.db.read() as con:
+            total = int(con.execute("SELECT COUNT(*) FROM jobs").fetchone()[0])
+            rows = con.execute("SELECT data FROM jobs ORDER BY rowid DESC LIMIT ? OFFSET ?",
+                               (limit, offset))
+            return {"items": [json.loads(r[0]) for r in rows], "total": total,
+                    "limit": limit, "offset": offset}
 
     def transition_job(self, ident: str, status: str, revision: int, detail: str, *, actor: str = "human") -> dict:
         transitions = {"blocked": {"running", "cancelled"}, "queued": {"running", "blocked", "cancelled"},
@@ -1682,12 +1785,36 @@ class Library:
 
     def start_collection_attempt(self, ident: str, revision: int, attempt_id: str, *, owner: dict | None = None,
                                  timeout: float | None = None) -> dict:
+        current = self.job(ident)
+        if current.get("preparation_state") in {"pending", "failed"}:
+            prepare_attempt = "prep-" + uuid4().hex
+            prepared, claimed = self.begin_job_preparation(
+                ident, prepare_attempt, dict(owner or {}), expected_revision=revision)
+            if claimed:
+                try:
+                    prepared = self.prepare_job(ident, prepare_attempt)
+                except BaseException as exc:
+                    detail = exc.message if isinstance(exc, Problem) else f"任务准备失败：{type(exc).__name__}"
+                    self.fail_job_preparation(ident, prepare_attempt, detail)
+                    if isinstance(exc, Problem):
+                        raise
+                    raise Problem(409, detail) from exc
+            if (prepared.get("preparation_state") or "ready") != "ready":
+                raise Problem(409, "历史基线仍在后台准备；本轮采集尚未启动",
+                              {"preparation_state": prepared.get("preparation_state")})
+            revision = prepared["revision"]
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
             ensure_active_project(row_data(con, "projects", job["project_id"]))
             check_revision(job, revision)
+            if job.get("preparation_state") not in {None, "ready"}:
+                raise Problem(409, "历史基线仍在后台准备；本轮采集尚未启动")
             if job["kind"] != "collection" or job["status"] not in {"blocked", "queued", "failed", "partial"}:
                 raise Problem(409, "任务不可重复启动；请检查当前状态")
+            if (job.get("collection_mode", "verified") != "verified"
+                    and job.get("search_state") in {"blocked", "failed", "partial", "cancelled"}):
+                # The CLI must distinguish an explicit retry from an old terminal receipt.
+                job["search_resume_generation"] = int(job.get("search_resume_generation", 0)) + 1
             job.update(status="running", active_attempt_id=attempt_id,
                        detail="检查本地 Agent 适配器；本轮尚未收到候选",
                        collection_attempt_count=int(job.get("collection_attempt_count", 0)) + 1,
@@ -1911,10 +2038,13 @@ class Library:
             job["status"] = collection_status(job)
             return self._save_job(con, job, "collection.review_cancelled", {"detail": detail}, "human")
 
-    def extend_search(self, ident: str, extra_target: int, detail: str = "") -> dict:
+    def extend_search(self, ident: str, extra_target: int, detail: str = "", *,
+                      additional_seconds: int = 900) -> dict:
         """Same job, additional target; originals and decisions are preserved."""
         if type(extra_target) is not int or extra_target < 1:
             raise Problem(422, "加搜数量须为正整数")
+        if type(additional_seconds) is not int or not 0 <= additional_seconds <= 900:
+            raise Problem(422, "加搜时间须为 0 到 900 秒的整数")
         changed = []
         try:
             with self.db.transaction() as con:
@@ -1956,17 +2086,20 @@ class Library:
                             raise Problem(409, "运行Goal历史基线不一致；拒绝覆盖")
                         updates.append((run_goal, run_before, goal))
                 job.update(search_extra_target=already + int(extra_target), search_state="idle",
-                           search_timeout_seconds=float(job.get('search_timeout_seconds') or 900)+900,
+                           search_timeout_seconds=float(job.get('search_timeout_seconds') or 900)+additional_seconds,
                            search_resume_generation=int(job.get('search_resume_generation',0))+1,
                            search_stop_reason="", search_detail=detail or
                            f"继续加搜：累计目标 {total} 张；已下载候选保留且不会重复计数。")
-                if job["status"] in {"succeeded", "completed", "failed", "awaiting_review", "partial"}:
+                if job.get('collection_mode') == 'search':
+                    job['download_target_count'] = total
+                if job["status"] in {"running", "succeeded", "completed", "failed", "awaiting_review", "partial"}:
                     job["status"] = "blocked"
                 job.pop("active_attempt_id", None)
                 job.pop("collection_process_owner", None)
                 job.pop("search_attempt_started_at", None)
                 saved = self._save_job(con, job, "collection.search_extended",
-                                       {"extra_target": extra_target, "target_total": total}, "human")
+                                       {"extra_target": extra_target, "target_total": total,
+                                        "additional_seconds": additional_seconds}, "human")
                 task_job = Path(__file__).resolve().parents[1]/'.local/collection-runs'/ident/'current/task/job.json'
                 if task_job.exists():
                     before = task_job.read_bytes()
@@ -2002,6 +2135,11 @@ class Library:
                     or not search_ok
                     or job.get('review_state') == 'running' or job['status'] == 'cancelled'):
                 raise Problem(409, "当前任务不可继续补足")
+            stop_reason = (job.get('search_stop_reason')
+                           or (job.get('search_summary') or {}).get('stop_reason'))
+            if stop_reason != 'time_budget_exhausted':
+                raise Problem(409, "只有搜索时间预算耗尽后才能纯加时；启动或导航失败请直接重试搜索",
+                              {'code': 'search_budget_not_exhausted'})
             root = Path(__file__).resolve().parents[1]
             _preflight_search_goal(job, root, root/'.local/collection-runs'/ident/'current')
             previous = float(job.get('search_timeout_seconds') or 900)
@@ -2020,10 +2158,17 @@ class Library:
         """Cancel Search without deleting originals or completed reviews."""
         with self.db.transaction() as con:
             job = row_data(con, "jobs", ident)
-            if job.get("search_state") not in {"running", "blocked", "failed"}:
+            preparing = job.get('preparation_state') in {'pending', 'running'}
+            if job.get("search_state") not in {"idle", "running", "blocked", "failed"} or (
+                    job.get("search_state") == "idle" and not preparing):
                 raise Problem(409, "当前搜索阶段不可取消")
             job.update(search_state="cancelled", search_stop_reason="user_cancelled",
                        search_detail=detail)
+            if preparing:
+                job['preparation_state'] = 'failed'
+                job['preparation_detail'] = '任务已取消；后台准备不会启动搜索。'
+                job.pop('preparation_process_owner', None)
+                job.pop('preparation_attempt_id', None)
             if job.get('search_attempt_started_at'):
                 job['search_elapsed_seconds']=float(job.get('search_elapsed_seconds',0) or 0)+max(
                     0.,time.time()-float(job['search_attempt_started_at']))

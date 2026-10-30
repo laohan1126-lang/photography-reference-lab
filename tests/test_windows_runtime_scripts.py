@@ -21,6 +21,9 @@ def test_windows_launcher_is_repo_local_and_not_wsl_bound():
     assert "Get-ReferenceLabPython" in launch
     assert "Assert-ReferenceLabPythonMatchesRepo" in launch
     assert "tools\\collect_verified.py" in launch
+    assert '"--browser-backend",' in launch
+    assert '"playwright",' in launch
+    assert ".local\\playwright-collection-profile" in launch
     assert "env=antigravity_environment()" in launch
     assert "LAB_COLLECTION_COMMAND" in launch
     assert "Split-brain" in read("scripts/runtime-common.ps1")
@@ -108,7 +111,8 @@ def test_windows_launcher_ensures_external_services():
     launch = read("scripts/launch.ps1")
     assert "ensure-external-services.ps1" in launch
     assert "Ensure-CloudflareTunnel" in launch
-    assert "Ensure-BrowserSkillDaemon" in launch
+    assert "Ensure-BrowserSkillDaemon" not in launch
+    assert '"--browser-backend"' in launch and '"playwright"' in launch
     helper = read("scripts/ensure-external-services.ps1")
     assert "ref.koshikorato.top" in helper
     assert "bsk" in helper

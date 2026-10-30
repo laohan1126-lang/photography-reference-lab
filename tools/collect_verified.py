@@ -5,6 +5,7 @@ import argparse
 import copy
 import hashlib
 import html
+import inspect
 import io
 import json
 import os
@@ -17,6 +18,8 @@ from urllib.parse import parse_qs,quote,urlsplit
 from uuid import uuid4
 import zipfile
 from contextlib import contextmanager, nullcontext
+from concurrent.futures import Future
+import threading
 
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
@@ -24,6 +27,7 @@ if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 import httpx
 from PIL import Image
 
+from ref_lab.bsk_command import run_bsk
 from ref_lab.models import CandidatePackage
 from ref_lab.verified_collection import AntigravityCollectionAgent,AgentUnavailable,AgentCallFailed,CollectionVision,accepted,query_steps,reference_supported,scope_sha,_plan_name_records
 from ref_lab.storage import atomic_write
@@ -32,14 +36,18 @@ from ref_lab import collection_queue
 from ref_lab.collection_pipeline import OrderedReviews
 from ref_lab.collection_timing import CollectionTiming
 from ref_lab.collection_checkpoint import load_checkpoint,original_bytes,coverage,read_json,rule_contract,job_binding
+from ref_lab.playwright_runtime import PlaywrightLoop
 from ref_lab.search_relevance import (classify_card, confirmed_count, exploration_count,
                                       exploration_image_count, exploration_limit, is_confirmed,
                                       relevance_counts, source_warnings)
-from tools.collect_adapter import load_job_info,select_browserskill,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
+from tools.collect_adapter import load_job_info,select_browserskill,nudge_extension,bsk_candidates,fetch_pinterest_detail_metadata,NEGATIVE_TYPE_MARKERS
 from tools.exact_recall import assess_search,capture_note,normalize_image_url,save
 from ref_lab.browser_recovery import (
     BrowserError, BrowserInfrastructureError, PlatformRestrictionError,
     DetailItemError, sanitize_diagnostics, classify_bsk_error, is_infrastructure_error
+)
+from tools.playwright_collection_trial import (
+    TrialError, profile_lock, resolve_profile, validate_http_url,
 )
 
 MAX_QUERIES=8
@@ -317,7 +325,7 @@ SEARCH_JS=r"""(() => {
  const source=location.hostname.includes('xiaohongshu')?'xiaohongshu':'pinterest';
  let cards=[];
  if(source==='xiaohongshu'){
-  cards=Array.from(document.querySelectorAll('section')).filter(x=>x.querySelector('img'))
+  cards=Array.from(document.querySelectorAll('section, .note-item, [data-note-id]')).filter(x=>x.querySelector('img'))
     .map(x=>{const link=x.querySelector('a[href*="/explore/"],a[href*="/search_result/"]');
      const href=link?link.href:'';
      const id=(href.match(/\/(?:explore|search_result)\/([a-f0-9]{24})/)||[])[1]||'';
@@ -356,7 +364,8 @@ DETAIL_PROBE_JS=r"""(() => {
  const challenge=Array.from(document.querySelectorAll('iframe[src*="captcha"]')).some(visible)
    ||/访问过于频繁|验证后继续|Verify you are human/.test(text);
  const notFound=/当前笔记暂时无法浏览|内容不存在|页面不见了|Note not found/i.test(text);
- return {url:location.href,login_required:login,challenge,not_found:notFound,body_ready:!!document.body};
+ const hasModal=!!document.querySelector('.note-detail-mask .note-container, [class*="note-container"]');
+ return {url:location.href,login_required:login,challenge,not_found:notFound,body_ready:!!document.body,has_modal:hasModal};
 })()"""
 
 
@@ -364,6 +373,7 @@ class Browser:
     supports_sort=True
     def __init__(self,folder:Path):
         self.folder=folder;self.session=None;self.start_request=None;self.bsk=None;self.browser_id=None
+        self.initial_navigation=False
         self.env={**os.environ,'BSK_AUTO_START':'0'}
         self.timing=None;self.preview=None;self.preview_reused=0
         self.preview_payloads={'created':0,'removed':0,'bytes':0}
@@ -375,7 +385,7 @@ class Browser:
         self.recovery_budget_seconds=60.0;self.recovery_seconds_used=0.0
         self.recovery_start_time=None;self.recovery_active=False
         self.last_successful_page=None;self.last_successful_at=None
-        self.return_issue_category=None
+        self.return_failed=False;self.return_error=None;self.return_issue_category=None
         self.known_shas=None;self.known_sources=None;self.incoming_dir=None
 
     def _span(self,name,**fields):
@@ -474,7 +484,10 @@ class Browser:
         query_ok=bool(query) and (url_query==query or box==query)
         confirmed=bool(source_ok and parsed.path.rstrip('/')==expected_path and query_ok
                        and cards and not blocked and self.session)
-        return {'confirmed':confirmed,'source':source,'host':host,'path':parsed.path.rstrip('/'),
+        page_loaded=bool(source_ok and parsed.path.rstrip('/')==expected_path and query_ok
+                         and snapshot.get('body_ready') is not False and not blocked and self.session)
+        return {'confirmed':confirmed,'page_loaded':page_loaded,'body_ready':snapshot.get('body_ready'),
+                'source':source,'host':host,'path':parsed.path.rstrip('/'),
                 'expected_path':expected_path,'query':query,'url_query':url_query,'search_box':box,
                 'cards':len(cards),'login_required':bool(snapshot.get('login_required')),
                 'challenge':bool(snapshot.get('challenge')),'session_id':self.session}
@@ -510,18 +523,22 @@ class Browser:
         self.command('evaluate','--session',self.session,'--json',
                      '(()=>{history.back();return true})()',timeout=10)
 
-    def recover(self,step=None,reason='connection')->bool:
+    def recover(self,step=None,reason='connection',cause=None)->bool:
         """Recover only this task's browser, within one monotonic deadline.
 
-        A page-return failure is repaired in place first: verify the live page,
-        then revisit the original query in the same session. Rebuilding the
-        session is the last resort, and the whole attempt stays bounded.
+        The current page is checked before any retry. A readable wrong page gets
+        one same-session navigation; a stalled renderer or unknown cleanup is a
+        control-layer failure and never justifies creating another session.
         """
         if not self.can_recover() or not self.bsk or not self.browser_id:
             return False
         self.recovery_attempts+=1
         started=time.monotonic()
         self.recovery_active=True
+        self.return_failed=True
+        if self.return_error is None:
+            self.return_error=BrowserInfrastructureError('浏览器恢复未确认',action='browser_recovery',
+                                                         code='recovery_unconfirmed')
         if self.recovery_start_time is None:self.recovery_start_time=started
         old_deadline=getattr(self,'deadline',float('inf'))
         # The recovery allowance is what is left of the cumulative budget, not
@@ -530,18 +547,46 @@ class Browser:
         remaining_budget=max(0.0,self.recovery_budget_seconds-self.recovery_seconds_used)
         self.deadline=min(old_deadline,started+remaining_budget)
         try:
-            if reason=='return' and step:
-                if self._verify_return(step,'before_repair'):
-                    return True
+            if cause is not None:
+                code=getattr(cause,'code','')
+                if code in ('renderer_not_answering','cleanup_timeout','cleanup_pending','session_busy',
+                            'ipc_access_denied','protocol_mismatch','cooperation_sync_required',
+                            'user_aborted','operation_outcome_unknown'):
+                    return False
+                if getattr(cause,'is_timeout',False) and getattr(cause,'action','') not in ('navigate','navigate-back','evaluate','click','hover'):
+                    return False
+            if step and self.session and not (cause is not None and (
+                    getattr(cause,'is_session_dead',False) or getattr(cause,'is_daemon_down',False))):
                 try:
-                    self.command('navigate',self.search_url(step),'--session',self.session,
-                                 '--wait-until','domcontentloaded','--timeout','15s',timeout=25)
-                except (BrowserError,OSError,subprocess.SubprocessError) as exc:
-                    if not is_infrastructure_error(exc):raise
-                # A command timeout does not mean the page is wrong: the page is
-                # read and judged, and a correct page ends the recovery here.
-                if self._verify_return(step,'after_original_query'):
-                    return True
+                    live=self.snapshot()
+                except (BrowserInfrastructureError,OSError,subprocess.SubprocessError) as exc:
+                    if getattr(exc,'code','') in ('renderer_not_answering','cleanup_timeout','cleanup_pending','session_busy'):
+                        return False
+                    live=None
+                if live is not None:
+                    evidence=self._return_state(live,step['source'],step.get('query',''))
+                    evidence['stage']='before_repair'
+                    self._record_return_check(evidence)
+                    usable=evidence['confirmed'] if reason=='return' else evidence['page_loaded']
+                    if usable and time.monotonic()<self.deadline:
+                        self.return_failed=False;self.return_error=None;self.return_issue_category=None
+                        return True
+                    if evidence.get('login_required') or evidence.get('challenge'):
+                        return False
+                    try:
+                        self.command('navigate',self.search_url(step),'--session',self.session,
+                                     '--wait-until','commit','--timeout','45s',timeout=55)
+                        live=self.snapshot()
+                        evidence=self._return_state(live,step['source'],step.get('query',''))
+                        evidence['stage']='after_original_query'
+                        self._record_return_check(evidence)
+                        usable=evidence['confirmed'] if reason=='return' else evidence['page_loaded']
+                        if usable and time.monotonic()<self.deadline:
+                            self.return_failed=False;self.return_error=None;self.return_issue_category=None
+                            return True
+                    except (BrowserError,OSError,subprocess.SubprocessError):
+                        pass
+                    return False
             if not self._rebuild_session():
                 return False
             if step:
@@ -550,11 +595,13 @@ class Browser:
                 # run is declared recovered.
                 try:
                     self.command('navigate',self.search_url(step),'--session',self.session,
-                                 '--wait-until','domcontentloaded','--timeout','15s',timeout=25)
+                                 '--wait-until','commit','--timeout','45s',timeout=55)
                 except (BrowserError,OSError,subprocess.SubprocessError) as exc:
                     if not is_infrastructure_error(exc):raise
                 if not self._verify_return(step,'after_rebuild'):
                     return False
+            else:
+                self.snapshot()
             if time.monotonic() >= self.deadline:return False
             self.return_failed=False;self.return_error=None;self.return_issue_category=None
             return True
@@ -564,6 +611,38 @@ class Browser:
             self.deadline=old_deadline
             self.recovery_seconds_used+=time.monotonic()-started
             self.recovery_active=False
+
+    def _session_listed(self,session_id):
+        data=json.loads(self.command('session','list','--json',timeout=5))
+        rows=data.get('sessions') if isinstance(data,dict) else data
+        if not isinstance(rows,list) or any(not isinstance(row,dict) for row in rows):
+            raise BrowserInfrastructureError('无法核验 BrowserSkill 会话状态',action='session',
+                                             code='session_list_invalid')
+        return any(row.get('session_id')==session_id for row in rows)
+
+    def _stop_owned_session(self,timeout=6)->bool:
+        if not self.session:return True
+        session_id=self.session
+        try:self.command('session','stop',session_id,timeout=timeout)
+        except BrowserInfrastructureError as exc:
+            if exc.code in ('session_not_found','not_found') or getattr(exc,'is_session_dead',False):
+                self.session=None;return True
+            if not getattr(exc,'is_timeout',False):
+                self._record_error(exc);return False
+            try:still_listed=self._session_listed(session_id)
+            except (BrowserInfrastructureError,AgentUnavailable) as probe_error:
+                self._record_error(BrowserInfrastructureError(
+                    '会话状态核验未完成',action='session',code='cleanup_pending',
+                    details=(probe_error.details if isinstance(probe_error,BrowserInfrastructureError)
+                             else type(probe_error).__name__)))
+                return False
+            if still_listed:
+                self._record_error(BrowserInfrastructureError(
+                    '会话停止未确认',action='session',code='cleanup_pending',
+                    details=getattr(exc,'details','')))
+                return False
+        self.session=None
+        return True
 
     def _rebuild_session(self)->bool:
         browsers=json.loads(self.command('browsers','--json',timeout=10))
@@ -577,31 +656,39 @@ class Browser:
             if cancelled.get('state')!='closed' or cancelled.get('cleanup_error'):return False
             self.start_request=None
         if self.session:
-            try:self.command('session','stop',self.session,'--json',timeout=6)
-            except BrowserInfrastructureError as exc:
-                if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
-                    return False
-            self.session=None
-        self._start_session(timeout=12)
-        # Session creation alone does not prove that the extension can read a page.
-        self.snapshot()
+            save(self.folder/'browser-session.json',{'browser_id':self.browser_id,'state':'cleanup_pending',
+                 'session_id':self.session,'start_request':self.start_request})
+            if not self._stop_owned_session(timeout=6):return False
+        self._start_session(timeout=35)
         return True
 
-    def _record_error(self,err):
+    def _record_error(self,err,*,result='failed',stage=''):
         errors=collection_queue.read_json(self.folder/'browser-errors.json',[])
-        errors.append(sanitize_diagnostics({
-            'action':err.action,'category':err.category,'code':err.code,
-            'details':str(err.details)[:400],'attempt':self.recovery_attempts,
-            'result':'failed','at':time.time()
-        }))
+        event={'action':getattr(err,'action',''),'category':getattr(err,'category','browser'),
+               'code':getattr(err,'code',''),'details':str(getattr(err,'details',''))[:400],
+               'attempt':self.recovery_attempts,'result':result,'at':time.time()}
+        raw_output=str(getattr(err,'raw_output','') or '')
+        if raw_output:event['raw_output']=raw_output[:4000]
+        for field in ('reason','dispatched','effect_state'):
+            value=getattr(err,field,None)
+            if value is not None and value!='':event[field]=value
+        if stage:event['stage']=stage
+        sanitized_event=sanitize_diagnostics(event)
+        errors.append(sanitized_event)
         save(self.folder/'browser-errors.json',errors)
+        try:
+            sys.stderr.write(json.dumps(sanitized_event,ensure_ascii=False)+'\n')
+            sys.stderr.flush()
+        except Exception:
+            pass
 
     def command(self,*args,timeout=35):
         if getattr(self,'_cleanup_active',False):
             cancelling=(args[:2]==('session','request') and len(args)>2
                         and args[2]==self.start_request and '--cancel' in args)
             stopping=(args[:2]==('session','stop') and len(args)>2 and args[2]==self.session)
-            if not (cancelling or stopping):
+            listing=args[:2]==('session','list')
+            if not (cancelling or stopping or listing):
                 raise AgentCallFailed('cleanup_operation_not_allowed',fatal=True)
         # Recovery belongs to the controller; replaying a dead session only wastes time.
         remaining=getattr(self,'deadline',float('inf'))-time.monotonic()
@@ -609,8 +696,9 @@ class Browser:
             raise AgentCallFailed('time_budget_exhausted',fatal=True)
         timeout=min(timeout,remaining)
         try:
-            result=subprocess.run([self.bsk,*args],capture_output=True,text=True,encoding='utf8',
-                                  errors='replace',env=self.env,timeout=timeout)
+            initial=(args[0]=='navigate' and self.initial_navigation)
+            if initial:self.initial_navigation=False
+            result=run_bsk([self.bsk,*args],env=self.env,timeout=timeout,initial_navigation=initial)
             if result.returncode:
                 raise classify_bsk_error(args[0],result.returncode,result.stdout,result.stderr)
             if '--json' in args:
@@ -638,9 +726,10 @@ class Browser:
         save(self.folder/'browser-session.json',{'browser_id':self.browser_id,'request_id':self.start_request,'state':'pending'})
         self.command('session','request',self.start_request,'--prepare','--json',timeout=5)
         data=json.loads(self.command('session','start','--browser',self.browser_id,'--request-id',
-                                     self.start_request,'--no-focus','--json',timeout=timeout))
+                                     self.start_request,'--json',timeout=timeout))
         self.session=data.get('session_id')
         if not self.session:raise BrowserInfrastructureError('未返回浏览器会话',action='session',code='session_start_failed')
+        self.initial_navigation=True
         self.command('session','request',self.start_request,'--claim','--json',timeout=5)
         self.start_request=None
         save(self.folder/'browser-session.json',{'browser_id':self.browser_id,'session_id':self.session,'state':'active'})
@@ -663,21 +752,46 @@ class Browser:
         q=quote(step['query'])
         url=('https://www.pinterest.com/search/pins/?q='+q if step['source']=='pinterest'
              else 'https://www.xiaohongshu.com/search_result?keyword='+q)
+        navigation_error=None
         with self._span('search_navigate',source=step['source']):
-            self.command('navigate',url,'--session',self.session,'--wait-until','domcontentloaded','--timeout','25s')
+            try:self.command('navigate',url,'--session',self.session,'--wait-until','commit','--timeout','50s',timeout=60)
+            except BrowserInfrastructureError as exc:
+                if not exc.is_timeout:raise
+                navigation_error=exc
         snapshot={}
-        for attempt in range(3):
+        if navigation_error is not None and getattr(navigation_error,'is_timeout',False):
+            time.sleep(2)
+        for attempt in range(8):
             with self._span('search_dom',source=step['source']):
-                snapshot=self.snapshot()
+                try:
+                    snapshot=self.snapshot()
+                except BrowserInfrastructureError:
+                    raise
             if snapshot.get('cards') or snapshot.get('login_required') or snapshot.get('challenge'):break
             if '找不到與這個搜尋條件相符的 Pin' in snapshot.get('visibleMain',''):break
-            if attempt<2:time.sleep(1)
+            if attempt<7:time.sleep(1.5)
+        if navigation_error is not None:
+            evidence=self._return_state(snapshot,step['source'],step['query'])
+            evidence['stage']='search_after_navigation_timeout'
+            self._record_return_check(evidence)
+            if evidence.get('login_required') or evidence.get('challenge'):
+                return snapshot
+            if not evidence.get('page_loaded'):
+                raise navigation_error
+            self._record_error(BrowserInfrastructureError(
+                navigation_error.message,action='browser_recovery',code=navigation_error.code,
+                details=navigation_error.details),result='recovered',stage='search_page_read')
         if step['source']=='xiaohongshu' and snapshot.get('cards') and not snapshot.get('login_required') and not snapshot.get('challenge'):
-            with self._span('search_sort',source=step['source']):
-                state=self._apply_sort(sort)
-            snapshot.update(state)
-            with self._span('search_dom',source=step['source']):
-                snapshot={**self.snapshot(),**state}
+            try:
+                with self._span('search_sort',source=step['source']):
+                    state=self._apply_sort(sort)
+                snapshot.update(state)
+                with self._span('search_dom',source=step['source']):
+                    snapshot={**self.snapshot(),**state}
+            except BrowserInfrastructureError as exc:
+                self._record_error(exc,stage='search_sort')
+                if 'sort_state' not in snapshot:
+                    snapshot['sort_state']='default_control_unavailable'
         if step['source']=='xiaohongshu' and 'sort_state' not in snapshot:
             snapshot['sort_state']='default_control_unavailable'
         if snapshot.get('cards') and not snapshot.get('login_required') and not snapshot.get('challenge'):
@@ -869,7 +983,8 @@ class Browser:
         except (OSError,ValueError):
             pass
 
-    def receive(self,card,step):
+    def receive(self,card,step,on_record=None):
+        on_record=on_record or getattr(self,'_record_callback',None)
         page=card['page'];source=step['source']
         query=str(step.get('query') or getattr(self,'active_query','') or '')
         self.return_failed=False;self.return_error=None;self.return_issue_category=None
@@ -901,7 +1016,7 @@ class Browser:
                     try:
                         with self._span('detail_navigate',source=source):
                             self.command('navigate',target,'--session',self.session,
-                                         '--wait-until','domcontentloaded','--timeout','25s')
+                                         '--wait-until','commit','--timeout','45s',timeout=55)
                     except BrowserInfrastructureError:
                         # The page may or may not have moved. Nothing is assumed
                         # here: the live page below decides what happens next.
@@ -918,6 +1033,27 @@ class Browser:
                 host=(parsed.hostname or '').lower()
                 host_ok=host=='xiaohongshu.com' or host.endswith('.xiaohongshu.com')
                 landed=re.search(r'/(?:explore|search_result)/([a-f0-9]{24})',parsed.path)
+                if not used_fallback and not probe.get('has_modal') and (not landed or landed.group(1)!=note or parsed.path.rstrip('/')=='/search_result'):
+                    target=self._observed_note_url(page,note)
+                    if target:
+                        used_fallback=True
+                        try:
+                            with self._span('detail_navigate',source=source):
+                                self.command('navigate',target,'--session',self.session,
+                                             '--wait-until','commit','--timeout','45s',timeout=55)
+                        except BrowserInfrastructureError:
+                            pass
+                        try:
+                            with self._span('detail_dom_wait',source=source):
+                                probe=self._probe_detail()
+                        except (ValueError,OSError,subprocess.SubprocessError):
+                            left_search_page=not self._search_page_confirmed(source,query)
+                            raise
+                        probe_url=str(probe.get('url') or '')
+                        parsed=urlsplit(probe_url)
+                        host=(parsed.hostname or '').lower()
+                        host_ok=host=='xiaohongshu.com' or host.endswith('.xiaohongshu.com')
+                        landed=re.search(r'/(?:explore|search_result)/([a-f0-9]{24})',parsed.path)
                 if probe.get('login_required') or probe.get('challenge'):
                     raise SourceBlocked('登录或验证门槛')
                 if used_fallback:
@@ -948,17 +1084,21 @@ class Browser:
                         return []
                     if probe.get('body_ready') is False:
                         raise DetailItemError('Detail page read failed',code='detail_read_failed')
-                    entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',parsed.path))
-                    if not entered_detail:raise ValueError('Note did not open; search page preserved')
+                    entered_detail=bool(re.fullmatch(r'/(?:explore|search_result)/[a-f0-9]{24}',parsed.path)) or bool(probe.get('has_modal'))
+                    if not entered_detail:raise DetailItemError('Note did not open; search page preserved',code='detail_not_opened')
                 canonical='https://www.xiaohongshu.com/explore/'+note
                 errors=[]
-                rows=capture_note(self.bsk,self.session,self.folder,canonical,
-                                  limit=getattr(self,'note_image_limit',3),errors=errors,
-                                  timing=getattr(self,'timing',None),command=self.command,
-                                  deadline=getattr(self,'deadline',float('inf')),
-                                  known_shas=getattr(self,'known_shas',None),
-                                  known_sources=getattr(self,'known_sources',None),
-                                  incoming=getattr(self,'incoming_dir',None))
+                options=dict(limit=getattr(self,'note_image_limit',3),errors=errors,
+                             timing=getattr(self,'timing',None),command=self.command,
+                             deadline=getattr(self,'deadline',float('inf')),
+                             known_shas=getattr(self,'known_shas',None),
+                             known_sources=getattr(self,'known_sources',None),
+                             incoming=getattr(self,'incoming_dir',None))
+                # exact_recall owns the callback signature. Keep the old list-only
+                # interface working until that agreed change is present.
+                if on_record is not None and 'on_record' in inspect.signature(capture_note).parameters:
+                    options['on_record']=on_record
+                rows=capture_note(self.bsk,self.session,self.folder,canonical,**options)
                 self.download_errors=getattr(self,'download_errors',[])+errors
                 return rows
             # Navigation and DOM are timed inside the adapter; an outer span here
@@ -1098,13 +1238,8 @@ class Browser:
                 if cancelled.get('state')!='closed' or cancelled.get('cleanup_error'):
                     raise BrowserInfrastructureError('会话请求清理尚未确认',action='session',code='cleanup_pending')
                 self.start_request=None
-            if self.session:
-                try:
-                    self.command('session','stop',self.session,timeout=10)
-                except BrowserInfrastructureError as exc:
-                    if exc.code not in ('session_not_found', 'not_found') and not getattr(exc, 'is_session_dead', False):
-                        raise
-                self.session=None
+            if self.session and not self._stop_owned_session(timeout=10):
+                raise BrowserInfrastructureError('会话清理尚未确认',action='session',code='cleanup_pending')
             state='closed'
         except AgentUnavailable as exc:
             raise BrowserInfrastructureError('会话清理时间预算已用尽',action='session',code='cleanup_pending') from exc
@@ -1117,6 +1252,352 @@ class Browser:
                  'cleanup':{'elapsed_seconds':max(0.,finished-started),
                             'grace_allowed':not self.recovery_active,
                             'grace_seconds':max(0.,finished-max(started,old_deadline))}})
+
+
+class PlaywrightBrowser(Browser):
+    """Browser contract backed by a same-thread async Playwright runner."""
+
+    def __init__(self,folder:Path,profile:Path):
+        super().__init__(folder)
+        self.profile=resolve_profile(profile,project_root=ROOT)
+        self.browser_id='playwright'
+        self.session=None;self._runner=None;self._loop=None;self._manager=None;self._context=None
+        self._page=None;self._pages={};self._lock_guard=None;self._failure=None
+
+    @staticmethod
+    def _source_for_url(url: str) -> str:
+        host=(urlsplit(str(url or '')).hostname or '').lower()
+        if host=='xiaohongshu.com' or host.endswith('.xiaohongshu.com'):return 'xiaohongshu'
+        if host=='pinterest.com' or host.endswith('.pinterest.com') or host=='pin.it':return 'pinterest'
+        return ''
+
+    def _select_source(self,source: str):
+        if source not in {'xiaohongshu','pinterest'}:raise ValueError('Unsupported Playwright source page')
+        page=self._pages.get(source)
+        if page is None:
+            if self._context is None or (self._loop is None and self._runner is None):
+                raise BrowserInfrastructureError('Playwright context is not active',action='session',
+                                                 code='browser_unavailable')
+            Error,TimeoutError,TargetClosedError,_=self._load_api()
+            try:page=self._run_bounded(self._context.new_page(),30_000)
+            except Exception as exc:
+                error=self._map_error('session',exc,Error,TimeoutError,TargetClosedError)
+                raise error from exc
+            self._pages[source]=page
+        self._page=page
+        return page
+
+    def search(self,step,sort='relevance'):
+        self._select_source(str(step.get('source') or ''))
+        return super().search(step,sort)
+
+    def more(self,step):
+        self._select_source(str(step.get('source') or ''))
+        return super().more(step)
+
+    def receive(self,card,step,on_record=None):
+        self._select_source(str(step.get('source') or ''))
+        return super().receive(card,step,on_record=on_record)
+
+    @staticmethod
+    def _load_api():
+        try:
+            from playwright.async_api import Error, TimeoutError, async_playwright
+            from playwright._impl._errors import TargetClosedError
+        except ImportError as exc:
+            raise BrowserInfrastructureError(
+                'Playwright is unavailable',action='session',code='playwright_unavailable',
+            ) from exc
+        return Error,TimeoutError,TargetClosedError,async_playwright
+
+    @staticmethod
+    def _parse_command(args):
+        if not args:
+            raise BrowserInfrastructureError('Empty Playwright command',action='command',code='invalid_command')
+        action=str(args[0]);options={};positionals=[];index=1
+        while index<len(args):
+            token=str(args[index])
+            if token.startswith('--'):
+                key=token[2:]
+                if key in {'json','prepare','cancel','claim'}:
+                    options[key]=True;index+=1
+                elif index+1<len(args) and not str(args[index+1]).startswith('--'):
+                    options[key]=str(args[index+1]);index+=2
+                else:
+                    options[key]=True;index+=1
+            else:
+                positionals.append(token);index+=1
+        return action,options,positionals
+
+    @staticmethod
+    def _duration_ms(value,default_ms):
+        if value is None or value is True:return default_ms
+        text=str(value).strip().lower()
+        try:
+            if text.endswith('ms'):return max(1,int(float(text[:-2])))
+            if text.endswith('s'):return max(1,int(float(text[:-1])*1000))
+            return max(1,int(float(text)*1000))
+        except ValueError:
+            return default_ms
+
+    def _budget_timeout(self,timeout,options):
+        remaining=getattr(self,'deadline',float('inf'))-time.monotonic()
+        if remaining<=0:raise AgentCallFailed('time_budget_exhausted',fatal=True)
+        command_limit=min(float(timeout),remaining)
+        default_ms=max(1,int(command_limit*1000))
+        return min(default_ms,self._duration_ms(options.get('timeout'),default_ms))
+
+    def _run_bounded(self,awaitable,timeout_ms):
+        if self._loop is not None:return self._loop.run(awaitable,timeout_ms)
+        return self._runner.run(self._await_bounded(awaitable,max(1,timeout_ms)/1000))
+
+    @staticmethod
+    async def _await_bounded(awaitable,timeout_seconds):
+        import asyncio
+        task=asyncio.ensure_future(awaitable)
+        done,pending=await asyncio.wait({task},timeout=max(0.001,timeout_seconds))
+        if task in done:return task.result()
+        task.cancel()
+        raise asyncio.TimeoutError()
+
+    def _map_error(self,action,exc,Error,TimeoutError,TargetClosedError,*,timed_out=False):
+        is_timeout=timed_out or isinstance(exc,TimeoutError)
+        if isinstance(exc,TargetClosedError):
+            error=BrowserInfrastructureError('可见浏览器已关闭',action=action,code='browser_closed',
+                                              details=str(exc),is_session_dead=True)
+        elif is_timeout:
+            error=BrowserInfrastructureError('Playwright 操作超时；副作用状态未知',action=action,
+                                              code='command_timeout',details=str(exc),is_timeout=True,
+                                              reason='operation_outcome_unknown',dispatched=True,
+                                              effect_state='unknown')
+        elif isinstance(exc,Error):
+            error=BrowserInfrastructureError('Playwright 页面操作失败',action=action,code='action_failed',
+                                              details=str(exc))
+        else:
+            error=BrowserInfrastructureError('Playwright 页面操作失败',action=action,code='action_failed',
+                                              details=f'{type(exc).__name__}: {exc}')
+        self._record_error(error)
+        return error
+
+    def _release_resources(self,Error,TimeoutError,TargetClosedError):
+        cleanup_errors=[]
+        context=self._context;page=self._page;pages=list(self._pages.values())
+        manager=self._manager;runner=self._runner;loop=self._loop;lock=self._lock_guard
+        for candidate in (getattr(context,'pages',[]) or []):
+            if candidate not in pages:pages.append(candidate)
+        if page is not None and page not in pages:pages.append(page)
+        self._context=None;self._page=None;self._pages={}
+        self._manager=None;self._runner=None;self._loop=None;self._lock_guard=None
+        try:
+            for owned in pages:
+                try:self._run_with(loop or runner,owned.close(run_before_unload=False),2_000)
+                except TargetClosedError:pass
+                except Exception:pass
+            if context is not None:
+                context_closed=False
+                try:
+                    self._run_with(loop or runner,context.close(),7_000);context_closed=True
+                except TargetClosedError:context_closed=True
+                except Exception as exc:
+                    try:
+                        browser=getattr(context,'browser',None)
+                        if browser is None:raise exc
+                        self._run_with(loop or runner,browser.close(),5_000);context_closed=True
+                    except TargetClosedError:context_closed=True
+                    except Exception:cleanup_errors.append(exc)
+                if not context_closed and not cleanup_errors:
+                    cleanup_errors.append(RuntimeError('Playwright context or browser close did not complete'))
+            if manager is not None:
+                try:self._run_with(loop or runner,manager.__aexit__(None,None,None),5_000)
+                except Exception as exc:cleanup_errors.append(exc)
+        finally:
+            try:
+                if runner is not None:runner.close()
+                if loop is not None:loop.stop(timeout=3.0)
+            except Exception as exc:
+                cleanup_errors.append(exc)
+            finally:
+                if lock is not None:
+                    try:lock.__exit__(None,None,None)
+                    except Exception as exc:cleanup_errors.append(exc)
+        self.session=None
+        return [self._map_error('session',exc,Error,TimeoutError,TargetClosedError)
+                for exc in cleanup_errors]
+
+    @staticmethod
+    def _run_with(runtime,awaitable,timeout_ms):
+        if isinstance(runtime,PlaywrightLoop):return runtime.run(awaitable,timeout_ms)
+        return runtime.run(PlaywrightBrowser._await_bounded(awaitable,max(1,timeout_ms)/1000))
+
+    def start(self):
+        import asyncio
+        Error,TimeoutError,TargetClosedError,async_playwright=self._load_api()
+        try:
+            guard=profile_lock(self.profile)
+            guard.__enter__()
+            self._lock_guard=guard
+            self._loop=PlaywrightLoop(f"playwright-{self.profile.name[:16]}")
+            self._loop.start()
+            self._manager=async_playwright()
+            playwright=self._run_bounded(self._manager.__aenter__(),30_000)
+            self._context=self._run_bounded(playwright.chromium.launch_persistent_context(
+                user_data_dir=str(self.profile),headless=False,accept_downloads=True,timeout=30_000,
+            ),30_000)
+            self._page=(self._context.pages[0] if self._context.pages else
+                        self._run_bounded(self._context.new_page(),30_000))
+        except TrialError as exc:
+            self._release_resources(Error,TimeoutError,TargetClosedError)
+            error=BrowserInfrastructureError('Playwright profile 不可用',action='session',
+                                              code='profile_unavailable',details=str(exc))
+            self._record_error(error);raise error from exc
+        except Exception as exc:
+            self._release_resources(Error,TimeoutError,TargetClosedError)
+            raise self._map_error('session',exc,Error,TimeoutError,TargetClosedError) from exc
+        self.session='playwright-'+uuid4().hex
+        save(self.folder/'browser-session.json',{
+            'browser_backend':'playwright','browser_id':self.browser_id,'profile':str(self.profile),
+            'state':'active','session_id':self.session,
+        })
+
+    async def _command_async(self,action,options,positionals,operation_timeout):
+        page=self._page
+        if action=='evaluate':
+            if not positionals:
+                raise BrowserInfrastructureError('Missing JavaScript',action=action,code='invalid_command')
+            value=await page.evaluate(positionals[-1])
+            return json.dumps({'ok':True,'value':value},ensure_ascii=False)
+        if action=='navigate':
+            if len(positionals)!=1:
+                raise BrowserInfrastructureError('Invalid navigation URL',action=action,code='invalid_command')
+            url=validate_http_url(positionals[0])
+            wait_until=str(options.get('wait-until') or 'domcontentloaded')
+            response=await page.goto(url,wait_until=wait_until,timeout=operation_timeout)
+            return json.dumps({'ok':True,'url':page.url,
+                               'status':None if response is None else response.status})
+        if action in {'click','hover'}:
+            selector=str(options.get('selector') or '')
+            if not selector:
+                raise BrowserInfrastructureError('Missing selector',action=action,code='invalid_command')
+            locator=page.locator(selector).first
+            if await locator.count()==0:
+                if action=='click' and selector.lstrip().startswith('a'):
+                    raise DetailItemError('当前页面元素不可用',code='selector_not_found')
+                raise BrowserInfrastructureError('页面交互元素未就绪',action=action,
+                                                  code='native_input_not_ready')
+            if action=='click':await locator.click(timeout=operation_timeout)
+            else:await locator.hover(timeout=operation_timeout)
+            return json.dumps({'ok':True})
+        if action=='wheel':
+            await page.mouse.wheel(0,float(options.get('delta-y') or 0))
+            return json.dumps({'ok':True})
+        raise BrowserInfrastructureError(f'Unsupported Playwright command: {action}',action=action,
+                                          code='unsupported_command')
+
+    def command(self,*args,timeout=35):
+        import asyncio
+        Error,TimeoutError,TargetClosedError,_=self._load_api()
+        action,options,positionals=self._parse_command(args)
+        if action=='navigate':
+            if len(positionals)!=1:
+                raise BrowserInfrastructureError('Invalid navigation URL',action=action,code='invalid_command')
+            try:positionals=[validate_http_url(positionals[0])]
+            except TrialError as exc:
+                raise BrowserInfrastructureError('Unsafe navigation URL',action=action,
+                                                  code='invalid_url',details=str(exc)) from exc
+        if self._failure is not None:
+            raise BrowserInfrastructureError('此前页面操作超时且副作用未知；后端停止复用',
+                                              action=action,code='operation_outcome_unknown',
+                                              is_session_dead=True,reason='operation_outcome_unknown',
+                                              dispatched=True,effect_state='unknown')
+        if options.get('session')!=self.session:
+            raise BrowserInfrastructureError('Playwright session mismatch',action=action,code='session_mismatch')
+        if self._page is None or (self._loop is None and self._runner is None):
+            raise BrowserInfrastructureError('Playwright page is not active',action=action,code='browser_unavailable')
+        operation_timeout=self._budget_timeout(timeout,options)
+        try:
+            if action=='navigate':
+                source=self._source_for_url(positionals[0])
+                if source:self._select_source(source)
+            return self._run_bounded(self._command_async(action,options,positionals,operation_timeout),
+                                     operation_timeout)
+        except (BrowserInfrastructureError,DetailItemError):
+            raise
+        except asyncio.TimeoutError as exc:
+            error=self._map_error(action,exc,Error,TimeoutError,TargetClosedError,timed_out=True)
+            self._failure=error;raise error from exc
+        except Exception as exc:
+            error=self._map_error(action,exc,Error,TimeoutError,TargetClosedError)
+            if error.is_timeout:self._failure=error
+            raise error from exc
+
+    def can_recover(self)->bool:
+        return False
+
+    def recover(self,step=None,reason='connection',cause=None)->bool:
+        return False
+
+    @staticmethod
+    def _bsk_path_disabled(action):
+        raise BrowserInfrastructureError(
+            'BrowserSkill session path is disabled for Playwright',action=action,
+            code='unsupported_bsk_session_path',
+        )
+
+    def _session_listed(self,session_id):self._bsk_path_disabled('session')
+    def _stop_owned_session(self,timeout=6):self._bsk_path_disabled('session')
+    def _rebuild_session(self)->bool:self._bsk_path_disabled('session')
+    def _start_session(self,timeout=35):self._bsk_path_disabled('session')
+    def _cleanup_failed_start(self,*args,**kwargs):self._bsk_path_disabled('session')
+
+    def _go_back(self):
+        import asyncio
+        if self._failure is not None:
+            raise BrowserInfrastructureError('此前页面操作超时且副作用未知；后端停止复用',
+                                             action='navigate-back',code='operation_outcome_unknown',
+                                             is_session_dead=True,reason='operation_outcome_unknown',
+                                             dispatched=True,effect_state='unknown')
+        if self._page is None or (self._loop is None and self._runner is None):
+            raise BrowserInfrastructureError('Playwright page is not active',
+                                             action='navigate-back',code='browser_unavailable')
+        Error,TimeoutError,TargetClosedError,_=self._load_api()
+        operation_timeout=self._budget_timeout(10,{})
+        try:
+            self._run_bounded(self._page.go_back(wait_until='commit',timeout=operation_timeout),
+                              operation_timeout)
+        except (BrowserInfrastructureError,DetailItemError):
+            raise
+        except asyncio.TimeoutError as exc:
+            error=self._map_error('navigate-back',exc,Error,TimeoutError,TargetClosedError,timed_out=True)
+            self._failure=error;raise error from exc
+        except Exception as exc:
+            error=self._map_error('navigate-back',exc,Error,TimeoutError,TargetClosedError)
+            if error.is_timeout:self._failure=error
+            raise error from exc
+
+    def close(self):
+        started=time.monotonic();previous_failure=self._failure
+        try:self._discard_preview()
+        except (OSError,ValueError):pass
+        Error,TimeoutError,TargetClosedError,_=self._load_api()
+        failures=self._release_resources(Error,TimeoutError,TargetClosedError)
+        save(self.folder/'browser-session.json',{
+            'browser_backend':'playwright','browser_id':self.browser_id,'profile':str(self.profile),
+            'state':'cleanup_pending' if previous_failure is not None or failures else 'closed',
+            'cleanup':{'elapsed_seconds':max(0.,time.monotonic()-started)},
+            'previous_failure':(previous_failure.code if previous_failure is not None else None),
+        })
+        if failures:raise failures[0]
+
+
+def make_browser(folder:Path,backend='bsk',playwright_profile=None):
+    if backend=='bsk':
+        if playwright_profile is not None:
+            raise ValueError('--playwright-profile requires --browser-backend playwright')
+        return Browser(folder)
+    if backend=='playwright':
+        if playwright_profile is None:raise ValueError('--playwright-profile is required for Playwright')
+        return PlaywrightBrowser(folder,playwright_profile)
+    raise ValueError(f'Unknown browser backend: {backend}')
 
 
 def restore_history_index(history, folder, received) -> dict:
@@ -1176,17 +1657,22 @@ def _merge_repeat_evidence(by_sha,card,row,*,names,work_terms,other_terms):
 
 
 def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize_only=False,
-            search_only=False)->tuple[dict,dict[str,bytes]]:
+            search_only=False,defer_postprocess=False)->tuple[dict,dict[str,bytes]]:
     project={**job['project_snapshot'],'notes':job.get('notes','')}
     requested=int(job.get('target_count') or 12)
     extra_target=int(job.get('search_extra_target') or 0)
     requested_total=requested+max(0,extra_target)
     target=min(requested_total,100)
+    download_target=(min(int(job.get('download_target_count') or requested_total),100)
+                     if job.get('collection_mode')=='search' else 0)
     agent.candidate_limit=min(MAX_IMAGES,max(24,target*3) if search_only else max(20,target*2))
     query_budget=MAX_GOAL_QUERIES if search_only and job.get('goal_id') else MAX_QUERIES
     sources=job.get('preferred_sources',['xiaohongshu','pinterest'])
     try:state=load_checkpoint(folder,job,getattr(agent,'model',agent.producer))
     except (OSError,ValueError,KeyError,TypeError) as exc:raise AgentUnavailable('恢复绑定或原图完整性检查失败：'+str(exc)) from exc
+    name_generation=int(job.get('search_resume_generation',0))
+    saved_name_state=state.get('name_enrichment') or {}
+    restored_schedule=list(state.get('execution_schedule') or [])
     if finalize_only and not state.get('final_manifest'):
         raise AgentUnavailable('本地收尾缺少已封存的最终判断；不启动新的外部调用。')
     received=state['received'];audit=state['audit'];queries=state['queries'];checks=state['checks']
@@ -1198,7 +1684,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         normalized=_post_key('https://'+key)
         normalized_attempts[normalized]=normalized_attempts.get(normalized,0)+value
     page_attempts=normalized_attempts
-    details=state['details'];windows=state['windows'];steps=state.get('steps',[])
+    details=state['details'];windows=state['windows'];steps=state.get('steps',[]);schedule=[]
     previous_elapsed=max(float(state.get('elapsed_seconds_total') or 0.0),
                          float(job.get('search_elapsed_seconds') or 0.0))
     continue_info=None
@@ -1218,14 +1704,14 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             if not accepted(value,project,references=refs):raise AgentUnavailable('旧准入不再满足原规则。')
             candidate=record.get('candidate') or verified_candidate(row,value,project,refs,row.get('search_query',''),row.get('discovery_url',''))
             candidates.append(candidate);images[Path(candidate['file']).name]=original_bytes(row,folder)
-    if search_only:
+    saved_summary=read_json(folder/'search-summary.json',{})
+    summary_exists=isinstance(saved_summary,dict) and bool(saved_summary)
+    resume_generation=int(job.get('search_resume_generation',0))
+    replenishing=resume_generation>int(state.get('search_resume_generation',0))
+    if search_only and not defer_postprocess:
         if state.get('final_manifest'):
             # A historical full-review run is not a quick-search checkpoint; refuse to mix modes.
             raise AgentUnavailable('该 Job 已有正式审核交付；快速搜图不覆盖旧结果，请新建任务。')
-        saved_summary=read_json(folder/'search-summary.json',{})
-        summary_exists=isinstance(saved_summary,dict) and bool(saved_summary)
-        resume_generation=int(job.get('search_resume_generation',0))
-        replenishing=resume_generation>int(state.get('search_resume_generation',0))
         if state.get('search_complete') and summary_exists and not extra_target and not replenishing:
             if saved_summary.get('stop_reason') in ('browser_unavailable','sources_blocked') and len(received)<target:
                 state['search_complete']=False
@@ -1281,7 +1767,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
     collage_worker=None
     type_worker=None
     collage_closed=False
-    if search_only:
+    if search_only and not defer_postprocess:
         from ref_lab.collage import CollageWorker
         if (folder/'goal.json').exists():
             from ref_lab.photo_types import PhotoTypeWorker
@@ -1320,6 +1806,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         return canonical_cache['value']
     def confirmed():
         return canonical_counts()['target_progress'] if search_only else len(candidates)
+    def new_downloads():
+        # Exact-byte reuse creates a project relation but is not a new download.
+        return sum(not isinstance(row.get('original_reuse'),dict) for row in received)
     def exploration():
         return exploration_count(received) if search_only else 0
     def pending_qualifications(counts):
@@ -1330,6 +1819,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         return pending
     def limit_reason():
         if search_only:
+            if download_target and new_downloads()>=download_target:return 'download_target_reached'
             if confirmed()>=target:return 'target_reached'
             if type_worker is not None and type_worker.blocked:return getattr(type_worker,'block_reason','') or 'model_unavailable'
             if time.monotonic()>=getattr(agent,'deadline',float('inf'))-30:return 'time_budget_exhausted'
@@ -1353,7 +1843,10 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     if gap not in gaps:gaps.append(gap)
         state.update(received=received,audit=audit,queries=queries,checks=checks,pages=sorted(pages),page_attempts=page_attempts,
                      searches=searches,duplicates=duplicates,collisions=collisions,gaps=gaps,details=details,windows=windows,
-                     first_usable=first_usable,candidate_calls=calls(),references=getattr(agent,'references',None) or [],steps=steps,phase=phase)
+                     first_usable=first_usable,candidate_calls=calls(),references=getattr(agent,'references',None) or [],steps=steps,
+                     execution_schedule=list(schedule),phase=phase)
+        if state.get('name_enrichment'):
+            save(folder/'name-enrichment.json',state['name_enrichment'])
         if search_only:state['search_errors']=received_errors
         if search_only:
             attempt=(os.environ.get('LAB_COLLECTION_ATTEMPT_ID') if os.environ.get('LAB_COLLECTION_JOB_ID')==job['id']
@@ -1440,7 +1933,129 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
 
     def drain():
         while pending:finish_one()
+    processed_deliveries=set()
+    callback_state={'stop':False}
+    per_note=0
+
+    def ingest_row(row,*,card,query,snapshot,parsed,source):
+        """Persist one delivered row exactly once, whether callback or list supplied it."""
+        nonlocal attempted,per_note,first_usable
+        delivery=(row.get('asset_sha'),row.get('page_url'),row.get('image_url'),
+                  row.get('image_index'),row.get('duplicate'),row.get('reason'))
+        if delivery in processed_deliveries:
+            return 'continue'
+        processed_deliveries.add(delivery)
+        sha=row['asset_sha']
+        if row.get('duplicate'):
+            reason=row.get('reason') or 'same_bytes_known'
+            entry={'asset_sha':sha,'page_url':row.get('page_url'),'duplicate_of':sha,
+                   'reason':reason,
+                   **({'source_address_precheck':True} if reason=='known_source_url' else {'temporary_copy_removed':True})}
+            if row.get('bytes_received'):
+                entry['bytes_received']=row['bytes_received']
+            if _merge_repeat_evidence(by_sha,card,row,names=name_records,
+                                      work_terms=work_terms,other_terms=other_terms):
+                save(folder/'received.json',received)
+            duplicates.append(entry)
+            save(folder/'duplicates.json',duplicates);checkpoint()
+            return 'continue'
+        if sha in seen:
+            _discard_temporary(row)
+            if sha in by_sha and _merge_repeat_evidence(
+                    by_sha,card,row,names=name_records,
+                    work_terms=work_terms,other_terms=other_terms):
+                save(folder/'received.json',received)
+            duplicates.append({'asset_sha':sha,'page_url':row['page_url'],
+                               'duplicate_of':sha,'reason':'same_bytes_this_run'})
+            return 'continue'
+        if search_only:
+            if download_target and new_downloads()>=download_target:
+                _discard_temporary(row);return 'stop'
+            if not download_target and confirmed()>=target:
+                _discard_temporary(row);return 'stop'
+            if per_note>=browser.note_image_limit:
+                _discard_temporary(row);return 'stop'
+        elif (len(candidates)>=target or calls()>=agent.candidate_limit
+              or len(received)>=agent.candidate_limit or per_note>=3):
+            _discard_temporary(row);return 'stop'
+        if (sha in {r['asset_sha'] for r in (agent.references or [])}
+                or not Path(row['original_path']).resolve().is_relative_to(folder.resolve())):
+            _discard_temporary(row)
+            seen.add(sha);collisions.append({'asset_sha':sha,'page_url':row['page_url'],
+                                             'reason':'reference media or wrong namespace; never photography'})
+            return 'continue'
+        valid=True;error=''
+        if search_only:
+            valid,error=_valid_search_row(row,folder)
+        elif hashlib.sha256(Path(row['original_path']).read_bytes()).hexdigest()!=sha:
+            raise AgentUnavailable('收到的原图SHA不一致；停止，不采用未绑定图片。')
+        if not valid:
+            _discard_temporary(row)
+            seen.add(sha);received_errors.append({'asset_sha':sha,'page_url':row['page_url'],'error':error})
+            save(folder/'search-errors.json',received_errors);checkpoint()
+            return 'continue'
+        seen.add(sha)
+        if history is not None and not download_target:
+            with timing.span('history_consider'):duplicate=history.consider(Path(row['original_path']))
+            if duplicate and duplicate.get('reason')=='same_bytes_library' and duplicate.get('reuse'):
+                row['original_reuse']={'reason':'same_bytes_library',
+                                       'keeper_path':duplicate.get('keeper_path'),
+                                       'note':'复用全库已有原件，只保存一份；本项目参考关系与人工选择独立建立。'}
+                duplicate=None
+            if duplicate:
+                _discard_temporary(row)
+                duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate,
+                                   'temporary_copy_removed':bool(row.get('temporary'))})
+                save(folder/'duplicates.json',duplicates);checkpoint()
+                return 'continue'
+        elif history is not None:
+            keeper=(getattr(history,'library_keepers',{}) or {}).get(sha)
+            if keeper:
+                row['original_reuse']={'reason':'same_bytes_library','keeper_path':str(keeper),
+                                       'note':'复用全库已有原件，不计为本次新下载；本项目关系独立建立。'}
+        from ref_lab.search_relevance import associate_detail
+        detail_relevance=associate_detail(card,row,names=name_records,work_terms=work_terms,
+                                          other_terms=other_terms)
+        if search_only and str(detail_relevance.get('tier')) in ('target_context','unconfirmed'):
+            source_images=exploration_image_count(
+                [r for r in received if urlsplit(r.get('page_url','')).hostname==parsed.hostname])
+            query_images=exploration_image_count(
+                [r for r in received if r.get('search_query')==query])
+            if (exploration_image_count(received)>=exploration_limit(target)
+                    or source_images>=max(1,(exploration_limit(target)+len(sources)-1)//len(sources))
+                    or query_images>=1):
+                _discard_temporary(row)
+                skipped['exploration_budget']+=1
+                state.setdefault('exploration_skipped',[]).append({
+                    'asset_sha':sha,'page_url':row.get('page_url'),'query':query,
+                    'tier':detail_relevance.get('tier'),'at':time.time(),
+                    'reason':'image_quota_exhausted','temporary_copy_removed':bool(row.get('temporary'))})
+                save(folder/'duplicates.json',duplicates);checkpoint()
+                return 'continue'
+        if row.get('temporary'):
+            temporary_path=Path(row['original_path'])
+            _promote_temporary(folder,row)
+            if history is not None:history.rekey(temporary_path,Path(row['original_path']))
+        row.update(search_query=query,discovery_url=snapshot['url'],acquired_at=time.time(),
+                   relevance=detail_relevance if search_only else relevance)
+        received.append(row);attempted+=1;per_note+=1
+        by_sha[sha]=row
+        if search_only and first_usable is None:
+            first_usable=time.monotonic()-started
+            timing.event('first_received',asset_sha=sha)
+        save(folder/'received.json',received)
+        checkpoint()
+        if search_only and collage_worker is not None:
+            collage_worker.enqueue(row)
+        if not search_only:
+            pending.submit(row)
+            checkpoint()
+            if workers==1:finish_one()
+        return 'continue'
+
     known_sources={}
+    name_session={'future':None,'thread':None,'agent':None,'cancel':threading.Event(),
+                  'generation':name_generation,'base_plan':None}
     try:
         checkpoint('planning')
         from ref_lab.verified_collection import NamePlan,deterministic_plan
@@ -1451,15 +2066,19 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 plan=NamePlan.model_validate(state['plan'])
                 origin='saved_search_plan'
                 if plan != current_plan:
-                    state.setdefault('name_plan_history',[]).append({'plan':state['plan'],
-                        'steps':list(steps),'searches':dict(searches),'reason':'trusted_name_evidence_updated','at':time.time()})
-                    previous=list(searches.values());searches.clear()
-                    steps=query_steps(project,current_plan,sources)
-                    for index,step in enumerate(steps):
-                        old=next((s for s in previous if s['source']==step['source'] and s['query']==step['query']),None)
-                        if old is not None:searches[str(index)]=old
-                    plan=current_plan
-                    origin='trusted_name_evidence_updated'
+                    if (saved_name_state.get('state')=='resolved'
+                            and saved_name_state.get('base_plan')==current_plan.model_dump()):
+                        origin='saved_search_plan_with_name_evidence'
+                    else:
+                        state.setdefault('name_plan_history',[]).append({'plan':state['plan'],
+                            'steps':list(steps),'searches':dict(searches),'reason':'trusted_name_evidence_updated','at':time.time()})
+                        previous=list(searches.values());searches.clear()
+                        steps=query_steps(project,current_plan,sources)
+                        for index,step in enumerate(steps):
+                            old=next((s for s in previous if s['source']==step['source'] and s['query']==step['query']),None)
+                            if old is not None:searches[str(index)]=old
+                        plan=current_plan
+                        origin='trusted_name_evidence_updated'
             else:
                 plan=current_plan
                 origin='trusted_project_names'
@@ -1528,11 +2147,108 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             if hasattr(browser,name):setattr(browser,name,value)
         if known_sources:state['known_source_images']=len(known_sources)
         latest_fallback_sources=set()
-        total_steps=min(len(steps),query_budget)
+        if (state.get('plan')==plan.model_dump() and state.get('steps')==steps
+                and restored_schedule and len(set(restored_schedule))==len(restored_schedule)
+                and all(isinstance(index,int) and 0<=index<len(steps) for index in restored_schedule)):
+            schedule=list(restored_schedule[:query_budget])
+        else:schedule=list(range(min(len(steps),query_budget)))
+        total_steps=len(schedule)
         max_passes=2*total_steps
         pass_index=0
         poor_streak=0
+
+        def apply_completed_name_resolution(resolution):
+            nonlocal plan,schedule,total_steps,max_passes
+            from ref_lab.name_resolution import apply_name_resolution
+            if (resolution.character!=str(project.get('character') or '').strip()
+                    or resolution.work!=str(project.get('work') or '').strip()):
+                state['name_enrichment'].update(state='error',reason='stale_name_identity',applied=False)
+                checkpoint()
+                return
+            previous_plan=plan
+            merged=apply_name_resolution(plan,resolution)
+            candidates=query_steps(project,merged,sources)
+            known={(step['source'],step['query']) for step in steps}
+            fresh=[step for step in candidates if (step['source'],step['query']) not in known]
+            if fresh:
+                start=len(steps);steps.extend(fresh);fresh_indices=list(range(start,len(steps)))
+                state.setdefault('query_plan_history',[]).append({'reason':'web_search_name_evidence',
+                    'steps':[step for step in steps if step not in fresh],'added_steps':list(fresh),'at':time.time(),
+                    'attempt_id':job.get('active_attempt_id')})
+                insert_at=pass_index
+                if not any(item.get('observed') for item in searches.values()) and schedule:
+                    insert_at=max(1,insert_at)
+                slots=min(len(fresh_indices),max(0,query_budget-len(schedule)))
+                schedule[insert_at:insert_at]=fresh_indices[:slots]
+                schedule=list(dict.fromkeys(schedule))[:query_budget]
+                total_steps=len(schedule);max_passes=2*total_steps
+            plan=merged
+            state['plan']=plan.model_dump()
+            name_records[:]=_plan_name_records(project,plan)
+            state['name_enrichment'].update(state='resolved',applied=True,applied_at=time.time(),
+                added_steps=fresh,scheduled_steps=[steps[index] for index in schedule],plan_changed=plan!=previous_plan)
+            save(folder/'name-plan.json',{'plan':plan.model_dump(),'steps':steps,
+                                          'origin':'web_search_name_evidence'})
+            checkpoint()
+
+        def poll_name_enrichment():
+            future=name_session.get('future')
+            if future is None or not future.done():
+                return False
+            try:resolution=future.result(timeout=0)
+            except Exception as exc:
+                name_session['future']=None
+                state['name_enrichment'].update(state='error',reason='name_worker:'+type(exc).__name__,applied=False)
+                checkpoint()
+                return True
+            name_session['future']=None
+            state['name_enrichment'].update(state=resolution.status,resolution=resolution.model_dump(),
+                completed_at=time.time(),applied=False,reason=resolution.reason)
+            if resolution.status=='resolved':apply_completed_name_resolution(resolution)
+            else:checkpoint()
+            return True
+
+        def start_name_enrichment():
+            if not search_only or name_session.get('future') is not None:
+                return
+            from ref_lab.name_resolution import NameResolution,name_query,resolve_names
+            if (saved_name_state.get('generation')==name_generation
+                    and saved_name_state.get('state')=='resolved' and saved_name_state.get('resolution')):
+                future=Future()
+                future.set_result(NameResolution.model_validate(saved_name_state['resolution']))
+                name_session.update(future=future,base_plan=saved_name_state.get('base_plan'))
+                return
+            if saved_name_state:
+                state.setdefault('name_enrichment_history',[]).append(saved_name_state)
+            base_plan=plan.model_dump()
+            record={'version':1,'generation':name_generation,'state':'running','base_plan':base_plan,
+                    'query':name_query(project),'started_at':time.time()}
+            state['name_enrichment']=record
+            cancel=threading.Event()
+            future=Future()
+            factory=getattr(agent,'name_agent_factory',None)
+            if callable(factory):name_agent=factory()
+            elif isinstance(agent,AntigravityCollectionAgent):
+                name_agent=AntigravityCollectionAgent(folder/'name-enrichment-agent',model=agent.model,runtime_budget=False)
+                name_agent.deadline=min(getattr(agent,'deadline',float('inf')),
+                                        time.monotonic()+150)
+            else:name_agent=agent
+            try:name_agent.cancelled=cancel
+            except (AttributeError,TypeError):pass
+
+            def worker():
+                try:future.set_result(resolve_names(project,name_agent,
+                    getattr(agent,'name_cache_dir',folder/'name-enrichment-cache')))
+                except BaseException as exc:future.set_exception(exc)
+
+            thread=threading.Thread(target=worker,name='collection-name-enrichment',daemon=True)
+            name_session.update(future=future,thread=thread,agent=name_agent,cancel=cancel,base_plan=base_plan)
+            checkpoint()
+            thread.start()
+
+        start_name_enrichment()
         while True:
+            poll_name_enrichment()
             refine_due=pass_index>=max_passes
             if (not refine_due and search_only and job.get('goal_id') and total_steps<query_budget
                     and poor_streak>=2 and coverage(steps,searches,sources)['explored'] and not limit_reason()):
@@ -1559,10 +2275,11 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     'steps':list(steps),'added_steps':fresh,'at':time.time(),
                     'attempt_id':job.get('active_attempt_id')})
                 pass_index=total_steps
-                steps.extend(fresh);total_steps=len(steps);max_passes=2*total_steps
+                start=len(steps);steps.extend(fresh);schedule.extend(range(start,len(steps)))
+                total_steps=len(schedule);max_passes=2*total_steps
                 save(folder/'name-plan.json',{'plan':plan.model_dump(),'steps':steps,'origin':'automatic_goal_refinement'})
                 checkpoint()
-            step_index=pass_index%total_steps;step=steps[step_index]
+            step_index=schedule[pass_index%total_steps];step=steps[step_index]
             source=step['source'];query=step['query']
             search=searches.setdefault(str(step_index),{'source':source,'query':query,'language':step.get('language','unknown'),
                                                       'observed':False,'usable':False,'window':0,'done':False,
@@ -1615,8 +2332,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         reason=assessment['action'];break
                     checks[source]={'source':source,'status':'usable','detail':'实际查询正常页面；交付数量只计角色文字命中或明确标记的探索候选。'}
                     search['usable']=True;checkpoint()
-                    if ((confirmed() if search_only else len(candidates)))>=target:
-                        reason='target_reached' if search_only else 'coverage_checked_after_target';break
+                    if ((new_downloads()>=download_target) if download_target
+                            else ((confirmed() if search_only else len(candidates))>=target)):
+                        reason='download_target_reached' if download_target else 'target_reached';break
                     inspected=0;new_cards=0;window_before=len(received);kept_before=len(candidates)
                     confirmed_before=confirmed()
                     ranked=_rank_discovery_cards(snapshot.get('cards',[]),seen_posts,page_attempts,
@@ -1637,7 +2355,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         new_cards+=1
                         relevance=classify_card(card,names=name_records,work_terms=work_terms,
                                                 other_terms=other_terms)
-                        if (search_only and relevance['tier'] in ('other_character','non_photo')
+                        if (search_only and not download_target and relevance['tier'] in ('other_character','non_photo')
                                 and history is not None and hasattr(browser,'check_duplicate')):
                             known_sha=known_sources.get(normalize_image_url(card.get('cover_url')))
                             if known_sha in by_sha and known_sha in getattr(history,'records',{}):
@@ -1661,7 +2379,17 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 skipped['exploration_budget']+=1
                                 state.setdefault('deferred_cards',{})[page_key]={'reason':'exploration_budget','source':source,'query':query,'card':card}
                                 continue
-                        if history is not None and hasattr(browser,'check_duplicate'):
+                        if download_target and known_sources:
+                            known_sha=known_sources.get(normalize_image_url(card.get('cover_url')))
+                            if known_sha:
+                                _merge_repeat_evidence(by_sha,card,{'asset_sha':known_sha,'source_text':card.get('text','')},
+                                                       names=name_records,work_terms=work_terms,other_terms=other_terms)
+                                duplicates.append({'asset_sha':known_sha,'page_url':card['page'],'duplicate_of':known_sha,
+                                                   'reason':'known_source_url'})
+                                pages.add(page_key);save(folder/'received.json',received)
+                                save(folder/'duplicates.json',duplicates);checkpoint();continue
+                        if (not download_target and history is not None
+                                and hasattr(browser,'check_duplicate')):
                             with timing.span('discovery_preview'):duplicate=browser.check_duplicate(card,history)
                             if duplicate:
                                 current=by_sha.get(duplicate.get('duplicate_of'))
@@ -1683,9 +2411,17 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             'attempt':page_attempts[page_key],'detail_index':details})
                         seen_posts.add(page_key)
                         checkpoint()
+                        callback_state['stop']=False
+                        def on_record(row):
+                            if ingest_row(row,card=card,query=query,snapshot=snapshot,
+                                          parsed=parsed,source=source)=='stop':
+                                callback_state['stop']=True
+                        had_callback=hasattr(browser,'_record_callback')
+                        previous_callback=getattr(browser,'_record_callback',None)
                         try:
                             browser.note_image_limit=(min(MAX_GOAL_NOTE_IMAGES,agent.candidate_limit-len(received))
                                                       if search_only and job.get('goal_id') else 3)
+                            browser._record_callback=on_record
                             with timing.span('browser_receive'):rows=browser.receive(card,step)
                             observation=state.setdefault('post_observations',{}).setdefault(page_key,{'images':[]})
                             observed={item['image_url']:item for item in observation['images']}
@@ -1712,9 +2448,22 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                             if is_infrastructure_error(exc):
                                 page_attempts[page_key]-=1
                                 raise
+                            err_msg=str(exc)
+                            if any(k in err_msg for k in ('Note did not open','Note page binding mismatch','Note unavailable','Received dimensions differ')):
+                                state.setdefault('operation_errors',[]).append({'action':'detail','page':page_key,
+                                    'code':'detail_not_opened','attempt':page_attempts[page_key],'result':'skip_card'})
+                                if getattr(browser,'return_failed',False):
+                                    raise getattr(browser,'return_error',None) or BrowserInfrastructureError(
+                                        '详情失败后返回搜索页未确认',action='navigate-back',code='return_unconfirmed') from exc
+                                continue
                             state.setdefault('operation_errors',[]).append({'action':'detail','page':page_key,
                                 'code':type(exc).__name__,'attempt':page_attempts[page_key],'result':'retry_pending'})
                             reason='detail_unavailable';checkpoint();break
+                        finally:
+                            if had_callback:browser._record_callback=previous_callback
+                            else:
+                                try:del browser._record_callback
+                                except AttributeError:pass
                         new_download_errors=getattr(browser,'download_errors',[])
                         if new_download_errors:
                             received_errors.extend(new_download_errors)
@@ -1736,7 +2485,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 # is running: the owner and the page can tell a
                                 # recovering Job from a searching one.
                                 checkpoint('browser_recovering')
-                                try:recovered=browser.recover(step,reason='return')
+                                try:
+                                    recovered=(browser.recover(step,reason='return',cause=return_issue)
+                                               if isinstance(browser,Browser) else browser.recover(step))
                                 except Exception:recovered=False
                                 checkpoint()
                             if recovered:
@@ -1756,112 +2507,11 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                 raise BrowserInfrastructureError('返回搜索页未确认',action='navigate-back',
                                     code='return_unconfirmed',details=f'category={category}')
                         for row in rows:
+                            if callback_state['stop']:break
                             if not search_only:
                                 while pending and (len(pending)>=workers or len(candidates)+len(pending)>=target):finish_one()
-                            sha=row['asset_sha']
-                            if row.get('duplicate'):
-                                reason=row.get('reason') or 'same_bytes_known'
-                                entry={'asset_sha':sha,'page_url':row.get('page_url'),'duplicate_of':sha,
-                                       'reason':reason,
-                                       **({'source_address_precheck':True} if reason=='known_source_url' else {'temporary_copy_removed':True})}
-                                if row.get('bytes_received'):
-                                    entry['bytes_received']=row['bytes_received']
-                                # The bytes are known, so no download happens, but
-                                # the sighting may still carry the name or the
-                                # warning the first one did not have. The merge
-                                # only folds discovery evidence into the received
-                                # row: it grants no Review acceptance and never
-                                # touches the visual evidence.
-                                if _merge_repeat_evidence(
-                                        by_sha,card,row,names=name_records,
-                                        work_terms=work_terms,other_terms=other_terms):
-                                    save(folder/'received.json',received)
-                                duplicates.append(entry)
-                                save(folder/'duplicates.json',duplicates);checkpoint();continue
-                            if sha in seen:
-                                _discard_temporary(row)
-                                if sha in by_sha:
-                                    if _merge_repeat_evidence(
-                                            by_sha,card,row,names=name_records,
-                                            work_terms=work_terms,other_terms=other_terms):
-                                        save(folder/'received.json',received)
-                                duplicates.append({'asset_sha':sha,'page_url':row['page_url'],'duplicate_of':sha,'reason':'same_bytes_this_run'});continue
-                            if search_only:
-                                if confirmed()>=target or per_note>=browser.note_image_limit:
-                                    _discard_temporary(row);break
-                            elif len(candidates)>=target or calls()>=agent.candidate_limit or len(received)>=agent.candidate_limit or per_note>=3:
-                                _discard_temporary(row);break
-                            if (sha in {r['asset_sha'] for r in (agent.references or [])}
-                                    or not Path(row['original_path']).resolve().is_relative_to(folder.resolve())):
-                                _discard_temporary(row)
-                                seen.add(sha);collisions.append({'asset_sha':sha,'page_url':row['page_url'],'reason':'reference media or wrong namespace; never photography'});continue
-                            valid=True;error=''
-                            if search_only:
-                                valid,error=_valid_search_row(row,folder)
-                            elif hashlib.sha256(Path(row['original_path']).read_bytes()).hexdigest()!=sha:
-                                raise AgentUnavailable('收到的原图SHA不一致；停止，不采用未绑定图片。')
-                            if not valid:
-                                _discard_temporary(row)
-                                seen.add(sha);received_errors.append({'asset_sha':sha,'page_url':row['page_url'],'error':error})
-                                save(folder/'search-errors.json',received_errors);checkpoint();continue
-                            seen.add(sha)
-                            if history is not None:
-                                with timing.span('history_consider'):duplicate=history.consider(Path(row['original_path']))
-                                if duplicate and duplicate.get('reason')=='same_bytes_library' and duplicate.get('reuse'):
-                                    # The identical original already exists in the
-                                    # library under another project's use. This
-                                    # project keeps its own candidate and reuses
-                                    # the retained bytes; nothing is reported as a
-                                    # second download and no inherited choice,
-                                    # identity or acceptance travels with it.
-                                    row['original_reuse']={'reason':'same_bytes_library',
-                                                           'keeper_path':duplicate.get('keeper_path'),
-                                                           'note':'复用全库已有原件，只保存一份；本项目参考关系与人工选择独立建立。'}
-                                    duplicate=None
-                                if duplicate:
-                                    _discard_temporary(row)
-                                    duplicates.append({'asset_sha':sha,'page_url':row['page_url'],**duplicate,
-                                                       'temporary_copy_removed':bool(row.get('temporary'))})
-                                    save(folder/'duplicates.json',duplicates);checkpoint();continue
-                            from ref_lab.search_relevance import associate_detail
-                            detail_relevance=associate_detail(card,row,names=name_records,work_terms=work_terms,other_terms=other_terms)
-                            if search_only and str(detail_relevance.get('tier')) in ('target_context','unconfirmed'):
-                                source_images=exploration_image_count(
-                                    [r for r in received if urlsplit(r.get('page_url','')).hostname==parsed.hostname])
-                                query_images=exploration_image_count(
-                                    [r for r in received if r.get('search_query')==query])
-                                if (exploration_image_count(received)>=exploration_limit(target)
-                                        or source_images>=max(1,(exploration_limit(target)+len(sources)-1)//len(sources))
-                                        or query_images>=1):
-                                    _discard_temporary(row)
-                                    skipped['exploration_budget']+=1
-                                    state.setdefault('exploration_skipped',[]).append({
-                                        'asset_sha':sha,'page_url':row.get('page_url'),'query':query,
-                                        'tier':detail_relevance.get('tier'),'at':time.time(),
-                                        'reason':'image_quota_exhausted','temporary_copy_removed':bool(row.get('temporary'))})
-                                    save(folder/'duplicates.json',duplicates);checkpoint();continue
-                            if row.get('temporary'):
-                                temporary_path=Path(row['original_path'])
-                                _promote_temporary(folder,row)
-                                if history is not None:history.rekey(temporary_path,Path(row['original_path']))
-                            row={**row,'search_query':query,'discovery_url':snapshot['url'],
-                                 'acquired_at':time.time(),'relevance':detail_relevance if search_only else relevance}
-                            received.append(row);attempted+=1;per_note+=1
-                            by_sha[sha]=row
-                            if search_only and first_usable is None:
-                                first_usable=time.monotonic()-started
-                                timing.event('first_received',asset_sha=sha)
-                            save(folder/'received.json',received)
-                            checkpoint()
-                            if search_only and collage_worker is not None:
-                                # Local, model-free post-processing runs off the
-                                # download path: the original is already durable
-                                # and visible before any tile is produced.
-                                collage_worker.enqueue(row)
-                            if not search_only:
-                                pending.submit(row)
-                                checkpoint()
-                                if workers==1:finish_one()
+                            if ingest_row(row,card=card,query=query,snapshot=snapshot,
+                                          parsed=parsed,source=source)=='stop':break
                         # Any row the loop skipped (quota, limit, duplicate) must
                         # not keep its temporary copy around for the whole Job.
                         for leftover in rows:
@@ -1878,6 +2528,8 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                     if len(received)>window_before and len(candidates)==kept_before and not search_only:
                         reason='no_verified_match_change_name_or_source';break
                     if search_only:
+                        if download_target and new_downloads()>=download_target:
+                            reason='download_target_reached';break
                         if type_worker is not None:
                             collage_worker.drain(timeout=3)
                             type_worker.drain(timeout=min(60,max(0,getattr(agent,'deadline',time.monotonic())-time.monotonic()-30)))
@@ -1898,23 +2550,36 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                         # With no qualified gain and no pending qualification, try 最新 once.
                         latest_fallback_sources.add(source)
                     search['window']=window+1;search.pop('snapshot',None);checkpoint()
-                    if pass_index<len(steps) and not coverage(steps,searches,sources)['explored']:
+                    if pass_index+1<total_steps and not coverage(steps,searches,sources)['explored']:
                         reason='bounded_breadth_next_query';break
             except AgentUnavailable:raise
             except (ValueError,OSError,subprocess.SubprocessError,httpx.HTTPError) as exc:
-                if isinstance(exc,PlatformRestrictionError):
+                if getattr(exc,'code','')=='user_aborted':
+                    interrupted=True;blocked=True;reason=stop_reason='cancelled'
+                    break
+                elif isinstance(exc,PlatformRestrictionError):
                     checks[source]={'source':source,'status':'blocked','detail':str(sanitize_diagnostics(exc.details))}
                     reason='login_or_challenge'
                 elif is_infrastructure_error(exc):
                     errors=collection_queue.read_json(folder/'browser-errors.json',[])
-                    errors.append(sanitize_diagnostics({'action':getattr(exc,'action','search_or_detail'),
+                    event_data={'action':getattr(exc,'action','search_or_detail'),
                         'category':'infrastructure','code':getattr(exc,'code',type(exc).__name__),
-                        'details':getattr(exc,'details',''),'result':'recovery_pending','at':time.time()}))
+                        'details':getattr(exc,'details',''),'result':'recovery_pending','at':time.time()}
+                    raw_output=str(getattr(exc,'raw_output','') or '')
+                    if raw_output:event_data['raw_output']=raw_output[:1000]
+                    sanitized_event=sanitize_diagnostics(event_data)
+                    errors.append(sanitized_event)
                     save(folder/'browser-errors.json',errors)
+                    try:
+                        sys.stderr.write(json.dumps(sanitized_event,ensure_ascii=False)+'\n')
+                        sys.stderr.flush()
+                    except Exception:pass
                     checkpoint('browser_recovering')
                     recovered=False
                     if hasattr(browser,'can_recover') and browser.can_recover():
-                        try:recovered=browser.recover(step)
+                        try:
+                            recovered=(browser.recover(step,cause=exc)
+                                       if isinstance(browser,Browser) else browser.recover(step))
                         except Exception:recovered=False
                     if recovered:
                         reason='browser_recovered'
@@ -1991,10 +2656,19 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 checkpoint()
     except BrowserInfrastructureError as exc:
         blocked=True;stop_reason='command_timeout' if exc.is_timeout else 'browser_unavailable'
+        if exc.code=='user_aborted':interrupted=True;stop_reason='cancelled'
         errors=collection_queue.read_json(folder/'browser-errors.json',[])
-        errors.append(sanitize_diagnostics({'action':exc.action,'category':exc.category,
-                                           'code':exc.code,'details':exc.details,'result':'failed','at':time.time()}))
+        event_data={'action':exc.action,'category':exc.category,
+                    'code':exc.code,'details':exc.details,'result':'failed','at':time.time()}
+        raw_output=str(getattr(exc,'raw_output','') or '')
+        if raw_output:event_data['raw_output']=raw_output[:1000]
+        sanitized_event=sanitize_diagnostics(event_data)
+        errors.append(sanitized_event)
         save(folder/'browser-errors.json',errors)
+        try:
+            sys.stderr.write(json.dumps(sanitized_event,ensure_ascii=False)+'\n')
+            sys.stderr.flush()
+        except Exception:pass
     except AgentUnavailable as exc:
         blocked=True;gaps.append(str(exc))
         category=getattr(exc,'category','')
@@ -2010,6 +2684,21 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         blocked=True;stop_reason='internal_error';interrupted=True
         raise
     finally:
+        if not interrupted and 'poll_name_enrichment' in locals():poll_name_enrichment()
+        name_session['cancel'].set()
+        name_thread=name_session.get('thread')
+        if name_thread is not None:
+            name_thread.join(timeout=30)
+            if not interrupted and not name_thread.is_alive():
+                poll_name_enrichment()
+            if interrupted or name_thread.is_alive():
+                record=dict(state.get('name_enrichment') or {})
+                record.update(state='cancel_pending' if name_thread.is_alive() else 'cancelled',
+                              applied=False,stopped_at=time.time())
+                state['name_enrichment']=record
+            if name_thread.is_alive():
+                gaps.append('名称查名进程未在取消后确认退出；未写入本轮checkpoint。')
+            save(folder/'name-enrichment.json',state.get('name_enrichment') or {})
         incoming_cleanup=cleanup_incoming(folder)
         state['incoming_cleanup']=incoming_cleanup
         if pending is not None:pending.close(cancel=True)
@@ -2035,6 +2724,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
             else:
                 stop_reason='search_plan_exhausted'
         confirmed_total=canonical_counts(force=True)['target_progress'] if search_only else len(candidates)
+        download_reached=bool(download_target and new_downloads()>=download_target)
         termination_reason=stop_reason
         if search_only and not interrupted:
             if stop_reason=='target_reached' and confirmed_total<target:
@@ -2047,7 +2737,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
         if search_only:
             if interrupted:
                 status='cancelled'
-            elif confirmed_total>=target:
+            elif download_reached or confirmed_total>=target:
                 status='completed'
             elif stop_reason=='browser_unavailable':
                 status='partial' if received else 'blocked'
@@ -2070,6 +2760,9 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                 first_received=(started+first_usable if isinstance(first_usable,(int,float)) else None),
                 duplicates=duplicates,
                 errors=received_errors,extra={'target':target,'target_reached':confirmed_total>=target,
+                                              'download_target':download_target,
+                                              'download_target_reached':download_reached,
+                                              'new_downloads':new_downloads(),
                                               'termination_reason':termination_reason,
                                               'query_budget':query_budget,
                                               'requested_target':requested_total,'effective_target':target,
@@ -2103,7 +2796,7 @@ def collect(job:dict,agent,browser,folder:Path,*,history=None,workers=1,finalize
                                               'history_known':getattr(history,'known_count',getattr(history,'initial_count',0)),
                                               'history_errors':len(getattr(history,'errors',[])),
                                               'source_blocked':any(c.get('status') in ('blocked','login_required') for c in checks.values())})
-            is_search_complete=(status=='completed') or (stop_reason in ('target_reached','soft_target_reached','search_plan_exhausted'))
+            is_search_complete=(status=='completed') or (stop_reason in ('target_reached','download_target_reached','soft_target_reached','search_plan_exhausted'))
             state.update(search_complete=is_search_complete,search_summary=summary,search_stop_reason=stop_reason,
                          phase='search_finished',first_usable=first_usable,elapsed_seconds_total=elapsed_total)
             try:browser.close()
@@ -2694,7 +3387,8 @@ def write_search_summary(folder,*,status,stop_reason,received,queries,checks,sea
                    confirmed_model_invocations=sum(c.get('invoked') is True for c in attempts),
                    unknown_model_invocations=sum('invoked' not in c for c in attempts))
     if extra:
-        for key in ('target','requested_target','effective_target','target_reached','budget_note',
+        for key in ('target','requested_target','effective_target','target_reached',
+                    'download_target','download_target_reached','new_downloads','budget_note',
                     'termination_reason','query_budget',
                     'search_only','history_ready','history_known','history_errors','source_blocked',
                     'cumulative_elapsed_seconds','continue','query_history','canonical',
@@ -2937,6 +3631,17 @@ def _history_for_search(folder, project_id):
             history.known_count=len(history.known_shas)
         history.baseline_sha=goal['baseline_sha']
 
+    # A restart imports this Job's candidates before continuation. Exclude those
+    # current-run originals and valid temporary collage children from the project
+    # history it is being compared against; they are current work, not repeats.
+    current_shas={row['asset_sha'] for row in collection_queue._received_rows(folder)}
+    derived=read_json(folder/'derived.json',{}).get('items',{})
+    for record in (derived.values() if isinstance(derived,dict) else ()):
+        if isinstance(record,dict):
+            current_shas.update(child.get('child_sha') for child in record.get('children',[])
+                                if isinstance(child,dict) and child.get('child_sha'))
+    history.exclude(current_shas)
+
     return history
 
 
@@ -2949,11 +3654,24 @@ def main():
     ap.add_argument('--vision-workers',type=int,choices=(1,2),default=2,help='最多两个独立摄影初判；1用于串行对照。')
     ap.add_argument('--search-only',action='store_true',help='搜索、下载和持久化候选原图；不研究身份参照；绑定Goal时逐张实际读图确认类型。')
     ap.add_argument('--review-only',action='store_true',help='只消费已下载候选的独立审核队列；不重新搜索。')
+    ap.add_argument('--postprocess-only',action='store_true',help='只处理已落盘原图的拼图与既有类型预算；不启动浏览器。')
     ap.add_argument('--wait-search',action='store_true',help='审核继续消费 Search 在运行期间新增的候选，直到 Search 结束。')
+    ap.add_argument('--browser-backend',choices=('bsk','playwright'),default='bsk',
+                    help='可见浏览器传输；默认保留现有 BrowserSkill。')
+    ap.add_argument('--playwright-profile',type=Path,
+                    help='显式 Playwright 专用 profile；只用于 playwright backend。')
     args=ap.parse_args();job,_=load_job_info(args.task)
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,100}',job['id']):raise ValueError('Invalid job identity')
-    if args.search_only and args.review_only:raise ValueError('Choose search-only or review-only, not both')
-    if args.resume and (args.search_only or args.review_only):raise ValueError('Resume mode is only for the historical one-pass pipeline')
+    chosen=sum((args.search_only,args.review_only,args.postprocess_only))
+    if chosen>1:raise ValueError('Choose exactly one collection stage mode')
+    if args.resume and chosen:raise ValueError('Resume mode is only for the historical one-pass pipeline')
+    if args.postprocess_only:
+        from ref_lab.collection_postprocess import run_postprocess_job
+        folder=ROOT/'.local'/'collection-runs'/job['id']/'current'
+        state=run_postprocess_job(job,folder)
+        if state.get('lock_contended'):raise SystemExit(75)
+        print('POSTPROCESS '+json.dumps(state,ensure_ascii=False),flush=True)
+        return
     if args.search_only:
         with resume_lock(ROOT/'.local/collection-runs'/job['id'],'search-cli.lock'):
             folder=ROOT/'.local'/'collection-runs'/job['id']/'current'
@@ -3019,8 +3737,10 @@ def main():
                                               'lazy':not bool(job.get('goal_id')),'ready':history.ready,'known_shas':history.known_count,
                                               'historical_images':history.known_count})
             try:
-                browser=Browser(folder);browser.cover_cache_path=ROOT/'.local/cover-duplicate-cache.json'
-                summary,_=collect(job,agent,browser,folder,history=history,workers=1,search_only=True)
+                browser=make_browser(folder,args.browser_backend,args.playwright_profile)
+                browser.cover_cache_path=ROOT/'.local/cover-duplicate-cache.json'
+                summary,_=collect(job,agent,browser,folder,history=history,workers=1,search_only=True,
+                                  defer_postprocess=job.get('collection_mode')=='search')
             finally:
                 history.close(wait=False,timeout=3)
                 save(folder/'history-index.json',{'project_id':project_id,'scope':getattr(history,'scope_report',{}),
@@ -3132,7 +3852,8 @@ def main():
                     raise ValueError('Existing result original bytes changed')
             print('Existing verified result reused; no new collection')
             return
-        agent=AntigravityCollectionAgent(folder,target_count=int(job.get('target_count') or 12));browser=Browser(folder)
+        agent=AntigravityCollectionAgent(folder,target_count=int(job.get('target_count') or 12))
+        browser=make_browser(folder,args.browser_backend,args.playwright_profile)
         browser.cover_cache_path=ROOT/'.local/cover-duplicate-cache.json'
         if not (folder/'run-info.json').exists():save(folder/'run-info.json',{'job_id':job['id'],'adapter_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
              'agent_contract_sha256':hashlib.sha256((ROOT/'ref_lab/verified_collection.py').read_bytes()).hexdigest(),
